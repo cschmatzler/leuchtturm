@@ -1,0 +1,23 @@
+[package]
+name = "leuchtturm"
+version = "0.1.0"
+authors = ["Christoph Schmatzler <christoph@medium.place>"]
+edition = "2021"
+publish = false
+
+[workspace]
+members = [".", "crates/*"]
+
+[workspace.dependencies]
+sqlx = { version = "0.6.2", features = [ "postgres", "runtime-tokio-rustls" ] }
+thiserror = "1.0.38"
+leuchtturm-migrations = { path = "crates/leuchtturm-migrations" }
+leuchtturm-web = { path = "crates/leuchtturm-web" }
+
+[dependencies]
+leuchtturm-migrations.workspace = true
+leuchtturm-web.workspace = true
+sqlx.workspace = true
+clap = { version = "4.0.29", features = ["cargo", "derive", "env"] }
+color-eyre = "0.6.2"
+tokio = { version = "1.23.0", features = ["macros", "rt-multi-thread"] }
