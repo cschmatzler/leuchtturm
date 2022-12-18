@@ -3,7 +3,7 @@ use color_eyre::Result;
 use leuchtturm_migrations;
 use leuchtturm_web;
 
-use crate::cli::{Cli, Commands, Database::Migrate};
+use crate::cli::{Cli, Database::Migrate, Run};
 
 mod cli;
 
@@ -12,10 +12,8 @@ async fn main() -> Result<()> {
 	let cli = Cli::parse();
 
 	match cli.command {
-		Commands::Web(args) => leuchtturm_web::serve(args.into()).await?,
-		Commands::Database(Migrate(args)) => {
-			leuchtturm_migrations::run(&args.database_url).await?
-		}
+		Run::Web(args) => leuchtturm_web::serve(args.into()).await?,
+		Run::Database(Migrate(args)) => leuchtturm_migrations::run(&args.database_url).await,
 	}
 
 	Ok(())

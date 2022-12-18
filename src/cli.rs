@@ -6,11 +6,11 @@ use clap::{Args, Parser, Subcommand};
 #[command(author, version, about, long_about = None)]
 pub(crate) struct Cli {
 	#[command(subcommand)]
-	pub(crate) command: Commands,
+	pub(crate) command: Run,
 }
 
 #[derive(Subcommand)]
-pub(crate) enum Commands {
+pub(crate) enum Run {
 	#[command(subcommand, about = "Database management tools")]
 	Database(Database),
 	#[command(about = "Run the Leuchtturm web server")]
