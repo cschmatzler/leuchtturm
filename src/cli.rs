@@ -25,14 +25,22 @@ pub(crate) struct Web {
 	port: u16,
 	#[arg(long, env, help = "PostgreSQL connection URL")]
 	database_url: String,
+	#[arg(long, env, help = "Enable tracing")]
+	pub(crate) enable_tracing: bool,
+	#[arg(
+		long,
+		env,
+		help = "Lightstep Access Token - presence enables trace export to Lightstep"
+	)]
+	pub(crate) lightstep_token: Option<String>,
 }
 
-impl Into<leuchtturm_web::Config> for Web {
-	fn into(self) -> leuchtturm_web::Config {
+impl From<Web> for leuchtturm_web::Config {
+	fn from(web: Web) -> Self {
 		leuchtturm_web::Config {
-			host: self.host,
-			port: self.port,
-			database_url: self.database_url,
+			host: web.host,
+			port: web.port,
+			database_url: web.database_url,
 		}
 	}
 }

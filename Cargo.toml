@@ -9,7 +9,7 @@ publish = false
 members = [".", "crates/*"]
 
 [workspace.dependencies]
-sqlx = { version = "0.6.2", features = [ "postgres", "runtime-tokio-rustls" ] }
+sqlx = { version = "0.6.2", features = ["postgres", "runtime-tokio-rustls"] }
 thiserror = "1.0.38"
 leuchtturm-migrations = { path = "crates/leuchtturm-migrations" }
 leuchtturm-web = { path = "crates/leuchtturm-web" }
@@ -18,6 +18,13 @@ leuchtturm-web = { path = "crates/leuchtturm-web" }
 leuchtturm-migrations.workspace = true
 leuchtturm-web.workspace = true
 sqlx.workspace = true
+thiserror.workspace = true
 clap = { version = "4.0.29", features = ["cargo", "derive", "env"] }
 color-eyre = "0.6.2"
+opentelemetry = { version = "0.18.0", features = ["rt-tokio"] }
+opentelemetry-otlp = { version = "0.11.0", features = ["tls"] }
 tokio = { version = "1.23.0", features = ["macros", "rt-multi-thread"] }
+tonic = { version = "0.8.3", features = ["tls", "tls-roots"] }
+tracing = "0.1.37"
+tracing-opentelemetry = "0.18.0"
+tracing-subscriber = { version = "0.3.16", features = ["env-filter"] }

@@ -31,7 +31,7 @@ use sqlx::{migrate, postgres::PgPoolOptions};
 ///   parameter is incorrect, or if the database is not currently available.
 /// - Running migrations failed. This just panics on [sqlx::migrate::MigrateError]. The migration
 ///   files might contain invalid SQL or something else failed.
-pub async fn run(database_url: &String) {
+pub async fn run(database_url: &str) {
 	let db = PgPoolOptions::new()
 		.max_connections(25)
 		.connect(database_url)

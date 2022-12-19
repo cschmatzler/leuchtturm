@@ -5,26 +5,29 @@
 //! domains.
 
 #![warn(
+	missing_docs,
+	missing_debug_implementations,
+	rust_2018_idioms,
+	future_incompatible,
 	clippy::correctness,
 	clippy::suspicious,
 	clippy::complexity,
 	clippy::perf,
-	clippy::style,
-	rust_2018_idioms,
-	future_incompatible,
 	nonstandard_style,
-	missing_debug_implementations,
-	missing_docs
+	clippy::style
 )]
 #![deny(unreachable_pub, private_in_public)]
 
 use std::net::SocketAddr;
 
-use axum::{Router, Server};
-pub use config::Config;
-use web_error::WebError;
+use axum::Server;
+
+pub use crate::config::Config;
+use crate::web_error::WebError;
 
 pub mod config;
+mod database;
+mod router;
 pub mod web_error;
 
 /// Spins up the main web service
@@ -33,7 +36,8 @@ pub mod web_error;
 /// also takes related fields like database pools. This is then passed onto route handlers where
 /// it's further passed down to the business logic.
 pub async fn serve(config: Config) -> Result<(), WebError> {
-	let router = Router::new();
+	let db_pool = database::connect(&config.database_url).await?;
+	let router = router::build(db_pool);
 
 	Server::bind(&SocketAddr::new(config.host, config.port))
 		.serve(router.into_make_service())
