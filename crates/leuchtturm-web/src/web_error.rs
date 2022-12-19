@@ -9,8 +9,8 @@ pub enum WebError {
 	/// [Config](crate::config::Config)'s `host` and `port` is unavailable or the user does not
 	/// have the permission to bind to it
 	#[error("Error binding to given socket address")]
-	BindError,
+	Bind,
 	/// Database connection failure
 	#[error("Error connecting to the database")]
-	DatabaseError(#[from] sqlx::Error),
+	Database(#[from] sqlx::Error),
 }

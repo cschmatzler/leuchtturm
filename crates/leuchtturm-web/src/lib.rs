@@ -4,6 +4,7 @@
 //! handling all HTTP requests and represents an imperative shell calling the necessary business
 //! domains.
 
+// #![feature(async_fn_in_trait)]
 #![warn(
 	missing_docs,
 	missing_debug_implementations,
@@ -27,6 +28,8 @@ use crate::web_error::WebError;
 
 pub mod config;
 mod database;
+mod htmx;
+mod template;
 mod router;
 pub mod web_error;
 
@@ -37,12 +40,12 @@ pub mod web_error;
 /// it's further passed down to the business logic.
 pub async fn serve(config: Config) -> Result<(), WebError> {
 	let db_pool = database::connect(&config.database_url).await?;
-	let router = router::build(db_pool);
+	let router = router::init(db_pool);
 
 	Server::bind(&SocketAddr::new(config.host, config.port))
 		.serve(router.into_make_service())
 		.await
-		.map_err(|_| WebError::BindError)?;
+		.map_err(|_| WebError::Bind)?;
 
 	Ok(())
 }

@@ -7,4 +7,6 @@ edition = "2021"
 sqlx.workspace = true
 thiserror.workspace = true
 axum = "0.6.1"
+lazy_static = "1.4.0"
+tera = "1.17.1"
 tower-http = { version = "0.3.5", features = ["trace"] }
