@@ -1,3 +1,7 @@
+//! Collection of templates that are rendered to HTML and sent as response.
+//!
+//! Uses [tera] for parsing.
+
 use lazy_static::lazy_static;
 use tera::Tera;
 
@@ -7,9 +11,8 @@ lazy_static! {
 		match Tera::new("crates/leuchtturm-web/src/templates/**/*.html") {
 			Ok(t) => t,
 			Err(e) => {
-				// TODO: make this nicer?
-				println!("Parsing error(s): {}", e);
-				::std::process::exit(1);
+				println!("Error parsing templates with errors: {e}");
+				std::process::exit(1);
 			}
 		}
 	};

@@ -1069,6 +1069,7 @@ version = "0.1.0"
 dependencies = [
  "axum",
  "lazy_static",
+ "serde",
  "sqlx",
  "tera",
  "thiserror",

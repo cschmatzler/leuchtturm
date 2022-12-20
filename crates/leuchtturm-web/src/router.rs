@@ -2,27 +2,20 @@
 //!
 //! There isn't much more to say here. An [axum::Router] that dispatches all of our routes,
 //! handles shared state and sets up a tracing layer.
-use axum::{response::Html, routing::get, Router};
+
+use axum::{Router, routing::post};
 use sqlx::PgPool;
-use tera::Context;
 use tower_http::trace::TraceLayer;
 
-use crate::{htmx::Htmx, template::TEMPLATES};
+use crate::routes;
 
-pub(crate) fn init(db_pool: PgPool) -> Router {
+/// Builds the main router running the service
+///
+/// Embeds all state that is needed by route handlers to access various functions, such as
+/// database connections.
+pub(crate) fn build(db_pool: PgPool) -> Router {
 	Router::new()
 		.with_state(db_pool)
-		.route("/", get(handler))
+		.route("/signup", post(routes::signup::post))
 		.layer(TraceLayer::new_for_http())
-}
-
-async fn handler(htmx: Htmx) -> Html<String> {
-	let context = Context::new();
-	let html = if htmx.is_htmx {
-		TEMPLATES.render("small.html", &context).unwrap()
-	} else {
-		TEMPLATES.render("index.html", &context).unwrap()
-	};
-
-	Html(html)
 }

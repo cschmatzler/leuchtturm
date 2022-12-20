@@ -31,6 +31,7 @@ mod database;
 mod htmx;
 mod template;
 mod router;
+mod routes;
 pub mod web_error;
 
 /// Spins up the main web service
@@ -40,7 +41,7 @@ pub mod web_error;
 /// it's further passed down to the business logic.
 pub async fn serve(config: Config) -> Result<(), WebError> {
 	let db_pool = database::connect(&config.database_url).await?;
-	let router = router::init(db_pool);
+	let router = router::build(db_pool);
 
 	Server::bind(&SocketAddr::new(config.host, config.port))
 		.serve(router.into_make_service())
