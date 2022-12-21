@@ -5,6 +5,8 @@
 use lazy_static::lazy_static;
 use tera::Tera;
 
+pub(crate) const STYLESHEET: &'static str = include_str!("../assets/styles.css");
+
 lazy_static! {
 	pub static ref TEMPLATES: Tera = {
 		// This has to be relative to the root crate.

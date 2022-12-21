@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "tailwindcss": "^3.2.4"
+  },
+  "scripts": {
+    "build-css": "tailwindcss build -i ./crates/leuchtturm-web/src/templates/tailwind.css -o ./crates/leuchtturm-web/assets/styles.css --minify"
+  }
+}

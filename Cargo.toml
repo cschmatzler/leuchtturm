@@ -9,10 +9,11 @@ publish = false
 members = [".", "crates/*"]
 
 [workspace.dependencies]
+chrono = "0.4.23"
 leuchtturm-core = { path = "crates/leuchtturm-core" }
 leuchtturm-migrations = { path = "crates/leuchtturm-migrations" }
 leuchtturm-web = { path = "crates/leuchtturm-web" }
-sqlx = { version = "0.6.2", features = ["postgres", "runtime-tokio-rustls"] }
+sqlx = { version = "0.6.2", features = ["chrono", "postgres", "runtime-tokio-rustls"] }
 thiserror = "1.0.38"
 
 [dependencies]
