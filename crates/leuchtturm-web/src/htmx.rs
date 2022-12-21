@@ -1,10 +1,11 @@
 use axum::{async_trait, extract::FromRequestParts, http::request::Parts, response::Response};
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub(crate) struct Htmx {
 	pub(crate) is_htmx: bool,
-	pub(crate) _trigger: Option<String>,
-	pub(crate) _target: Option<String>,
+	pub(crate) trigger: Option<String>,
+	pub(crate) target: Option<String>,
 }
 
 #[async_trait]
@@ -20,8 +21,8 @@ where
 			is_htmx: get_header_value(parts, "HX-Request")
 				.map(|val| val.parse::<bool>().unwrap_or(false))
 				.unwrap_or(false),
-			_trigger: get_header_value(parts, "HX-Trigger").map(|val| val.to_owned()),
-			_target: get_header_value(parts, "HX-Target").map(|val| val.to_owned()),
+			trigger: get_header_value(parts, "HX-Trigger").map(|val| val.to_owned()),
+			target: get_header_value(parts, "HX-Target").map(|val| val.to_owned()),
 		})
 	}
 }
