@@ -1,7 +1,13 @@
-use axum::{response::Html, Form};
+use axum::{
+	extract::State,
+	response::{Html, IntoResponse},
+	Form,
+};
+use leuchtturm_core::authentication::user;
 use serde::Deserialize;
+use sqlx::PgPool;
 
-use crate::{template::TEMPLATES, htmx::Htmx};
+use crate::{htmx::Htmx, template::TEMPLATES, util::redirect_to};
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct LoginForm {
@@ -10,12 +16,22 @@ pub(crate) struct LoginForm {
 }
 
 pub(crate) async fn get() -> Html<String> {
-	Html(TEMPLATES.render("login.html", &tera::Context::new()).unwrap())
+	Html(
+		TEMPLATES
+			.render("login.html", &tera::Context::new())
+			.unwrap(),
+	)
 }
 
-pub(crate) async fn post(htmx: Htmx, Form(login_form): Form<LoginForm>) -> Html<&'static str> {
-	dbg!(htmx);
-	dbg!(login_form);
+pub(crate) async fn post(
+	_htmx: Htmx,
+	State(db_pool): State<PgPool>,
+	Form(login_form): Form<LoginForm>,
+) -> impl IntoResponse {
+	if let Some(email) = login_form.email && let Some(password) = login_form.password {
+		let _user = user::get_with_email_and_password(&db_pool, email, password).await;
+	}
 
-	Html("Hello")
+	redirect_to("/")
 }
+

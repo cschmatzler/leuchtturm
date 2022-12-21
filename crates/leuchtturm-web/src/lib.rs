@@ -5,6 +5,7 @@
 //! domains.
 
 // #![feature(async_fn_in_trait)]
+#![feature(let_chains)]
 #![warn(
 	missing_docs,
 	missing_debug_implementations,
@@ -29,9 +30,10 @@ use crate::web_error::WebError;
 pub mod config;
 mod database;
 mod htmx;
-mod template;
 mod router;
 mod routes;
+mod template;
+mod util;
 pub mod web_error;
 
 /// Spins up the main web service

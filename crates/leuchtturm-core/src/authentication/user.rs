@@ -15,9 +15,7 @@ pub enum AuthenticationError {
 	NotFound,
 }
 
-#[derive(Default, FromRow)]
-// TODO: remove this
-#[allow(dead_code)]
+#[derive(Debug, Default, FromRow)]
 pub struct User {
 	user_id: String,
 	email: String,

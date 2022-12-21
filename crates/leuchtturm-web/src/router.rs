@@ -4,7 +4,7 @@
 //! handles shared state and sets up a tracing layer.
 
 use axum::{
-	http::{header, HeaderMap},
+	http::{header, HeaderMap, HeaderValue},
 	response::IntoResponse,
 	routing::{get, post},
 	Router,
@@ -20,15 +20,16 @@ use crate::{routes, template::STYLESHEET};
 /// database connections.
 pub(crate) fn build(db_pool: PgPool) -> Router {
 	Router::new()
-		.with_state(db_pool)
 		.route("/styles.css", get(serve_styles))
 		.route("/login", get(routes::login::get).post(routes::login::post))
 		.route("/signup", post(routes::signup::post))
+		.with_state(db_pool)
 		.layer(TraceLayer::new_for_http())
 }
 
 async fn serve_styles() -> impl IntoResponse {
 	let mut headers = HeaderMap::with_capacity(1);
-	headers.insert(header::CONTENT_TYPE, "text/css".parse().unwrap());
+	headers.insert(header::CONTENT_TYPE, HeaderValue::from_static("text/css"));
+
 	(headers, STYLESHEET)
 }
