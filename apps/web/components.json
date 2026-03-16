@@ -12,11 +12,11 @@
 	},
 	"iconLibrary": "lucide",
 	"aliases": {
-		"components": "@roasted/web/components",
-		"utils": "@roasted/web/lib/utils",
-		"ui": "@roasted/web/components/ui",
-		"lib": "@roasted/web/lib",
-		"hooks": "@roasted/web/hooks"
+		"components": "@one/web/components",
+		"utils": "@one/web/lib/utils",
+		"ui": "@one/web/components/ui",
+		"lib": "@one/web/lib",
+		"hooks": "@one/web/hooks"
 	},
 	"registries": {}
 }

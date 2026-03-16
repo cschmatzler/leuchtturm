@@ -5,7 +5,7 @@ export default defineConfig({
 		$schema: "./node_modules/oxfmt/configuration_schema.json",
 		useTabs: true,
 		experimentalSortImports: {
-			internalPattern: ["@roasted/"],
+			internalPattern: ["@one/"],
 			newlinesBetween: true,
 			groups: [["external", "builtin"], ["internal"], ["parent", "sibling", "index"]],
 		},

@@ -1,7 +1,7 @@
 import { LogOutIcon } from "lucide-react";
 
-import { useCommandProvider } from "@roasted/web/hooks/use-command-provider";
-import { renderOptionShiftShortcut } from "@roasted/web/pages/app/-hooks/shortcut-kbd";
+import { useCommandProvider } from "@one/web/hooks/use-command-provider";
+import { renderOptionShiftShortcut } from "@one/web/pages/app/-hooks/shortcut-kbd";
 
 export function useAccountCommands({
 	userId,

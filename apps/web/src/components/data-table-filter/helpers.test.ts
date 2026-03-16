@@ -5,7 +5,7 @@ import {
 	createDateRange,
 	createNumberFilterValue,
 	createNumberRange,
-} from "@roasted/web/components/data-table-filter/helpers";
+} from "@one/web/components/data-table-filter/helpers";
 
 describe("createNumberFilterValue", () => {
 	it("returns empty array for undefined", () => {

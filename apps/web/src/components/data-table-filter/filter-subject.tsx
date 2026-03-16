@@ -1,4 +1,4 @@
-import type { Column, ColumnDataType } from "@roasted/web/components/data-table-filter/types";
+import type { Column, ColumnDataType } from "@one/web/components/data-table-filter/types";
 
 interface FilterSubjectProps<TData, TType extends ColumnDataType> {
 	column: Column<TData, TType>;

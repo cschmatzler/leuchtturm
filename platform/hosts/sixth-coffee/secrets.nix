@@ -1,13 +1,13 @@
 {...}: {
-	sops.secrets.roasted-pgbackrest = {
-		sopsFile = ../../../secrets/roasted-pgbackrest;
+	sops.secrets.one-pgbackrest = {
+		sopsFile = ../../../secrets/one-pgbackrest;
 		format = "binary";
 		owner = "postgres";
 		group = "postgres";
 	};
 
-	sops.secrets.roasted-api-env = {
-		sopsFile = ../../../secrets/roasted-api.env;
+	sops.secrets.one-api-env = {
+		sopsFile = ../../../secrets/one-api.env;
 		format = "dotenv";
 	};
 

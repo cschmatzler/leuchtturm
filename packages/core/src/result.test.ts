@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { PublicError } from "@roasted/core/result";
+import { PublicError } from "@one/core/result";
 
 describe("PublicError", () => {
 	it("creates an error with default empty arrays", () => {

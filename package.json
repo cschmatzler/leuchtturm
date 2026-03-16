@@ -1,5 +1,5 @@
 {
-	"name": "roasted",
+	"name": "one",
 	"private": true,
 	"workspaces": [
 		"apps/*",

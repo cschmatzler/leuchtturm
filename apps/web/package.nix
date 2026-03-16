@@ -29,7 +29,7 @@
 		};
 in
 	stdenvNoCC.mkDerivation (finalAttrs: {
-			pname = "roasted-web";
+			pname = "one-web";
 			version = "rolling";
 			inherit src;
 
@@ -60,7 +60,7 @@ in
 
 			buildPhase = ''
 				runHook preBuild
-				pnpm --filter @roasted/web build
+				pnpm --filter @one/web build
 				runHook postBuild
 			'';
 

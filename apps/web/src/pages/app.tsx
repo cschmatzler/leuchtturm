@@ -10,16 +10,16 @@ import { ChevronDownIcon, CogIcon, CreditCardIcon, LogOutIcon } from "lucide-rea
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
-import { Loading } from "@roasted/web/components/app/loading";
-import { Avatar, AvatarFallback } from "@roasted/web/components/ui/avatar";
-import { Link } from "@roasted/web/components/ui/link";
+import { Loading } from "@one/web/components/app/loading";
+import { Avatar, AvatarFallback } from "@one/web/components/ui/avatar";
+import { Link } from "@one/web/components/ui/link";
 import {
 	Menu,
 	MenuContent,
 	MenuItem,
 	MenuShortcut,
 	MenuTrigger,
-} from "@roasted/web/components/ui/menu";
+} from "@one/web/components/ui/menu";
 import {
 	Sidebar,
 	SidebarContent,
@@ -33,17 +33,17 @@ import {
 	SidebarMenuItem,
 	SidebarProvider,
 	SidebarRail,
-} from "@roasted/web/components/ui/sidebar";
-import { ZeroProvider, type SessionData } from "@roasted/web/contexts/zero";
-import { useAuth } from "@roasted/web/hooks/use-auth";
-import { useCommandBar } from "@roasted/web/hooks/use-command-bar";
-import { useZeroQuery } from "@roasted/web/lib/query";
-import { renderOptionShiftShortcut } from "@roasted/web/pages/app/-hooks/shortcut-kbd";
-import { useAccountCommands } from "@roasted/web/pages/app/-hooks/use-account-commands";
-import { useNavigationCommands } from "@roasted/web/pages/app/-hooks/use-navigation-commands";
-import { useShellShortcuts } from "@roasted/web/pages/app/-hooks/use-shell-shortcuts";
-import { sessionQuery } from "@roasted/web/queries/session";
-import { queries } from "@roasted/zero/queries";
+} from "@one/web/components/ui/sidebar";
+import { ZeroProvider, type SessionData } from "@one/web/contexts/zero";
+import { useAuth } from "@one/web/hooks/use-auth";
+import { useCommandBar } from "@one/web/hooks/use-command-bar";
+import { useZeroQuery } from "@one/web/lib/query";
+import { renderOptionShiftShortcut } from "@one/web/pages/app/-hooks/shortcut-kbd";
+import { useAccountCommands } from "@one/web/pages/app/-hooks/use-account-commands";
+import { useNavigationCommands } from "@one/web/pages/app/-hooks/use-navigation-commands";
+import { useShellShortcuts } from "@one/web/pages/app/-hooks/use-shell-shortcuts";
+import { sessionQuery } from "@one/web/queries/session";
+import { queries } from "@one/zero/queries";
 
 const SETTINGS_NAVIGATION = [
 	{

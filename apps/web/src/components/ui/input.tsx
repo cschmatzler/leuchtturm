@@ -1,7 +1,7 @@
 import { Input as BaseInput } from "@base-ui/react/input";
 import type { ComponentProps } from "react";
 
-import { cn } from "@roasted/web/lib/cn";
+import { cn } from "@one/web/lib/cn";
 
 function Input({ className, type, ...props }: ComponentProps<"input">) {
 	return (

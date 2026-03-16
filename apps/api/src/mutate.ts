@@ -3,10 +3,10 @@ import { handleMutateRequest } from "@rocicorp/zero/server";
 import { zeroDrizzle } from "@rocicorp/zero/server/adapters/drizzle";
 import { Hono } from "hono";
 
-import { authMiddleware, type AuthVariables } from "@roasted/api/middleware/auth";
-import { db } from "@roasted/core/drizzle/index";
-import { mutators } from "@roasted/zero/mutators";
-import { schema } from "@roasted/zero/schema";
+import { authMiddleware, type AuthVariables } from "@one/api/middleware/auth";
+import { db } from "@one/core/drizzle/index";
+import { mutators } from "@one/zero/mutators";
+import { schema } from "@one/zero/schema";
 
 const dbProvider = zeroDrizzle(schema, db);
 

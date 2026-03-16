@@ -4,7 +4,7 @@ const { postMock } = vi.hoisted(() => ({
 	postMock: vi.fn(),
 }));
 
-vi.mock("@roasted/web/clients/api", () => ({
+vi.mock("@one/web/clients/api", () => ({
 	api: {
 		analytics: {
 			$post: postMock,
@@ -12,20 +12,20 @@ vi.mock("@roasted/web/clients/api", () => ({
 	},
 }));
 
-type AnalyticsModule = typeof import("@roasted/web/lib/analytics");
+type AnalyticsModule = typeof import("@one/web/lib/analytics");
 
 let documentAddEventListenerMock: ReturnType<typeof vi.fn>;
 let windowAddEventListenerMock: ReturnType<typeof vi.fn>;
 let sendBeaconMock: ReturnType<typeof vi.fn>;
 
 const defaultLocation = {
-	url: "https://roasted.app/dashboard",
+	url: "https://one.app/dashboard",
 	referrer: "https://example.com",
 };
 
 async function loadAnalyticsModule(): Promise<AnalyticsModule> {
 	vi.resetModules();
-	return await import("@roasted/web/lib/analytics");
+	return await import("@one/web/lib/analytics");
 }
 
 describe("analytics", () => {
@@ -46,7 +46,7 @@ describe("analytics", () => {
 			referrer: "https://example.com",
 		});
 		vi.stubGlobal("window", {
-			location: { href: "https://roasted.app/dashboard" },
+			location: { href: "https://one.app/dashboard" },
 			addEventListener: windowAddEventListenerMock,
 		});
 	});
@@ -73,13 +73,13 @@ describe("analytics", () => {
 		expect(firstCall.json.events).toHaveLength(2);
 		expect(firstCall.json.events[0]).toEqual({
 			eventType: "button_click",
-			url: "https://roasted.app/dashboard",
+			url: "https://one.app/dashboard",
 			referrer: "https://example.com",
 			properties: { buttonId: "save" },
 		});
 		expect(firstCall.json.events[1]).toEqual({
 			eventType: "form_submit",
-			url: "https://roasted.app/dashboard",
+			url: "https://one.app/dashboard",
 			referrer: "https://example.com",
 			properties: undefined,
 		});

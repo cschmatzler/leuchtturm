@@ -1,4 +1,4 @@
-# @roasted/oxlint-plugins - Custom Oxlint Plugins
+# @one/oxlint-plugins - Custom Oxlint Plugins
 
 ## Overview
 
@@ -15,9 +15,9 @@ src/
 
 ## Available Plugins
 
-| Plugin                | Rule                  | Description                                                             |
-| --------------------- | --------------------- | ----------------------------------------------------------------------- |
-| `no-relative-imports` | `no-relative-imports` | Disallows `./` and `../` imports, requires `@roasted/*` package imports |
+| Plugin                | Rule                  | Description                                                         |
+| --------------------- | --------------------- | ------------------------------------------------------------------- |
+| `no-relative-imports` | `no-relative-imports` | Disallows `./` and `../` imports, requires `@one/*` package imports |
 
 ## Usage
 
@@ -40,7 +40,7 @@ export default defineConfig({
 ### Building
 
 ```bash
-pnpm --filter @roasted/oxlint-plugins build
+pnpm --filter @one/oxlint-plugins build
 ```
 
 ## Conventions

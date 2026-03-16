@@ -1,4 +1,4 @@
-# @roasted/zero - Zero Sync Layer
+# @one/zero - Zero Sync Layer
 
 ## Overview
 
@@ -99,9 +99,9 @@ All writes go through mutators defined with arktype validation:
 ```typescript
 import { defineMutator } from "@rocicorp/zero";
 import { type } from "arktype";
-import { Bean } from "@roasted/core/inventory/schema";
-import { assertLoggedIn, assertOwnership } from "@roasted/zero/mutators/shared";
-import { zql } from "@roasted/zero/schema";
+import { Bean } from "@one/core/inventory/schema";
+import { assertLoggedIn, assertOwnership } from "@one/zero/mutators/shared";
+import { zql } from "@one/zero/schema";
 
 export const beanMutators = {
 	create: defineMutator(
@@ -158,8 +158,8 @@ Every mutator must:
 3. Throw `PublicError({ status: 403 })` if unauthorized
 
 ```typescript
-import { assertLoggedIn, assertOwnership } from "@roasted/zero/mutators/shared";
-import { zql } from "@roasted/zero/schema";
+import { assertLoggedIn, assertOwnership } from "@one/zero/mutators/shared";
+import { zql } from "@one/zero/schema";
 
 async ({ tx, ctx, args }) => {
 	assertLoggedIn(ctx);
@@ -502,9 +502,9 @@ declare module "@rocicorp/zero" {
 Enables:
 
 ```typescript
-import { schema, zql } from "@roasted/zero/schema";
-import { queries } from "@roasted/zero/queries";
-import { mutators } from "@roasted/zero/mutators";
-import { assertLoggedIn, assertOwnership } from "@roasted/zero/mutators/shared";
-import type { BeanRow, Schema, Context } from "@roasted/zero/schema";
+import { schema, zql } from "@one/zero/schema";
+import { queries } from "@one/zero/queries";
+import { mutators } from "@one/zero/mutators";
+import { assertLoggedIn, assertOwnership } from "@one/zero/mutators/shared";
+import type { BeanRow, Schema, Context } from "@one/zero/schema";
 ```

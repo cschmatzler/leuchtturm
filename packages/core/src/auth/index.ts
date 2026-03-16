@@ -1,12 +1,12 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 
-import * as schema from "@roasted/core/auth/auth.sql";
-import { autumn } from "@roasted/core/billing/autumn";
-import { db } from "@roasted/core/drizzle/index";
-import { PREFIXES, createId, type IdPrefix } from "@roasted/core/id";
-import { resend } from "@roasted/email/index";
-import { renderPasswordResetEmail } from "@roasted/email/password-reset";
+import * as schema from "@one/core/auth/auth.sql";
+import { autumn } from "@one/core/billing/autumn";
+import { db } from "@one/core/drizzle/index";
+import { PREFIXES, createId, type IdPrefix } from "@one/core/id";
+import { resend } from "@one/email/index";
+import { renderPasswordResetEmail } from "@one/email/password-reset";
 
 export const auth = betterAuth({
 	baseURL: `${process.env.BASE_URL}/api/auth`,

@@ -8,8 +8,8 @@ import {
 	DialogDescription,
 	DialogHeader,
 	DialogTitle,
-} from "@roasted/web/components/ui/dialog";
-import { cn } from "@roasted/web/lib/cn";
+} from "@one/web/components/ui/dialog";
+import { cn } from "@one/web/lib/cn";
 
 function Command({ className, ...props }: ComponentProps<typeof CommandPrimitive>) {
 	return (

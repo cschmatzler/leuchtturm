@@ -1,6 +1,6 @@
 import { useContext } from "react";
 
-import { Context } from "@roasted/web/contexts/command-bar";
+import { Context } from "@one/web/contexts/command-bar";
 
 export function useCommandBar() {
 	const context = useContext(Context);

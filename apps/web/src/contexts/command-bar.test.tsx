@@ -3,8 +3,8 @@ import type { FC, ReactNode } from "react";
 import { useContext } from "react";
 import { describe, expect, it, vi } from "vite-plus/test";
 
-import type { Action } from "@roasted/web/contexts/command-bar";
-import { CommandBarProvider, Context } from "@roasted/web/contexts/command-bar";
+import type { Action } from "@one/web/contexts/command-bar";
+import { CommandBarProvider, Context } from "@one/web/contexts/command-bar";
 
 const Icon: FC<{ className?: string }> = () => null;
 

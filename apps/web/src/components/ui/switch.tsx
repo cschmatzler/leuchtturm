@@ -1,6 +1,6 @@
 import { Switch as BaseSwitch } from "@base-ui/react/switch";
 
-import { cn } from "@roasted/web/lib/cn";
+import { cn } from "@one/web/lib/cn";
 
 function Switch({
 	className,

@@ -1,9 +1,9 @@
-import type { ImportDeclaration, Plugin, RuleModule } from "@roasted/oxlint-plugins/types";
+import type { ImportDeclaration, Plugin, RuleModule } from "@one/oxlint-plugins/types";
 
 const rule: RuleModule = {
 	meta: {
 		docs: {
-			description: "Disallow relative imports. Use @roasted/* imports instead.",
+			description: "Disallow relative imports. Use @one/* imports instead.",
 		},
 		type: "problem",
 	},
@@ -16,8 +16,7 @@ const rule: RuleModule = {
 					if (importPath.startsWith(".")) {
 						context.report({
 							node,
-							message:
-								"Relative imports are not allowed. Use package imports with @roasted/* instead.",
+							message: "Relative imports are not allowed. Use package imports with @one/* instead.",
 						});
 					}
 				}

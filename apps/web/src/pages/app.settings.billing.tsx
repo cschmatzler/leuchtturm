@@ -4,16 +4,16 @@ import { useCustomer } from "autumn-js/react";
 import { ExternalLinkIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { Content, Header } from "@roasted/web/components/app/layout";
-import { Button } from "@roasted/web/components/ui/button";
+import { Content, Header } from "@one/web/components/app/layout";
+import { Button } from "@one/web/components/ui/button";
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle,
-} from "@roasted/web/components/ui/card";
-import { PricingTable } from "@roasted/web/pages/app.settings.billing/-components/pricing-table";
+} from "@one/web/components/ui/card";
+import { PricingTable } from "@one/web/pages/app.settings.billing/-components/pricing-table";
 
 const searchSchema = type({
 	interval: type("'month' | 'year'").default(() => "month" as const),

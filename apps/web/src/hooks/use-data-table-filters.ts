@@ -1,18 +1,18 @@
 import { useMemo, useState, type Dispatch, type SetStateAction } from "react";
 
-import { createFilterColumns } from "@roasted/web/components/data-table-filter/filters";
+import { createFilterColumns } from "@one/web/components/data-table-filter/filters";
 import {
 	createDateFilterValue,
 	createNumberFilterValue,
 	isColumnOptionArray,
 	isColumnOptionMap,
 	isMinMaxTuple,
-} from "@roasted/web/components/data-table-filter/helpers";
+} from "@one/web/components/data-table-filter/helpers";
 import {
 	dateFilterOperators,
 	DEFAULT_OPERATORS,
 	determineNewOperator,
-} from "@roasted/web/components/data-table-filter/operators";
+} from "@one/web/components/data-table-filter/operators";
 import type {
 	ColumnConfig,
 	ColumnDataType,
@@ -24,8 +24,8 @@ import type {
 	NumberColumnIds,
 	OptionBasedColumnDataType,
 	OptionColumnIds,
-} from "@roasted/web/components/data-table-filter/types";
-import { addUniq, removeUniq, uniq } from "@roasted/web/lib/array";
+} from "@one/web/components/data-table-filter/types";
+import { addUniq, removeUniq, uniq } from "@one/web/lib/array";
 
 export interface DataTableFiltersOptions<
 	TData,

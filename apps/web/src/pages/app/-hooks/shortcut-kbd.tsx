@@ -1,7 +1,7 @@
 import { ArrowBigUpIcon, OptionIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { Kbd, KbdGroup } from "@roasted/web/components/ui/kbd";
+import { Kbd, KbdGroup } from "@one/web/components/ui/kbd";
 
 function getPlatformOptionKey(): ReactNode {
 	return /Mac|iPod|iPhone|iPad/.test(navigator.userAgent) ? (

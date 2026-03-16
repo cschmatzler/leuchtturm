@@ -1,11 +1,11 @@
 {
-	"name": "@roasted/zero",
+	"name": "@one/zero",
 	"type": "module",
 	"exports": {
 		"./*": "./src/*.ts"
 	},
 	"dependencies": {
-		"@roasted/core": "workspace:*",
+		"@one/core": "workspace:*",
 		"@rocicorp/zero": "0.26.1",
 		"arktype": "2.2.0"
 	},

@@ -32,6 +32,12 @@ importers:
       '@hono/standard-validator':
         specifier: 0.2.2
         version: 0.2.2(@standard-schema/spec@1.1.0)(hono@4.12.8)
+      '@one/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@one/zero':
+        specifier: workspace:*
+        version: link:../../packages/zero
       '@opentelemetry/api':
         specifier: 1.9.0
         version: 1.9.0
@@ -56,12 +62,6 @@ importers:
       '@opentelemetry/sdk-trace-base':
         specifier: 2.6.0
         version: 2.6.0(@opentelemetry/api@1.9.0)
-      '@roasted/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@roasted/zero':
-        specifier: workspace:*
-        version: link:../../packages/zero
       '@rocicorp/zero':
         specifier: 0.26.1
         version: 0.26.1(@opentelemetry/core@2.6.0(@opentelemetry/api@1.9.0))
@@ -99,13 +99,13 @@ importers:
       '@fontsource/space-grotesk':
         specifier: 5.2.10
         version: 5.2.10
-      '@roasted/api':
+      '@one/api':
         specifier: workspace:*
         version: link:../api
-      '@roasted/core':
+      '@one/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@roasted/zero':
+      '@one/zero':
         specifier: workspace:*
         version: link:../../packages/zero
       '@rocicorp/zero':
@@ -247,7 +247,7 @@ importers:
       '@clickhouse/client':
         specifier: 1.18.2
         version: 1.18.2
-      '@roasted/email':
+      '@one/email':
         specifier: 'workspace:'
         version: link:../email
       arktype:
@@ -315,7 +315,7 @@ importers:
 
   packages/zero:
     dependencies:
-      '@roasted/core':
+      '@one/core':
         specifier: workspace:*
         version: link:../core
       '@rocicorp/zero':

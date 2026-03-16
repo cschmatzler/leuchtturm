@@ -2,7 +2,7 @@ import { Link, type LinkOptions } from "@tanstack/react-router";
 import { SearchXIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { Button } from "@roasted/web/components/ui/button";
+import { Button } from "@one/web/components/ui/button";
 
 export function NotFound({ backTo, backLabel }: { backTo: LinkOptions; backLabel: string }) {
 	const { t } = useTranslation();

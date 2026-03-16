@@ -1,4 +1,4 @@
-import { PublicError } from "@roasted/core/result";
+import { PublicError } from "@one/core/result";
 
 export function assert<T>(value: T | null | undefined): asserts value is T {
 	if (value == null) {

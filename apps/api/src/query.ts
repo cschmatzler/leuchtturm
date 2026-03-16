@@ -2,9 +2,9 @@ import { mustGetQuery, type ReadonlyJSONValue } from "@rocicorp/zero";
 import { handleQueryRequest } from "@rocicorp/zero/server";
 import { Hono } from "hono";
 
-import { authMiddleware, type AuthVariables } from "@roasted/api/middleware/auth";
-import { queries } from "@roasted/zero/queries";
-import { schema } from "@roasted/zero/schema";
+import { authMiddleware, type AuthVariables } from "@one/api/middleware/auth";
+import { queries } from "@one/zero/queries";
+import { schema } from "@one/zero/schema";
 
 const app = new Hono<{ Variables: AuthVariables }>().use(authMiddleware).post("/", async (c) => {
 	const user = c.get("user");

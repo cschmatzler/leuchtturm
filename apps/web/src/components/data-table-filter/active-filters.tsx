@@ -1,18 +1,18 @@
 import { XIcon } from "lucide-react";
 import { memo, useEffect, useRef, useState, type ReactNode } from "react";
 
-import { useDataTableFilterContext } from "@roasted/web/components/data-table-filter/context";
-import { FilterOperator } from "@roasted/web/components/data-table-filter/filter-operator";
-import { FilterSubject } from "@roasted/web/components/data-table-filter/filter-subject";
-import { FilterValue } from "@roasted/web/components/data-table-filter/filter-value";
-import { getColumn } from "@roasted/web/components/data-table-filter/helpers";
+import { useDataTableFilterContext } from "@one/web/components/data-table-filter/context";
+import { FilterOperator } from "@one/web/components/data-table-filter/filter-operator";
+import { FilterSubject } from "@one/web/components/data-table-filter/filter-subject";
+import { FilterValue } from "@one/web/components/data-table-filter/filter-value";
+import { getColumn } from "@one/web/components/data-table-filter/helpers";
 import type {
 	Column,
 	ColumnDataType,
 	FilterModel,
-} from "@roasted/web/components/data-table-filter/types";
-import { Button } from "@roasted/web/components/ui/button";
-import { Separator } from "@roasted/web/components/ui/separator";
+} from "@one/web/components/data-table-filter/types";
+import { Button } from "@one/web/components/ui/button";
+import { Separator } from "@one/web/components/ui/separator";
 
 export function ActiveFilters<TData>() {
 	const { filterColumns, filters } = useDataTableFilterContext<TData>();

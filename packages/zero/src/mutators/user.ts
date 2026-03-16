@@ -1,9 +1,9 @@
 import { defineMutator } from "@rocicorp/zero";
 import { type } from "arktype";
 
-import { User } from "@roasted/core/auth/schema";
-import { PublicError } from "@roasted/core/result";
-import { assertLoggedIn } from "@roasted/zero/mutators/shared";
+import { User } from "@one/core/auth/schema";
+import { PublicError } from "@one/core/result";
+import { assertLoggedIn } from "@one/zero/mutators/shared";
 
 export const userMutators = {
 	update: defineMutator(

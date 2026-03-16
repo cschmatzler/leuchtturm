@@ -1,16 +1,16 @@
 import {
 	ActiveFilters,
 	ActiveFiltersMobileContainer,
-} from "@roasted/web/components/data-table-filter/active-filters";
-import { DataTableFilterProvider } from "@roasted/web/components/data-table-filter/context";
-import { FilterActions } from "@roasted/web/components/data-table-filter/filter-actions";
-import { FilterSelector } from "@roasted/web/components/data-table-filter/filter-selector";
+} from "@one/web/components/data-table-filter/active-filters";
+import { DataTableFilterProvider } from "@one/web/components/data-table-filter/context";
+import { FilterActions } from "@one/web/components/data-table-filter/filter-actions";
+import { FilterSelector } from "@one/web/components/data-table-filter/filter-selector";
 import type {
 	Column,
 	DataTableFilterActions,
 	FiltersState,
-} from "@roasted/web/components/data-table-filter/types";
-import { useIsMobile } from "@roasted/web/hooks/use-mobile";
+} from "@one/web/components/data-table-filter/types";
+import { useIsMobile } from "@one/web/hooks/use-mobile";
 
 export interface DataTableFilterProps<TData> {
 	filterColumns: Column<TData>[];

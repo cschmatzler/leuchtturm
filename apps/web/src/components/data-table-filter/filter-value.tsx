@@ -6,23 +6,23 @@ import type { DateRange } from "react-day-picker";
 import { useTranslation } from "react-i18next";
 import { take } from "remeda";
 
-import { useDataTableFilterContext } from "@roasted/web/components/data-table-filter/context";
-import { createNumberRange } from "@roasted/web/components/data-table-filter/helpers";
+import { useDataTableFilterContext } from "@one/web/components/data-table-filter/context";
+import { createNumberRange } from "@one/web/components/data-table-filter/helpers";
 import {
 	dateFilterOperators,
 	DEFAULT_OPERATORS,
 	numberFilterOperators,
-} from "@roasted/web/components/data-table-filter/operators";
+} from "@one/web/components/data-table-filter/operators";
 import type {
 	Column,
 	ColumnDataType,
 	ColumnOptionExtended,
 	FilterModel,
 	FilterOperatorTarget,
-} from "@roasted/web/components/data-table-filter/types";
-import { Button } from "@roasted/web/components/ui/button";
-import { Calendar } from "@roasted/web/components/ui/calendar";
-import { Checkbox } from "@roasted/web/components/ui/checkbox";
+} from "@one/web/components/data-table-filter/types";
+import { Button } from "@one/web/components/ui/button";
+import { Calendar } from "@one/web/components/ui/calendar";
+import { Checkbox } from "@one/web/components/ui/checkbox";
 import {
 	Command,
 	CommandEmpty,
@@ -31,12 +31,12 @@ import {
 	CommandItem,
 	CommandList,
 	CommandSeparator,
-} from "@roasted/web/components/ui/command";
-import { DebouncedInput } from "@roasted/web/components/ui/debounced-input";
-import { Popover, PopoverContent, PopoverTrigger } from "@roasted/web/components/ui/popover";
-import { Slider } from "@roasted/web/components/ui/slider";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@roasted/web/components/ui/tabs";
-import { cn } from "@roasted/web/lib/cn";
+} from "@one/web/components/ui/command";
+import { DebouncedInput } from "@one/web/components/ui/debounced-input";
+import { Popover, PopoverContent, PopoverTrigger } from "@one/web/components/ui/popover";
+import { Slider } from "@one/web/components/ui/slider";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@one/web/components/ui/tabs";
+import { cn } from "@one/web/lib/cn";
 
 interface FilterValueProps<TData, TType extends ColumnDataType> {
 	filter: FilterModel<TType>;

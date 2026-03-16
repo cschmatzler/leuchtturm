@@ -2,7 +2,7 @@ import { Select as BaseSelect } from "@base-ui/react/select";
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 
-import { cn } from "@roasted/web/lib/cn";
+import { cn } from "@one/web/lib/cn";
 
 const Select = BaseSelect.Root;
 

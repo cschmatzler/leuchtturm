@@ -1,4 +1,4 @@
-import { api } from "@roasted/web/clients/api";
+import { api } from "@one/web/clients/api";
 
 type AnalyticsEvent = {
 	eventType: string;

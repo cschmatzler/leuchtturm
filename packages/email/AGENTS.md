@@ -1,4 +1,4 @@
-# @roasted/email - React Email Templates
+# @one/email - React Email Templates
 
 ## Overview
 
@@ -40,7 +40,7 @@ import {
 } from "@react-email/components";
 import { render } from "@react-email/render";
 import { Tailwind } from "@react-email/tailwind";
-import { tailwindConfig } from "@roasted/email/tailwind";
+import { tailwindConfig } from "@one/email/tailwind";
 
 const WelcomeEmail = ({ userName }: { userName: string }) => {
 	return (
@@ -86,7 +86,7 @@ import {
 } from "@react-email/components";
 import { render } from "@react-email/render";
 import { Tailwind } from "@react-email/tailwind";
-import { tailwindConfig } from "@roasted/email/tailwind";
+import { tailwindConfig } from "@one/email/tailwind";
 
 // 2. Props interface
 interface TemplateNameProps {
@@ -172,11 +172,11 @@ export const tailwindConfig: TailwindConfig = {
 
 ### Sending Emails
 
-Use the Resend client from `@roasted/email/index`:
+Use the Resend client from `@one/email/index`:
 
 ```typescript
-import { resend } from "@roasted/email/index";
-import { renderPasswordResetEmail } from "@roasted/email/password-reset";
+import { resend } from "@one/email/index";
+import { renderPasswordResetEmail } from "@one/email/password-reset";
 
 const { html, text } = await renderPasswordResetEmail({
 	resetUrl: "https://...",
@@ -262,7 +262,7 @@ await resend.emails.send({
 
 ## Integration with Auth
 
-Better-auth sends emails via hooks in `@roasted/core/auth/index.ts`:
+Better-auth sends emails via hooks in `@one/core/auth/index.ts`:
 
 ```typescript
 emailAndPassword: {
@@ -321,7 +321,7 @@ In tests, mock the email module:
 ```typescript
 import { vi } from "vite-plus/test";
 
-vi.mock("@roasted/email", () => ({
+vi.mock("@one/email", () => ({
 	resend: {
 		emails: {
 			send: vi.fn(),

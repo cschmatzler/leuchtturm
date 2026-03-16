@@ -1,10 +1,10 @@
 import { sValidator } from "@hono/standard-validator";
 import { Hono } from "hono";
 
-import { authMiddleware, type AuthVariables } from "@roasted/api/middleware/auth";
-import { insertEvents } from "@roasted/core/analytics/clickhouse";
-import { AnalyticsPayload } from "@roasted/core/analytics/schema";
-import { PublicError } from "@roasted/core/result";
+import { authMiddleware, type AuthVariables } from "@one/api/middleware/auth";
+import { insertEvents } from "@one/core/analytics/clickhouse";
+import { AnalyticsPayload } from "@one/core/analytics/schema";
+import { PublicError } from "@one/core/result";
 
 const app = new Hono<{ Variables: AuthVariables }>().use(authMiddleware).post(
 	"/",

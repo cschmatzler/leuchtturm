@@ -1,7 +1,7 @@
 import { Line, LineChart } from "recharts";
 
-import { ChartContainer, type ChartConfig } from "@roasted/web/components/ui/chart";
-import { cn } from "@roasted/web/lib/cn";
+import { ChartContainer, type ChartConfig } from "@one/web/components/ui/chart";
+import { cn } from "@one/web/lib/cn";
 
 type SparklineProps = {
 	data: { value: number | null }[];

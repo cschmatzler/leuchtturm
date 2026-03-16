@@ -1,6 +1,6 @@
 import { Separator as BaseSeparator } from "@base-ui/react/separator";
 
-import { cn } from "@roasted/web/lib/cn";
+import { cn } from "@one/web/lib/cn";
 
 function Separator({ className, orientation = "horizontal", ...props }: BaseSeparator.Props) {
 	return (

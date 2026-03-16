@@ -1,6 +1,6 @@
 import { queryOptions } from "@tanstack/react-query";
 
-import { authClient } from "@roasted/web/clients/auth";
+import { authClient } from "@one/web/clients/auth";
 
 export const sessionQuery = () =>
 	queryOptions({

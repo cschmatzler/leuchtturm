@@ -1,5 +1,5 @@
-import plugin from "@roasted/oxlint-plugins/no-relative-imports";
+import plugin from "@one/oxlint-plugins/no-relative-imports";
 
 export default plugin;
 export { plugin as noRelativeImports };
-export * from "@roasted/oxlint-plugins/types";
+export * from "@one/oxlint-plugins/types";

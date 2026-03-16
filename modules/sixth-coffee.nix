@@ -66,21 +66,21 @@
 		systemd.services.postgresql.postStart =
 			lib.mkAfter ''
 				${config.services.postgresql.package}/bin/psql -d postgres -c "CREATE EXTENSION IF NOT EXISTS pg_stat_statements"
-				${config.services.postgresql.package}/bin/psql -d roasted -c "CREATE EXTENSION IF NOT EXISTS pg_stat_statements"
+				${config.services.postgresql.package}/bin/psql -d one -c "CREATE EXTENSION IF NOT EXISTS pg_stat_statements"
 			'';
 
 		systemd.services.postgresql-setup.postStart =
 			lib.mkAfter ''
-				${config.services.postgresql.package}/bin/psql -d roasted -c 'GRANT CONNECT ON DATABASE roasted TO grafana'
-				${config.services.postgresql.package}/bin/psql -d roasted -c 'GRANT USAGE ON SCHEMA public TO grafana'
-				${config.services.postgresql.package}/bin/psql -d roasted -c 'GRANT SELECT ON TABLE "user" TO grafana'
+				${config.services.postgresql.package}/bin/psql -d one -c 'GRANT CONNECT ON DATABASE one TO grafana'
+				${config.services.postgresql.package}/bin/psql -d one -c 'GRANT USAGE ON SCHEMA public TO grafana'
+				${config.services.postgresql.package}/bin/psql -d one -c 'GRANT SELECT ON TABLE "user" TO grafana'
 			'';
 
 		services.postgresql = {
-			ensureDatabases = ["roasted"];
+			ensureDatabases = ["one"];
 			ensureUsers = [
 				{
-					name = "roasted";
+					name = "one";
 					ensureDBOwnership = true;
 					ensureClauses.superuser = true;
 				}
@@ -92,7 +92,7 @@
 
 			authentication =
 				lib.mkAfter ''
-					host roasted grafana 127.0.0.1/32 trust
+					host one grafana 127.0.0.1/32 trust
 				'';
 
 			settings = {

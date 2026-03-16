@@ -1,7 +1,7 @@
 import { serve } from "@hono/node-server";
 
-import { app } from "@roasted/api/index";
-import { shutdownTelemetry } from "@roasted/api/instrumentation";
+import { app } from "@one/api/index";
+import { shutdownTelemetry } from "@one/api/instrumentation";
 
 const port = Number(process.env.PORT!);
 const server = serve({

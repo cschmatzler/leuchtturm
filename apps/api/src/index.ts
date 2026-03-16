@@ -6,12 +6,12 @@ import { cors } from "hono/cors";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import { register } from "prom-client";
 
-import analytics from "@roasted/api/analytics/index";
-import autumn from "@roasted/api/autumn";
-import mutate from "@roasted/api/mutate";
-import query from "@roasted/api/query";
-import { auth } from "@roasted/core/auth/index";
-import { PublicError } from "@roasted/core/result";
+import analytics from "@one/api/analytics/index";
+import autumn from "@one/api/autumn";
+import mutate from "@one/api/mutate";
+import query from "@one/api/query";
+import { auth } from "@one/core/auth/index";
+import { PublicError } from "@one/core/result";
 
 const { printMetrics, registerMetrics } = prometheus({
 	collectDefaultMetrics: true,

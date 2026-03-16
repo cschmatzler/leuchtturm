@@ -1,5 +1,5 @@
 {
-	"name": "@roasted/email",
+	"name": "@one/email",
 	"private": true,
 	"type": "module",
 	"sideEffects": false,

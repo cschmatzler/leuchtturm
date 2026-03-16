@@ -1,8 +1,8 @@
 import { Children, type ReactNode } from "react";
 
-import { Separator } from "@roasted/web/components/ui/separator";
-import { SidebarTrigger } from "@roasted/web/components/ui/sidebar";
-import { cn } from "@roasted/web/lib/cn";
+import { Separator } from "@one/web/components/ui/separator";
+import { SidebarTrigger } from "@one/web/components/ui/sidebar";
+import { cn } from "@one/web/lib/cn";
 
 type HeaderProps = {
 	children?: ReactNode;

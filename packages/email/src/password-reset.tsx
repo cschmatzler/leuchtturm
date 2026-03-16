@@ -13,7 +13,7 @@ import {
 import { render } from "@react-email/render";
 import { Tailwind } from "@react-email/tailwind";
 
-import { tailwindConfig } from "@roasted/email/tailwind";
+import { tailwindConfig } from "@one/email/tailwind";
 
 const preheaderText = "Reset your Sixth Coffee password.";
 

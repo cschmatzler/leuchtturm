@@ -1,6 +1,6 @@
 import { createClient } from "@clickhouse/client";
 
-import type { AnalyticsEvent } from "@roasted/core/analytics/schema";
+import type { AnalyticsEvent } from "@one/core/analytics/schema";
 
 const client = createClient({
 	url: process.env.CLICKHOUSE_URL ?? "http://localhost:8123",

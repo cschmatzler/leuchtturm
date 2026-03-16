@@ -1,5 +1,5 @@
 {
-	"name": "@roasted/core",
+	"name": "@one/core",
 	"private": true,
 	"type": "module",
 	"sideEffects": false,
@@ -12,7 +12,7 @@
 	},
 	"dependencies": {
 		"@clickhouse/client": "1.18.2",
-		"@roasted/email": "workspace:",
+		"@one/email": "workspace:",
 		"arktype": "2.2.0",
 		"autumn-js": "1.0.1",
 		"better-auth": "1.5.5",

@@ -3,10 +3,10 @@ import { useRouter } from "@tanstack/react-router";
 import type { Session, User } from "better-auth";
 import { useRef, useState, type ReactNode } from "react";
 
-import { Loading } from "@roasted/web/components/app/loading";
-import { mutators } from "@roasted/zero/mutators";
-import { queries } from "@roasted/zero/queries";
-import { schema } from "@roasted/zero/schema";
+import { Loading } from "@one/web/components/app/loading";
+import { mutators } from "@one/zero/mutators";
+import { queries } from "@one/zero/queries";
+import { schema } from "@one/zero/schema";
 
 export type SessionData = {
 	session: Session;

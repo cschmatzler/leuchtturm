@@ -1,5 +1,5 @@
 {
-	"name": "@roasted/web",
+	"name": "@one/web",
 	"type": "module",
 	"exports": {
 		"./*": "./src/*"
@@ -13,9 +13,9 @@
 		"@fontsource/ibm-plex-mono": "5.2.7",
 		"@fontsource/plus-jakarta-sans": "5.2.8",
 		"@fontsource/space-grotesk": "5.2.10",
-		"@roasted/api": "workspace:*",
-		"@roasted/core": "workspace:*",
-		"@roasted/zero": "workspace:*",
+		"@one/api": "workspace:*",
+		"@one/core": "workspace:*",
+		"@one/zero": "workspace:*",
 		"@rocicorp/zero": "0.26.1",
 		"@tanstack/devtools-vite": "0.6.0",
 		"@tanstack/react-devtools": "0.10.0",

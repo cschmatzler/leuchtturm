@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 
-import { isColumnOptionArray } from "@roasted/web/components/data-table-filter/helpers";
+import { isColumnOptionArray } from "@one/web/components/data-table-filter/helpers";
 import type {
 	Column,
 	ColumnConfig,
@@ -12,9 +12,9 @@ import type {
 	TAccessorFn,
 	TOrderFn,
 	TTransformOptionFn,
-} from "@roasted/web/components/data-table-filter/types";
-import { isAnyOf, uniq } from "@roasted/web/lib/array";
-import { memo } from "@roasted/web/lib/memo";
+} from "@one/web/components/data-table-filter/types";
+import { isAnyOf, uniq } from "@one/web/lib/array";
+import { memo } from "@one/web/lib/memo";
 
 type NumberColumnType<TType extends ColumnDataType> = TType extends "number" ? TType : never;
 

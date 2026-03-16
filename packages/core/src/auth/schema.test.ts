@@ -1,8 +1,8 @@
 import { type } from "arktype";
 import { describe, expect, it } from "vite-plus/test";
 
-import { User } from "@roasted/core/auth/schema";
-import { createId } from "@roasted/core/id";
+import { User } from "@one/core/auth/schema";
+import { createId } from "@one/core/id";
 
 describe("User schema", () => {
 	it("normalizes input and defaults email verification", () => {

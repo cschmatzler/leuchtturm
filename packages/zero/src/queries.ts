@@ -1,7 +1,7 @@
 import { defineQueriesWithType, defineQueryWithType } from "@rocicorp/zero";
 
-import { zql } from "@roasted/zero/schema";
-import type { Context, Schema } from "@roasted/zero/schema";
+import { zql } from "@one/zero/schema";
+import type { Context, Schema } from "@one/zero/schema";
 
 const defineQuery = defineQueryWithType<Schema, Context>();
 const defineQueries = defineQueriesWithType<Schema>();

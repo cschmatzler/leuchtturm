@@ -86,7 +86,7 @@ in {
 				url = "127.0.0.1:5432";
 				user = "grafana";
 				jsonData = {
-					database = "roasted";
+					database = "one";
 					sslmode = "disable";
 					postgresVersion = 1600;
 				};

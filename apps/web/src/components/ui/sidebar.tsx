@@ -12,26 +12,26 @@ import {
 	type CSSProperties,
 } from "react";
 
-import { Button } from "@roasted/web/components/ui/button";
-import { Input } from "@roasted/web/components/ui/input";
-import { Separator } from "@roasted/web/components/ui/separator";
+import { Button } from "@one/web/components/ui/button";
+import { Input } from "@one/web/components/ui/input";
+import { Separator } from "@one/web/components/ui/separator";
 import {
 	Sheet,
 	SheetContent,
 	SheetDescription,
 	SheetHeader,
 	SheetTitle,
-} from "@roasted/web/components/ui/sheet";
-import { Skeleton } from "@roasted/web/components/ui/skeleton";
+} from "@one/web/components/ui/sheet";
+import { Skeleton } from "@one/web/components/ui/skeleton";
 import {
 	Tooltip,
 	TooltipContent,
 	TooltipProvider,
 	TooltipTrigger,
-} from "@roasted/web/components/ui/tooltip";
-import { useLocalStorage } from "@roasted/web/hooks/use-local-storage";
-import { useIsMobile } from "@roasted/web/hooks/use-mobile";
-import { cn } from "@roasted/web/lib/cn";
+} from "@one/web/components/ui/tooltip";
+import { useLocalStorage } from "@one/web/hooks/use-local-storage";
+import { useIsMobile } from "@one/web/hooks/use-mobile";
+import { cn } from "@one/web/lib/cn";
 
 const SIDEBAR_STORAGE_KEY = "sidebar_state";
 const SIDEBAR_WIDTH = "16rem";

@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
-import { Content, Header } from "@roasted/web/components/app/layout";
-import { PreferencesCard } from "@roasted/web/pages/app.settings.preferences/-components/preferences-card";
-import { ProfileCard } from "@roasted/web/pages/app.settings.preferences/-components/profile-card";
+import { Content, Header } from "@one/web/components/app/layout";
+import { PreferencesCard } from "@one/web/pages/app.settings.preferences/-components/preferences-card";
+import { ProfileCard } from "@one/web/pages/app.settings.preferences/-components/profile-card";
 
 export const Route = createFileRoute("/app/settings/preferences")({
 	component: Page,

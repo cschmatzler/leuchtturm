@@ -17,6 +17,6 @@
 	};
 	zero = {
 		image = "rocicorp/zero:0.25.11";
-		appId = "roasted";
+		appId = "one";
 	};
 }

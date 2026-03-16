@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vite-plus/test";
 
 // Mock modules before importing the app
-vi.mock("@roasted/email", () => ({
+vi.mock("@one/email", () => ({
 	resend: {
 		emails: {
 			send: vi.fn(),
@@ -9,14 +9,14 @@ vi.mock("@roasted/email", () => ({
 	},
 }));
 
-vi.mock("@roasted/core/billing/autumn", () => ({
+vi.mock("@one/core/billing/autumn", () => ({
 	autumn: {
 		check: vi.fn(),
 		track: vi.fn(),
 	},
 }));
 
-vi.mock("@roasted/api/middleware/auth", () => ({
+vi.mock("@one/api/middleware/auth", () => ({
 	authMiddleware: vi.fn((c, next) => {
 		c.set("user", {
 			id: "test-user-id",
@@ -58,14 +58,14 @@ vi.mock("@opentelemetry/api", async (importOriginal) => {
 	};
 });
 
-vi.mock("@roasted/core/analytics/clickhouse", () => ({
+vi.mock("@one/core/analytics/clickhouse", () => ({
 	insertEvents: vi.fn(),
 }));
 
-import { app } from "@roasted/api/index";
-import { authMiddleware } from "@roasted/api/middleware/auth";
-import { insertEvents } from "@roasted/core/analytics/clickhouse";
-import { PublicError } from "@roasted/core/result";
+import { app } from "@one/api/index";
+import { authMiddleware } from "@one/api/middleware/auth";
+import { insertEvents } from "@one/core/analytics/clickhouse";
+import { PublicError } from "@one/core/result";
 
 describe("analytics endpoint", () => {
 	beforeEach(() => {

@@ -2,12 +2,12 @@ import { ArrowRightIcon, ChevronRightIcon, FunnelIcon } from "lucide-react";
 import { Fragment, isValidElement, memo, useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { useDataTableFilterContext } from "@roasted/web/components/data-table-filter/context";
-import { FilterValueController } from "@roasted/web/components/data-table-filter/filter-value";
-import { getColumn } from "@roasted/web/components/data-table-filter/helpers";
-import type { Column, ColumnDataType } from "@roasted/web/components/data-table-filter/types";
-import { Button } from "@roasted/web/components/ui/button";
-import { Checkbox } from "@roasted/web/components/ui/checkbox";
+import { useDataTableFilterContext } from "@one/web/components/data-table-filter/context";
+import { FilterValueController } from "@one/web/components/data-table-filter/filter-value";
+import { getColumn } from "@one/web/components/data-table-filter/helpers";
+import type { Column, ColumnDataType } from "@one/web/components/data-table-filter/types";
+import { Button } from "@one/web/components/ui/button";
+import { Checkbox } from "@one/web/components/ui/checkbox";
 import {
 	Command,
 	CommandEmpty,
@@ -15,10 +15,10 @@ import {
 	CommandInput,
 	CommandItem,
 	CommandList,
-} from "@roasted/web/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@roasted/web/components/ui/popover";
-import { isAnyOf } from "@roasted/web/lib/array";
-import { cn } from "@roasted/web/lib/cn";
+} from "@one/web/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@one/web/components/ui/popover";
+import { isAnyOf } from "@one/web/lib/array";
+import { cn } from "@one/web/lib/cn";
 
 export function FilterSelector<TData>() {
 	const { t } = useTranslation();

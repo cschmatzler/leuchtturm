@@ -1,4 +1,4 @@
-import { Skeleton } from "@roasted/web/components/ui/skeleton";
+import { Skeleton } from "@one/web/components/ui/skeleton";
 
 export function Loading() {
 	return (

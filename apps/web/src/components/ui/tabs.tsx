@@ -1,7 +1,7 @@
 import { Tabs as BaseTabs } from "@base-ui/react/tabs";
 import { cva, type VariantProps } from "class-variance-authority";
 
-import { cn } from "@roasted/web/lib/cn";
+import { cn } from "@one/web/lib/cn";
 
 function Tabs({ className, orientation = "horizontal", ...props }: BaseTabs.Root.Props) {
 	return (

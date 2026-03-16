@@ -1,7 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { CogIcon } from "lucide-react";
 
-import { useCommandProvider } from "@roasted/web/hooks/use-command-provider";
+import { useCommandProvider } from "@one/web/hooks/use-command-provider";
 
 export function useNavigationCommands({
 	userId,

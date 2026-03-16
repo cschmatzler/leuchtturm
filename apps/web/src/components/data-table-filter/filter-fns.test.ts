@@ -6,8 +6,8 @@ import {
 	numberFilterFn,
 	optionFilterFn,
 	textFilterFn,
-} from "@roasted/web/components/data-table-filter/filter-fns";
-import type { FilterModel } from "@roasted/web/components/data-table-filter/types";
+} from "@one/web/components/data-table-filter/filter-fns";
+import type { FilterModel } from "@one/web/components/data-table-filter/types";
 
 const optionFilter = (
 	operator: FilterModel<"option">["operator"],

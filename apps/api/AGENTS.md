@@ -1,4 +1,4 @@
-# @roasted/api - Hono API Server
+# @one/api - Hono API Server
 
 ## Overview
 
@@ -65,7 +65,7 @@ throw new PublicError({
 Routes requiring auth use the `authMiddleware`:
 
 ```typescript
-import { authMiddleware } from "@roasted/api/middleware/auth";
+import { authMiddleware } from "@one/api/middleware/auth";
 
 app.get("/protected", authMiddleware, async (c) => {
 	const user = c.get("user");
@@ -160,7 +160,7 @@ Auth routes mounted at `/api/auth/*`:
 app.all("/auth/*", (c) => auth.handler(c.req.raw));
 ```
 
-Auth configuration is in `@roasted/core/auth`.
+Auth configuration is in `@one/core/auth`.
 
 ### Analytics
 
@@ -256,7 +256,7 @@ describe("analytics", () => {
 Mock modules with `vi.mock`:
 
 ```typescript
-vi.mock("@roasted/email", () => ({
+vi.mock("@one/email", () => ({
 	resend: {
 		emails: {
 			send: vi.fn(),
@@ -264,7 +264,7 @@ vi.mock("@roasted/email", () => ({
 	},
 }));
 
-vi.mock("@roasted/api/middleware/auth", () => ({
+vi.mock("@one/api/middleware/auth", () => ({
 	authMiddleware: vi.fn((c, next) => {
 		c.set("user", { id: "test-user-id" });
 		return next();
@@ -279,7 +279,7 @@ const { mockInsert } = vi.hoisted(() => ({
 	mockInsert: vi.fn(),
 }));
 
-vi.mock("@roasted/core/analytics/clickhouse", () => ({
+vi.mock("@one/core/analytics/clickhouse", () => ({
 	analyticsClient: { insert: mockInsert },
 }));
 ```
@@ -313,7 +313,7 @@ Required env vars (loaded from secrets):
 ```bash
 PORT=3005
 BASE_URL=http://localhost:34600
-DATABASE_URL=postgres://postgres:postgres@localhost:34601/roasted
+DATABASE_URL=postgres://postgres:postgres@localhost:34601/one
 CLICKHOUSE_URL=http://localhost:34602
 BETTER_AUTH_SECRET=dev-secret
 ```
@@ -328,7 +328,7 @@ Instrumentation in `instrumentation.ts`:
 
 - OTLP exporter to Alloy
 - Batch span processing
-- Service name: `roasted-api`
+- Service name: `one-api`
 - Automatic trace propagation
 
 Metrics:

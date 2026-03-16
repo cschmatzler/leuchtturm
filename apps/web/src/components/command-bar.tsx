@@ -8,8 +8,8 @@ import {
 	CommandItem,
 	CommandList,
 	CommandShortcut,
-} from "@roasted/web/components/ui/command";
-import { useCommandBar } from "@roasted/web/hooks/use-command-bar";
+} from "@one/web/components/ui/command";
+import { useCommandBar } from "@one/web/hooks/use-command-bar";
 
 function CommandBar() {
 	const { t } = useTranslation();

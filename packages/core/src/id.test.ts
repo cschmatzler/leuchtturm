@@ -2,7 +2,7 @@ import { type } from "arktype";
 import { ulid } from "ulid";
 import { describe, expect, it } from "vite-plus/test";
 
-import { createId, Id, PREFIXES } from "@roasted/core/id";
+import { createId, Id, PREFIXES } from "@one/core/id";
 
 describe("createId", () => {
 	it("returns the expected prefix and a ULID", () => {

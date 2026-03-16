@@ -1,5 +1,5 @@
 {
-	"name": "@roasted/zero-cache",
+	"name": "@one/zero-cache",
 	"type": "module",
 	"scripts": {
 		"dev": "zero-cache-dev"

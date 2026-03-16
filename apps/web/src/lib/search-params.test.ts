@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import type { FiltersState } from "@roasted/web/components/data-table-filter/types";
+import type { FiltersState } from "@one/web/components/data-table-filter/types";
 import {
 	parseFilters,
 	parseSearch,
 	stringifyFilters,
 	stringifySearch,
-} from "@roasted/web/lib/search-params";
+} from "@one/web/lib/search-params";
 
 describe("stringifyFilters", () => {
 	it("encodes text filter with contains operator", () => {

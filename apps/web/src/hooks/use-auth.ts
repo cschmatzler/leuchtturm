@@ -1,6 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 
-import { authClient } from "@roasted/web/clients/auth";
+import { authClient } from "@one/web/clients/auth";
 
 export function useAuth() {
 	const navigate = useNavigate();

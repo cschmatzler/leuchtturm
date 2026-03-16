@@ -31,7 +31,7 @@ in {
 					ZERO_REPLICA_FILE = "/data/zero.db";
 					OTEL_EXPORTER_OTLP_ENDPOINT = "http://host.docker.internal:${toString cfg.ports.alloyOtlp}";
 					OTEL_SERVICE_NAME = "zero-cache";
-					OTEL_RESOURCE_ATTRIBUTES = "service.namespace=roasted,deployment.environment=production";
+					OTEL_RESOURCE_ATTRIBUTES = "service.namespace=one,deployment.environment=production";
 					OTEL_NODE_RESOURCE_DETECTORS = "env,host,os";
 				};
 				environmentFiles = [config.sops.secrets.zero-env.path];
@@ -40,8 +40,8 @@ in {
 	};
 
 	systemd.services.docker-zero = {
-		after = ["roasted-api.service"];
-		requires = ["roasted-api.service"];
+		after = ["one-api.service"];
+		requires = ["one-api.service"];
 	};
 
 	systemd.tmpfiles.rules = ["d /data/zero-cache 0755 root root -"];

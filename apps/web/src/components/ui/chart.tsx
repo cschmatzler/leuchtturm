@@ -3,7 +3,7 @@ import { createContext, useContext, useId } from "react";
 import * as RechartsPrimitive from "recharts";
 import type { NameType, ValueType } from "recharts/types/component/DefaultTooltipContent";
 
-import { cn } from "@roasted/web/lib/cn";
+import { cn } from "@one/web/lib/cn";
 
 const THEMES = { light: "", dark: ".dark" } as const;
 

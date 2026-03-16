@@ -3,9 +3,9 @@ import { Loader2Icon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
-import { Button } from "@roasted/web/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@roasted/web/components/ui/card";
-import { FieldDescription, FieldGroup, FieldLabel } from "@roasted/web/components/ui/field";
+import { Button } from "@one/web/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@one/web/components/ui/card";
+import { FieldDescription, FieldGroup, FieldLabel } from "@one/web/components/ui/field";
 import {
 	Select,
 	SelectContent,
@@ -13,10 +13,10 @@ import {
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-} from "@roasted/web/components/ui/select";
-import { useZero, useZeroQuery } from "@roasted/web/lib/query";
-import { mutators } from "@roasted/zero/mutators";
-import { queries } from "@roasted/zero/queries";
+} from "@one/web/components/ui/select";
+import { useZero, useZeroQuery } from "@one/web/lib/query";
+import { mutators } from "@one/zero/mutators";
+import { queries } from "@one/zero/queries";
 
 export function PreferencesCard() {
 	const zero = useZero();

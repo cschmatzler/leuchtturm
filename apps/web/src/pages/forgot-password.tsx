@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
-import { ForgotPasswordForm } from "@roasted/web/pages/forgot-password/-components/forgot-password-form";
+import { ForgotPasswordForm } from "@one/web/pages/forgot-password/-components/forgot-password-form";
 
 export const Route = createFileRoute("/forgot-password")({
 	component: Page,

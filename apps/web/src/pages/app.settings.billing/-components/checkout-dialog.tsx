@@ -12,8 +12,8 @@ type PreviewAttachResponse = Awaited<ReturnType<UseCustomerResult["previewAttach
 import { useState, type ComponentProps } from "react";
 import { useTranslation } from "react-i18next";
 
-import { Accordion, AccordionContent, AccordionItem } from "@roasted/web/components/ui/accordion";
-import { Button } from "@roasted/web/components/ui/button";
+import { Accordion, AccordionContent, AccordionItem } from "@one/web/components/ui/accordion";
+import { Button } from "@one/web/components/ui/button";
 import {
 	Dialog,
 	DialogContent,
@@ -21,9 +21,9 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from "@roasted/web/components/ui/dialog";
-import { cn } from "@roasted/web/lib/cn";
-import { reportUiError } from "@roasted/web/lib/report-ui-error";
+} from "@one/web/components/ui/dialog";
+import { cn } from "@one/web/lib/cn";
+import { reportUiError } from "@one/web/lib/report-ui-error";
 
 function formatCurrency({ amount, currency }: { amount: number; currency: string }) {
 	return new Intl.NumberFormat(undefined, {
