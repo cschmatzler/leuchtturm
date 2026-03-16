@@ -1,0 +1,15 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"composite": true,
+		"noEmit": false,
+		"emitDeclarationOnly": true,
+		"declaration": true,
+		"lib": ["ESNext"],
+		"jsx": "react-jsx",
+		"module": "NodeNext",
+		"moduleResolution": "nodenext",
+		"types": ["node"]
+	},
+	"include": ["scripts/**/*"]
+}

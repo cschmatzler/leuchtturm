@@ -1,0 +1,13 @@
+{
+	"$schema": "https://opencode.ai/config.json",
+	"mcp": {
+		"cog": {
+			"type": "remote",
+			"url": "https://trycog.ai/christoph/roasted/mcp",
+			"headers": {
+				"Authorization": "Bearer {env:COG_API_KEY}"
+			},
+			"enabled": true
+		}
+	}
+}

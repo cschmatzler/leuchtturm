@@ -1,0 +1,22 @@
+{
+	"name": "@roasted/email",
+	"private": true,
+	"type": "module",
+	"sideEffects": false,
+	"exports": {
+		"./*": "./src/*.ts",
+		"./password-reset": "./src/password-reset.tsx"
+	},
+	"dependencies": {
+		"@react-email/components": "1.0.9",
+		"@react-email/render": "2.0.4",
+		"@react-email/tailwind": "2.0.5",
+		"@react-email/text": "0.1.6",
+		"react": "19.2.4",
+		"resend": "6.9.4"
+	},
+	"devDependencies": {
+		"@types/react": "19.2.14",
+		"typescript": "5.9.3"
+	}
+}

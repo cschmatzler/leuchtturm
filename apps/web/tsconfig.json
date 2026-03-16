@@ -1,0 +1,11 @@
+{
+	"extends": "../../tsconfig.web.json",
+	"compilerOptions": {
+		"paths": {
+			"@roasted/web/*": ["./src/*"],
+			"@roasted/zero/*": ["../../packages/zero/src/*"],
+			"@roasted/core/*": ["../../packages/core/src/*"]
+		}
+	},
+	"include": ["src"]
+}

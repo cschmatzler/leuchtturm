@@ -1,0 +1,13 @@
+{
+	"name": "@roasted/zero-cache",
+	"type": "module",
+	"scripts": {
+		"dev": "zero-cache-dev"
+	},
+	"dependencies": {
+		"@rocicorp/zero": "0.26.1"
+	},
+	"trustedDependencies": [
+		"@rocicorp/zero-sqlite3"
+	]
+}

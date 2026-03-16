@@ -1,0 +1,1205 @@
+{
+	"id": null,
+	"uid": "postgres",
+	"title": "Postgres",
+	"description": "PostgreSQL metrics from postgres_exporter — connections, throughput, cache, locks, tables",
+	"tags": ["postgres"],
+	"editable": true,
+	"graphTooltip": 2,
+	"schemaVersion": 39,
+	"time": { "from": "now-1h", "to": "now" },
+	"refresh": "30s",
+	"timezone": "browser",
+	"fiscalYearStartMonth": 0,
+	"templating": { "list": [] },
+	"annotations": { "list": [] },
+	"links": [],
+	"panels": [
+		{
+			"id": 1,
+			"type": "row",
+			"title": "Overview",
+			"gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+			"collapsed": false,
+			"panels": []
+		},
+		{
+			"id": 2,
+			"type": "stat",
+			"title": "Uptime",
+			"gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "dtdurations",
+					"color": { "mode": "fixed", "fixedColor": "text" },
+					"thresholds": {
+						"mode": "absolute",
+						"steps": [{ "color": "text", "value": null }]
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"reduceOptions": { "calcs": ["lastNotNull"] },
+				"colorMode": "value",
+				"graphMode": "none",
+				"textMode": "value"
+			},
+			"targets": [
+				{
+					"expr": "time() - process_start_time_seconds{job=\"postgres\"}",
+					"legendFormat": "",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 4,
+			"type": "stat",
+			"title": "Database Size",
+			"gridPos": { "h": 4, "w": 5, "x": 4, "y": 1 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "bytes",
+					"color": { "mode": "fixed", "fixedColor": "text" },
+					"thresholds": {
+						"mode": "absolute",
+						"steps": [{ "color": "text", "value": null }]
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"reduceOptions": { "calcs": ["lastNotNull"] },
+				"colorMode": "value",
+				"graphMode": "area",
+				"textMode": "value"
+			},
+			"targets": [
+				{
+					"expr": "pg_database_size_bytes{job=\"postgres\", datname=\"roasted\"}",
+					"legendFormat": "",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 5,
+			"type": "stat",
+			"title": "Active Backends",
+			"gridPos": { "h": 4, "w": 5, "x": 9, "y": 1 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "short",
+					"color": { "mode": "fixed", "fixedColor": "text" },
+					"thresholds": {
+						"mode": "absolute",
+						"steps": [{ "color": "text", "value": null }]
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"reduceOptions": { "calcs": ["lastNotNull"] },
+				"colorMode": "value",
+				"graphMode": "area",
+				"textMode": "value"
+			},
+			"targets": [
+				{
+					"expr": "sum(pg_stat_database_numbackends{job=\"postgres\"})",
+					"legendFormat": "",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 6,
+			"type": "stat",
+			"title": "Commits / s",
+			"gridPos": { "h": 4, "w": 4, "x": 14, "y": 1 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "ops",
+					"color": { "mode": "fixed", "fixedColor": "text" },
+					"thresholds": {
+						"mode": "absolute",
+						"steps": [{ "color": "text", "value": null }]
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"reduceOptions": { "calcs": ["lastNotNull"] },
+				"colorMode": "value",
+				"graphMode": "area",
+				"textMode": "value"
+			},
+			"targets": [
+				{
+					"expr": "rate(pg_stat_database_xact_commit{job=\"postgres\", datname=\"roasted\"}[$__rate_interval])",
+					"legendFormat": "",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 7,
+			"type": "stat",
+			"title": "Rollbacks / s",
+			"gridPos": { "h": 4, "w": 4, "x": 18, "y": 1 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "ops",
+					"color": { "mode": "fixed", "fixedColor": "text" },
+					"thresholds": {
+						"mode": "absolute",
+						"steps": [
+							{ "color": "green", "value": null },
+							{ "color": "orange", "value": 1 },
+							{ "color": "red", "value": 5 }
+						]
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"reduceOptions": { "calcs": ["lastNotNull"] },
+				"colorMode": "value",
+				"graphMode": "area",
+				"textMode": "value"
+			},
+			"targets": [
+				{
+					"expr": "rate(pg_stat_database_xact_rollback{job=\"postgres\", datname=\"roasted\"}[$__rate_interval])",
+					"legendFormat": "",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 71,
+			"type": "stat",
+			"title": "Max Connections",
+			"gridPos": { "h": 4, "w": 2, "x": 22, "y": 1 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "short",
+					"color": { "mode": "fixed", "fixedColor": "text" },
+					"thresholds": {
+						"mode": "absolute",
+						"steps": [{ "color": "text", "value": null }]
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"reduceOptions": { "calcs": ["lastNotNull"] },
+				"colorMode": "value",
+				"graphMode": "none",
+				"textMode": "value"
+			},
+			"targets": [
+				{
+					"expr": "pg_settings_max_connections{job=\"postgres\"}",
+					"legendFormat": "",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 8,
+			"type": "gauge",
+			"title": "Cache Hit Ratio",
+			"gridPos": { "h": 5, "w": 6, "x": 0, "y": 5 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "percent",
+					"min": 0,
+					"max": 100,
+					"thresholds": {
+						"mode": "absolute",
+						"steps": [
+							{ "color": "red", "value": null },
+							{ "color": "orange", "value": 90 },
+							{ "color": "green", "value": 99 }
+						]
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"reduceOptions": { "calcs": ["lastNotNull"] },
+				"showThresholdMarkers": true,
+				"showThresholdLabels": false
+			},
+			"targets": [
+				{
+					"expr": "rate(pg_stat_database_blks_hit{job=\"postgres\", datname=\"roasted\"}[$__rate_interval]) / (rate(pg_stat_database_blks_hit{job=\"postgres\", datname=\"roasted\"}[$__rate_interval]) + rate(pg_stat_database_blks_read{job=\"postgres\", datname=\"roasted\"}[$__rate_interval])) * 100",
+					"legendFormat": "",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 9,
+			"type": "gauge",
+			"title": "Connection Usage",
+			"gridPos": { "h": 5, "w": 6, "x": 6, "y": 5 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "percent",
+					"min": 0,
+					"max": 100,
+					"thresholds": {
+						"mode": "absolute",
+						"steps": [
+							{ "color": "green", "value": null },
+							{ "color": "orange", "value": 70 },
+							{ "color": "red", "value": 90 }
+						]
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"reduceOptions": { "calcs": ["lastNotNull"] },
+				"showThresholdMarkers": true,
+				"showThresholdLabels": false
+			},
+			"targets": [
+				{
+					"expr": "sum(pg_stat_database_numbackends{job=\"postgres\"}) / scalar(pg_settings_max_connections{job=\"postgres\"}) * 100",
+					"legendFormat": "",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 10,
+			"type": "gauge",
+			"title": "Rollback Ratio",
+			"gridPos": { "h": 5, "w": 6, "x": 12, "y": 5 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "percent",
+					"min": 0,
+					"max": 100,
+					"decimals": 2,
+					"thresholds": {
+						"mode": "absolute",
+						"steps": [
+							{ "color": "green", "value": null },
+							{ "color": "orange", "value": 1 },
+							{ "color": "red", "value": 5 }
+						]
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"reduceOptions": { "calcs": ["lastNotNull"] },
+				"showThresholdMarkers": true,
+				"showThresholdLabels": false
+			},
+			"targets": [
+				{
+					"expr": "rate(pg_stat_database_xact_rollback{job=\"postgres\", datname=\"roasted\"}[$__rate_interval]) / (rate(pg_stat_database_xact_commit{job=\"postgres\", datname=\"roasted\"}[$__rate_interval]) + rate(pg_stat_database_xact_rollback{job=\"postgres\", datname=\"roasted\"}[$__rate_interval])) * 100",
+					"legendFormat": "",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 11,
+			"type": "stat",
+			"title": "Deadlocks / hr",
+			"gridPos": { "h": 5, "w": 6, "x": 18, "y": 5 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "short",
+					"decimals": 1,
+					"thresholds": {
+						"mode": "absolute",
+						"steps": [
+							{ "color": "green", "value": null },
+							{ "color": "orange", "value": 1 },
+							{ "color": "red", "value": 5 }
+						]
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"reduceOptions": { "calcs": ["lastNotNull"] },
+				"colorMode": "value",
+				"graphMode": "area",
+				"textMode": "value"
+			},
+			"targets": [
+				{
+					"expr": "rate(pg_stat_database_deadlocks{job=\"postgres\", datname=\"roasted\"}[$__rate_interval]) * 3600",
+					"legendFormat": "",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 12,
+			"type": "row",
+			"title": "Connections",
+			"gridPos": { "h": 1, "w": 24, "x": 0, "y": 10 },
+			"collapsed": false,
+			"panels": []
+		},
+		{
+			"id": 13,
+			"type": "timeseries",
+			"title": "Connections by State",
+			"description": "Backend connections grouped by activity state",
+			"gridPos": { "h": 8, "w": 12, "x": 0, "y": 11 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"color": { "mode": "palette-classic" },
+					"unit": "short",
+					"custom": {
+						"drawStyle": "line",
+						"fillOpacity": 30,
+						"lineInterpolation": "smooth",
+						"lineWidth": 1,
+						"showPoints": "never",
+						"spanNulls": false,
+						"stacking": { "group": "A", "mode": "normal" }
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"tooltip": { "mode": "multi", "sort": "desc" },
+				"legend": {
+					"displayMode": "table",
+					"placement": "bottom",
+					"calcs": ["mean", "lastNotNull"]
+				}
+			},
+			"targets": [
+				{
+					"expr": "pg_stat_activity_count{job=\"postgres\"}",
+					"legendFormat": "{{state}}",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 14,
+			"type": "timeseries",
+			"title": "Total Connections vs Max",
+			"description": "Current backend count against configured max_connections",
+			"gridPos": { "h": 8, "w": 12, "x": 12, "y": 11 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"color": { "mode": "palette-classic" },
+					"unit": "short",
+					"custom": {
+						"drawStyle": "line",
+						"fillOpacity": 10,
+						"lineInterpolation": "smooth",
+						"lineWidth": 2,
+						"showPoints": "never",
+						"spanNulls": false,
+						"stacking": { "group": "A", "mode": "none" }
+					}
+				},
+				"overrides": [
+					{
+						"matcher": { "id": "byName", "options": "Max Connections" },
+						"properties": [
+							{ "id": "custom.lineStyle", "value": { "fill": "dash", "dash": [10, 10] } },
+							{ "id": "custom.lineWidth", "value": 1 },
+							{ "id": "custom.fillOpacity", "value": 0 },
+							{ "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }
+						]
+					}
+				]
+			},
+			"options": {
+				"tooltip": { "mode": "multi", "sort": "desc" },
+				"legend": {
+					"displayMode": "table",
+					"placement": "bottom",
+					"calcs": ["mean", "lastNotNull"]
+				}
+			},
+			"targets": [
+				{
+					"expr": "sum(pg_stat_database_numbackends{job=\"postgres\"})",
+					"legendFormat": "Total Connections",
+					"refId": "A"
+				},
+				{
+					"expr": "pg_settings_max_connections{job=\"postgres\"}",
+					"legendFormat": "Max Connections",
+					"refId": "B"
+				}
+			]
+		},
+		{
+			"id": 15,
+			"type": "row",
+			"title": "Throughput",
+			"gridPos": { "h": 1, "w": 24, "x": 0, "y": 19 },
+			"collapsed": false,
+			"panels": []
+		},
+		{
+			"id": 16,
+			"type": "timeseries",
+			"title": "Transactions / s",
+			"description": "Committed and rolled-back transactions per second",
+			"gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"color": { "mode": "palette-classic" },
+					"unit": "ops",
+					"custom": {
+						"drawStyle": "line",
+						"fillOpacity": 20,
+						"lineInterpolation": "smooth",
+						"lineWidth": 1,
+						"showPoints": "never",
+						"spanNulls": false,
+						"stacking": { "group": "A", "mode": "none" }
+					}
+				},
+				"overrides": [
+					{
+						"matcher": { "id": "byName", "options": "Rollbacks" },
+						"properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }]
+					}
+				]
+			},
+			"options": {
+				"tooltip": { "mode": "multi", "sort": "desc" },
+				"legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }
+			},
+			"targets": [
+				{
+					"expr": "rate(pg_stat_database_xact_commit{job=\"postgres\", datname=\"roasted\"}[$__rate_interval])",
+					"legendFormat": "Commits",
+					"refId": "A"
+				},
+				{
+					"expr": "rate(pg_stat_database_xact_rollback{job=\"postgres\", datname=\"roasted\"}[$__rate_interval])",
+					"legendFormat": "Rollbacks",
+					"refId": "B"
+				}
+			]
+		},
+		{
+			"id": 17,
+			"type": "timeseries",
+			"title": "Row Operations / s",
+			"description": "Rows fetched, inserted, updated, and deleted per second",
+			"gridPos": { "h": 8, "w": 12, "x": 12, "y": 20 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"color": { "mode": "palette-classic" },
+					"unit": "ops",
+					"custom": {
+						"drawStyle": "line",
+						"fillOpacity": 10,
+						"lineInterpolation": "smooth",
+						"lineWidth": 1,
+						"showPoints": "never",
+						"spanNulls": false,
+						"stacking": { "group": "A", "mode": "none" }
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"tooltip": { "mode": "multi", "sort": "desc" },
+				"legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }
+			},
+			"targets": [
+				{
+					"expr": "rate(pg_stat_database_tup_fetched{job=\"postgres\", datname=\"roasted\"}[$__rate_interval])",
+					"legendFormat": "Fetched",
+					"refId": "A"
+				},
+				{
+					"expr": "rate(pg_stat_database_tup_inserted{job=\"postgres\", datname=\"roasted\"}[$__rate_interval])",
+					"legendFormat": "Inserted",
+					"refId": "B"
+				},
+				{
+					"expr": "rate(pg_stat_database_tup_updated{job=\"postgres\", datname=\"roasted\"}[$__rate_interval])",
+					"legendFormat": "Updated",
+					"refId": "C"
+				},
+				{
+					"expr": "rate(pg_stat_database_tup_deleted{job=\"postgres\", datname=\"roasted\"}[$__rate_interval])",
+					"legendFormat": "Deleted",
+					"refId": "D"
+				}
+			]
+		},
+		{
+			"id": 18,
+			"type": "row",
+			"title": "Cache & I/O",
+			"gridPos": { "h": 1, "w": 24, "x": 0, "y": 28 },
+			"collapsed": false,
+			"panels": []
+		},
+		{
+			"id": 19,
+			"type": "timeseries",
+			"title": "Cache Hit Ratio",
+			"description": "Buffer cache hit ratio over time — should stay above 99%",
+			"gridPos": { "h": 8, "w": 12, "x": 0, "y": 29 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"color": { "mode": "palette-classic" },
+					"unit": "percent",
+					"min": 0,
+					"max": 100,
+					"custom": {
+						"drawStyle": "line",
+						"fillOpacity": 10,
+						"lineInterpolation": "smooth",
+						"lineWidth": 2,
+						"showPoints": "never",
+						"spanNulls": false,
+						"stacking": { "group": "A", "mode": "none" },
+						"thresholdsStyle": { "mode": "line" }
+					},
+					"thresholds": {
+						"mode": "absolute",
+						"steps": [
+							{ "color": "red", "value": null },
+							{ "color": "green", "value": 99 }
+						]
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"tooltip": { "mode": "multi", "sort": "desc" },
+				"legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "min"] }
+			},
+			"targets": [
+				{
+					"expr": "rate(pg_stat_database_blks_hit{job=\"postgres\", datname=\"roasted\"}[$__rate_interval]) / (rate(pg_stat_database_blks_hit{job=\"postgres\", datname=\"roasted\"}[$__rate_interval]) + rate(pg_stat_database_blks_read{job=\"postgres\", datname=\"roasted\"}[$__rate_interval])) * 100",
+					"legendFormat": "Hit Ratio",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 20,
+			"type": "timeseries",
+			"title": "Block Reads vs Hits",
+			"description": "Disk block reads compared to buffer cache hits",
+			"gridPos": { "h": 8, "w": 12, "x": 12, "y": 29 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"color": { "mode": "palette-classic" },
+					"unit": "ops",
+					"custom": {
+						"drawStyle": "line",
+						"fillOpacity": 20,
+						"lineInterpolation": "smooth",
+						"lineWidth": 1,
+						"showPoints": "never",
+						"spanNulls": false,
+						"stacking": { "group": "A", "mode": "none" }
+					}
+				},
+				"overrides": [
+					{
+						"matcher": { "id": "byName", "options": "Disk Reads" },
+						"properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }]
+					},
+					{
+						"matcher": { "id": "byName", "options": "Buffer Hits" },
+						"properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }]
+					}
+				]
+			},
+			"options": {
+				"tooltip": { "mode": "multi", "sort": "desc" },
+				"legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }
+			},
+			"targets": [
+				{
+					"expr": "rate(pg_stat_database_blks_hit{job=\"postgres\", datname=\"roasted\"}[$__rate_interval])",
+					"legendFormat": "Buffer Hits",
+					"refId": "A"
+				},
+				{
+					"expr": "rate(pg_stat_database_blks_read{job=\"postgres\", datname=\"roasted\"}[$__rate_interval])",
+					"legendFormat": "Disk Reads",
+					"refId": "B"
+				}
+			]
+		},
+		{
+			"id": 21,
+			"type": "timeseries",
+			"title": "Temp Files & Bytes",
+			"description": "Temporary files created and bytes written — spikes indicate queries exceeding work_mem",
+			"gridPos": { "h": 8, "w": 24, "x": 0, "y": 37 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"color": { "mode": "palette-classic" },
+					"unit": "short",
+					"custom": {
+						"drawStyle": "line",
+						"fillOpacity": 10,
+						"lineInterpolation": "smooth",
+						"lineWidth": 1,
+						"showPoints": "never",
+						"spanNulls": false,
+						"stacking": { "group": "A", "mode": "none" }
+					}
+				},
+				"overrides": [
+					{
+						"matcher": { "id": "byName", "options": "Temp Bytes" },
+						"properties": [
+							{ "id": "unit", "value": "Bps" },
+							{ "id": "custom.axisPlacement", "value": "right" }
+						]
+					}
+				]
+			},
+			"options": {
+				"tooltip": { "mode": "multi", "sort": "desc" },
+				"legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }
+			},
+			"targets": [
+				{
+					"expr": "rate(pg_stat_database_temp_files{job=\"postgres\", datname=\"roasted\"}[$__rate_interval])",
+					"legendFormat": "Temp Files",
+					"refId": "A"
+				},
+				{
+					"expr": "rate(pg_stat_database_temp_bytes{job=\"postgres\", datname=\"roasted\"}[$__rate_interval])",
+					"legendFormat": "Temp Bytes",
+					"refId": "B"
+				}
+			]
+		},
+		{
+			"id": 22,
+			"type": "row",
+			"title": "Background Writer & Checkpoints",
+			"gridPos": { "h": 1, "w": 24, "x": 0, "y": 45 },
+			"collapsed": false,
+			"panels": []
+		},
+		{
+			"id": 23,
+			"type": "timeseries",
+			"title": "Background Writer Buffers / s",
+			"description": "Buffers cleaned by the background writer and allocated",
+			"gridPos": { "h": 8, "w": 12, "x": 0, "y": 46 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"color": { "mode": "palette-classic" },
+					"unit": "ops",
+					"custom": {
+						"drawStyle": "line",
+						"fillOpacity": 20,
+						"lineInterpolation": "smooth",
+						"lineWidth": 1,
+						"showPoints": "never",
+						"spanNulls": false,
+						"stacking": { "group": "A", "mode": "none" }
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"tooltip": { "mode": "multi", "sort": "desc" },
+				"legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }
+			},
+			"targets": [
+				{
+					"expr": "rate(pg_stat_bgwriter_buffers_clean_total{job=\"postgres\"}[$__rate_interval])",
+					"legendFormat": "Cleaned",
+					"refId": "A"
+				},
+				{
+					"expr": "rate(pg_stat_bgwriter_buffers_alloc_total{job=\"postgres\"}[$__rate_interval])",
+					"legendFormat": "Allocated",
+					"refId": "B"
+				}
+			]
+		},
+		{
+			"id": 24,
+			"type": "timeseries",
+			"title": "Max Written Clean",
+			"description": "Times the background writer stopped a cleaning scan because it had written too many buffers",
+			"gridPos": { "h": 8, "w": 12, "x": 12, "y": 46 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"color": { "mode": "palette-classic" },
+					"unit": "ops",
+					"custom": {
+						"drawStyle": "line",
+						"fillOpacity": 10,
+						"lineInterpolation": "smooth",
+						"lineWidth": 2,
+						"showPoints": "never",
+						"spanNulls": false,
+						"stacking": { "group": "A", "mode": "none" }
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"tooltip": { "mode": "multi", "sort": "desc" },
+				"legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }
+			},
+			"targets": [
+				{
+					"expr": "rate(pg_stat_bgwriter_maxwritten_clean_total{job=\"postgres\"}[$__rate_interval])",
+					"legendFormat": "Max Written Clean",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 25,
+			"type": "row",
+			"title": "Locks",
+			"gridPos": { "h": 1, "w": 24, "x": 0, "y": 54 },
+			"collapsed": false,
+			"panels": []
+		},
+		{
+			"id": 26,
+			"type": "timeseries",
+			"title": "Locks by Mode",
+			"description": "Active locks grouped by lock mode",
+			"gridPos": { "h": 8, "w": 24, "x": 0, "y": 55 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"color": { "mode": "palette-classic" },
+					"unit": "short",
+					"custom": {
+						"drawStyle": "line",
+						"fillOpacity": 20,
+						"lineInterpolation": "smooth",
+						"lineWidth": 1,
+						"showPoints": "never",
+						"spanNulls": false,
+						"stacking": { "group": "A", "mode": "normal" }
+					}
+				},
+				"overrides": [
+					{
+						"matcher": { "id": "byName", "options": "ExclusiveLock" },
+						"properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }]
+					},
+					{
+						"matcher": { "id": "byName", "options": "AccessExclusiveLock" },
+						"properties": [
+							{ "id": "color", "value": { "mode": "fixed", "fixedColor": "dark-red" } }
+						]
+					}
+				]
+			},
+			"options": {
+				"tooltip": { "mode": "multi", "sort": "desc" },
+				"legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }
+			},
+			"targets": [
+				{
+					"expr": "pg_locks_count{job=\"postgres\", datname=\"roasted\"}",
+					"legendFormat": "{{mode}}",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 27,
+			"type": "row",
+			"title": "Conflicts",
+			"gridPos": { "h": 1, "w": 24, "x": 0, "y": 63 },
+			"collapsed": false,
+			"panels": []
+		},
+		{
+			"id": 28,
+			"type": "timeseries",
+			"title": "Conflicts & Deadlocks",
+			"description": "Database conflicts and deadlocks over time",
+			"gridPos": { "h": 8, "w": 24, "x": 0, "y": 64 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"color": { "mode": "palette-classic" },
+					"unit": "ops",
+					"custom": {
+						"drawStyle": "line",
+						"fillOpacity": 10,
+						"lineInterpolation": "smooth",
+						"lineWidth": 1,
+						"showPoints": "never",
+						"spanNulls": false,
+						"stacking": { "group": "A", "mode": "none" }
+					}
+				},
+				"overrides": [
+					{
+						"matcher": { "id": "byName", "options": "Deadlocks" },
+						"properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }]
+					}
+				]
+			},
+			"options": {
+				"tooltip": { "mode": "multi", "sort": "desc" },
+				"legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }
+			},
+			"targets": [
+				{
+					"expr": "rate(pg_stat_database_conflicts{job=\"postgres\", datname=\"roasted\"}[$__rate_interval])",
+					"legendFormat": "Conflicts",
+					"refId": "A"
+				},
+				{
+					"expr": "rate(pg_stat_database_deadlocks{job=\"postgres\", datname=\"roasted\"}[$__rate_interval])",
+					"legendFormat": "Deadlocks",
+					"refId": "B"
+				}
+			]
+		},
+		{
+			"id": 30,
+			"type": "row",
+			"title": "Query Performance",
+			"gridPos": { "h": 1, "w": 24, "x": 0, "y": 72 },
+			"collapsed": false,
+			"panels": []
+		},
+		{
+			"id": 31,
+			"type": "stat",
+			"title": "Tracked Statements",
+			"gridPos": { "h": 4, "w": 6, "x": 0, "y": 73 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "short",
+					"color": { "mode": "fixed", "fixedColor": "text" },
+					"thresholds": {
+						"mode": "absolute",
+						"steps": [{ "color": "text", "value": null }]
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"reduceOptions": { "calcs": ["lastNotNull"] },
+				"colorMode": "value",
+				"graphMode": "area",
+				"textMode": "value"
+			},
+			"targets": [
+				{
+					"expr": "count(pg_stat_statements_calls_total{job=\"postgres\", datname=\"roasted\"})",
+					"legendFormat": "",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 32,
+			"type": "stat",
+			"title": "Calls / s",
+			"gridPos": { "h": 4, "w": 6, "x": 6, "y": 73 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "ops",
+					"color": { "mode": "fixed", "fixedColor": "text" },
+					"thresholds": {
+						"mode": "absolute",
+						"steps": [{ "color": "text", "value": null }]
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"reduceOptions": { "calcs": ["lastNotNull"] },
+				"colorMode": "value",
+				"graphMode": "area",
+				"textMode": "value"
+			},
+			"targets": [
+				{
+					"expr": "sum(rate(pg_stat_statements_calls_total{job=\"postgres\", datname=\"roasted\"}[$__rate_interval]))",
+					"legendFormat": "",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 33,
+			"type": "stat",
+			"title": "Exec Time / s",
+			"gridPos": { "h": 4, "w": 6, "x": 12, "y": 73 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "s",
+					"color": { "mode": "fixed", "fixedColor": "text" },
+					"thresholds": {
+						"mode": "absolute",
+						"steps": [{ "color": "text", "value": null }]
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"reduceOptions": { "calcs": ["lastNotNull"] },
+				"colorMode": "value",
+				"graphMode": "area",
+				"textMode": "value"
+			},
+			"targets": [
+				{
+					"expr": "sum(rate(pg_stat_statements_seconds_total{job=\"postgres\", datname=\"roasted\"}[$__rate_interval]))",
+					"legendFormat": "",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 34,
+			"type": "stat",
+			"title": "Rows / s",
+			"gridPos": { "h": 4, "w": 6, "x": 18, "y": 73 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"unit": "ops",
+					"color": { "mode": "fixed", "fixedColor": "text" },
+					"thresholds": {
+						"mode": "absolute",
+						"steps": [{ "color": "text", "value": null }]
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"reduceOptions": { "calcs": ["lastNotNull"] },
+				"colorMode": "value",
+				"graphMode": "area",
+				"textMode": "value"
+			},
+			"targets": [
+				{
+					"expr": "sum(rate(pg_stat_statements_rows_total{job=\"postgres\", datname=\"roasted\"}[$__rate_interval]))",
+					"legendFormat": "",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 35,
+			"type": "table",
+			"title": "Top Queries by Total Time",
+			"description": "Top 20 queries by cumulative execution time since last stats reset",
+			"gridPos": { "h": 10, "w": 24, "x": 0, "y": 77 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {},
+				"overrides": [
+					{
+						"matcher": { "id": "byName", "options": "Total Time (s)" },
+						"properties": [
+							{ "id": "unit", "value": "s" },
+							{ "id": "decimals", "value": 2 }
+						]
+					},
+					{
+						"matcher": { "id": "byName", "options": "Mean Time (s)" },
+						"properties": [
+							{ "id": "unit", "value": "s" },
+							{ "id": "decimals", "value": 4 }
+						]
+					},
+					{
+						"matcher": { "id": "byName", "options": "Calls" },
+						"properties": [{ "id": "decimals", "value": 0 }]
+					},
+					{
+						"matcher": { "id": "byName", "options": "Rows" },
+						"properties": [{ "id": "decimals", "value": 0 }]
+					},
+					{
+						"matcher": { "id": "byName", "options": "Query" },
+						"properties": [{ "id": "custom.width", "value": 600 }]
+					}
+				]
+			},
+			"options": {
+				"showHeader": true,
+				"footer": { "show": false },
+				"sortBy": [{ "displayName": "Total Time (s)", "desc": true }]
+			},
+			"targets": [
+				{
+					"expr": "pg_stat_statements_seconds_total{job=\"postgres\", datname=\"roasted\"} * on(queryid) group_left(query) pg_stat_statements_query_id{job=\"postgres\"}",
+					"format": "table",
+					"instant": true,
+					"refId": "A"
+				},
+				{
+					"expr": "pg_stat_statements_calls_total{job=\"postgres\", datname=\"roasted\"} * on(queryid) group_left(query) pg_stat_statements_query_id{job=\"postgres\"}",
+					"format": "table",
+					"instant": true,
+					"refId": "B"
+				},
+				{
+					"expr": "pg_stat_statements_seconds_total{job=\"postgres\", datname=\"roasted\"} / pg_stat_statements_calls_total{job=\"postgres\", datname=\"roasted\"}",
+					"format": "table",
+					"instant": true,
+					"refId": "C"
+				},
+				{
+					"expr": "pg_stat_statements_rows_total{job=\"postgres\", datname=\"roasted\"} * on(queryid) group_left(query) pg_stat_statements_query_id{job=\"postgres\"}",
+					"format": "table",
+					"instant": true,
+					"refId": "D"
+				}
+			],
+			"transformations": [
+				{ "id": "merge", "options": {} },
+				{
+					"id": "organize",
+					"options": {
+						"excludeByName": {
+							"Time": true,
+							"__name__": true,
+							"instance": true,
+							"job": true,
+							"queryid": true,
+							"user": true,
+							"datname": true
+						},
+						"renameByName": {
+							"query": "Query",
+							"Value #A": "Total Time (s)",
+							"Value #B": "Calls",
+							"Value #C": "Mean Time (s)",
+							"Value #D": "Rows"
+						},
+						"indexByName": {
+							"query": 0,
+							"Value #B": 1,
+							"Value #A": 2,
+							"Value #C": 3,
+							"Value #D": 4
+						}
+					}
+				}
+			]
+		},
+		{
+			"id": 36,
+			"type": "timeseries",
+			"title": "Statement Calls / s",
+			"description": "Total query execution rate across all tracked statements",
+			"gridPos": { "h": 8, "w": 12, "x": 0, "y": 87 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"color": { "mode": "palette-classic" },
+					"unit": "ops",
+					"custom": {
+						"drawStyle": "line",
+						"fillOpacity": 20,
+						"lineInterpolation": "smooth",
+						"lineWidth": 2,
+						"showPoints": "never",
+						"spanNulls": false,
+						"stacking": { "group": "A", "mode": "none" }
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"tooltip": { "mode": "multi", "sort": "desc" },
+				"legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }
+			},
+			"targets": [
+				{
+					"expr": "sum(rate(pg_stat_statements_calls_total{job=\"postgres\", datname=\"roasted\"}[$__rate_interval]))",
+					"legendFormat": "Calls / s",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 37,
+			"type": "timeseries",
+			"title": "Statement Exec Time / s",
+			"description": "Seconds of query time per second of wall time",
+			"gridPos": { "h": 8, "w": 12, "x": 12, "y": 87 },
+			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"fieldConfig": {
+				"defaults": {
+					"color": { "mode": "fixed", "fixedColor": "orange" },
+					"unit": "s",
+					"custom": {
+						"drawStyle": "line",
+						"fillOpacity": 20,
+						"lineInterpolation": "smooth",
+						"lineWidth": 2,
+						"showPoints": "never",
+						"spanNulls": false,
+						"stacking": { "group": "A", "mode": "none" }
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"tooltip": { "mode": "multi", "sort": "desc" },
+				"legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }
+			},
+			"targets": [
+				{
+					"expr": "sum(rate(pg_stat_statements_seconds_total{job=\"postgres\", datname=\"roasted\"}[$__rate_interval]))",
+					"legendFormat": "Exec Time / s",
+					"refId": "A"
+				}
+			]
+		}
+	]
+}

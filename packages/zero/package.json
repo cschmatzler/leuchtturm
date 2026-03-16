@@ -1,0 +1,18 @@
+{
+	"name": "@roasted/zero",
+	"type": "module",
+	"exports": {
+		"./*": "./src/*.ts"
+	},
+	"dependencies": {
+		"@roasted/core": "workspace:*",
+		"@rocicorp/zero": "0.26.1",
+		"arktype": "2.2.0"
+	},
+	"devDependencies": {
+		"typescript": "5.9.3"
+	},
+	"trustedDependencies": [
+		"@rocicorp/zero-sqlite3"
+	]
+}

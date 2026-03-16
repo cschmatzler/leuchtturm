@@ -1,0 +1,13 @@
+{
+	"name": "@roasted/oxlint-plugins",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts",
+		"./no-relative-imports": "./src/no-relative-imports.ts",
+		"./types": "./src/types.ts"
+	},
+	"devDependencies": {
+		"typescript": "5.9.3"
+	}
+}

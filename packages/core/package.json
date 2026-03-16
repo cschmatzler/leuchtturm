@@ -1,0 +1,28 @@
+{
+	"name": "@roasted/core",
+	"private": true,
+	"type": "module",
+	"sideEffects": false,
+	"exports": {
+		"./*": "./src/*.ts"
+	},
+	"scripts": {
+		"db:push": "drizzle-kit push",
+		"db:studio": "drizzle-kit studio"
+	},
+	"dependencies": {
+		"@clickhouse/client": "1.18.2",
+		"@roasted/email": "workspace:",
+		"arktype": "2.2.0",
+		"autumn-js": "1.0.1",
+		"better-auth": "1.5.5",
+		"drizzle-kit": "1.0.0-beta.12-a5629fb",
+		"drizzle-orm": "1.0.0-beta.12-a5629fb",
+		"pg": "8.20.0",
+		"ulid": "3.0.2"
+	},
+	"devDependencies": {
+		"@types/pg": "8.18.0",
+		"typescript": "5.9.3"
+	}
+}
