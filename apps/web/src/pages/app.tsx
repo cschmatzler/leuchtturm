@@ -1,8 +1,10 @@
+import { useHotkey } from "@tanstack/react-hotkeys";
 import {
 	createFileRoute,
 	Outlet,
 	redirect,
 	RouterContextProvider,
+	useNavigate,
 	useRouter,
 } from "@tanstack/react-router";
 import { AutumnProvider, useCustomer } from "autumn-js/react";
@@ -12,6 +14,7 @@ import { useTranslation } from "react-i18next";
 
 import { Loading } from "@one/web/components/app/loading";
 import { Avatar, AvatarFallback } from "@one/web/components/ui/avatar";
+import { renderOptionShiftShortcut } from "@one/web/components/ui/kbd";
 import { Link } from "@one/web/components/ui/link";
 import {
 	Menu,
@@ -37,11 +40,8 @@ import {
 import { ZeroProvider, type SessionData } from "@one/web/contexts/zero";
 import { useAuth } from "@one/web/hooks/use-auth";
 import { useCommandBar } from "@one/web/hooks/use-command-bar";
+import { useCommandProvider } from "@one/web/hooks/use-command-provider";
 import { useZeroQuery } from "@one/web/lib/query";
-import { renderOptionShiftShortcut } from "@one/web/pages/app/-hooks/shortcut-kbd";
-import { useAccountCommands } from "@one/web/pages/app/-hooks/use-account-commands";
-import { useNavigationCommands } from "@one/web/pages/app/-hooks/use-navigation-commands";
-import { useShellShortcuts } from "@one/web/pages/app/-hooks/use-shell-shortcuts";
 import { sessionQuery } from "@one/web/queries/session";
 import { queries } from "@one/zero/queries";
 
@@ -93,15 +93,49 @@ function App({ session }: { session: SessionData }) {
 }
 
 function Shell({ session }: { session: SessionData }) {
+	const navigate = useNavigate();
 	const { t, i18n } = useTranslation();
 	const { signOut } = useAuth();
 	const commandBar = useCommandBar();
 
 	const [currentUser] = useZeroQuery(queries.currentUser());
 
-	useShellShortcuts({ onOpenCommandBar: commandBar.show, onSignOut: signOut });
-	useAccountCommands({ userId: session.user.id, t, onSignOut: signOut });
-	useNavigationCommands({ userId: session.user.id, t });
+	useHotkey("Mod+K", () => commandBar.show(), { ignoreInputs: false });
+	useHotkey("Alt+Shift+Q", () => signOut());
+
+	useCommandProvider(
+		"account",
+		async () => [
+			{
+				title: t("Log out"),
+				category: t("Account"),
+				global: true,
+				icon: LogOutIcon,
+				shortcut: () => renderOptionShiftShortcut("Q"),
+				async run() {
+					await signOut();
+				},
+			},
+		],
+		[session.user.id, signOut, t],
+	);
+
+	useCommandProvider(
+		"navigation",
+		async () => [
+			{
+				title: t("Go to Preferences"),
+				value: "navigation-preferences",
+				category: t("Navigation"),
+				global: true,
+				icon: CogIcon,
+				run() {
+					navigate({ to: "/app/settings/preferences" });
+				},
+			},
+		],
+		[navigate, session.user.id, t],
+	);
 
 	useEffect(() => {
 		if (!currentUser) return;

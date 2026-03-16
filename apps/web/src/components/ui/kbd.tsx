@@ -1,4 +1,5 @@
-import type { ComponentProps } from "react";
+import { ArrowBigUpIcon, OptionIcon } from "lucide-react";
+import type { ComponentProps, ReactNode } from "react";
 
 import { cn } from "@one/web/lib/cn";
 
@@ -27,4 +28,24 @@ function KbdGroup({ className, ...props }: ComponentProps<"div">) {
 	);
 }
 
-export { Kbd, KbdGroup };
+function getPlatformOptionKey(): ReactNode {
+	return /Mac|iPod|iPhone|iPad/.test(navigator.userAgent) ? (
+		<OptionIcon className="size-3" />
+	) : (
+		"Alt"
+	);
+}
+
+function renderOptionShiftShortcut(key: string) {
+	return (
+		<KbdGroup>
+			<Kbd>{getPlatformOptionKey()}</Kbd>
+			<Kbd>
+				<ArrowBigUpIcon className="size-3" />
+			</Kbd>
+			<Kbd>{key}</Kbd>
+		</KbdGroup>
+	);
+}
+
+export { Kbd, KbdGroup, renderOptionShiftShortcut };
