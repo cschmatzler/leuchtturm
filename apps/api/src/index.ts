@@ -8,8 +8,10 @@ import { register } from "prom-client";
 
 import analytics from "@one/api/analytics/index";
 import autumn from "@one/api/autumn";
+import errors from "@one/api/errors/index";
 import mutate from "@one/api/mutate";
 import query from "@one/api/query";
+import { insertErrors } from "@one/core/analytics/clickhouse";
 import { auth } from "@one/core/auth/index";
 import { PublicError } from "@one/core/result";
 
@@ -40,6 +42,7 @@ const app = new Hono()
 	.route("/query", query)
 	.route("/mutate", mutate)
 	.route("/analytics", analytics)
+	.route("/errors", errors)
 	.onError((error, c) => {
 		if (error instanceof PublicError) {
 			return c.json(
@@ -64,6 +67,19 @@ const app = new Hono()
 			span.recordException(normalizedError);
 			span.setStatus({ code: SpanStatusCode.ERROR, message: normalizedError.message });
 		}
+
+		insertErrors([
+			{
+				source: "api",
+				errorType: normalizedError.name,
+				message: normalizedError.message,
+				stackTrace: normalizedError.stack,
+				url: c.req.path,
+				method: c.req.method,
+				statusCode: 500,
+				userAgent: c.req.header("user-agent"),
+			},
+		]).catch(() => {});
 
 		return c.json(
 			{

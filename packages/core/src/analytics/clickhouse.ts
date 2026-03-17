@@ -29,4 +29,42 @@ export async function insertEvents(events: AnalyticsEvent[], userId: string, ses
 	});
 }
 
+type ErrorEventRow = {
+	source: "api" | "web";
+	errorType: string;
+	message: string;
+	userId?: string;
+	sessionId?: string;
+	stackTrace?: string;
+	url?: string;
+	method?: string;
+	statusCode?: number;
+	userAgent?: string;
+	properties?: Record<string, unknown>;
+};
+
+export async function insertErrors(errors: ErrorEventRow[]) {
+	const rows = errors.map((error) => ({
+		timestamp: new Date().toISOString().replace("T", " ").replace("Z", ""),
+		error_id: crypto.randomUUID(),
+		source: error.source,
+		user_id: error.userId ?? "",
+		session_id: error.sessionId ?? "",
+		error_type: error.errorType,
+		message: error.message,
+		stack_trace: error.stackTrace ?? "",
+		url: error.url ?? "",
+		method: error.method ?? "",
+		status_code: error.statusCode ?? 0,
+		user_agent: error.userAgent ?? "",
+		properties: JSON.stringify(error.properties ?? {}),
+	}));
+
+	await client.insert({
+		table: "error_events",
+		values: rows,
+		format: "JSONEachRow",
+	});
+}
+
 export { client as analyticsClient };

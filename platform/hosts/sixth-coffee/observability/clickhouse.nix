@@ -18,6 +18,26 @@
 			ORDER BY (event_type, user_id, timestamp)
 			TTL toDate(timestamp) + INTERVAL 90 DAY DELETE
 			SETTINGS index_granularity = 8192;
+
+			CREATE TABLE IF NOT EXISTS error_events (
+				timestamp DateTime64(3, 'UTC'),
+				error_id UUID,
+				source LowCardinality(String),
+				user_id String DEFAULT '',
+				session_id String DEFAULT '',
+				error_type String,
+				message String,
+				stack_trace String DEFAULT '',
+				url String DEFAULT '',
+				method LowCardinality(String) DEFAULT '',
+				status_code UInt16 DEFAULT 0,
+				user_agent String DEFAULT '',
+				properties String DEFAULT '{}'
+			) ENGINE = MergeTree()
+			PARTITION BY toDate(timestamp)
+			ORDER BY (source, timestamp)
+			TTL toDate(timestamp) + INTERVAL 90 DAY DELETE
+			SETTINGS index_granularity = 8192;
 		'';
 in {
 	services.clickhouse = {

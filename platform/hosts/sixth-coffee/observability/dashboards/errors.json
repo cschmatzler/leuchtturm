@@ -1,0 +1,651 @@
+{
+	"id": null,
+	"uid": "errors",
+	"title": "Errors",
+	"description": "Application error tracking — API and web client errors",
+	"tags": ["one-errors"],
+	"editable": true,
+	"graphTooltip": 2,
+	"schemaVersion": 39,
+	"time": {
+		"from": "now-6h",
+		"to": "now"
+	},
+	"refresh": "30s",
+	"timezone": "browser",
+	"fiscalYearStartMonth": 0,
+	"templating": {
+		"list": [
+			{
+				"name": "source",
+				"type": "custom",
+				"label": "Source",
+				"current": {
+					"selected": true,
+					"text": "All",
+					"value": "$__all"
+				},
+				"options": [
+					{
+						"selected": true,
+						"text": "All",
+						"value": "$__all"
+					},
+					{
+						"selected": false,
+						"text": "API",
+						"value": "api"
+					},
+					{
+						"selected": false,
+						"text": "Web",
+						"value": "web"
+					}
+				],
+				"query": "api,web",
+				"includeAll": true,
+				"multi": false
+			}
+		]
+	},
+	"annotations": {
+		"list": []
+	},
+	"links": [],
+	"panels": [
+		{
+			"id": 1,
+			"type": "row",
+			"title": "Overview",
+			"gridPos": {
+				"h": 1,
+				"w": 24,
+				"x": 0,
+				"y": 0
+			},
+			"collapsed": false,
+			"panels": []
+		},
+		{
+			"id": 2,
+			"type": "stat",
+			"title": "Total Errors",
+			"gridPos": {
+				"h": 4,
+				"w": 6,
+				"x": 0,
+				"y": 1
+			},
+			"datasource": {
+				"type": "grafana-clickhouse-datasource",
+				"uid": "clickhouse"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"color": {
+						"mode": "fixed",
+						"fixedColor": "red"
+					},
+					"thresholds": {
+						"mode": "absolute",
+						"steps": [
+							{
+								"color": "green",
+								"value": null
+							},
+							{
+								"color": "yellow",
+								"value": 10
+							},
+							{
+								"color": "red",
+								"value": 50
+							}
+						]
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"reduceOptions": {
+					"calcs": ["lastNotNull"],
+					"fields": "",
+					"values": false
+				},
+				"colorMode": "value",
+				"graphMode": "area",
+				"justifyMode": "auto",
+				"textMode": "auto",
+				"wideLayout": true
+			},
+			"targets": [
+				{
+					"datasource": {
+						"type": "grafana-clickhouse-datasource",
+						"uid": "clickhouse"
+					},
+					"rawSql": "SELECT count() AS total FROM error_events WHERE timestamp >= $__fromTime AND timestamp <= $__toTime AND ('$source' = '$__all' OR source = '$source')",
+					"format": 1,
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 3,
+			"type": "stat",
+			"title": "API Errors",
+			"gridPos": {
+				"h": 4,
+				"w": 6,
+				"x": 6,
+				"y": 1
+			},
+			"datasource": {
+				"type": "grafana-clickhouse-datasource",
+				"uid": "clickhouse"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"color": {
+						"mode": "fixed",
+						"fixedColor": "orange"
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"reduceOptions": {
+					"calcs": ["lastNotNull"],
+					"fields": "",
+					"values": false
+				},
+				"colorMode": "value",
+				"graphMode": "area",
+				"justifyMode": "auto",
+				"textMode": "auto",
+				"wideLayout": true
+			},
+			"targets": [
+				{
+					"datasource": {
+						"type": "grafana-clickhouse-datasource",
+						"uid": "clickhouse"
+					},
+					"rawSql": "SELECT count() AS api_errors FROM error_events WHERE timestamp >= $__fromTime AND timestamp <= $__toTime AND source = 'api'",
+					"format": 1,
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 4,
+			"type": "stat",
+			"title": "Web Errors",
+			"gridPos": {
+				"h": 4,
+				"w": 6,
+				"x": 12,
+				"y": 1
+			},
+			"datasource": {
+				"type": "grafana-clickhouse-datasource",
+				"uid": "clickhouse"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"color": {
+						"mode": "fixed",
+						"fixedColor": "blue"
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"reduceOptions": {
+					"calcs": ["lastNotNull"],
+					"fields": "",
+					"values": false
+				},
+				"colorMode": "value",
+				"graphMode": "area",
+				"justifyMode": "auto",
+				"textMode": "auto",
+				"wideLayout": true
+			},
+			"targets": [
+				{
+					"datasource": {
+						"type": "grafana-clickhouse-datasource",
+						"uid": "clickhouse"
+					},
+					"rawSql": "SELECT count() AS web_errors FROM error_events WHERE timestamp >= $__fromTime AND timestamp <= $__toTime AND source = 'web'",
+					"format": 1,
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 5,
+			"type": "stat",
+			"title": "Unique Error Types",
+			"gridPos": {
+				"h": 4,
+				"w": 6,
+				"x": 18,
+				"y": 1
+			},
+			"datasource": {
+				"type": "grafana-clickhouse-datasource",
+				"uid": "clickhouse"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"color": {
+						"mode": "fixed",
+						"fixedColor": "text"
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"reduceOptions": {
+					"calcs": ["lastNotNull"],
+					"fields": "",
+					"values": false
+				},
+				"colorMode": "value",
+				"graphMode": "none",
+				"justifyMode": "auto",
+				"textMode": "auto",
+				"wideLayout": true
+			},
+			"targets": [
+				{
+					"datasource": {
+						"type": "grafana-clickhouse-datasource",
+						"uid": "clickhouse"
+					},
+					"rawSql": "SELECT uniq(error_type) AS unique_types FROM error_events WHERE timestamp >= $__fromTime AND timestamp <= $__toTime AND ('$source' = '$__all' OR source = '$source')",
+					"format": 1,
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 6,
+			"type": "timeseries",
+			"title": "Error Rate",
+			"gridPos": {
+				"h": 8,
+				"w": 24,
+				"x": 0,
+				"y": 5
+			},
+			"datasource": {
+				"type": "grafana-clickhouse-datasource",
+				"uid": "clickhouse"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"color": {
+						"mode": "palette-classic"
+					},
+					"custom": {
+						"drawStyle": "line",
+						"lineInterpolation": "smooth",
+						"fillOpacity": 20,
+						"lineWidth": 2,
+						"pointSize": 5,
+						"showPoints": "auto",
+						"spanNulls": true,
+						"stacking": {
+							"mode": "none"
+						}
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"legend": {
+					"displayMode": "list",
+					"placement": "bottom"
+				},
+				"tooltip": {
+					"mode": "multi",
+					"sort": "desc"
+				}
+			},
+			"targets": [
+				{
+					"datasource": {
+						"type": "grafana-clickhouse-datasource",
+						"uid": "clickhouse"
+					},
+					"rawSql": "SELECT $__timeInterval(timestamp) AS time, source, count() AS errors FROM error_events WHERE timestamp >= $__fromTime AND timestamp <= $__toTime AND ('$source' = '$__all' OR source = '$source') GROUP BY time, source ORDER BY time",
+					"format": 0,
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 7,
+			"type": "row",
+			"title": "Breakdown",
+			"gridPos": {
+				"h": 1,
+				"w": 24,
+				"x": 0,
+				"y": 13
+			},
+			"collapsed": false,
+			"panels": []
+		},
+		{
+			"id": 8,
+			"type": "piechart",
+			"title": "Errors by Source",
+			"gridPos": {
+				"h": 8,
+				"w": 8,
+				"x": 0,
+				"y": 14
+			},
+			"datasource": {
+				"type": "grafana-clickhouse-datasource",
+				"uid": "clickhouse"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"color": {
+						"mode": "palette-classic"
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"legend": {
+					"displayMode": "list",
+					"placement": "right"
+				},
+				"pieType": "donut",
+				"reduceOptions": {
+					"calcs": ["lastNotNull"],
+					"fields": "",
+					"values": true
+				},
+				"tooltip": {
+					"mode": "single"
+				}
+			},
+			"targets": [
+				{
+					"datasource": {
+						"type": "grafana-clickhouse-datasource",
+						"uid": "clickhouse"
+					},
+					"rawSql": "SELECT source, count() AS errors FROM error_events WHERE timestamp >= $__fromTime AND timestamp <= $__toTime GROUP BY source ORDER BY errors DESC",
+					"format": 1,
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 9,
+			"type": "barchart",
+			"title": "Top Error Types",
+			"gridPos": {
+				"h": 8,
+				"w": 16,
+				"x": 8,
+				"y": 14
+			},
+			"datasource": {
+				"type": "grafana-clickhouse-datasource",
+				"uid": "clickhouse"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"color": {
+						"mode": "palette-classic"
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"orientation": "horizontal",
+				"legend": {
+					"displayMode": "hidden"
+				},
+				"tooltip": {
+					"mode": "single"
+				},
+				"xTickLabelRotation": 0,
+				"barWidth": 0.7
+			},
+			"targets": [
+				{
+					"datasource": {
+						"type": "grafana-clickhouse-datasource",
+						"uid": "clickhouse"
+					},
+					"rawSql": "SELECT error_type, count() AS errors FROM error_events WHERE timestamp >= $__fromTime AND timestamp <= $__toTime AND ('$source' = '$__all' OR source = '$source') GROUP BY error_type ORDER BY errors DESC LIMIT 10",
+					"format": 1,
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 10,
+			"type": "row",
+			"title": "Detail",
+			"gridPos": {
+				"h": 1,
+				"w": 24,
+				"x": 0,
+				"y": 22
+			},
+			"collapsed": false,
+			"panels": []
+		},
+		{
+			"id": 11,
+			"type": "table",
+			"title": "Recent Errors",
+			"gridPos": {
+				"h": 10,
+				"w": 24,
+				"x": 0,
+				"y": 23
+			},
+			"datasource": {
+				"type": "grafana-clickhouse-datasource",
+				"uid": "clickhouse"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"custom": {
+						"align": "auto",
+						"cellOptions": {
+							"type": "auto"
+						},
+						"filterable": true
+					}
+				},
+				"overrides": [
+					{
+						"matcher": {
+							"id": "byName",
+							"options": "timestamp"
+						},
+						"properties": [
+							{
+								"id": "custom.width",
+								"value": 180
+							}
+						]
+					},
+					{
+						"matcher": {
+							"id": "byName",
+							"options": "source"
+						},
+						"properties": [
+							{
+								"id": "custom.width",
+								"value": 80
+							}
+						]
+					},
+					{
+						"matcher": {
+							"id": "byName",
+							"options": "error_type"
+						},
+						"properties": [
+							{
+								"id": "custom.width",
+								"value": 200
+							}
+						]
+					},
+					{
+						"matcher": {
+							"id": "byName",
+							"options": "stack_trace"
+						},
+						"properties": [
+							{
+								"id": "custom.cellOptions",
+								"value": {
+									"type": "auto",
+									"wrapText": true
+								}
+							},
+							{
+								"id": "custom.inspect",
+								"value": true
+							}
+						]
+					}
+				]
+			},
+			"options": {
+				"showHeader": true,
+				"sortBy": [
+					{
+						"desc": true,
+						"displayName": "timestamp"
+					}
+				],
+				"footer": {
+					"show": false
+				}
+			},
+			"targets": [
+				{
+					"datasource": {
+						"type": "grafana-clickhouse-datasource",
+						"uid": "clickhouse"
+					},
+					"rawSql": "SELECT timestamp, source, error_type, message, url, method, status_code, stack_trace, user_agent FROM error_events WHERE timestamp >= $__fromTime AND timestamp <= $__toTime AND ('$source' = '$__all' OR source = '$source') ORDER BY timestamp DESC LIMIT 100",
+					"format": 1,
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 12,
+			"type": "table",
+			"title": "Most Affected URLs",
+			"gridPos": {
+				"h": 8,
+				"w": 12,
+				"x": 0,
+				"y": 33
+			},
+			"datasource": {
+				"type": "grafana-clickhouse-datasource",
+				"uid": "clickhouse"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"custom": {
+						"align": "auto",
+						"cellOptions": {
+							"type": "auto"
+						},
+						"filterable": true
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"showHeader": true,
+				"sortBy": [
+					{
+						"desc": true,
+						"displayName": "errors"
+					}
+				]
+			},
+			"targets": [
+				{
+					"datasource": {
+						"type": "grafana-clickhouse-datasource",
+						"uid": "clickhouse"
+					},
+					"rawSql": "SELECT url, count() AS errors, uniq(error_type) AS unique_types FROM error_events WHERE timestamp >= $__fromTime AND timestamp <= $__toTime AND url != '' AND ('$source' = '$__all' OR source = '$source') GROUP BY url ORDER BY errors DESC LIMIT 20",
+					"format": 1,
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 13,
+			"type": "table",
+			"title": "Most Affected Users",
+			"gridPos": {
+				"h": 8,
+				"w": 12,
+				"x": 12,
+				"y": 33
+			},
+			"datasource": {
+				"type": "grafana-clickhouse-datasource",
+				"uid": "clickhouse"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"custom": {
+						"align": "auto",
+						"cellOptions": {
+							"type": "auto"
+						},
+						"filterable": true
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"showHeader": true,
+				"sortBy": [
+					{
+						"desc": true,
+						"displayName": "errors"
+					}
+				]
+			},
+			"targets": [
+				{
+					"datasource": {
+						"type": "grafana-clickhouse-datasource",
+						"uid": "clickhouse"
+					},
+					"rawSql": "SELECT user_id, count() AS errors, uniq(error_type) AS unique_types FROM error_events WHERE timestamp >= $__fromTime AND timestamp <= $__toTime AND user_id != '' AND ('$source' = '$__all' OR source = '$source') GROUP BY user_id ORDER BY errors DESC LIMIT 20",
+					"format": 1,
+					"refId": "A"
+				}
+			]
+		}
+	]
+}
