@@ -202,30 +202,36 @@ Use semantic prefixes for boolean variables:
 - No `I` prefix for interfaces
 - Prefer `type` over `interface`
 
-### Forms (TanStack Form + arktype)
+### Forms (TanStack Form + Effect Schema)
 
 Extract validation schemas and submit handlers inside the component:
 
 ```typescript
+import { Schema } from "effect";
+
 function Page() {
-	const shape = type({
-		name: "string > 0",
-		email: "string.email",
-		password: "string > 12",
+	const shape = Schema.Struct({
+		name: Schema.NonEmptyString,
+		email: Schema.String.check(Schema.isPattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)),
+		password: Schema.String.check(Schema.isMinLength(13)),
 	});
 
-	const onSubmit = async (value: typeof shape.infer) => {
+	const onSubmit = async (value: typeof shape.Type) => {
 		// submission logic
 	};
 
 	const form = useForm({
 		defaultValues: { name: "", email: "", password: "" },
+		validators: {
+			onSubmit: Schema.toStandardSchemaV1(shape),
+		},
 		onSubmit: ({ value }) => onSubmit(value),
 	});
 }
 ```
 
-- Use `shape.get("field")` for per-field validators
+- Convert Effect Schemas to StandardSchemaV1 with `Schema.toStandardSchemaV1()` for form validators
+- Reference field schemas from `@chevrotain/core` where available (e.g., `User.fields.email`)
 - Extract async submit logic into named functions
 - Use camelCase for event properties (e.g., `isNewUser`, `errorType`)
 
@@ -482,11 +488,26 @@ export default defineConfig({
 
 ```typescript
 // clients/api.ts
-import { hc } from "hono/client";
-import type { Routes } from "@chevrotain/api";
-
 const baseUrl = import.meta.env.VITE_BASE_URL;
-export const api = hc<Routes>(baseUrl).api;
+
+async function postJson(path: string, body: unknown): Promise<unknown> {
+	const response = await fetch(`${baseUrl}/api${path}`, {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		credentials: "include",
+		body: JSON.stringify(body),
+	});
+	return response.json();
+}
+
+export const api = {
+	analytics: {
+		$post: (opts: { json: { events: unknown[] } }) => postJson("/analytics", opts.json),
+	},
+	errors: {
+		$post: (opts: { json: { errors: unknown[] } }) => postJson("/errors", opts.json),
+	},
+};
 ```
 
 ### Auth Client

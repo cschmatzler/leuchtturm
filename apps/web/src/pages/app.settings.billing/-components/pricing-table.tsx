@@ -115,9 +115,9 @@ export function PricingTable() {
 								planId={plan.id}
 								buttonProps={{
 									disabled:
-										(plan.customerEligibility?.scenario === "active" &&
+										(plan.customerEligibility?.attachAction === "none" &&
 											!plan.items.some((item) => item.price?.billingMethod === "prepaid")) ||
-										plan.customerEligibility?.scenario === "scheduled",
+										plan.customerEligibility?.status === "scheduled",
 									onClick: async () => {
 										await handlePlanClick(plan);
 									},

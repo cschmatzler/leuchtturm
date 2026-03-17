@@ -27,7 +27,7 @@
 		"@opentelemetry/sdk-metrics": "^2.6.0",
 		"@opentelemetry/sdk-trace-base": "2.6.0",
 		"@rocicorp/zero": "0.26.1",
-		"autumn-js": "1.0.1",
+		"autumn-js": "1.0.5",
 		"effect": "4.0.0-beta.33",
 		"prom-client": "15.1.3"
 	},

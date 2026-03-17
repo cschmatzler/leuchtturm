@@ -4,14 +4,14 @@
 
 ## Overview
 
-Local-first Node.js monorepo (pnpm). React frontend, Hono API, @rocicorp/zero for sync, PostgreSQL with Drizzle ORM.
+Local-first Node.js monorepo (pnpm). React frontend, Effect-TS API, @rocicorp/zero for sync, PostgreSQL with Drizzle ORM.
 
 ## Monorepo Structure
 
 ```
 chevrotain/
 ├── apps/
-│   ├── api/          # Hono server (see apps/api/AGENTS.md)
+│   ├── api/          # Effect-TS API server (see apps/api/AGENTS.md)
 │   ├── web/          # React + TanStack + Zero frontend (see apps/web/AGENTS.md)
 │   └── zero-cache/   # Zero sync server config
 ├── packages/
@@ -33,7 +33,7 @@ Each package/app has its own AGENTS.md with specific patterns.
 
 ```bash
 vp install                        # Install deps
-vp lint --type-aware --type-check # Lint + type check
+vp check                          # Lint + type check
 treefmt                           # Format all files
 vp test                           # Run all tests
 vp test path/to/file              # Single test file
@@ -49,7 +49,7 @@ pnpm --filter @chevrotain/core exec drizzle-kit push      # Apply to dev DB
 deploy .#sixth-coffee              # Deploy to production (NixOS via deploy-rs)
 ```
 
-Always run `vp lint --type-aware --type-check` and `vp test` after making changes.
+Always run `vp check` and `vp test` after making changes.
 
 After any dependency changes (`package.json` or `pnpm-lock.yaml`), run `nu scripts/update-pnpm-hash.nu` to update the Nix `fetchPnpmDeps` hash.
 
@@ -81,7 +81,7 @@ These rules apply to **every package and app** in the monorepo:
 
 Sorted order (enforced by oxfmt):
 
-1. External modules (`"react"`, `"hono"`)
+1. External modules (`"react"`, `"effect"`)
 2. Internal packages (`"@chevrotain/core"`, `"@chevrotain/zero"`)
 3. Relative imports (`"./file"`, `"../file"`)
 
@@ -157,17 +157,30 @@ Prefixed ULIDs. Add new prefixes to `packages/core/src/id.ts`.
 
 ### Error Handling
 
+In Effect handlers, use tagged error classes:
+
+```typescript
+import { NotFoundError, ValidationError } from "@chevrotain/core/errors";
+
+// Inside Effect.gen
+return yield * new NotFoundError({ resource: "bean" });
+return (
+	yield *
+	new ValidationError({
+		fields: [{ path: ["email"], message: "Invalid email" }],
+	})
+);
+```
+
+In Zero mutators and non-Effect code, use `PublicError`:
+
 ```typescript
 import { PublicError } from "@chevrotain/core/result";
 
 throw new PublicError({ status: 403, global: [{ message: "Forbidden" }] });
-throw new PublicError({
-	status: 400,
-	fields: [{ path: ["email"], message: "Invalid email" }],
-});
 ```
 
-API errors use `PublicError` with status codes and structured error format:
+API error response format:
 
 ```typescript
 {
@@ -236,7 +249,7 @@ void zero.mutate.bean.create(data); // Wrong
 | -------- | ------------------------------------------------------------ |
 | Runtime  | Node.js 25                                                   |
 | Frontend | React 19, TanStack (Router/Query/Table/Form), @rocicorp/zero |
-| API      | Hono with CORS                                               |
+| API      | Effect-TS HttpApi with CORS                                  |
 | Auth     | better-auth (magic link, organizations, multi-session)       |
 | Database | PostgreSQL, Drizzle ORM                                      |
 | Sync     | @rocicorp/zero (local-first)                                 |
@@ -324,7 +337,7 @@ Shared configuration constants:
 ## Deployment Flow
 
 1. **Code Change**: Modify code in monorepo
-2. **Lint & Test**: `vp lint --type-aware --type-check && vp test`
+2. **Lint & Test**: `vp check && vp test`
 3. **Format**: `treefmt`
 4. **Update Hash**: `nu scripts/update-pnpm-hash.nu` (if deps changed)
 5. **Build**: `nix build .#api .#web`
@@ -334,7 +347,7 @@ Shared configuration constants:
 
 | Task                    | Location                                  | See Also                 |
 | ----------------------- | ----------------------------------------- | ------------------------ |
-| Add API endpoint        | `apps/api/src/index.ts`                   | apps/api/AGENTS.md       |
+| Add API endpoint        | `apps/api/src/contract.ts` + `handlers/`  | apps/api/AGENTS.md       |
 | Add Zero mutation       | `packages/zero/src/mutators/`             | packages/zero/AGENTS.md  |
 | Add Zero query          | `packages/zero/src/queries.ts`            | packages/zero/AGENTS.md  |
 | Add DB table            | `packages/core/src/{domain}/`             | packages/core/AGENTS.md  |
@@ -343,7 +356,7 @@ Shared configuration constants:
 | Add ID prefix           | `packages/core/src/id.ts`                 | packages/core/AGENTS.md  |
 | Modify auth             | `packages/core/src/auth/`                 | packages/core/AGENTS.md  |
 | Add email template      | `packages/email/src/`                     | packages/email/AGENTS.md |
-| Handle billing webhooks | `apps/api/src/autumn.ts`                  | apps/api/AGENTS.md       |
+| Handle billing webhooks | `apps/api/src/handlers/autumn.ts`         | apps/api/AGENTS.md       |
 | Modify Nix config       | `modules/` or `nix/config.nix`            |                          |
 | Add deployment host     | `modules/{hostname}.nix`                  |                          |
 | Add monitoring metric   | `platform/hosts/{host}/observability.nix` |                          |
@@ -351,7 +364,7 @@ Shared configuration constants:
 ## Review Checklist
 
 - [ ] Run `vp install` after pulling remote changes
-- [ ] Run `vp lint --type-aware --type-check` after changes
+- [ ] Run `vp check` after changes
 - [ ] Run `treefmt` to format files
 - [ ] Run `vp test` to validate changes
 - [ ] Update `fetchPnpmDeps` hash if dependencies changed

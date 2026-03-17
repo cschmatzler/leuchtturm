@@ -41,10 +41,10 @@ function getCheckoutContent(
 	preview: PreviewAttachResponse,
 	t: (key: string, options?: Record<string, unknown>) => string,
 ) {
-	const scenario = plan.customerEligibility?.scenario;
+	const eligibility = plan.customerEligibility;
 	const isFree = plan.price === null;
 	const isOneOff = plan.price?.interval === "one_off";
-	const hasTrial = plan.customerEligibility?.trialAvailable && plan.freeTrial !== undefined;
+	const hasTrial = eligibility?.trialAvailable && plan.freeTrial !== undefined;
 
 	const nextCycleAtStr = preview.nextCycle
 		? new Date(preview.nextCycle.startsAt).toLocaleDateString()
@@ -72,23 +72,24 @@ function getCheckoutContent(
 		};
 	}
 
-	switch (scenario) {
-		case "scheduled":
-			return {
-				title: t("{{productName}} product already scheduled", { productName }),
-				message: t("You are currently scheduled to start {{productName}} on {{nextCycleAt}}.", {
-					productName,
-					nextCycleAt: nextCycleAtStr,
-				}),
-			};
+	if (eligibility?.status === "scheduled") {
+		return {
+			title: t("{{productName}} product already scheduled", { productName }),
+			message: t("You are currently scheduled to start {{productName}} on {{nextCycleAt}}.", {
+				productName,
+				nextCycleAt: nextCycleAtStr,
+			}),
+		};
+	}
 
-		case "active":
+	switch (eligibility?.attachAction) {
+		case "none":
 			return {
 				title: t("Product already active"),
 				message: t("You are already subscribed to this product."),
 			};
 
-		case "new":
+		case "activate":
 			if (isFree) {
 				return {
 					title: t("Enable {{productName}}", { productName }),
@@ -105,12 +106,14 @@ function getCheckoutContent(
 					{ productName },
 				),
 			};
-		case "renew":
+
+		case "purchase":
 			return {
-				title: t("Renew"),
-				message: t("By clicking confirm, you will renew your subscription to {{productName}}.", {
-					productName,
-				}),
+				title: t("Purchase {{productName}}", { productName }),
+				message: t(
+					"By clicking confirm, you will purchase {{productName}} and your card will be charged immediately.",
+					{ productName },
+				),
 			};
 
 		case "upgrade":
@@ -131,14 +134,6 @@ function getCheckoutContent(
 				),
 			};
 
-		case "cancel":
-			return {
-				title: t("Cancel"),
-				message: t("By clicking confirm, your current subscription will end on {{nextCycleAt}}.", {
-					nextCycleAt: nextCycleAtStr,
-				}),
-			};
-
 		default:
 			return {
 				title: t("Change Subscription"),
@@ -148,8 +143,8 @@ function getCheckoutContent(
 }
 
 export function getButtonText(plan: Plan, t: (key: string) => string) {
-	const scenario = plan.customerEligibility?.scenario;
-	const hasTrial = plan.customerEligibility?.trialAvailable && plan.freeTrial !== undefined;
+	const eligibility = plan.customerEligibility;
+	const hasTrial = eligibility?.trialAvailable && plan.freeTrial !== undefined;
 	const isOneOff = plan.price?.interval === "one_off";
 	const hasPrepaid = plan.items.some((item) => item.price?.billingMethod === "prepaid");
 
@@ -157,33 +152,31 @@ export function getButtonText(plan: Plan, t: (key: string) => string) {
 		return t("Start Free Trial");
 	}
 
-	switch (scenario) {
-		case "scheduled":
-			return t("Plan Scheduled");
+	if (eligibility?.status === "scheduled") {
+		return t("Plan Scheduled");
+	}
 
-		case "active":
+	switch (eligibility?.attachAction) {
+		case "none":
 			if (hasPrepaid) {
 				return t("Update Plan");
 			}
 			return t("Current Plan");
 
-		case "new":
+		case "activate":
 			if (isOneOff) {
 				return t("Purchase");
 			}
 			return t("Get started");
 
-		case "renew":
-			return t("Renew");
+		case "purchase":
+			return t("Purchase");
 
 		case "upgrade":
 			return t("Upgrade");
 
 		case "downgrade":
 			return t("Downgrade");
-
-		case "cancel":
-			return t("Cancel Plan");
 
 		default:
 			return t("Get Started");

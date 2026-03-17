@@ -112,7 +112,7 @@ context.report({
 Run lint to verify plugins work:
 
 ```bash
-vp lint --type-aware --type-check
+vp lint
 ```
 
 ## Adding New Plugins

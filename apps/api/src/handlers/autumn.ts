@@ -11,7 +11,7 @@ const passthrough = () =>
 	Effect.gen(function* () {
 		const { user } = yield* CurrentUser;
 		const request = yield* HttpServerRequest.HttpServerRequest;
-		const rawRequest = request.source as globalThis.Request;
+		const rawRequest = yield* HttpServerRequest.toWeb(request).pipe(Effect.orDie);
 
 		const body = request.method !== "GET" ? yield* Effect.promise(() => rawRequest.json()) : null;
 

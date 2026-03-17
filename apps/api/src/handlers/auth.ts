@@ -9,7 +9,7 @@ import { auth } from "@chevrotain/core/auth/index";
 const passthrough = () =>
 	Effect.gen(function* () {
 		const request = yield* HttpServerRequest.HttpServerRequest;
-		const rawRequest = request.source as globalThis.Request;
+		const rawRequest = yield* HttpServerRequest.toWeb(request).pipe(Effect.orDie);
 		const response = yield* Effect.promise(() => auth.handler(rawRequest));
 		return HttpServerResponse.fromWeb(response);
 	});

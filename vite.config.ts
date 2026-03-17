@@ -12,7 +12,11 @@ export default defineConfig({
 	},
 	lint: {
 		plugins: ["eslint", "typescript", "unicorn", "react", "react-perf", "oxc", "import"],
-		jsPlugins: ["./packages/oxlint-plugins/src/no-relative-imports.ts"],
+		options: {
+			typeAware: true,
+			typeCheck: true,
+		},
+		jsPlugins: ["./packages/oxlint-plugins/src/no-relative-imports.ts", "@effect/eslint-plugin"],
 		ignorePatterns: ["**/node_modules/**", "**/dist/**", "**/*.gen.ts"],
 		rules: {
 			"no-relative-imports/no-relative-imports": "error",

@@ -1,426 +1,312 @@
-# @chevrotain/api - Hono API Server
+# @chevrotain/api - Effect-TS API Server
 
 ## Overview
 
-Hono API with Node.js. All routes under `/api`. Auth via better-auth.
+Effect-TS HTTP API with Node.js. All routes under `/api`. Contract-first design with `HttpApi`/`HttpApiBuilder`. Auth via better-auth. Services injected via Effect Layers.
 
 ## Structure
 
 ```
 src/
-├── index.ts              # Main app, routes, error handling, server
-├── server.ts             # Server entry point
-├── query.ts              # Read-only endpoints (Zero queries)
-├── mutate.ts             # Write endpoints (Zero mutations)
-├── autumn.ts              # Billing webhooks (autumn-js)
-├── instrumentation.ts    # OpenTelemetry setup
-├── analytics/
-│   ├── index.ts          # Analytics endpoints (ClickHouse)
-│   └── clickhouse.ts     # ClickHouse client
-├── suggestions/
-│   └── index.ts          # AI suggestion generation
+├── index.ts              # Layer composition, CORS, HTTP server assembly
+├── server.ts             # ManagedRuntime entry point, graceful shutdown
+├── contract.ts           # HttpApi endpoint definitions + payload schemas
+├── runtime.ts            # AppLayer — service layer composition
+├── instrumentation.ts    # OpenTelemetry metrics + tracing setup
+├── handlers/
+│   ├── health.ts         # GET /api/up
+│   ├── analytics.ts      # POST /api/analytics (auth required)
+│   ├── errors.ts         # POST /api/errors (rate-limited, no auth)
+│   ├── auth.ts           # /api/auth/* passthrough to better-auth
+│   ├── autumn.ts         # /api/autumn/* passthrough to autumn-js
+│   ├── zero.ts           # POST /api/query + /api/mutate (Zero protocol)
+│   └── analytics.test.ts # Analytics handler tests
 └── middleware/
-    └── auth.ts           # Auth middleware
+    └── auth.ts           # AuthMiddleware — provides CurrentUser service
 ```
 
 ## Where to Look
 
-| Task                    | Location                  |
-| ----------------------- | ------------------------- |
-| Add GET endpoint        | `index.ts` or `query.ts`  |
-| Add POST endpoint       | `index.ts` or `mutate.ts` |
-| Modify auth middleware  | `middleware/auth.ts`      |
-| Handle billing webhooks | `autumn.ts`               |
-| Add analytics tracking  | `analytics/`              |
-| AI suggestions          | `suggestions/`            |
+| Task                     | Location                                   |
+| ------------------------ | ------------------------------------------ |
+| Add endpoint             | `contract.ts` + new handler in `handlers/` |
+| Modify auth middleware   | `middleware/auth.ts`                       |
+| Add service dependency   | `runtime.ts`                               |
+| Handle billing webhooks  | `handlers/autumn.ts`                       |
+| Add analytics tracking   | `handlers/analytics.ts`                    |
+| Add OpenTelemetry metric | `instrumentation.ts`                       |
 
 ## Conventions
 
-### Error Handling
+### Contract-First API
 
-All errors return consistent format:
+Endpoints are declared in `contract.ts` using `HttpApiGroup` and `HttpApiEndpoint`. Payload schemas, success types, and error types are all defined here:
 
 ```typescript
-{
-  success: false,
-  error: {
-    global: [{ code: "...", message: "..." }],
-    fields: [{ path: [...], message: "..." }]
-  }
-}
+import { Schema } from "effect";
+import { HttpApi, HttpApiEndpoint, HttpApiGroup } from "effect/unstable/httpapi";
+
+import { AuthMiddleware } from "@chevrotain/api/middleware/auth";
+
+const analyticsGroup = HttpApiGroup.make("analytics")
+	.add(
+		HttpApiEndpoint.post("ingestEvents", "/analytics", {
+			payload: AnalyticsPayload,
+			success: SuccessResponse,
+			error: [ValidationError, ClickHouseError],
+		}),
+	)
+	.middleware(AuthMiddleware);
+
+export class ChevrotainApi extends HttpApi.make("chevrotain")
+	.add(healthGroup, analyticsGroup, errorsGroup, zeroGroup, authGroup, autumnGroup)
+	.prefix("/api") {}
 ```
 
-Use `PublicError` for intentional errors:
+### Handler Pattern
+
+Handlers implement the contract using `HttpApiBuilder.group`. Each handler is a Layer:
 
 ```typescript
-throw new PublicError({ status: 403, global: [{ message: "Forbidden" }] });
-throw new PublicError({
-	status: 400,
-	fields: [{ path: ["email"], message: "Invalid email" }],
-});
+import { Effect } from "effect";
+import { HttpApiBuilder } from "effect/unstable/httpapi";
+
+import { ChevrotainApi } from "@chevrotain/api/contract";
+import { CurrentUser } from "@chevrotain/api/middleware/auth";
+import { ClickHouseService } from "@chevrotain/core/analytics/service";
+
+export const AnalyticsHandlerLive = HttpApiBuilder.group(ChevrotainApi, "analytics", (handlers) =>
+	handlers.handle("ingestEvents", ({ payload }) =>
+		Effect.gen(function* () {
+			if (payload.events.length === 0) {
+				return { success: true as const };
+			}
+			const { user, session } = yield* CurrentUser;
+			const analytics = yield* ClickHouseService;
+			yield* analytics.insertEvents([...payload.events], user.id, session.id);
+			return { success: true as const };
+		}),
+	),
+);
+```
+
+### Raw Passthrough (better-auth, autumn-js)
+
+For endpoints that delegate to external libraries, use `handleRaw`:
+
+```typescript
+const passthrough = () =>
+	Effect.gen(function* () {
+		const request = yield* HttpServerRequest.HttpServerRequest;
+		const rawRequest = request.source as globalThis.Request;
+		const response = yield* Effect.promise(() => auth.handler(rawRequest));
+		return HttpServerResponse.fromWeb(response);
+	});
+
+export const AuthHandlerLive = HttpApiBuilder.group(ChevrotainApi, "auth", (handlers) =>
+	handlers.handleRaw("authGet", passthrough).handleRaw("authPost", passthrough),
+);
 ```
 
 ### Auth Middleware
 
-Routes requiring auth use the `authMiddleware`:
+`AuthMiddleware` provides `CurrentUser` service to downstream handlers:
 
 ```typescript
-import { authMiddleware } from "@chevrotain/api/middleware/auth";
+import { ServiceMap } from "effect";
+import { HttpApiMiddleware } from "effect/unstable/httpapi";
 
-app.get("/protected", authMiddleware, async (c) => {
-	const user = c.get("user");
-	const session = c.get("session");
-	const organization = c.get("organization");
-	// ...
-});
+export interface CurrentUserShape {
+	readonly user: Session["user"];
+	readonly session: Session["session"];
+}
+
+export class CurrentUser extends ServiceMap.Service<CurrentUser, CurrentUserShape>()(
+	"CurrentUser",
+) {}
+
+export class AuthMiddleware extends HttpApiMiddleware.Service<
+	AuthMiddleware,
+	{ provides: CurrentUser }
+>()("AuthMiddleware", { error: UnauthorizedError }) {}
 ```
 
-`authMiddleware` sets:
-
-- `user` - Current user from session
-- `session` - Current session
-- `organization` - Active organization
-
-### Route Grouping
-
-Sub-routes are defined as separate Hono apps and mounted:
+Access in handlers:
 
 ```typescript
-// query.ts
-const app = new Hono().use(authMiddleware).post("/", handler);
-export default app;
-
-// index.ts
-app.route("/query", query);
+const { user, session } = yield * CurrentUser;
 ```
 
-### Type Export
+### Service Layer
 
-`Routes` type exported for `hc` client type safety:
-
-```typescript
-export type Routes = typeof app;
-
-// In web client:
-import { hc } from "hono/client";
-const api = hc<Routes>(baseUrl).api;
-const res = await api.deviceSessions.$get();
-```
-
-### Zero Endpoints
-
-Zero uses two dedicated endpoints:
-
-- `/api/query` - Read operations via `query.ts`
-- `/api/mutate` - Write operations via `mutate.ts`
-
-These handle Zero's sync protocol, not standard REST.
-
-### Error Boundaries
-
-The main app in `index.ts` has global error handling:
+All services are composed in `runtime.ts`:
 
 ```typescript
-app.onError((error, c) => {
-	if (error instanceof PublicError) {
-		return c.json(
-			{
-				success: false,
-				error: { global: error.global, fields: error.fields },
-			},
-			error.status ?? 500,
-		);
-	}
-	// ... telemetry and 500 handling
-});
-```
-
-### CORS Configuration
-
-CORS is configured in `index.ts`:
-
-```typescript
-app.use(
-	cors({
-		origin: process.env.BASE_URL!,
-		allowHeaders: ["Content-Type", "Authorization"],
-		allowMethods: ["GET", "POST", "OPTIONS"],
-		exposeHeaders: ["Content-Length"],
-		credentials: true,
-		maxAge: 600,
-	}),
+export const AppLayer = Layer.mergeAll(
+	DatabaseServiceLive,
+	ClickHouseServiceLive,
+	BillingServiceLive,
+	EmailServiceLive,
 );
 ```
 
-### Better-Auth Integration
-
-Auth routes mounted at `/api/auth/*`:
+### Layer Composition (index.ts)
 
 ```typescript
-app.all("/auth/*", (c) => auth.handler(c.req.raw));
+const HandlersLive = Layer.mergeAll(
+	HealthHandlerLive,
+	AnalyticsHandlerLive,
+	ErrorsHandlerLive,
+	ZeroHandlerLive,
+	AuthHandlerLive,
+	AutumnHandlerLive,
+);
+
+const HandlersWithDeps = HandlersLive.pipe(Layer.provide(AppLayer));
+
+const ApiLive = HttpApiBuilder.layer(ChevrotainApi).pipe(
+	Layer.provide(HandlersWithDeps),
+	Layer.provide(AuthMiddlewareLive),
+);
+
+const httpApp = Effect.flatten(HttpRouter.toHttpEffect(ApiLive));
+export const ServerLive = HttpServer.serve(httpApp, CorsMiddleware);
 ```
 
-Auth configuration is in `@chevrotain/core/auth`.
+### Server Lifecycle
 
-### Analytics
-
-Analytics endpoints in `analytics/` use ClickHouse:
-
-- Event ingestion via POST `/api/analytics`
-- Query endpoints for dashboards
-- OpenTelemetry instrumentation
-
-ClickHouse client pattern:
+`server.ts` uses `ManagedRuntime` for automatic resource acquisition/release:
 
 ```typescript
-export async function insertEvents(events: AnalyticsEvent[], userId?: string, sessionId?: string) {
-	await analyticsClient.insert({
-		table: "analytics_events",
-		values: events.map((event) => ({
-			...event,
-			user_id: userId,
-			session_id: sessionId,
-			timestamp: event.timestamp || Date.now(),
-		})),
-		format: "JSONEachRow",
-	});
+const runtime = ManagedRuntime.make(AppLive);
+await runtime.runPromise(Effect.void);
+
+async function shutdown() {
+	stopRateLimitCleanup();
+	await runtime.dispose();
+	await shutdownTelemetry();
 }
+
+process.on("SIGINT", shutdown);
+process.on("SIGTERM", shutdown);
 ```
 
-### Suggestions
+### Error Handling
 
-AI suggestion generation in `suggestions/`:
-
-1. Validates input with arktype
-2. Calls external AI service (OpenAI)
-3. Handles billing/compensation on failure
-4. Returns structured suggestions
-
-Pattern:
+All errors use `Schema.TaggedErrorClass` with `httpApiStatus` annotations (defined in `@chevrotain/core/errors`):
 
 ```typescript
-export async function generateSuggestion(
-	userId: string,
-	dialingSessionId: string,
-	brewId: string,
-): Promise<SuggestionParams> {
-	// 1. Fetch brew history
-	// 2. Build prompt
-	// 3. Call OpenAI
-	// 4. Parse response
-	// 5. Return structured data
+// In handlers — return typed errors:
+if (isRateLimited(ip)) {
+	return yield * new RateLimitError({ message: "Too many error reports" });
 }
-```
 
-### Billing Webhooks
-
-Autumn billing webhooks in `autumn.ts`:
-
-- Subscription events
-- Payment processing
-- Seat tracking
-
-## Anti-Patterns
-
-| Never                | Instead                                  |
-| -------------------- | ---------------------------------------- |
-| Blocking operations  | Use async/await properly                 |
-| Log sensitive data   | Redact tokens, passwords                 |
-| Skip auth checks     | Use `authMiddleware`                     |
-| Return data directly | Use `c.json()` or `c.text()`             |
-| Swallow errors       | Rethrow or return proper error responses |
-| Manual CORS headers  | Use `cors()` middleware                  |
-
-## Testing
-
-API tests use vitest with Hono's test client:
-
-```typescript
-import { describe, it, expect } from "vite-plus/test";
-import { vi } from "vite-plus/test";
-
-describe("analytics", () => {
-	it("should track event", async () => {
-		const res = await app.request("/api/analytics", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ event: "test" }),
-		});
-		expect(res.status).toBe(200);
-	});
+// In contract — declare error types per endpoint:
+HttpApiEndpoint.post("reportErrors", "/errors", {
+	error: [ValidationError, RateLimitError, ClickHouseError],
 });
 ```
 
-### Mock Patterns
+### Wrapping Promises
 
-Mock modules with `vi.mock`:
+Use `Effect.promise` for infallible async ops, `Effect.tryPromise` for fallible ones:
 
 ```typescript
-vi.mock("@chevrotain/email", () => ({
-	resend: {
-		emails: {
-			send: vi.fn(),
-		},
+// Infallible (will defect on rejection)
+const result = yield* Effect.promise(() => handleQueryRequest(...));
+
+// Fallible (maps rejection to typed error)
+const session = yield* Effect.tryPromise({
+	try: () => auth.api.getSession({ headers: rawRequest.headers }),
+	catch: () => new UnauthorizedError({ message: "Auth check failed" }),
+});
+```
+
+### Option Handling
+
+Use `Option` combinators for header extraction:
+
+```typescript
+const forwarded = Headers.get(request.headers, "x-forwarded-for").pipe(
+	Option.map((v) => v.split(",")[0]?.trim() ?? "unknown"),
+);
+const realIp = Headers.get(request.headers, "x-real-ip");
+const ip = Option.getOrElse(forwarded, () => Option.getOrElse(realIp, () => "unknown"));
+```
+
+## API Endpoints Reference
+
+| Method | Path             | Auth | Description                |
+| ------ | ---------------- | ---- | -------------------------- |
+| GET    | `/api/up`        | No   | Health check               |
+| POST   | `/api/analytics` | Yes  | Analytics event ingestion  |
+| POST   | `/api/errors`    | No   | Client error reporting     |
+| POST   | `/api/query`     | Yes  | Zero query endpoint        |
+| POST   | `/api/mutate`    | Yes  | Zero mutation endpoint     |
+| ALL    | `/api/auth/*`    | No   | Better-auth handlers       |
+| ALL    | `/api/autumn/*`  | Yes  | Autumn billing passthrough |
+
+## Testing
+
+Mock services via `Layer.succeed()`:
+
+```typescript
+import { describe, it, expect, vi } from "vite-plus/test";
+import { Effect, Layer } from "effect";
+
+const MockClickHouseServiceLive = Layer.succeed(ClickHouseService, {
+	insertEvents: (events, userId, sessionId) => {
+		mockInsertEvents(events, userId, sessionId);
+		return Effect.void;
 	},
-}));
+	insertErrors: (errors) => {
+		mockInsertErrors(errors);
+		return Effect.void;
+	},
+});
 
-vi.mock("@chevrotain/api/middleware/auth", () => ({
-	authMiddleware: vi.fn((c, next) => {
-		c.set("user", { id: "test-user-id" });
-		return next();
-	}),
-}));
+const program = Effect.gen(function* () {
+	const service = yield* ClickHouseService;
+	yield* service.insertEvents(events, "user-1", "session-1");
+});
+
+await Effect.runPromise(program.pipe(Effect.provide(MockClickHouseServiceLive)));
 ```
 
-Use `vi.hoisted()` for module-level mocks:
+## OpenTelemetry
 
-```typescript
-const { mockInsert } = vi.hoisted(() => ({
-	mockInsert: vi.fn(),
-}));
+Instrumentation in `instrumentation.ts`:
 
-vi.mock("@chevrotain/core/analytics/clickhouse", () => ({
-	analyticsClient: { insert: mockInsert },
-}));
-```
+- OTLP exporters for traces and metrics
+- Auto-instrumentation: PostgreSQL, Undici (HTTP client)
+- Service name: `chevrotain-api`
 
-## Build Configuration
+Metrics:
 
-Rolldown config in `rolldown.config.ts`:
-
-- Builds to `dist/` directory
-- Includes all dependencies in bundle
-- Server entry point is `server.ts`
-- ESM format with sourcemaps
+- `http_requests_total` — Request counter
+- `http_request_duration_ms` — Latency histogram (0-1000ms, 50ms buckets)
+- `http_errors_total` — Error counter
 
 ## Environment Variables
-
-Required env vars (loaded from secrets):
 
 | Variable             | Purpose                     |
 | -------------------- | --------------------------- |
 | `BASE_URL`           | CORS origin                 |
 | `PORT`               | Server port (default: 3005) |
 | `DATABASE_URL`       | PostgreSQL connection       |
-| `RESEND_API_KEY`     | Email service               |
-| `AUTUMN_API_KEY`     | Billing service             |
 | `CLICKHOUSE_URL`     | Analytics database          |
+| `RESEND_API_KEY`     | Email service               |
+| `AUTUMN_SECRET_KEY`  | Billing service             |
 | `BETTER_AUTH_SECRET` | Auth signing key            |
-| `OPENAI_API_KEY`     | AI suggestions              |
 
-### Development (devenv)
+## Anti-Patterns
 
-```bash
-PORT=3005
-BASE_URL=http://localhost:34600
-DATABASE_URL=postgres://postgres:postgres@localhost:34601/chevrotain
-CLICKHOUSE_URL=http://localhost:34602
-BETTER_AUTH_SECRET=dev-secret
-```
-
-### Production
-
-Loaded from SOPS-encrypted `secrets/*.env` files via `sops-nix`.
-
-## OpenTelemetry
-
-Instrumentation in `instrumentation.ts`:
-
-- OTLP exporter to Alloy
-- Batch span processing
-- Service name: `chevrotain-api`
-- Automatic trace propagation
-
-Metrics:
-
-- `roasted_api_requests_total` - Request counter
-- `roasted_api_request_duration` - Latency histogram
-- `roasted_api_errors_total` - Error counter
-
-## API Endpoints Reference
-
-### Auth Routes
-
-| Method | Path          | Description          |
-| ------ | ------------- | -------------------- |
-| ALL    | `/api/auth/*` | Better-auth handlers |
-
-### Query Routes
-
-| Method | Path         | Description         |
-| ------ | ------------ | ------------------- |
-| POST   | `/api/query` | Zero query endpoint |
-
-### Mutate Routes
-
-| Method | Path          | Description            |
-| ------ | ------------- | ---------------------- |
-| POST   | `/api/mutate` | Zero mutation endpoint |
-
-### Analytics Routes
-
-| Method | Path             | Description           |
-| ------ | ---------------- | --------------------- |
-| POST   | `/api/analytics` | Track analytics event |
-
-### Suggestions Routes
-
-| Method | Path               | Description            |
-| ------ | ------------------ | ---------------------- |
-| POST   | `/api/suggestions` | Generate AI suggestion |
-
-### Billing Routes
-
-| Method | Path                   | Description             |
-| ------ | ---------------------- | ----------------------- |
-| POST   | `/api/webhooks/autumn` | Autumn billing webhooks |
-
-## Handler Pattern
-
-All handlers follow the pattern:
-
-```typescript
-app.post("/endpoint", authMiddleware, async (c) => {
-	// 1. Get authenticated user
-	const user = c.get("user");
-	const session = c.get("session");
-
-	// 2. Validate input
-	const body = await c.req.json();
-	const parsed = Schema.parse(body);
-
-	// 3. Perform operation
-	const result = await performOperation(parsed, user.id);
-
-	// 4. Return response
-	return c.json({ success: true, data: result });
-});
-```
-
-## Error Response Format
-
-All errors follow the same structure:
-
-```typescript
-// Global error
-{
-  "success": false,
-  "error": {
-    "global": [
-      { "message": "Something went wrong", "code": "ERROR_CODE" }
-    ],
-    "fields": []
-  }
-}
-
-// Field error
-{
-  "success": false,
-  "error": {
-    "global": [],
-    "fields": [
-      { "path": ["email"], "message": "Invalid email format" }
-    ]
-  }
-}
-```
+| Never                                | Instead                                        |
+| ------------------------------------ | ---------------------------------------------- |
+| `throw` inside `Effect.gen`          | `yield* new TaggedError(...)` or `Effect.fail` |
+| `Effect.runPromise` inside a handler | Compose effects, run once at boundary          |
+| `yield` without `*`                  | Always `yield*` to execute an Effect           |
+| `try/catch` for Effect errors        | Use `Effect.catchTag` or error channel         |
+| Manual cleanup in finally blocks     | Use `Effect.acquireRelease`                    |
+| Scattered `Effect.runPromise` calls  | Compose into layers, run via `ManagedRuntime`  |
+| `as any` or `@ts-ignore`             | Fix the types properly                         |

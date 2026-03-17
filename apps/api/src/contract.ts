@@ -2,32 +2,8 @@ import { Schema } from "effect";
 import { HttpApi, HttpApiEndpoint, HttpApiGroup } from "effect/unstable/httpapi";
 
 import { AuthMiddleware } from "@chevrotain/api/middleware/auth";
+import { AnalyticsPayload, ErrorPayload } from "@chevrotain/core/analytics/schema";
 import { ClickHouseError, RateLimitError, ValidationError } from "@chevrotain/core/errors";
-
-// --- Payload schemas (Effect Schema equivalents of the arktype analytics schemas) ---
-
-export const AnalyticsEventSchema = Schema.Struct({
-	eventType: Schema.NonEmptyString,
-	url: Schema.String,
-	referrer: Schema.String,
-	properties: Schema.optional(Schema.Record(Schema.String, Schema.Unknown)),
-});
-
-export const AnalyticsPayloadSchema = Schema.Struct({
-	events: Schema.Array(AnalyticsEventSchema),
-});
-
-export const ErrorReportSchema = Schema.Struct({
-	errorType: Schema.String,
-	message: Schema.NonEmptyString,
-	stackTrace: Schema.optional(Schema.String),
-	url: Schema.optional(Schema.String),
-	properties: Schema.optional(Schema.Record(Schema.String, Schema.Unknown)),
-});
-
-export const ErrorPayloadSchema = Schema.Struct({
-	errors: Schema.Array(ErrorReportSchema),
-});
 
 const SuccessResponse = Schema.Struct({ success: Schema.Literal(true) });
 
@@ -42,7 +18,7 @@ const healthGroup = HttpApiGroup.make("health").add(
 const analyticsGroup = HttpApiGroup.make("analytics")
 	.add(
 		HttpApiEndpoint.post("ingestEvents", "/analytics", {
-			payload: AnalyticsPayloadSchema,
+			payload: AnalyticsPayload,
 			success: SuccessResponse,
 			error: [ValidationError, ClickHouseError],
 		}),
@@ -51,7 +27,7 @@ const analyticsGroup = HttpApiGroup.make("analytics")
 
 const errorsGroup = HttpApiGroup.make("errors").add(
 	HttpApiEndpoint.post("reportErrors", "/errors", {
-		payload: ErrorPayloadSchema,
+		payload: ErrorPayload,
 		success: SuccessResponse,
 		error: [ValidationError, RateLimitError, ClickHouseError],
 	}),

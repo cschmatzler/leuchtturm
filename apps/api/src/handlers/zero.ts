@@ -20,7 +20,7 @@ export const ZeroHandlerLive = HttpApiBuilder.group(ChevrotainApi, "zero", (hand
 			Effect.gen(function* () {
 				const { user } = yield* CurrentUser;
 				const request = yield* HttpServerRequest.HttpServerRequest;
-				const rawRequest = request.source as globalThis.Request;
+				const rawRequest = yield* HttpServerRequest.toWeb(request).pipe(Effect.orDie);
 
 				const result = yield* Effect.promise(() =>
 					handleQueryRequest(
@@ -41,7 +41,7 @@ export const ZeroHandlerLive = HttpApiBuilder.group(ChevrotainApi, "zero", (hand
 				const { user } = yield* CurrentUser;
 				const ctx = { userId: user.id };
 				const request = yield* HttpServerRequest.HttpServerRequest;
-				const rawRequest = request.source as globalThis.Request;
+				const rawRequest = yield* HttpServerRequest.toWeb(request).pipe(Effect.orDie);
 
 				const result = yield* Effect.promise(() =>
 					handleMutateRequest(

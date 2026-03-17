@@ -2,245 +2,259 @@
 
 ## Overview
 
-Shared utilities consumed by all apps: auth config, Drizzle schemas, ID generation, error types, analytics, billing integration.
+Shared utilities consumed by all apps: auth config, Effect services (database, analytics, billing, email), Drizzle schemas, ID generation, error types.
 
 ## Structure
 
 ```
 src/
 ├── auth/
-│   ├── index.ts           # better-auth configuration + Autumn hooks
+│   ├── index.ts           # better-auth configuration + user hooks
 │   ├── auth.sql.ts        # Auth-related Drizzle tables
-│   ├── schema.ts          # Auth Zod schemas
-│   └── queries.ts         # Auth queries (device sessions)
+│   └── schema.ts          # Auth Effect Schema definitions
 ├── drizzle/
-│   ├── index.ts           # DB connection export
+│   ├── index.ts           # Direct DB connection (used by better-auth)
+│   ├── service.ts         # DatabaseService Layer (Effect-managed)
 │   └── types.ts           # Drizzle type utilities
-├── brewing/
-│   ├── brewing.sql.ts     # Brewing domain tables (brews, methods, custom fields)
-│   └── schema.ts          # Brewing arktype schemas
-├── dialing/
-│   ├── dialing.sql.ts     # Dialing/suggestion tables
-│   └── suggestions.ts     # AI suggestion generation (OpenAI)
-├── inventory/
-│   ├── inventory.sql.ts   # Inventory tables (beans, grinders)
-│   └── schema.ts          # Inventory arktype schemas
-├── billing/
-│   └── schema.ts          # Billing types + Autumn integration
 ├── analytics/
-│   └── index.ts           # Analytics events + ClickHouse client
-├── assert.ts              # Existence assertion (narrows T | null | undefined → T)
+│   ├── schema.ts          # AnalyticsEvent, ErrorReport (Effect Schema)
+│   └── service.ts         # ClickHouseService Layer
+├── billing/
+│   ├── autumn.ts          # Direct Autumn client (used by better-auth hooks)
+│   └── service.ts         # BillingService Layer
+├── email/
+│   └── service.ts         # EmailService Layer
+├── errors.ts              # Tagged error classes (Effect Schema.TaggedErrorClass)
+├── assert.ts              # Existence assertions (throwing + Effect-native)
 ├── id.ts                  # Prefixed ULID generation + validation
-└── result.ts              # PublicError, HTTPResponse types
+└── result.ts              # PublicError, Failure types (Effect Schema)
 ```
 
 ## Where to Look
 
-| Task                | Location                                   |
-| ------------------- | ------------------------------------------ |
-| Add DB table        | `{domain}/{domain}.sql.ts` + run migration |
-| Add ID prefix       | `id.ts` → add to `PREFIXES` object         |
-| Add auth hook       | `auth/index.ts` → organization/user hooks  |
-| Add error type      | `result.ts`                                |
-| Add domain schema   | `{domain}/schema.ts`                       |
-| Add analytics event | `analytics/index.ts`                       |
-| Add AI suggestion   | `dialing/suggestions.ts`                   |
+| Task               | Location                                         |
+| ------------------ | ------------------------------------------------ |
+| Add DB table       | `{domain}/{domain}.sql.ts` + run migration       |
+| Add ID prefix      | `id.ts` → add to `PREFIXES` object               |
+| Add auth hook      | `auth/index.ts` → user hooks                     |
+| Add error type     | `errors.ts` → add `TaggedErrorClass`             |
+| Add domain schema  | `{domain}/schema.ts` using Effect Schema         |
+| Add Effect service | `{domain}/service.ts` using `ServiceMap.Service` |
 
 ## Conventions
+
+### Effect Services
+
+All services follow the `ServiceMap.Service` + `Layer.effect` pattern:
+
+```typescript
+import { Config, Effect, Layer, ServiceMap } from "effect";
+
+export interface MyServiceShape {
+	readonly doWork: (input: string) => Effect.Effect<void, MyError>;
+}
+
+export class MyService extends ServiceMap.Service<MyService, MyServiceShape>()("MyService") {}
+
+export const MyServiceLive = Layer.effect(MyService)(
+	Effect.gen(function* () {
+		const secret = yield* Config.redacted("MY_SECRET");
+		// ... initialize client ...
+		return {
+			doWork: (input: string) =>
+				Effect.tryPromise({
+					try: () => client.doWork(input),
+					catch: (cause) => new MyError({ message: "Failed", cause }),
+				}),
+		};
+	}),
+);
+```
+
+Services in this package:
+
+| Service             | Layer                   | Purpose                           |
+| ------------------- | ----------------------- | --------------------------------- |
+| `DatabaseService`   | `DatabaseServiceLive`   | Effect-managed Drizzle + PgClient |
+| `ClickHouseService` | `ClickHouseServiceLive` | Analytics event insertion         |
+| `BillingService`    | `BillingServiceLive`    | Autumn billing operations         |
+| `EmailService`      | `EmailServiceLive`      | Resend email sending              |
+
+### Error Types
+
+All errors use `Schema.TaggedErrorClass` with `httpApiStatus` annotations:
+
+```typescript
+import { Schema } from "effect";
+
+export class NotFoundError extends Schema.TaggedErrorClass<NotFoundError>()(
+	"NotFoundError",
+	{
+		resource: Schema.optional(Schema.String),
+		message: Schema.optional(Schema.String),
+	},
+	{ httpApiStatus: 404 },
+) {}
+```
+
+Available error types:
+
+| Error               | Status | Purpose                   |
+| ------------------- | ------ | ------------------------- |
+| `NotFoundError`     | 404    | Missing resource          |
+| `UnauthorizedError` | 401    | Missing/invalid auth      |
+| `ForbiddenError`    | 403    | Insufficient permissions  |
+| `ValidationError`   | 400    | Input validation failure  |
+| `RateLimitError`    | 429    | Too many requests         |
+| `DatabaseError`     | 500    | PostgreSQL failure        |
+| `ClickHouseError`   | 500    | Analytics DB failure      |
+| `EmailError`        | 500    | Email sending failure     |
+| `BillingError`      | 500    | Billing operation failure |
+
+### Effect Schema Validation
+
+Use Effect Schema for all domain validation:
+
+```typescript
+import { Schema, SchemaGetter } from "effect";
+
+const TrimmedNonEmptyString = Schema.String.pipe(
+	Schema.decodeTo(Schema.NonEmptyString, {
+		decode: SchemaGetter.transform((s: string) => s.trim()),
+		encode: SchemaGetter.transform((s: string) => s),
+	}),
+);
+
+export const User = Schema.Struct({
+	id: Id,
+	name: TrimmedNonEmptyString,
+	email: TrimmedLowercaseEmail,
+	emailVerified: Schema.Boolean.pipe(
+		Schema.optional,
+		Schema.withDecodingDefault(() => false),
+	),
+	createdAt: Schema.Date,
+	updatedAt: Schema.Date,
+});
+export type User = typeof User.Type;
+```
+
+### ID Generation + Validation
+
+Server-side ID generation for auth entities (domain entities get IDs from the client via Zero):
+
+```typescript
+import { Schema } from "effect";
+import { ulid } from "ulid";
+
+export const PREFIXES = {
+	account: "acc",
+	user: "usr",
+	session: "ses",
+	verification: "ver",
+	jwks: "jwk",
+} as const;
+
+export function createId(prefix: IdPrefix): string {
+	return [PREFIXES[prefix], ulid()].join("_");
+}
+
+// Validation schema — accepts any valid prefix_ULID format
+export const Id = Schema.String.check(
+	Schema.makeFilter((value: string) => {
+		const parts = value.split("_");
+		if (parts.length !== 2) return "a valid ID format (prefix_ULID)";
+		const [prefix, id] = parts;
+		if (!prefixValues.includes(prefix) || !ulidPattern.test(id)) {
+			return "a valid ID format (prefix_ULID)";
+		}
+		return undefined;
+	}),
+);
+```
+
+### Assertions
+
+Two assertion flavors — throwing (for Zero mutators) and Effect-native (for handlers):
+
+```typescript
+import { assert, assertFound } from "@chevrotain/core/assert";
+
+// Throwing (Zero mutators, non-Effect code)
+assert(bean); // Narrows T | null | undefined → T, throws PublicError 404
+
+// Effect-native (handlers)
+const bean = yield * assertFound(maybeBeanRow, "bean");
+// Returns Effect<T, NotFoundError>
+```
+
+### PublicError
+
+Legacy structured error type, still used by Zero mutators and `assert()`:
+
+```typescript
+throw new PublicError({ status: 403, global: [{ message: "Forbidden" }] });
+throw new PublicError({
+	status: 400,
+	fields: [{ path: ["email"], message: "Invalid email" }],
+});
+```
 
 ### Table Definition Pattern
 
 ```typescript
-// brewing/brewing.sql.ts
-export const brew = pgTable(
-	"brew",
-	{
-		id: char("id", { length: 30 }).primaryKey(),
-		userId: char("user_id", { length: 30 })
-			.notNull()
-			.references(() => user.id, { onDelete: "cascade" }),
-		beanId: char("bean_id", { length: 30 })
-			.notNull()
-			.references(() => bean.id, { onDelete: "cascade" }),
-		brewedAt: timestamp("brewed_at").notNull(),
-		createdAt: timestamp("created_at").notNull(),
-		updatedAt: timestamp("updated_at")
-			.$onUpdate(() => new Date())
-			.notNull(),
-	},
-	(table) => [
-		index("brew_user_id_idx").on(table.userId),
-		index("brew_bean_id_idx").on(table.beanId),
-	],
-);
+export const user = pgTable("user", {
+	id: char("id", { length: 30 }).primaryKey(),
+	name: text("name").notNull(),
+	email: text("email").notNull().unique(),
+	emailVerified: boolean("email_verified").default(false).notNull(),
+	createdAt: timestamp("created_at").notNull(),
+	updatedAt: timestamp("updated_at")
+		.$onUpdate(() => new Date())
+		.notNull(),
+});
 ```
 
 Key patterns:
 
 - Use `char(30)` for ID columns (matches prefixed ULID format)
-- Always add `userId` with cascade delete
+- Always add `userId` with cascade delete for user-owned entities
 - Add indexes on foreign keys and query columns
 - Use `.$onUpdate(() => new Date())` for `updatedAt`
-- Set `notNull()` on required fields
 
-### ID Prefixes
+### Database Access
 
-All entities use prefixed ULIDs:
+Two database access paths exist:
 
-```typescript
-// id.ts
-export const PREFIXES = {
-	user: "usr",
-	bean: "bea",
-	brew: "bre",
-	method: "met",
-	grinder: "gri",
-	customField: "cus",
-	customFieldScope: "csc",
-	customFieldOption: "cso",
-	customFieldValue: "cvl",
-	methodCustomFieldDefault: "mcd",
-	methodBrewDefault: "mbd",
-	dialingSession: "dia",
-	suggestion: "sug",
-	suggestionAdjustment: "sad",
-	organization: "org",
-	session: "ses",
-	account: "acc",
-	verification: "ver",
-	invitation: "inv",
-	member: "mem",
-} as const;
-
-export type IdPrefix = keyof typeof PREFIXES;
-
-export function createId(prefix: IdPrefix): string {
-	return [PREFIXES[prefix], ulid()].join("_");
-}
-```
-
-### ID Validation (arktype)
-
-```typescript
-// id.ts
-export const Id = type("string").narrow((value, ctx) => {
-	const parts = value.split("_");
-	if (parts.length !== 2) {
-		return ctx.mustBe("a valid ID format (prefix_ULID)");
-	}
-	const [prefix, id] = parts;
-	if (!Object.values(PREFIXES).includes(prefix as PrefixValue) || !/^[0-9A-Z]{26}$/.test(id)) {
-		return ctx.mustBe("a valid ID format (prefix_ULID)");
-	}
-	return true;
-});
-```
+1. **Effect-managed** (`DatabaseService` via `@effect/sql-pg`) — used by API handlers through the service layer
+2. **Direct** (`db` from `drizzle/index.ts`) — used by better-auth (which is not Effect-aware)
 
 ### Auth Configuration
 
-Better-auth setup in `auth/index.ts`:
+Better-auth in `auth/index.ts`:
 
 ```typescript
 export const auth = betterAuth({
-	database: drizzleAdapter(db, { provider: "pg" }),
-	plugins: [
-		organization({
-			hooks: {
-				afterCreateOrganization: async ({ organization }) => {
-					// Create Autumn customer
-				},
-				beforeCreateInvitation: async ({ organizationId }) => {
-					// Check Pro plan limits
-				},
-			},
-		}),
-		multiSession(),
-	],
-	// ...
+	database: drizzleAdapter(db, { provider: "pg", schema }),
+	emailAndPassword: { enabled: true, minPasswordLength: 12 },
+	plugins: [multiSession()],
+	advanced: {
+		database: {
+			generateId: ({ model }) => createId(model as IdPrefix),
+		},
+	},
+	userHooks: {
+		afterCreate: async ({ user }) => {
+			/* create Autumn customer */
+		},
+		afterUpdate: async ({ user }) => {
+			/* update Autumn customer */
+		},
+	},
 });
-```
-
-### Auth Hooks (Billing Integration)
-
-Autumn billing integration in organization hooks:
-
-- `afterCreateOrganization`: Create Autumn customer
-- `beforeCreateInvitation`: Check Pro plan limits
-- `afterCreateInvitation`: Track seat usage
-
-### Domain Schemas (arktype)
-
-Use arktype for domain validation:
-
-```typescript
-// brewing/schema.ts
-import { type } from "arktype";
-
-export const CustomFieldType = type("'boolean' | 'select' | 'number' | 'text' | 'textarea'");
-export type CustomFieldType = typeof CustomFieldType.infer;
-
-export const BrewParams = type({
-	doseGrams: "number > 0",
-	grindSize: "number > 0",
-	waterTemperatureC: "number >= 0",
-	timeSeconds: "number > 0",
-	yield: "number > 0",
-	"notes?": "string",
-	"rating?": "number >= 0",
-	"flavorWheel?": "string",
-});
-export type BrewParams = typeof BrewParams.infer;
-```
-
-### Assertions
-
-```typescript
-import { assert } from "@chevrotain/core/assert";
-
-const [bean] = await db.select().from(beanTable).where(eq(beanTable.id, id)).limit(1);
-assert(bean); // Narrows T | null | undefined → T, throws PublicError 404
-```
-
-Use `assert()` to validate that expected data exists. Throws `PublicError({ status: 404 })` on `null` or `undefined`.
-
-### PublicError
-
-Structured error type for API responses:
-
-```typescript
-export class PublicError extends Error {
-	status?: number;
-	global: GlobalError[];
-	fields: FieldError[];
-
-	constructor(options: {
-		status?: number;
-		global?: { code?: string; message: string }[];
-		fields?: { code?: string; message: string; path: (string | number)[] }[];
-	}) {
-		super();
-		this.status = options.status;
-		this.global = options.global || [];
-		this.fields = options.fields || [];
-	}
-}
-```
-
-HTTP response format:
-
-```typescript
-{
-	success: false,
-	error: {
-		global: [{ code?: string; message: string }],
-		fields: [{ code?: string; message: string; path: (string | number)[] }]
-	}
-}
 ```
 
 ### Migrations
-
-Generate and run migrations:
 
 ```bash
 # From repo root
@@ -248,146 +262,47 @@ pnpm --filter @chevrotain/core exec drizzle-kit generate --name add_new_table
 pnpm --filter @chevrotain/core exec drizzle-kit push  # Dev only
 ```
 
-Migration files go in `drizzle/` directory and are applied via deploy script in production.
-
-### Database Connection
-
-Drizzle client exported from `drizzle/index.ts`:
-
-```typescript
-import { drizzle } from "drizzle-orm/node-postgres";
-import { Pool } from "pg";
-
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-export const db = drizzle(pool);
-```
-
-### Analytics Events
-
-Analytics event definitions in `analytics/index.ts`:
-
-```typescript
-export const AnalyticsEvent = type({
-	event: "string",
-	properties: "object",
-	timestamp: "string",
-});
-```
-
-ClickHouse integration for high-volume event storage:
-
-- Uses `JSONEachRow` format for bulk inserts
-- Batched inserts via `analyticsClient` singleton
-- Automatic timestamp generation
-
-### AI Suggestions
-
-OpenAI integration in `dialing/suggestions.ts`:
-
-```typescript
-export async function generateSuggestion(
-	userId: string,
-	dialingSessionId: string,
-	brewId: string,
-): Promise<SuggestionParams> {
-	// 1. Fetch dialing session + brews
-	// 2. Build prompt from brew history
-	// 3. Call OpenAI API
-	// 4. Parse JSON response
-	// 5. Return structured suggestion
-}
-```
-
-## Anti-Patterns
-
-| Never                             | Why                                |
-| --------------------------------- | ---------------------------------- |
-| Raw SQL strings                   | Use Drizzle query builder          |
-| Missing `userId`                  | All user data needs user reference |
-| Nullable required fields          | Use `.notNull()`                   |
-| Verbose null checks for existence | Use `assert()`                     |
-| Hardcoded table names             | Import from schema files           |
-| Missing indexes on FKs            | Always index foreign keys          |
-| `varchar` without length          | Use `char(30)` for IDs             |
-
 ## Testing
 
-Core tests use vitest:
-
 ```typescript
-import { describe, it, expect } from "vite-plus/test";
-import { createId, Id, PREFIXES } from "@chevrotain/core/id";
+import { Option, Schema } from "effect";
+import { describe, expect, it } from "vite-plus/test";
 
-describe("createId", () => {
-	it("returns expected prefix and ULID", () => {
-		const id = createId("user");
-		expect(id.startsWith(`${PREFIXES.user}_`)).toBe(true);
+describe("User schema", () => {
+	it("normalizes input and defaults email verification", () => {
+		const result = Schema.decodeUnknownOption(User)({
+			id: createId("user"),
+			name: "  Ada Lovelace  ",
+			email: "ADA@Example.com",
+			createdAt: new Date(),
+			updatedAt: new Date(),
+		});
+
+		expect(Option.isSome(result)).toBe(true);
+		if (Option.isSome(result)) {
+			expect(result.value.name).toBe("Ada Lovelace");
+			expect(result.value.email).toBe("ada@example.com");
+		}
 	});
 });
 ```
 
-Run tests from repo root: `vp test packages/core/src/id.test.ts`
+## Database Tables
 
-## Type Exports
+| Domain | Table          | Description               |
+| ------ | -------------- | ------------------------- |
+| Auth   | `user`         | User accounts             |
+| Auth   | `session`      | Auth sessions             |
+| Auth   | `account`      | OAuth/password accounts   |
+| Auth   | `verification` | Email verification tokens |
 
-All imports use absolute package paths (no relative imports allowed):
+## Anti-Patterns
 
-```typescript
-// In apps/web or apps/api:
-import { createId } from "@chevrotain/core/id";
-import { PublicError } from "@chevrotain/core/result";
-import { assert } from "@chevrotain/core/assert";
-import type { User, Session } from "@chevrotain/core/auth/schema";
-import { BrewParams, CustomFieldType } from "@chevrotain/core/brewing/schema";
-import { Bean } from "@chevrotain/core/inventory/schema";
-```
-
-## Database Tables (Complete Reference)
-
-| Domain    | Table                         | Description                        |
-| --------- | ----------------------------- | ---------------------------------- |
-| Auth      | `user`                        | User accounts                      |
-| Auth      | `session`                     | Auth sessions                      |
-| Auth      | `account`                     | OAuth accounts                     |
-| Auth      | `verification`                | Email verification tokens          |
-| Auth      | `organization`                | Organizations                      |
-| Auth      | `invitation`                  | Org invitations                    |
-| Auth      | `member`                      | Org memberships                    |
-| Inventory | `bean`                        | Coffee beans inventory             |
-| Inventory | `grinder`                     | Grinder equipment                  |
-| Brewing   | `method`                      | Brew methods (pourover, immersion) |
-| Brewing   | `brew`                        | Individual brew records            |
-| Brewing   | `custom_field`                | Custom brew logging fields         |
-| Brewing   | `custom_field_scope`          | Field scope per method type        |
-| Brewing   | `custom_field_option`         | Options for select fields          |
-| Brewing   | `custom_field_value`          | Actual field values on brews       |
-| Brewing   | `method_custom_field_default` | Default field values per method    |
-| Brewing   | `method_brew_default`         | Default brew parameters per method |
-| Dialing   | `dialing_session`             | Method dialing sessions            |
-| Dialing   | `suggestion`                  | AI suggestions                     |
-| Dialing   | `suggestion_adjustment`       | Suggestion parameter adjustments   |
-
-## Exports Summary
-
-```typescript
-// id.ts
-export { createId, PREFIXES, Id };
-export type { IdPrefix };
-
-// result.ts
-export { PublicError, HTTPResponse };
-
-// assert.ts
-export { assert };
-
-// drizzle/index.ts
-export { db };
-
-// auth/index.ts
-export { auth };
-export type { Session, User, Organization, Member, Invitation };
-
-// {domain}/schema.ts
-export { SchemaName, SchemaName2 };
-export type { SchemaNameInfer };
-```
+| Never                              | Instead                                            |
+| ---------------------------------- | -------------------------------------------------- |
+| Raw SQL strings                    | Use Drizzle query builder                          |
+| Missing `userId` on owned tables   | All user data needs user reference                 |
+| Nullable required fields           | Use `.notNull()`                                   |
+| `throw` in Effect code             | Use `yield* new TaggedError(...)` or `Effect.fail` |
+| Manual `try/finally` for resources | Use `Effect.acquireRelease`                        |
+| Generic `Error` classes            | Use `Schema.TaggedErrorClass`                      |

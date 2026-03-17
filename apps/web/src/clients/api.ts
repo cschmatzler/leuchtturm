@@ -10,10 +10,7 @@ async function postJson(path: string, body: unknown): Promise<unknown> {
 	return response.json();
 }
 
-/**
- * Typed API client matching the previous hc<Routes> shape.
- * Only the two endpoints used by the web app are implemented.
- */
+/** Typed API client. Only the two endpoints used by the web app are implemented. */
 export const api = {
 	analytics: {
 		$post: (opts: { json: { events: unknown[] } }) => postJson("/analytics", opts.json),

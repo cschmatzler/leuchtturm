@@ -32,8 +32,7 @@ export class AuthMiddleware extends HttpApiMiddleware.Service<
 export const AuthMiddlewareLive = Layer.succeed(AuthMiddleware, (httpApp, _options) =>
 	Effect.gen(function* () {
 		const request = yield* HttpServerRequest.HttpServerRequest;
-		// Cast source to Request — NodeHttpServer backs this with a web Request
-		const rawRequest = request.source as globalThis.Request;
+		const rawRequest = yield* HttpServerRequest.toWeb(request).pipe(Effect.orDie);
 		const session = yield* Effect.tryPromise({
 			try: () => auth.api.getSession({ headers: rawRequest.headers }),
 			catch: () => new UnauthorizedError({ message: "Auth check failed" }),
