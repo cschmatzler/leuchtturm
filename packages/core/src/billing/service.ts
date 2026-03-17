@@ -5,7 +5,6 @@ import { Config, Effect, Layer, Redacted, ServiceMap } from "effect";
 import { BillingError } from "@chevrotain/core/errors";
 
 export interface BillingServiceShape {
-	readonly autumn: Autumn;
 	readonly getOrCreateCustomer: (params: {
 		customerId: string;
 		name: string;
@@ -32,16 +31,16 @@ export const BillingServiceLive = Layer.effect(BillingService)(
 		});
 
 		return {
-			autumn,
 			getOrCreateCustomer: (params: { customerId: string; name: string; email: string }) =>
 				Effect.tryPromise({
 					try: () => autumn.customers.getOrCreate(params),
-					catch: (cause) => new BillingError({ cause }),
+					catch: (cause) =>
+						new BillingError({ message: "Failed to get or create customer", cause }),
 				}),
 			updateCustomer: (params: { customerId: string; name: string; email: string }) =>
 				Effect.tryPromise({
 					try: () => autumn.customers.update(params),
-					catch: (cause) => new BillingError({ cause }),
+					catch: (cause) => new BillingError({ message: "Failed to update customer", cause }),
 				}),
 		};
 	}),

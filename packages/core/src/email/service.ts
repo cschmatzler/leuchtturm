@@ -1,6 +1,6 @@
 import { Config, Effect, Layer, Redacted, ServiceMap } from "effect";
 import { Resend } from "resend";
-import type { CreateEmailResponse } from "resend";
+import type { CreateEmailResponseSuccess } from "resend";
 
 import { EmailError } from "@chevrotain/core/errors";
 
@@ -11,7 +11,7 @@ export interface EmailServiceShape {
 		subject: string;
 		html: string;
 		text: string;
-	}) => Effect.Effect<CreateEmailResponse, EmailError>;
+	}) => Effect.Effect<CreateEmailResponseSuccess, EmailError>;
 }
 
 /** Email service wrapping the Resend client. */
@@ -27,9 +27,19 @@ export const EmailServiceLive = Layer.effect(EmailService)(
 
 		return {
 			send: (params: { from: string; to: string; subject: string; html: string; text: string }) =>
-				Effect.tryPromise({
-					try: () => resend.emails.send(params),
-					catch: (cause) => new EmailError({ cause }),
+				Effect.gen(function* () {
+					const result = yield* Effect.tryPromise({
+						try: () => resend.emails.send(params),
+						catch: (cause) => new EmailError({ message: "Resend API request failed", cause }),
+					});
+					// Resend never throws — API errors are returned as { data: null, error: {...} }
+					if (result.error) {
+						return yield* new EmailError({
+							message: result.error.message,
+							cause: result.error,
+						});
+					}
+					return result.data;
 				}),
 		};
 	}),

@@ -34,17 +34,21 @@ export class RateLimitError extends Data.TaggedError("RateLimitError")<{
 // --- Infrastructure errors ---
 
 export class DatabaseError extends Data.TaggedError("DatabaseError")<{
+	readonly message: string;
 	readonly cause: unknown;
 }> {}
 
 export class ClickHouseError extends Data.TaggedError("ClickHouseError")<{
+	readonly message: string;
 	readonly cause: unknown;
 }> {}
 
 export class EmailError extends Data.TaggedError("EmailError")<{
+	readonly message: string;
 	readonly cause: unknown;
 }> {}
 
 export class BillingError extends Data.TaggedError("BillingError")<{
+	readonly message: string;
 	readonly cause: unknown;
 }> {}

@@ -42,6 +42,8 @@ export function stopRateLimitCleanup(): void {
 
 const app = new Hono().post(
 	"/",
+	// Throw-at-boundary: sValidator runs in Hono middleware, outside the Effect pipeline.
+	// TaggedErrors thrown here are caught by Hono's .onError → isTaggedError → mapped response.
 	sValidator("json", ErrorPayload, (result) => {
 		if (result.success) {
 			return;

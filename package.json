@@ -15,6 +15,11 @@
 		"node": ">=25.0.0"
 	},
 	"packageManager": "pnpm@10.28.0",
+	"pnpm": {
+		"overrides": {
+			"effect": "4.0.0-beta.33"
+		}
+	},
 	"trustedDependencies": [
 		"@rocicorp/zero-sqlite3"
 	]

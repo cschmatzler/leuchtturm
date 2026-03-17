@@ -25,6 +25,10 @@ export const runEffect = <A, E>(
 ): Promise<A> =>
 	AppRuntime.runPromiseExit(effect).then((exit) => {
 		if (Exit.isFailure(exit)) {
+			// Fiber was interrupted (e.g. request cancelled) — surface as a clear error
+			if (Cause.hasInterruptsOnly(exit.cause)) {
+				throw new Error("Effect interrupted");
+			}
 			// Re-throw defects (bugs) as regular errors for Hono's .onError
 			const defectResult = Cause.findDefect(exit.cause);
 			if (Result.isSuccess(defectResult)) {
@@ -42,7 +46,9 @@ export const runEffect = <A, E>(
 
 /**
  * Run an Effect as fire-and-forget from non-Effect contexts (e.g. Hono .onError).
- * Logs failures to stderr since the caller can't handle them.
+ *
+ * Uses console.error for failures because this runs outside the Effect error channel
+ * (typically from Hono's .onError) — we can't use Effect to report a failure to run effects.
  */
 export const runEffectFork = <E>(
 	effect: Effect.Effect<void, E, Layer.Success<typeof AppLayer>>,

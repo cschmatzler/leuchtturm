@@ -23,7 +23,8 @@ type TaggedApiError =
 	| EmailError
 	| BillingError;
 
-const STATUS_MAP: Record<string, ContentfulStatusCode> = {
+/** Compile-time exhaustive: adding a new TaggedApiError without a status entry is a type error. */
+const STATUS_MAP = {
 	NotFoundError: 404,
 	UnauthorizedError: 401,
 	ForbiddenError: 403,
@@ -33,7 +34,7 @@ const STATUS_MAP: Record<string, ContentfulStatusCode> = {
 	ClickHouseError: 500,
 	EmailError: 500,
 	BillingError: 500,
-};
+} as const satisfies Record<TaggedApiError["_tag"], ContentfulStatusCode>;
 
 export function isTaggedError(error: unknown): error is TaggedApiError {
 	return (

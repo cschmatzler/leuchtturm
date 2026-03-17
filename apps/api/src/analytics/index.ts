@@ -10,6 +10,8 @@ import { ValidationError } from "@chevrotain/core/errors";
 
 const app = new Hono<{ Variables: AuthVariables }>().use(authMiddleware).post(
 	"/",
+	// Throw-at-boundary: sValidator runs in Hono middleware, outside the Effect pipeline.
+	// TaggedErrors thrown here are caught by Hono's .onError → isTaggedError → mapped response.
 	sValidator("json", AnalyticsPayload, (result) => {
 		if (result.success) {
 			return;

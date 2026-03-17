@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  effect: 4.0.0-beta.33
+
 importers:
 
   .:
@@ -662,7 +665,7 @@ packages:
       '@opentelemetry/sdk-trace-node': ^2.0.0
       '@opentelemetry/sdk-trace-web': ^2.0.0
       '@opentelemetry/semantic-conventions': ^1.33.0
-      effect: ^4.0.0-beta.33
+      effect: 4.0.0-beta.33
     peerDependenciesMeta:
       '@opentelemetry/api':
         optional: true
@@ -682,7 +685,7 @@ packages:
   '@effect/sql-pg@4.0.0-beta.33':
     resolution: {integrity: sha512-WTUre9mS73PY2a36PIS55VhEwL6FOCfiRj2R7oVr5/eZGjiBCrs9xluK6X/so74elnfvtPIbHmAEkEldUukEuA==}
     peerDependencies:
-      effect: ^4.0.0-beta.33
+      effect: 4.0.0-beta.33
 
   '@electric-sql/pglite-socket@0.0.20':
     resolution: {integrity: sha512-J5nLGsicnD9wJHnno9r+DGxfcZWh+YJMCe0q/aCgtG6XOm9Z7fKeite8IZSNXgZeGltSigM9U/vAWZQWdgcSFg==}
@@ -4058,9 +4061,6 @@ packages:
     resolution: {integrity: sha512-wG99Zcfcys9fZux7Cft8BAX/YrOJLJSZ3jyYPfhZHqN2E+Ffx+QXBDsv3gubEgPtV6dTzJMSQUwk1H98/t/0wQ==}
     engines: {bun: '>=1', deno: '>=2', node: '>=16'}
 
-  effect@3.18.4:
-    resolution: {integrity: sha512-b1LXQJLe9D11wfnOKAk3PKxuqYshQ0Heez+y5pnkd3jLj1yx9QhM72zZ9uUrOQyNvrs2GZZd/3maL0ZV18YuDA==}
-
   effect@4.0.0-beta.33:
     resolution: {integrity: sha512-ln9emWPd1SemokSdOV43r2CbH1j8GTe9qbPvttmh9/j2OR0WNmj7UpjbN34llQgF9QV4IdcN6QdV2w8G7B7RyQ==}
 
@@ -4155,10 +4155,6 @@ packages:
 
   extend@3.0.2:
     resolution: {integrity: sha512-fjquC59cD7CyW6urNXK0FBufkZcoiGG80wTuPujX590cB5Ttln20E2UB4S/WARVqhXffZl2LNgS+gQdPIIim/g==}
-
-  fast-check@3.23.2:
-    resolution: {integrity: sha512-h5+1OzzfCC3Ef7VbtKdcv7zsstUQwUDlYpUTvjeUsJAssPgLn7QzbboPtL5ro04Mq0rPOsMzl7q5hIbRs2wD1A==}
-    engines: {node: '>=8.0.0'}
 
   fast-check@4.6.0:
     resolution: {integrity: sha512-h7H6Dm0Fy+H4ciQYFxFjXnXkzR2kr9Fb22c0UBpHnm59K2zpr2t13aPTHlltFiNT6zuxp6HMPAVVvgur4BLdpA==}
@@ -5219,9 +5215,6 @@ packages:
   punycode@2.3.1:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
     engines: {node: '>=6'}
-
-  pure-rand@6.1.0:
-    resolution: {integrity: sha512-bVWawvoZoBYpp6yIoQtQXHZjmz35RSVHnUOTefl8Vcjr8snTPY1wnpSPMWekcFwbxI6gtmT7rSYPFvz71ldiOA==}
 
   pure-rand@8.2.0:
     resolution: {integrity: sha512-KHnUjm68KSO/hqpWlVwagMDPrIjnDNY9r0DbKN79xEa5RU2MLUe0lICBGpWDF8cwmhUiN8r9A8DLGPVcFB62/A==}
@@ -7736,7 +7729,7 @@ snapshots:
     dependencies:
       c12: 3.1.0
       deepmerge-ts: 7.1.5
-      effect: 3.18.4
+      effect: 4.0.0-beta.33
       empathic: 2.0.0
     transitivePeerDependencies:
       - magicast
@@ -9483,12 +9476,6 @@ snapshots:
       '@noble/curves': 1.9.7
       '@noble/hashes': 1.8.0
 
-  effect@3.18.4:
-    dependencies:
-      '@standard-schema/spec': 1.1.0
-      fast-check: 3.23.2
-    optional: true
-
   effect@4.0.0-beta.33:
     dependencies:
       '@standard-schema/spec': 1.1.0
@@ -9651,11 +9638,6 @@ snapshots:
     optional: true
 
   extend@3.0.2: {}
-
-  fast-check@3.23.2:
-    dependencies:
-      pure-rand: 6.1.0
-    optional: true
 
   fast-check@4.6.0:
     dependencies:
@@ -10693,9 +10675,6 @@ snapshots:
       once: 1.4.0
 
   punycode@2.3.1: {}
-
-  pure-rand@6.1.0:
-    optional: true
 
   pure-rand@8.2.0: {}
 

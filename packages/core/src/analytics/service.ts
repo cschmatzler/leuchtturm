@@ -71,7 +71,8 @@ export const ClickHouseServiceLive = Layer.effect(ClickHouseService)(
 						})),
 						format: "JSONEachRow",
 					}),
-				catch: (cause) => new ClickHouseError({ cause }),
+				catch: (cause) =>
+					new ClickHouseError({ message: "Failed to insert analytics events", cause }),
 			});
 
 		const insertErrors = (errors: ErrorEventRow[]): Effect.Effect<void, ClickHouseError> =>
@@ -96,7 +97,7 @@ export const ClickHouseServiceLive = Layer.effect(ClickHouseService)(
 						})),
 						format: "JSONEachRow",
 					}),
-				catch: (cause) => new ClickHouseError({ cause }),
+				catch: (cause) => new ClickHouseError({ message: "Failed to insert error events", cause }),
 			});
 
 		return { insertEvents, insertErrors };
