@@ -1,24 +1,51 @@
-import { createMiddleware } from "hono/factory";
+import { Effect, Layer, ServiceMap } from "effect";
+import { HttpServerRequest } from "effect/unstable/http";
+import { HttpApiMiddleware } from "effect/unstable/httpapi";
 
 import { auth } from "@chevrotain/core/auth/index";
-import { PublicError } from "@chevrotain/core/result";
+import { UnauthorizedError } from "@chevrotain/core/errors";
 
 type Session = typeof auth.$Infer.Session;
 
-export type AuthVariables = {
-	user: Session["user"];
-	session: Session["session"];
-};
+export interface CurrentUserShape {
+	readonly user: Session["user"];
+	readonly session: Session["session"];
+}
 
-export const authMiddleware = createMiddleware<{ Variables: AuthVariables }>(async (c, next) => {
-	const session = await auth.api.getSession({ headers: c.req.raw.headers });
+/** Context tag provided to handlers after successful authentication. */
+export class CurrentUser extends ServiceMap.Service<CurrentUser, CurrentUserShape>()(
+	"CurrentUser",
+) {}
 
-	if (!session) {
-		throw new PublicError({ status: 401, global: [{ message: "Unauthorized" }] });
-	}
+/** Auth middleware tag — provides CurrentUser or fails with UnauthorizedError. */
+export class AuthMiddleware extends HttpApiMiddleware.Service<
+	AuthMiddleware,
+	{ provides: CurrentUser }
+>()("AuthMiddleware", { error: UnauthorizedError }) {}
 
-	c.set("user", session.user);
-	c.set("session", session.session);
-
-	await next();
-});
+/**
+ * Auth middleware implementation.
+ *
+ * Wraps the downstream httpApp, authenticates via better-auth, and provides
+ * CurrentUser to the downstream handler.
+ */
+export const AuthMiddlewareLive = Layer.succeed(AuthMiddleware, (httpApp, _options) =>
+	Effect.gen(function* () {
+		const request = yield* HttpServerRequest.HttpServerRequest;
+		// Cast source to Request — NodeHttpServer backs this with a web Request
+		const rawRequest = request.source as globalThis.Request;
+		const session = yield* Effect.tryPromise({
+			try: () => auth.api.getSession({ headers: rawRequest.headers }),
+			catch: () => new UnauthorizedError({ message: "Auth check failed" }),
+		});
+		if (!session) {
+			return yield* new UnauthorizedError({ message: "Unauthorized" });
+		}
+		return yield* httpApp.pipe(
+			Effect.provideService(CurrentUser, {
+				user: session.user,
+				session: session.session,
+			}),
+		);
+	}),
+);

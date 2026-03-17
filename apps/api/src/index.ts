@@ -1,175 +1,62 @@
-import { httpInstrumentationMiddleware } from "@hono/otel";
-import { prometheus } from "@hono/prometheus";
-import { SpanStatusCode, trace } from "@opentelemetry/api";
-import { Effect } from "effect";
-import { Hono } from "hono";
-import { cors } from "hono/cors";
-import type { ContentfulStatusCode } from "hono/utils/http-status";
-import { register } from "prom-client";
+import { Effect, Layer } from "effect";
+import { HttpMiddleware, HttpRouter, HttpServer } from "effect/unstable/http";
+import { HttpApiBuilder } from "effect/unstable/httpapi";
 
-import analytics from "@chevrotain/api/analytics/index";
-import autumn from "@chevrotain/api/autumn";
-import errors from "@chevrotain/api/errors/index";
-import {
-	isTaggedError,
-	taggedErrorToResponse,
-	taggedErrorToStatus,
-} from "@chevrotain/api/errors/mapping";
-import mutate from "@chevrotain/api/mutate";
-import query from "@chevrotain/api/query";
-import { runEffectFork } from "@chevrotain/api/runtime";
-import { ClickHouseService } from "@chevrotain/core/analytics/service";
-import { auth } from "@chevrotain/core/auth/index";
-import { PublicError } from "@chevrotain/core/result";
+import { ChevrotainApi } from "@chevrotain/api/contract";
+import { AnalyticsHandlerLive } from "@chevrotain/api/handlers/analytics";
+import { AuthHandlerLive } from "@chevrotain/api/handlers/auth";
+import { AutumnHandlerLive } from "@chevrotain/api/handlers/autumn";
+import { ErrorsHandlerLive } from "@chevrotain/api/handlers/errors";
+import { HealthHandlerLive } from "@chevrotain/api/handlers/health";
+import { ZeroHandlerLive } from "@chevrotain/api/handlers/zero";
+import { AuthMiddlewareLive } from "@chevrotain/api/middleware/auth";
+import { AppLayer } from "@chevrotain/api/runtime";
 
 const baseUrl = process.env.BASE_URL;
 if (!baseUrl) {
 	throw new Error("BASE_URL environment variable is required");
 }
 
-const { printMetrics, registerMetrics } = prometheus({
-	collectDefaultMetrics: true,
-	registry: register,
+/** All handler group implementations. */
+const HandlersLive = Layer.mergeAll(
+	HealthHandlerLive,
+	AnalyticsHandlerLive,
+	ErrorsHandlerLive,
+	ZeroHandlerLive,
+	AuthHandlerLive,
+	AutumnHandlerLive,
+);
+
+/** CORS middleware applied to all requests. */
+const CorsMiddleware = HttpMiddleware.cors({
+	allowedOrigins: [baseUrl],
+	allowedHeaders: ["Content-Type", "Authorization"],
+	allowedMethods: ["GET", "POST", "OPTIONS"],
+	exposedHeaders: ["Content-Length"],
+	credentials: true,
+	maxAge: 600,
 });
 
-const app = new Hono()
-	.basePath("/api")
-	.use(httpInstrumentationMiddleware())
-	.use(registerMetrics)
-	.use(
-		cors({
-			origin: baseUrl,
-			allowHeaders: ["Content-Type", "Authorization"],
-			allowMethods: ["GET", "POST", "OPTIONS"],
-			exposeHeaders: ["Content-Length"],
-			credentials: true,
-			maxAge: 600,
-		}),
-	)
+/**
+ * App layer: HttpApi contract + all handler groups + middleware + services.
+ *
+ * AppLayer provides services (Database, ClickHouse, etc.) to BOTH
+ * the handler layers and the HttpApiBuilder layer.
+ */
+const HandlersWithDeps = HandlersLive.pipe(Layer.provide(AppLayer));
 
-	.get("/metrics", printMetrics)
-	.get("/up", (c) => c.json({ success: true }))
-	.all("/auth/*", (c) => auth.handler(c.req.raw))
-	.route("/autumn", autumn)
-	.route("/query", query)
-	.route("/mutate", mutate)
-	.route("/analytics", analytics)
-	.route("/errors", errors)
-	.onError((error, c) => {
-		// Effect TaggedErrors (from Effect-managed handlers)
-		if (isTaggedError(error)) {
-			const status = taggedErrorToStatus(error);
+const ApiLive = HttpApiBuilder.layer(ChevrotainApi).pipe(
+	Layer.provide(HandlersWithDeps),
+	Layer.provide(AuthMiddlewareLive),
+);
 
-			if (status === 500) {
-				const span = trace.getActiveSpan();
-				if (span) {
-					const errorMessage =
-						"message" in error && typeof error.message === "string" ? error.message : error._tag;
-					span.recordException(error instanceof Error ? error : new Error(errorMessage));
-					span.setStatus({ code: SpanStatusCode.ERROR, message: errorMessage });
-				}
+/**
+ * Convert the router-based API layer into a serveable HTTP application effect,
+ * then serve it with CORS middleware.
+ */
+const httpApp = Effect.flatten(HttpRouter.toHttpEffect(ApiLive));
 
-				runEffectFork(
-					Effect.gen(function* () {
-						const analytics = yield* ClickHouseService;
-						yield* analytics.insertErrors([
-							{
-								source: "api",
-								errorType: error._tag,
-								message:
-									"message" in error && typeof error.message === "string"
-										? error.message
-										: error._tag,
-								url: c.req.path,
-								method: c.req.method,
-								statusCode: 500,
-								userAgent: c.req.header("user-agent"),
-							},
-						]);
-					}),
-				);
-			}
-
-			return c.json({ success: false, error: taggedErrorToResponse(error) }, status);
-		}
-
-		// Legacy PublicError (from Zero mutators)
-		if (error instanceof PublicError) {
-			return c.json(
-				{
-					success: false,
-					error: {
-						global: error.global,
-						fields: error.fields,
-					},
-				},
-				(error.status ?? 500) as ContentfulStatusCode,
-			);
-		}
-
-		// Unhandled defects
-		const normalizedError =
-			error instanceof Error
-				? error
-				: new Error(typeof error === "string" ? error : JSON.stringify(error));
-
-		const span = trace.getActiveSpan();
-		if (span) {
-			span.recordException(normalizedError);
-			span.setStatus({ code: SpanStatusCode.ERROR, message: normalizedError.message });
-		}
-
-		runEffectFork(
-			Effect.gen(function* () {
-				const analytics = yield* ClickHouseService;
-				yield* analytics.insertErrors([
-					{
-						source: "api",
-						errorType: normalizedError.name,
-						message: normalizedError.message,
-						stackTrace: normalizedError.stack,
-						url: c.req.path,
-						method: c.req.method,
-						statusCode: 500,
-						userAgent: c.req.header("user-agent"),
-					},
-				]);
-			}),
-		);
-
-		return c.json(
-			{
-				success: false,
-				error: {
-					global: [
-						{
-							code: "internal",
-							message: "Internal server error",
-						},
-					],
-					fields: [],
-				},
-			},
-			500,
-		);
-	})
-	.notFound((c) =>
-		c.json(
-			{
-				success: false,
-				error: {
-					global: [
-						{
-							code: "not_found",
-							message: "Resource not found",
-						},
-					],
-					fields: [],
-				},
-			},
-			404,
-		),
-	);
-
-export type Routes = typeof app;
-export { app };
+export const ServerLive = HttpServer.serve(httpApp, CorsMiddleware).pipe(
+	Layer.provide(HttpServer.layerServices),
+	Layer.provide(AppLayer),
+);

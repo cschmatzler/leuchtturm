@@ -1,4 +1,4 @@
-import { Cause, Effect, Exit, Layer, ManagedRuntime, Result } from "effect";
+import { Layer } from "effect";
 
 import { ClickHouseServiceLive } from "@chevrotain/core/analytics/service";
 import { BillingServiceLive } from "@chevrotain/core/billing/service";
@@ -12,54 +12,3 @@ export const AppLayer = Layer.mergeAll(
 	BillingServiceLive,
 	EmailServiceLive,
 );
-
-/** Managed runtime — created once, lives for the app's lifetime. */
-const AppRuntime = ManagedRuntime.make(AppLayer);
-
-/**
- * Run an Effect inside a Hono handler.
- * This is the ONLY place effects should be executed — compose with yield* everywhere else.
- */
-export const runEffect = <A, E>(
-	effect: Effect.Effect<A, E, Layer.Success<typeof AppLayer>>,
-): Promise<A> =>
-	AppRuntime.runPromiseExit(effect).then((exit) => {
-		if (Exit.isFailure(exit)) {
-			// Fiber was interrupted (e.g. request cancelled) — surface as a clear error
-			if (Cause.hasInterruptsOnly(exit.cause)) {
-				throw new Error("Effect interrupted");
-			}
-			// Re-throw defects (bugs) as regular errors for Hono's .onError
-			const defectResult = Cause.findDefect(exit.cause);
-			if (Result.isSuccess(defectResult)) {
-				throw defectResult.success;
-			}
-			// Re-throw typed failures — Hono's .onError will catch TaggedErrors
-			const errorResult = Cause.findError(exit.cause);
-			if (Result.isSuccess(errorResult)) {
-				throw errorResult.success;
-			}
-			throw exit;
-		}
-		return exit.value;
-	});
-
-/**
- * Run an Effect as fire-and-forget from non-Effect contexts (e.g. Hono .onError).
- *
- * Uses console.error for failures because this runs outside the Effect error channel
- * (typically from Hono's .onError) — we can't use Effect to report a failure to run effects.
- */
-export const runEffectFork = <E>(
-	effect: Effect.Effect<void, E, Layer.Success<typeof AppLayer>>,
-): void => {
-	AppRuntime.runPromise(effect).catch((error) => {
-		console.error("Background effect failed:", error);
-	});
-};
-
-/**
- * Shutdown the runtime (called on SIGINT/SIGTERM).
- * Closes all managed resources (DB pool, ClickHouse client, etc).
- */
-export const shutdownRuntime = () => AppRuntime.dispose();
