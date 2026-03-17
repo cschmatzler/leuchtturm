@@ -1,4 +1,4 @@
-# @one/core - Shared Core Package
+# @chevrotain/core - Shared Core Package
 
 ## Overview
 
@@ -195,7 +195,7 @@ export type BrewParams = typeof BrewParams.infer;
 ### Assertions
 
 ```typescript
-import { assert } from "@one/core/assert";
+import { assert } from "@chevrotain/core/assert";
 
 const [bean] = await db.select().from(beanTable).where(eq(beanTable.id, id)).limit(1);
 assert(bean); // Narrows T | null | undefined → T, throws PublicError 404
@@ -244,8 +244,8 @@ Generate and run migrations:
 
 ```bash
 # From repo root
-pnpm --filter @one/core exec drizzle-kit generate --name add_new_table
-pnpm --filter @one/core exec drizzle-kit push  # Dev only
+pnpm --filter @chevrotain/core exec drizzle-kit generate --name add_new_table
+pnpm --filter @chevrotain/core exec drizzle-kit push  # Dev only
 ```
 
 Migration files go in `drizzle/` directory and are applied via deploy script in production.
@@ -316,7 +316,7 @@ Core tests use vitest:
 
 ```typescript
 import { describe, it, expect } from "vite-plus/test";
-import { createId, Id, PREFIXES } from "@one/core/id";
+import { createId, Id, PREFIXES } from "@chevrotain/core/id";
 
 describe("createId", () => {
 	it("returns expected prefix and ULID", () => {
@@ -334,12 +334,12 @@ All imports use absolute package paths (no relative imports allowed):
 
 ```typescript
 // In apps/web or apps/api:
-import { createId } from "@one/core/id";
-import { PublicError } from "@one/core/result";
-import { assert } from "@one/core/assert";
-import type { User, Session } from "@one/core/auth/schema";
-import { BrewParams, CustomFieldType } from "@one/core/brewing/schema";
-import { Bean } from "@one/core/inventory/schema";
+import { createId } from "@chevrotain/core/id";
+import { PublicError } from "@chevrotain/core/result";
+import { assert } from "@chevrotain/core/assert";
+import type { User, Session } from "@chevrotain/core/auth/schema";
+import { BrewParams, CustomFieldType } from "@chevrotain/core/brewing/schema";
+import { Bean } from "@chevrotain/core/inventory/schema";
 ```
 
 ## Database Tables (Complete Reference)

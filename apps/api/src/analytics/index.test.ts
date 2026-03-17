@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vite-plus/test";
 
 // Mock modules before importing the app
-vi.mock("@one/email", () => ({
+vi.mock("@chevrotain/email", () => ({
 	resend: {
 		emails: {
 			send: vi.fn(),
@@ -9,14 +9,14 @@ vi.mock("@one/email", () => ({
 	},
 }));
 
-vi.mock("@one/core/billing/autumn", () => ({
+vi.mock("@chevrotain/core/billing/autumn", () => ({
 	autumn: {
 		check: vi.fn(),
 		track: vi.fn(),
 	},
 }));
 
-vi.mock("@one/api/middleware/auth", () => ({
+vi.mock("@chevrotain/api/middleware/auth", () => ({
 	authMiddleware: vi.fn((c, next) => {
 		c.set("user", {
 			id: "test-user-id",
@@ -58,19 +58,19 @@ vi.mock("@opentelemetry/api", async (importOriginal) => {
 	};
 });
 
-vi.mock("@one/core/analytics/clickhouse", () => ({
+vi.mock("@chevrotain/core/analytics/clickhouse", () => ({
 	insertEvents: vi.fn(),
 	insertErrors: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock("@one/api/runtime", () => ({
+vi.mock("@chevrotain/api/runtime", () => ({
 	runEffect: vi.fn((_effect: unknown) => Promise.resolve()),
 }));
 
-import { app } from "@one/api/index";
-import { authMiddleware } from "@one/api/middleware/auth";
-import { runEffect } from "@one/api/runtime";
-import { PublicError } from "@one/core/result";
+import { app } from "@chevrotain/api/index";
+import { authMiddleware } from "@chevrotain/api/middleware/auth";
+import { runEffect } from "@chevrotain/api/runtime";
+import { PublicError } from "@chevrotain/core/result";
 
 describe("analytics endpoint", () => {
 	beforeEach(() => {

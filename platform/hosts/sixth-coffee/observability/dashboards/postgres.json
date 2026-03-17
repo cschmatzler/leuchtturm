@@ -79,7 +79,7 @@
 			},
 			"targets": [
 				{
-					"expr": "pg_database_size_bytes{job=\"postgres\", datname=\"one\"}",
+					"expr": "pg_database_size_bytes{job=\"postgres\", datname=\"chevrotain\"}",
 					"legendFormat": "",
 					"refId": "A"
 				}
@@ -141,7 +141,7 @@
 			},
 			"targets": [
 				{
-					"expr": "rate(pg_stat_database_xact_commit{job=\"postgres\", datname=\"one\"}[$__rate_interval])",
+					"expr": "rate(pg_stat_database_xact_commit{job=\"postgres\", datname=\"chevrotain\"}[$__rate_interval])",
 					"legendFormat": "",
 					"refId": "A"
 				}
@@ -176,7 +176,7 @@
 			},
 			"targets": [
 				{
-					"expr": "rate(pg_stat_database_xact_rollback{job=\"postgres\", datname=\"one\"}[$__rate_interval])",
+					"expr": "rate(pg_stat_database_xact_rollback{job=\"postgres\", datname=\"chevrotain\"}[$__rate_interval])",
 					"legendFormat": "",
 					"refId": "A"
 				}
@@ -242,7 +242,7 @@
 			},
 			"targets": [
 				{
-					"expr": "rate(pg_stat_database_blks_hit{job=\"postgres\", datname=\"one\"}[$__rate_interval]) / (rate(pg_stat_database_blks_hit{job=\"postgres\", datname=\"one\"}[$__rate_interval]) + rate(pg_stat_database_blks_read{job=\"postgres\", datname=\"one\"}[$__rate_interval])) * 100",
+					"expr": "rate(pg_stat_database_blks_hit{job=\"postgres\", datname=\"chevrotain\"}[$__rate_interval]) / (rate(pg_stat_database_blks_hit{job=\"postgres\", datname=\"chevrotain\"}[$__rate_interval]) + rate(pg_stat_database_blks_read{job=\"postgres\", datname=\"chevrotain\"}[$__rate_interval])) * 100",
 					"legendFormat": "",
 					"refId": "A"
 				}
@@ -313,7 +313,7 @@
 			},
 			"targets": [
 				{
-					"expr": "rate(pg_stat_database_xact_rollback{job=\"postgres\", datname=\"one\"}[$__rate_interval]) / (rate(pg_stat_database_xact_commit{job=\"postgres\", datname=\"one\"}[$__rate_interval]) + rate(pg_stat_database_xact_rollback{job=\"postgres\", datname=\"one\"}[$__rate_interval])) * 100",
+					"expr": "rate(pg_stat_database_xact_rollback{job=\"postgres\", datname=\"chevrotain\"}[$__rate_interval]) / (rate(pg_stat_database_xact_commit{job=\"postgres\", datname=\"chevrotain\"}[$__rate_interval]) + rate(pg_stat_database_xact_rollback{job=\"postgres\", datname=\"chevrotain\"}[$__rate_interval])) * 100",
 					"legendFormat": "",
 					"refId": "A"
 				}
@@ -348,7 +348,7 @@
 			},
 			"targets": [
 				{
-					"expr": "rate(pg_stat_database_deadlocks{job=\"postgres\", datname=\"one\"}[$__rate_interval]) * 3600",
+					"expr": "rate(pg_stat_database_deadlocks{job=\"postgres\", datname=\"chevrotain\"}[$__rate_interval]) * 3600",
 					"legendFormat": "",
 					"refId": "A"
 				}
@@ -497,12 +497,12 @@
 			},
 			"targets": [
 				{
-					"expr": "rate(pg_stat_database_xact_commit{job=\"postgres\", datname=\"one\"}[$__rate_interval])",
+					"expr": "rate(pg_stat_database_xact_commit{job=\"postgres\", datname=\"chevrotain\"}[$__rate_interval])",
 					"legendFormat": "Commits",
 					"refId": "A"
 				},
 				{
-					"expr": "rate(pg_stat_database_xact_rollback{job=\"postgres\", datname=\"one\"}[$__rate_interval])",
+					"expr": "rate(pg_stat_database_xact_rollback{job=\"postgres\", datname=\"chevrotain\"}[$__rate_interval])",
 					"legendFormat": "Rollbacks",
 					"refId": "B"
 				}
@@ -537,22 +537,22 @@
 			},
 			"targets": [
 				{
-					"expr": "rate(pg_stat_database_tup_fetched{job=\"postgres\", datname=\"one\"}[$__rate_interval])",
+					"expr": "rate(pg_stat_database_tup_fetched{job=\"postgres\", datname=\"chevrotain\"}[$__rate_interval])",
 					"legendFormat": "Fetched",
 					"refId": "A"
 				},
 				{
-					"expr": "rate(pg_stat_database_tup_inserted{job=\"postgres\", datname=\"one\"}[$__rate_interval])",
+					"expr": "rate(pg_stat_database_tup_inserted{job=\"postgres\", datname=\"chevrotain\"}[$__rate_interval])",
 					"legendFormat": "Inserted",
 					"refId": "B"
 				},
 				{
-					"expr": "rate(pg_stat_database_tup_updated{job=\"postgres\", datname=\"one\"}[$__rate_interval])",
+					"expr": "rate(pg_stat_database_tup_updated{job=\"postgres\", datname=\"chevrotain\"}[$__rate_interval])",
 					"legendFormat": "Updated",
 					"refId": "C"
 				},
 				{
-					"expr": "rate(pg_stat_database_tup_deleted{job=\"postgres\", datname=\"one\"}[$__rate_interval])",
+					"expr": "rate(pg_stat_database_tup_deleted{job=\"postgres\", datname=\"chevrotain\"}[$__rate_interval])",
 					"legendFormat": "Deleted",
 					"refId": "D"
 				}
@@ -605,7 +605,7 @@
 			},
 			"targets": [
 				{
-					"expr": "rate(pg_stat_database_blks_hit{job=\"postgres\", datname=\"one\"}[$__rate_interval]) / (rate(pg_stat_database_blks_hit{job=\"postgres\", datname=\"one\"}[$__rate_interval]) + rate(pg_stat_database_blks_read{job=\"postgres\", datname=\"one\"}[$__rate_interval])) * 100",
+					"expr": "rate(pg_stat_database_blks_hit{job=\"postgres\", datname=\"chevrotain\"}[$__rate_interval]) / (rate(pg_stat_database_blks_hit{job=\"postgres\", datname=\"chevrotain\"}[$__rate_interval]) + rate(pg_stat_database_blks_read{job=\"postgres\", datname=\"chevrotain\"}[$__rate_interval])) * 100",
 					"legendFormat": "Hit Ratio",
 					"refId": "A"
 				}
@@ -649,12 +649,12 @@
 			},
 			"targets": [
 				{
-					"expr": "rate(pg_stat_database_blks_hit{job=\"postgres\", datname=\"one\"}[$__rate_interval])",
+					"expr": "rate(pg_stat_database_blks_hit{job=\"postgres\", datname=\"chevrotain\"}[$__rate_interval])",
 					"legendFormat": "Buffer Hits",
 					"refId": "A"
 				},
 				{
-					"expr": "rate(pg_stat_database_blks_read{job=\"postgres\", datname=\"one\"}[$__rate_interval])",
+					"expr": "rate(pg_stat_database_blks_read{job=\"postgres\", datname=\"chevrotain\"}[$__rate_interval])",
 					"legendFormat": "Disk Reads",
 					"refId": "B"
 				}
@@ -697,12 +697,12 @@
 			},
 			"targets": [
 				{
-					"expr": "rate(pg_stat_database_temp_files{job=\"postgres\", datname=\"one\"}[$__rate_interval])",
+					"expr": "rate(pg_stat_database_temp_files{job=\"postgres\", datname=\"chevrotain\"}[$__rate_interval])",
 					"legendFormat": "Temp Files",
 					"refId": "A"
 				},
 				{
-					"expr": "rate(pg_stat_database_temp_bytes{job=\"postgres\", datname=\"one\"}[$__rate_interval])",
+					"expr": "rate(pg_stat_database_temp_bytes{job=\"postgres\", datname=\"chevrotain\"}[$__rate_interval])",
 					"legendFormat": "Temp Bytes",
 					"refId": "B"
 				}
@@ -839,7 +839,7 @@
 			},
 			"targets": [
 				{
-					"expr": "pg_locks_count{job=\"postgres\", datname=\"one\"}",
+					"expr": "pg_locks_count{job=\"postgres\", datname=\"chevrotain\"}",
 					"legendFormat": "{{mode}}",
 					"refId": "A"
 				}
@@ -887,12 +887,12 @@
 			},
 			"targets": [
 				{
-					"expr": "rate(pg_stat_database_conflicts{job=\"postgres\", datname=\"one\"}[$__rate_interval])",
+					"expr": "rate(pg_stat_database_conflicts{job=\"postgres\", datname=\"chevrotain\"}[$__rate_interval])",
 					"legendFormat": "Conflicts",
 					"refId": "A"
 				},
 				{
-					"expr": "rate(pg_stat_database_deadlocks{job=\"postgres\", datname=\"one\"}[$__rate_interval])",
+					"expr": "rate(pg_stat_database_deadlocks{job=\"postgres\", datname=\"chevrotain\"}[$__rate_interval])",
 					"legendFormat": "Deadlocks",
 					"refId": "B"
 				}
@@ -931,7 +931,7 @@
 			},
 			"targets": [
 				{
-					"expr": "count(pg_stat_statements_calls_total{job=\"postgres\", datname=\"one\"})",
+					"expr": "count(pg_stat_statements_calls_total{job=\"postgres\", datname=\"chevrotain\"})",
 					"legendFormat": "",
 					"refId": "A"
 				}
@@ -962,7 +962,7 @@
 			},
 			"targets": [
 				{
-					"expr": "sum(rate(pg_stat_statements_calls_total{job=\"postgres\", datname=\"one\"}[$__rate_interval]))",
+					"expr": "sum(rate(pg_stat_statements_calls_total{job=\"postgres\", datname=\"chevrotain\"}[$__rate_interval]))",
 					"legendFormat": "",
 					"refId": "A"
 				}
@@ -993,7 +993,7 @@
 			},
 			"targets": [
 				{
-					"expr": "sum(rate(pg_stat_statements_seconds_total{job=\"postgres\", datname=\"one\"}[$__rate_interval]))",
+					"expr": "sum(rate(pg_stat_statements_seconds_total{job=\"postgres\", datname=\"chevrotain\"}[$__rate_interval]))",
 					"legendFormat": "",
 					"refId": "A"
 				}
@@ -1024,7 +1024,7 @@
 			},
 			"targets": [
 				{
-					"expr": "sum(rate(pg_stat_statements_rows_total{job=\"postgres\", datname=\"one\"}[$__rate_interval]))",
+					"expr": "sum(rate(pg_stat_statements_rows_total{job=\"postgres\", datname=\"chevrotain\"}[$__rate_interval]))",
 					"legendFormat": "",
 					"refId": "A"
 				}
@@ -1075,25 +1075,25 @@
 			},
 			"targets": [
 				{
-					"expr": "pg_stat_statements_seconds_total{job=\"postgres\", datname=\"one\"} * on(queryid) group_left(query) pg_stat_statements_query_id{job=\"postgres\"}",
+					"expr": "pg_stat_statements_seconds_total{job=\"postgres\", datname=\"chevrotain\"} * on(queryid) group_left(query) pg_stat_statements_query_id{job=\"postgres\"}",
 					"format": "table",
 					"instant": true,
 					"refId": "A"
 				},
 				{
-					"expr": "pg_stat_statements_calls_total{job=\"postgres\", datname=\"one\"} * on(queryid) group_left(query) pg_stat_statements_query_id{job=\"postgres\"}",
+					"expr": "pg_stat_statements_calls_total{job=\"postgres\", datname=\"chevrotain\"} * on(queryid) group_left(query) pg_stat_statements_query_id{job=\"postgres\"}",
 					"format": "table",
 					"instant": true,
 					"refId": "B"
 				},
 				{
-					"expr": "pg_stat_statements_seconds_total{job=\"postgres\", datname=\"one\"} / pg_stat_statements_calls_total{job=\"postgres\", datname=\"one\"}",
+					"expr": "pg_stat_statements_seconds_total{job=\"postgres\", datname=\"chevrotain\"} / pg_stat_statements_calls_total{job=\"postgres\", datname=\"chevrotain\"}",
 					"format": "table",
 					"instant": true,
 					"refId": "C"
 				},
 				{
-					"expr": "pg_stat_statements_rows_total{job=\"postgres\", datname=\"one\"} * on(queryid) group_left(query) pg_stat_statements_query_id{job=\"postgres\"}",
+					"expr": "pg_stat_statements_rows_total{job=\"postgres\", datname=\"chevrotain\"} * on(queryid) group_left(query) pg_stat_statements_query_id{job=\"postgres\"}",
 					"format": "table",
 					"instant": true,
 					"refId": "D"
@@ -1160,7 +1160,7 @@
 			},
 			"targets": [
 				{
-					"expr": "sum(rate(pg_stat_statements_calls_total{job=\"postgres\", datname=\"one\"}[$__rate_interval]))",
+					"expr": "sum(rate(pg_stat_statements_calls_total{job=\"postgres\", datname=\"chevrotain\"}[$__rate_interval]))",
 					"legendFormat": "Calls / s",
 					"refId": "A"
 				}
@@ -1195,7 +1195,7 @@
 			},
 			"targets": [
 				{
-					"expr": "sum(rate(pg_stat_statements_seconds_total{job=\"postgres\", datname=\"one\"}[$__rate_interval]))",
+					"expr": "sum(rate(pg_stat_statements_seconds_total{job=\"postgres\", datname=\"chevrotain\"}[$__rate_interval]))",
 					"legendFormat": "Exec Time / s",
 					"refId": "A"
 				}

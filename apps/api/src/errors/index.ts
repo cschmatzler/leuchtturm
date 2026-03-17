@@ -2,10 +2,10 @@ import { sValidator } from "@hono/standard-validator";
 import { Effect } from "effect";
 import { Hono } from "hono";
 
-import { runEffect } from "@one/api/runtime";
-import { ErrorPayload } from "@one/core/analytics/schema";
-import { ClickHouseService } from "@one/core/analytics/service";
-import { RateLimitError, ValidationError } from "@one/core/errors";
+import { runEffect } from "@chevrotain/api/runtime";
+import { ErrorPayload } from "@chevrotain/core/analytics/schema";
+import { ClickHouseService } from "@chevrotain/core/analytics/service";
+import { RateLimitError, ValidationError } from "@chevrotain/core/errors";
 
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX_REQUESTS = 30;

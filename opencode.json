@@ -3,7 +3,7 @@
 	"mcp": {
 		"cog": {
 			"type": "remote",
-			"url": "https://trycog.ai/christoph/one/mcp",
+			"url": "https://trycog.ai/christoph/chevrotain/mcp",
 			"headers": {
 				"Authorization": "Bearer {env:COG_API_KEY}"
 			},

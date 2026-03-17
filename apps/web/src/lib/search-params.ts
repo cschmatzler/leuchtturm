@@ -4,7 +4,7 @@ import type {
 	ColumnDataType,
 	FilterModel,
 	FiltersState,
-} from "@one/web/components/data-table-filter/types";
+} from "@chevrotain/web/components/data-table-filter/types";
 
 const filterModelSchema = type({
 	columnId: "string",

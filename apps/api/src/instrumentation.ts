@@ -8,7 +8,7 @@ import { resourceFromAttributes } from "@opentelemetry/resources";
 import { BasicTracerProvider, BatchSpanProcessor } from "@opentelemetry/sdk-trace-base";
 
 const resource = resourceFromAttributes({
-	"service.name": "one-api",
+	"service.name": "chevrotain-api",
 });
 
 const contextManager = new AsyncLocalStorageContextManager();

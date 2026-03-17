@@ -2,7 +2,7 @@ import { Config, Effect, Layer, Redacted, ServiceMap } from "effect";
 import { Resend } from "resend";
 import type { CreateEmailResponse } from "resend";
 
-import { EmailError } from "@one/core/errors";
+import { EmailError } from "@chevrotain/core/errors";
 
 export interface EmailServiceShape {
 	readonly send: (params: {

@@ -1,7 +1,7 @@
 import { type Transaction, defineMutatorsWithType } from "@rocicorp/zero";
 
-import { PublicError } from "@one/core/result";
-import { type Context, type Schema } from "@one/zero/schema";
+import { PublicError } from "@chevrotain/core/result";
+import { type Context, type Schema } from "@chevrotain/zero/schema";
 
 export const defineMutators = defineMutatorsWithType<Schema>();
 

@@ -1,4 +1,4 @@
-import { api } from "@one/web/clients/api";
+import { api } from "@chevrotain/web/clients/api";
 
 type AnalyticsEvent = {
 	eventType: string;

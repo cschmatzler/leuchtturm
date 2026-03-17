@@ -23,15 +23,15 @@
 				timestamp DateTime64(3, 'UTC'),
 				error_id UUID,
 				source LowCardinality(String),
-				user_id String DEFAULT '',
-				session_id String DEFAULT '',
+				user_id String DEFAULT ${"''"},
+				session_id String DEFAULT ${"''"},
 				error_type String,
 				message String,
-				stack_trace String DEFAULT '',
-				url String DEFAULT '',
-				method LowCardinality(String) DEFAULT '',
+				stack_trace String DEFAULT ${"''"},
+				url String DEFAULT ${"''"},
+				method LowCardinality(String) DEFAULT ${"''"},
 				status_code UInt16 DEFAULT 0,
-				user_agent String DEFAULT '',
+				user_agent String DEFAULT ${"''"},
 				properties String DEFAULT '{}'
 			) ENGINE = MergeTree()
 			PARTITION BY toDate(timestamp)

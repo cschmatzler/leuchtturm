@@ -4,11 +4,11 @@ import { type } from "arktype";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
-import { Account, User } from "@one/core/auth/schema";
-import { authClient } from "@one/web/clients/auth";
-import { Button } from "@one/web/components/ui/button";
-import { Field, FieldError, FieldGroup, FieldLabel } from "@one/web/components/ui/field";
-import { Input } from "@one/web/components/ui/input";
+import { Account, User } from "@chevrotain/core/auth/schema";
+import { authClient } from "@chevrotain/web/clients/auth";
+import { Button } from "@chevrotain/web/components/ui/button";
+import { Field, FieldError, FieldGroup, FieldLabel } from "@chevrotain/web/components/ui/field";
+import { Input } from "@chevrotain/web/components/ui/input";
 export const Route = createFileRoute("/signup")({
 	component: Page,
 });

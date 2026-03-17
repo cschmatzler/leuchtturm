@@ -2,7 +2,7 @@ import { defineRelationsPart } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 
-import { account, session, user } from "@one/core/auth/auth.sql";
+import { account, session, user } from "@chevrotain/core/auth/auth.sql";
 
 const pool = new Pool({
 	connectionString: process.env.DATABASE_URL,

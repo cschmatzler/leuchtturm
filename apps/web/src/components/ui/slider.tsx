@@ -1,6 +1,6 @@
 import { Slider as BaseSlider } from "@base-ui/react/slider";
 
-import { cn } from "@one/web/lib/cn";
+import { cn } from "@chevrotain/web/lib/cn";
 
 function Slider({
 	className,

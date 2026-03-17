@@ -1,9 +1,9 @@
 import { Cause, Effect, Exit, Layer, ManagedRuntime, Result } from "effect";
 
-import { ClickHouseServiceLive } from "@one/core/analytics/service";
-import { BillingServiceLive } from "@one/core/billing/service";
-import { DatabaseServiceLive } from "@one/core/drizzle/service";
-import { EmailServiceLive } from "@one/core/email/service";
+import { ClickHouseServiceLive } from "@chevrotain/core/analytics/service";
+import { BillingServiceLive } from "@chevrotain/core/billing/service";
+import { DatabaseServiceLive } from "@chevrotain/core/drizzle/service";
+import { EmailServiceLive } from "@chevrotain/core/email/service";
 
 /** All service layers composed into the application layer. */
 export const AppLayer = Layer.mergeAll(

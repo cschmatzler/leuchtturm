@@ -1,5 +1,5 @@
 {
-	"name": "@one/zero-cache",
+	"name": "@chevrotain/zero-cache",
 	"type": "module",
 	"scripts": {
 		"dev": "zero-cache-dev"

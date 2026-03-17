@@ -2,9 +2,9 @@
 	"extends": "../../tsconfig.web.json",
 	"compilerOptions": {
 		"paths": {
-			"@one/web/*": ["./src/*"],
-			"@one/zero/*": ["../../packages/zero/src/*"],
-			"@one/core/*": ["../../packages/core/src/*"]
+			"@chevrotain/web/*": ["./src/*"],
+			"@chevrotain/zero/*": ["../../packages/zero/src/*"],
+			"@chevrotain/core/*": ["../../packages/core/src/*"]
 		}
 	},
 	"include": ["src"]

@@ -1,14 +1,17 @@
 import { flexRender, type Table as TanStackTable } from "@tanstack/react-table";
 import { createElement, type ComponentType } from "react";
 
-import { DataTableFilter, type DataTableFilterProps } from "@one/web/components/data-table-filter";
+import {
+	DataTableFilter,
+	type DataTableFilterProps,
+} from "@chevrotain/web/components/data-table-filter";
 import {
 	Empty,
 	EmptyContent,
 	EmptyDescription,
 	EmptyMedia,
 	EmptyTitle,
-} from "@one/web/components/ui/empty";
+} from "@chevrotain/web/components/ui/empty";
 import {
 	Table,
 	TableBody,
@@ -16,8 +19,8 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow,
-} from "@one/web/components/ui/table";
-import { cn } from "@one/web/lib/cn";
+} from "@chevrotain/web/components/ui/table";
+import { cn } from "@chevrotain/web/lib/cn";
 
 export function DataTable<TData>({
 	table,

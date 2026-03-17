@@ -8,8 +8,11 @@ import {
 	getColumnValues,
 	getFacetedMinMaxValues,
 	getFacetedUniqueValues,
-} from "@one/web/components/data-table-filter/filters";
-import type { ColumnConfig, ColumnOption } from "@one/web/components/data-table-filter/types";
+} from "@chevrotain/web/components/data-table-filter/filters";
+import type {
+	ColumnConfig,
+	ColumnOption,
+} from "@chevrotain/web/components/data-table-filter/types";
 
 type TestData = {
 	id: string;

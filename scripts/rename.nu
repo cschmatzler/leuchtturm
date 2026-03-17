@@ -3,6 +3,10 @@
 #
 # Generates lowercase, UPPERCASE, and Capitalized variants, plus package scope
 # and hyphenated patterns. Default is dry-run; use --apply to modify files.
+#
+# The bare-word patterns use (^|[^.]) to avoid renaming method calls (.one())
+# and property access (r.one.user). English prose matches ("only one") may
+# still occur — review dry-run output before applying.
 def main [old_name: string, new_name: string, --apply] {
     if $old_name == $new_name {
         print -e "Error: old-name and new-name must be different"
@@ -26,18 +30,18 @@ def main [old_name: string, new_name: string, --apply] {
             "Hyphenated identifier"
         ]
         [
-            $"\\b($old_lower)\\b"
-            $new_lower
+            ("(?m)(^|[^.])\\b" + $old_lower + "\\b")
+            ('$1' + $new_lower)
             "Lowercase name"
         ]
         [
-            $"\\b($old_cap)\\b"
-            $new_cap
+            ("(?m)(^|[^.])\\b" + $old_cap + "\\b")
+            ('$1' + $new_cap)
             "Capitalized name"
         ]
         [
-            $"\\b($old_upper)\\b"
-            $new_upper
+            ("(?m)(^|[^.])\\b" + $old_upper + "\\b")
+            ('$1' + $new_upper)
             "Uppercase name"
         ]
     ]

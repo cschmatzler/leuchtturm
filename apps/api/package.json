@@ -1,5 +1,5 @@
 {
-	"name": "@one/api",
+	"name": "@chevrotain/api",
 	"private": true,
 	"type": "module",
 	"sideEffects": false,
@@ -12,12 +12,12 @@
 		"start": "node dist/server.js"
 	},
 	"dependencies": {
+		"@chevrotain/core": "workspace:*",
+		"@chevrotain/zero": "workspace:*",
 		"@hono/node-server": "1.19.11",
 		"@hono/otel": "1.1.1",
 		"@hono/prometheus": "1.0.2",
 		"@hono/standard-validator": "0.2.2",
-		"@one/core": "workspace:*",
-		"@one/zero": "workspace:*",
 		"@opentelemetry/api": "1.9.0",
 		"@opentelemetry/context-async-hooks": "2.6.0",
 		"@opentelemetry/exporter-trace-otlp-http": "0.213.0",

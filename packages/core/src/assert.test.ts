@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { assert } from "@one/core/assert";
-import { PublicError } from "@one/core/result";
+import { assert } from "@chevrotain/core/assert";
+import { PublicError } from "@chevrotain/core/result";
 
 describe("assert", () => {
 	it("does not throw for a truthy value", () => {

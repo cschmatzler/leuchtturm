@@ -1,15 +1,15 @@
 import { memo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { useDataTableFilterContext } from "@one/web/components/data-table-filter/context";
-import { filterTypeOperatorDetails } from "@one/web/components/data-table-filter/operators";
+import { useDataTableFilterContext } from "@chevrotain/web/components/data-table-filter/context";
+import { filterTypeOperatorDetails } from "@chevrotain/web/components/data-table-filter/operators";
 import type {
 	Column,
 	ColumnDataType,
 	FilterModel,
 	FilterOperators,
-} from "@one/web/components/data-table-filter/types";
-import { Button } from "@one/web/components/ui/button";
+} from "@chevrotain/web/components/data-table-filter/types";
+import { Button } from "@chevrotain/web/components/ui/button";
 import {
 	Command,
 	CommandEmpty,
@@ -17,8 +17,8 @@ import {
 	CommandInput,
 	CommandItem,
 	CommandList,
-} from "@one/web/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@one/web/components/ui/popover";
+} from "@chevrotain/web/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@chevrotain/web/components/ui/popover";
 
 interface FilterOperatorProps<TData, TType extends ColumnDataType> {
 	column: Column<TData, TType>;

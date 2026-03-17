@@ -1,11 +1,11 @@
 {
-	"name": "@one/zero",
+	"name": "@chevrotain/zero",
 	"type": "module",
 	"exports": {
 		"./*": "./src/*.ts"
 	},
 	"dependencies": {
-		"@one/core": "workspace:*",
+		"@chevrotain/core": "workspace:*",
 		"@rocicorp/zero": "0.26.1",
 		"arktype": "2.2.0"
 	},

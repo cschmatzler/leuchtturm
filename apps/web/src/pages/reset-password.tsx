@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { type } from "arktype";
 import { useTranslation } from "react-i18next";
 
-import { ResetPasswordForm } from "@one/web/pages/reset-password/-components/reset-password-form";
+import { ResetPasswordForm } from "@chevrotain/web/pages/reset-password/-components/reset-password-form";
 
 const searchSchema = type({
 	token: "string",

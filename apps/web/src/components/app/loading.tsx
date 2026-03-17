@@ -1,4 +1,4 @@
-import { Skeleton } from "@one/web/components/ui/skeleton";
+import { Skeleton } from "@chevrotain/web/components/ui/skeleton";
 
 export function Loading() {
 	return (

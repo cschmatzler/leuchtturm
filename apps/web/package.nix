@@ -29,7 +29,7 @@
 		};
 in
 	stdenvNoCC.mkDerivation (finalAttrs: {
-			pname = "one-web";
+			pname = "chevrotain-web";
 			version = "rolling";
 			inherit src;
 
@@ -60,7 +60,7 @@ in
 
 			buildPhase = ''
 				runHook preBuild
-				pnpm --filter @one/web build
+				pnpm --filter @chevrotain/web build
 				runHook postBuild
 			'';
 

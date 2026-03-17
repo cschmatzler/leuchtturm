@@ -1,7 +1,7 @@
 import { Menu as BaseMenu } from "@base-ui/react/menu";
 import { CheckIcon, ChevronRightIcon, CircleIcon } from "lucide-react";
 
-import { cn } from "@one/web/lib/cn";
+import { cn } from "@chevrotain/web/lib/cn";
 
 function Menu({ ...props }: BaseMenu.Root.Props) {
 	return <BaseMenu.Root data-slot="menu" {...props} />;

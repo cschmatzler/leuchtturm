@@ -1,9 +1,9 @@
 import { serve } from "@hono/node-server";
 
-import { stopRateLimitCleanup } from "@one/api/errors/index";
-import { app } from "@one/api/index";
-import { shutdownTelemetry } from "@one/api/instrumentation";
-import { shutdownRuntime } from "@one/api/runtime";
+import { stopRateLimitCleanup } from "@chevrotain/api/errors/index";
+import { app } from "@chevrotain/api/index";
+import { shutdownTelemetry } from "@chevrotain/api/instrumentation";
+import { shutdownRuntime } from "@chevrotain/api/runtime";
 
 const port = Number(process.env.PORT!);
 const server = serve({

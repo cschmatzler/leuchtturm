@@ -1,18 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
-import { MarketingHeader } from "@one/web/components/app/marketing-header";
-import { Badge } from "@one/web/components/ui/badge";
-import { Button } from "@one/web/components/ui/button";
+import { MarketingHeader } from "@chevrotain/web/components/app/marketing-header";
+import { Badge } from "@chevrotain/web/components/ui/badge";
+import { Button } from "@chevrotain/web/components/ui/button";
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle,
-} from "@one/web/components/ui/card";
-import { useReactQuery } from "@one/web/lib/query";
-import { sessionQuery } from "@one/web/queries/session";
+} from "@chevrotain/web/components/ui/card";
+import { useReactQuery } from "@chevrotain/web/lib/query";
+import { sessionQuery } from "@chevrotain/web/queries/session";
 
 export const Route = createFileRoute("/")({
 	component: Page,

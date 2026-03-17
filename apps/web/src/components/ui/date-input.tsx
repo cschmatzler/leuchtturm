@@ -10,11 +10,11 @@ import {
 } from "react";
 import { useTranslation } from "react-i18next";
 
-import { Button } from "@one/web/components/ui/button";
-import { Calendar } from "@one/web/components/ui/calendar";
-import { FieldError } from "@one/web/components/ui/field";
-import { Input } from "@one/web/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@one/web/components/ui/popover";
+import { Button } from "@chevrotain/web/components/ui/button";
+import { Calendar } from "@chevrotain/web/components/ui/calendar";
+import { FieldError } from "@chevrotain/web/components/ui/field";
+import { Input } from "@chevrotain/web/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@chevrotain/web/components/ui/popover";
 
 type DateInputProps = Omit<ComponentProps<"input">, "value" | "onChange"> & {
 	value?: Date;

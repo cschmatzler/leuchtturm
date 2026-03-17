@@ -34,13 +34,13 @@
 		};
 in
 	stdenv.mkDerivation (finalAttrs: {
-			pname = "one-api";
+			pname = "chevrotain-api";
 			version = "rolling";
 			inherit src;
 
 			meta = with lib; {
 				description = "Roasted API";
-				mainProgram = "one-api";
+				mainProgram = "chevrotain-api";
 				platforms = platforms.all;
 			};
 
@@ -72,14 +72,14 @@ in
 			buildPhase = ''
 				runHook preBuild
 				patchShebangs apps/api/node_modules
-				pnpm --filter @one/api build
+				pnpm --filter @chevrotain/api build
 				runHook postBuild
 			'';
 
 			installPhase = ''
 				runHook preInstall
-				mkdir -p $out/lib/one-api
-				cp -r apps/api/dist $out/lib/one-api/
+				mkdir -p $out/lib/chevrotain-api
+				cp -r apps/api/dist $out/lib/chevrotain-api/
 
 				# Copy externalized runtime deps for OTel pg instrumentation.
 				# These can't be bundled because @opentelemetry/instrumentation-pg
@@ -90,7 +90,7 @@ in
 				# into one flat output. Each entry already contains the package
 				# itself plus symlinks to all its direct deps at the correct
 				# versions. cp -rL resolves symlinks, producing real copies.
-				local nm=$out/lib/one-api/node_modules
+				local nm=$out/lib/chevrotain-api/node_modules
 				mkdir -p $nm
 
 				merge_vstore_deps() {
@@ -122,9 +122,9 @@ in
 				merge_vstore_deps "debug@*"
 
 				mkdir -p $out/bin
-				makeWrapper ${nodejs_25}/bin/node $out/bin/one-api \
-					--add-flags "--import $out/lib/one-api/dist/instrumentation.js" \
-					--add-flags "$out/lib/one-api/dist/server.js"
+				makeWrapper ${nodejs_25}/bin/node $out/bin/chevrotain-api \
+					--add-flags "--import $out/lib/chevrotain-api/dist/instrumentation.js" \
+					--add-flags "$out/lib/chevrotain-api/dist/server.js"
 				runHook postInstall
 			'';
 		})

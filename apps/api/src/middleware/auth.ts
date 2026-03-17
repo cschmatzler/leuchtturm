@@ -1,7 +1,7 @@
 import { createMiddleware } from "hono/factory";
 
-import { auth } from "@one/core/auth/index";
-import { PublicError } from "@one/core/result";
+import { auth } from "@chevrotain/core/auth/index";
+import { PublicError } from "@chevrotain/core/result";
 
 type Session = typeof auth.$Infer.Session;
 

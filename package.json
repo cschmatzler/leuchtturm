@@ -1,5 +1,5 @@
 {
-	"name": "one",
+	"name": "chevrotain",
 	"private": true,
 	"workspaces": [
 		"apps/*",

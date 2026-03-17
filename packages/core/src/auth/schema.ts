@@ -1,6 +1,6 @@
 import { type } from "arktype";
 
-import { Id } from "@one/core/id";
+import { Id } from "@chevrotain/core/id";
 
 export const User = type({
 	id: Id,

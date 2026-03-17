@@ -20,10 +20,10 @@ import {
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
-import { Loading } from "@one/web/components/app/loading";
-import { Avatar, AvatarFallback } from "@one/web/components/ui/avatar";
-import { renderOptionShiftShortcut } from "@one/web/components/ui/kbd";
-import { Link } from "@one/web/components/ui/link";
+import { Loading } from "@chevrotain/web/components/app/loading";
+import { Avatar, AvatarFallback } from "@chevrotain/web/components/ui/avatar";
+import { renderOptionShiftShortcut } from "@chevrotain/web/components/ui/kbd";
+import { Link } from "@chevrotain/web/components/ui/link";
 import {
 	Menu,
 	MenuContent,
@@ -31,7 +31,7 @@ import {
 	MenuSeparator,
 	MenuShortcut,
 	MenuTrigger,
-} from "@one/web/components/ui/menu";
+} from "@chevrotain/web/components/ui/menu";
 import {
 	Sidebar,
 	SidebarContent,
@@ -45,14 +45,14 @@ import {
 	SidebarMenuItem,
 	SidebarProvider,
 	SidebarRail,
-} from "@one/web/components/ui/sidebar";
-import { ZeroProvider, type SessionData } from "@one/web/contexts/zero";
-import { useAuth } from "@one/web/hooks/use-auth";
-import { useCommandBar } from "@one/web/hooks/use-command-bar";
-import { useCommandProvider } from "@one/web/hooks/use-command-provider";
-import { useZeroQuery } from "@one/web/lib/query";
-import { deviceSessionsQuery, sessionQuery } from "@one/web/queries/session";
-import { queries } from "@one/zero/queries";
+} from "@chevrotain/web/components/ui/sidebar";
+import { ZeroProvider, type SessionData } from "@chevrotain/web/contexts/zero";
+import { useAuth } from "@chevrotain/web/hooks/use-auth";
+import { useCommandBar } from "@chevrotain/web/hooks/use-command-bar";
+import { useCommandProvider } from "@chevrotain/web/hooks/use-command-provider";
+import { useZeroQuery } from "@chevrotain/web/lib/query";
+import { deviceSessionsQuery, sessionQuery } from "@chevrotain/web/queries/session";
+import { queries } from "@chevrotain/zero/queries";
 
 const SETTINGS_NAVIGATION = [
 	{

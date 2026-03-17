@@ -7,16 +7,20 @@ import { cors } from "hono/cors";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import { register } from "prom-client";
 
-import analytics from "@one/api/analytics/index";
-import autumn from "@one/api/autumn";
-import errors from "@one/api/errors/index";
-import { isTaggedError, taggedErrorToResponse, taggedErrorToStatus } from "@one/api/errors/mapping";
-import mutate from "@one/api/mutate";
-import query from "@one/api/query";
-import { runEffectFork } from "@one/api/runtime";
-import { ClickHouseService } from "@one/core/analytics/service";
-import { auth } from "@one/core/auth/index";
-import { PublicError } from "@one/core/result";
+import analytics from "@chevrotain/api/analytics/index";
+import autumn from "@chevrotain/api/autumn";
+import errors from "@chevrotain/api/errors/index";
+import {
+	isTaggedError,
+	taggedErrorToResponse,
+	taggedErrorToStatus,
+} from "@chevrotain/api/errors/mapping";
+import mutate from "@chevrotain/api/mutate";
+import query from "@chevrotain/api/query";
+import { runEffectFork } from "@chevrotain/api/runtime";
+import { ClickHouseService } from "@chevrotain/core/analytics/service";
+import { auth } from "@chevrotain/core/auth/index";
+import { PublicError } from "@chevrotain/core/result";
 
 const baseUrl = process.env.BASE_URL;
 if (!baseUrl) {

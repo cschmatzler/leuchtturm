@@ -12,12 +12,12 @@ import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { AlertCircleIcon } from "lucide-react";
 import { I18nextProvider, useTranslation } from "react-i18next";
 
-import { i18n } from "@one/web/clients/i18n";
-import { CommandBar } from "@one/web/components/command-bar";
-import { Button } from "@one/web/components/ui/button";
-import { Toaster } from "@one/web/components/ui/sonner";
-import { CommandBarProvider } from "@one/web/contexts/command-bar";
-import type { RouterContext } from "@one/web/router";
+import { i18n } from "@chevrotain/web/clients/i18n";
+import { CommandBar } from "@chevrotain/web/components/command-bar";
+import { Button } from "@chevrotain/web/components/ui/button";
+import { Toaster } from "@chevrotain/web/components/ui/sonner";
+import { CommandBarProvider } from "@chevrotain/web/contexts/command-bar";
+import type { RouterContext } from "@chevrotain/web/router";
 
 function RootErrorComponent({ error }: ErrorComponentProps) {
 	const { t } = useTranslation();

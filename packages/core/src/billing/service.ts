@@ -2,7 +2,7 @@ import { Autumn } from "autumn-js";
 import type { Customer, UpdateCustomerResponse } from "autumn-js";
 import { Config, Effect, Layer, Redacted, ServiceMap } from "effect";
 
-import { BillingError } from "@one/core/errors";
+import { BillingError } from "@chevrotain/core/errors";
 
 export interface BillingServiceShape {
 	readonly autumn: Autumn;

@@ -2,11 +2,11 @@ import { sValidator } from "@hono/standard-validator";
 import { Effect } from "effect";
 import { Hono } from "hono";
 
-import { authMiddleware, type AuthVariables } from "@one/api/middleware/auth";
-import { runEffect } from "@one/api/runtime";
-import { AnalyticsPayload } from "@one/core/analytics/schema";
-import { ClickHouseService } from "@one/core/analytics/service";
-import { ValidationError } from "@one/core/errors";
+import { authMiddleware, type AuthVariables } from "@chevrotain/api/middleware/auth";
+import { runEffect } from "@chevrotain/api/runtime";
+import { AnalyticsPayload } from "@chevrotain/core/analytics/schema";
+import { ClickHouseService } from "@chevrotain/core/analytics/service";
+import { ValidationError } from "@chevrotain/core/errors";
 
 const app = new Hono<{ Variables: AuthVariables }>().use(authMiddleware).post(
 	"/",

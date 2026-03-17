@@ -1,5 +1,5 @@
-import { defineMutators } from "@one/zero/mutators/shared";
-import { userMutators } from "@one/zero/mutators/user";
+import { defineMutators } from "@chevrotain/zero/mutators/shared";
+import { userMutators } from "@chevrotain/zero/mutators/user";
 
 export const mutators = defineMutators({
 	user: userMutators,

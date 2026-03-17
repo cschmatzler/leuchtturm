@@ -2,7 +2,7 @@ import { autumnHandler } from "autumn-js/backend";
 import { Hono } from "hono";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 
-import { authMiddleware, type AuthVariables } from "@one/api/middleware/auth";
+import { authMiddleware, type AuthVariables } from "@chevrotain/api/middleware/auth";
 
 const app = new Hono<{ Variables: AuthVariables }>().use(authMiddleware).all("/*", async (c) => {
 	const user = c.get("user");

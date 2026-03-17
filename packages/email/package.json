@@ -1,5 +1,5 @@
 {
-	"name": "@one/email",
+	"name": "@chevrotain/email",
 	"private": true,
 	"type": "module",
 	"sideEffects": false,

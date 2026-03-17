@@ -14,14 +14,20 @@ import { useTranslation } from "react-i18next";
 type Plan = NonNullable<ReturnType<typeof useListPlans>["data"]>[number];
 type PreviewAttachResponse = Awaited<ReturnType<NonNullable<UseCustomerResult["previewAttach"]>>>;
 
-import { Button } from "@one/web/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@one/web/components/ui/card";
-import { Switch } from "@one/web/components/ui/switch";
-import { cn } from "@one/web/lib/cn";
-import { reportUiError } from "@one/web/lib/report-ui-error";
+import { Button } from "@chevrotain/web/components/ui/button";
+import {
+	Card,
+	CardContent,
+	CardFooter,
+	CardHeader,
+	CardTitle,
+} from "@chevrotain/web/components/ui/card";
+import { Switch } from "@chevrotain/web/components/ui/switch";
+import { cn } from "@chevrotain/web/lib/cn";
+import { reportUiError } from "@chevrotain/web/lib/report-ui-error";
 import CheckoutDialog, {
 	getButtonText,
-} from "@one/web/pages/app.settings.billing/-components/checkout-dialog";
+} from "@chevrotain/web/pages/app.settings.billing/-components/checkout-dialog";
 
 export function PricingTable() {
 	const navigate = useNavigate({ from: "/app/settings/billing" });

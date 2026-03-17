@@ -1,12 +1,12 @@
 import { endOfDay, isAfter, isBefore, isSameDay, isWithinInterval, startOfDay } from "date-fns";
 import { intersection } from "remeda";
 
-import { dateFilterOperators } from "@one/web/components/data-table-filter/operators";
+import { dateFilterOperators } from "@chevrotain/web/components/data-table-filter/operators";
 import type {
 	ColumnDataType,
 	FilterOperators,
 	FilterValues,
-} from "@one/web/components/data-table-filter/types";
+} from "@chevrotain/web/components/data-table-filter/types";
 
 type FilterInput<TType extends ColumnDataType, TValue = FilterValues<TType>> = {
 	operator: FilterOperators[TType];

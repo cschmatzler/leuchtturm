@@ -4,7 +4,7 @@ import type {
 	Column,
 	DataTableFilterActions,
 	FiltersState,
-} from "@one/web/components/data-table-filter/types";
+} from "@chevrotain/web/components/data-table-filter/types";
 
 type DataTableFilterContextValue = {
 	filterColumns: Column<unknown>[];

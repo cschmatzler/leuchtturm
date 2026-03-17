@@ -30,7 +30,7 @@ Effect v4 introduces `Effect.Service`, which combines a Tag and a Layer into a s
 ```typescript
 // Effect v4 Service definition
 class MyService extends Effect.Service<MyService>()("MyService", {
-	// Choose ONE of: sync, effect, or scoped
+	// Choose CHEVROTAIN of: sync, effect, or scoped
 	effect: Effect.gen(function* () {
 		const dep = yield* SomeDependency;
 		return {
@@ -226,7 +226,7 @@ import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 import { BatchSpanProcessor } from "@opentelemetry/sdk-trace-base";
 
 const TracingLayer = NodeSdk.layer(() => ({
-	resource: { serviceName: "one-api" },
+	resource: { serviceName: "chevrotain-api" },
 	spanProcessor: new BatchSpanProcessor(
 		new OTLPTraceExporter({ url: "http://alloy:4318/v1/traces" }),
 	),
@@ -393,7 +393,7 @@ import * as PgDrizzle from "drizzle-orm/effect-postgres";
 import { PgClient } from "@effect/sql-pg";
 import { Context, Config, Effect, Layer, Redacted } from "effect";
 import { types } from "pg";
-import * as relations from "@one/core/auth/auth.sql";
+import * as relations from "@chevrotain/core/auth/auth.sql";
 
 // PgClient layer — manages the connection pool lifecycle
 // PgClient.layer uses acquireRelease internally to guarantee pool.end() on shutdown
@@ -455,9 +455,9 @@ Effect.gen(function* () {
 // packages/core/src/analytics/service.ts
 import { createClient, type ClickHouseClient } from "@clickhouse/client";
 import { Effect } from "effect";
-import { AppConfig } from "@one/core/config";
-import { ClickHouseError } from "@one/core/errors";
-import type { AnalyticsEvent } from "@one/core/analytics/schema";
+import { AppConfig } from "@chevrotain/core/config";
+import { ClickHouseError } from "@chevrotain/core/errors";
+import type { AnalyticsEvent } from "@chevrotain/core/analytics/schema";
 
 export class ClickHouseService extends Effect.Service<ClickHouseService>()("ClickHouseService", {
 	accessors: true,
@@ -554,8 +554,8 @@ const client = createClient({ url: process.env.CLICKHOUSE_URL ?? "..." });
 // packages/core/src/billing/service.ts
 import { Autumn } from "autumn-js";
 import { Effect, Redacted } from "effect";
-import { AppConfig } from "@one/core/config";
-import { BillingError } from "@one/core/errors";
+import { AppConfig } from "@chevrotain/core/config";
+import { BillingError } from "@chevrotain/core/errors";
 
 export class BillingService extends Effect.Service<BillingService>()("BillingService", {
 	effect: Effect.gen(function* () {
@@ -594,8 +594,8 @@ const autumn = new Autumn({ secretKey: process.env.AUTUMN_SECRET_KEY });
 // packages/core/src/email/service.ts
 import { Effect, Redacted } from "effect";
 import { Resend } from "resend";
-import { AppConfig } from "@one/core/config";
-import { EmailError } from "@one/core/errors";
+import { AppConfig } from "@chevrotain/core/config";
+import { EmailError } from "@chevrotain/core/errors";
 
 export class EmailService extends Effect.Service<EmailService>()("EmailService", {
 	effect: Effect.gen(function* () {
@@ -619,7 +619,7 @@ export class EmailService extends Effect.Service<EmailService>()("EmailService",
 ```typescript
 // packages/core/src/assert.ts (updated)
 import { Effect } from "effect";
-import { NotFoundError } from "@one/core/errors";
+import { NotFoundError } from "@chevrotain/core/errors";
 
 /**
  * Effect-native version: returns Effect.fail(NotFoundError) instead of throwing.
@@ -632,7 +632,7 @@ export const assertFound = <T>(
 	value != null ? Effect.succeed(value) : Effect.fail(new NotFoundError({ resource }));
 
 // Keep the throwing version for Zero mutators (they can't use Effect)
-export { assert } from "@one/core/result-compat";
+export { assert } from "@chevrotain/core/result-compat";
 ```
 
 Usage comparison:
@@ -667,11 +667,11 @@ This is the central piece — a single runtime that holds all service layers and
 ```typescript
 // apps/api/src/runtime.ts
 import { Cause, Effect, Exit, Layer, ManagedRuntime } from "effect";
-import { AppConfig } from "@one/core/config";
-import { DatabaseService } from "@one/core/drizzle/service";
-import { ClickHouseService } from "@one/core/analytics/service";
-import { BillingService } from "@one/core/billing/service";
-import { EmailService } from "@one/core/email/service";
+import { AppConfig } from "@chevrotain/core/config";
+import { DatabaseService } from "@chevrotain/core/drizzle/service";
+import { ClickHouseService } from "@chevrotain/core/analytics/service";
+import { BillingService } from "@chevrotain/core/billing/service";
+import { EmailService } from "@chevrotain/core/email/service";
 
 // Compose all service layers
 export const AppLayer = Layer.mergeAll(
@@ -732,7 +732,7 @@ import {
 	ClickHouseError,
 	EmailError,
 	BillingError,
-} from "@one/core/errors";
+} from "@chevrotain/core/errors";
 
 type TaggedApiError =
 	| NotFoundError
@@ -945,8 +945,8 @@ app.post("/", sValidator(...), async (c) => {
 ```typescript
 // apps/api/src/server.ts (after)
 import { serve } from "@hono/node-server";
-import { app } from "@one/api/index";
-import { shutdownRuntime } from "@one/api/runtime";
+import { app } from "@chevrotain/api/index";
+import { shutdownRuntime } from "@chevrotain/api/runtime";
 
 const port = Number(process.env.PORT!);
 const server = serve({ port, fetch: app.fetch });
@@ -975,7 +975,7 @@ import { Layer } from "effect";
 
 export const TelemetryLayer = NodeSdk.layer(() => ({
 	resource: {
-		serviceName: "one-api",
+		serviceName: "chevrotain-api",
 	},
 	spanProcessor: new BatchSpanProcessor(
 		new OTLPTraceExporter({
@@ -1060,7 +1060,7 @@ Effect provides `@effect/vitest` for testing Effect-based code:
 ```typescript
 import { Effect, Layer } from "effect";
 import { it, describe } from "@effect/vitest";
-import { ClickHouseService } from "@one/core/analytics/service";
+import { ClickHouseService } from "@chevrotain/core/analytics/service";
 
 // Mock layer for testing
 const MockClickHouse = Layer.succeed(ClickHouseService, {
@@ -1113,7 +1113,7 @@ File-by-file order, designed so each step compiles independently:
  6. packages/core/src/drizzle/service.ts  ← DatabaseService
  7. packages/core/src/analytics/service.ts ← ClickHouseService
  8. packages/core/src/billing/service.ts  ← BillingService
- 9. packages/core/src/email/service.ts    ← EmailService (in packages/core, wrapping @one/email)
+ 9. packages/core/src/email/service.ts    ← EmailService (in packages/core, wrapping @chevrotain/email)
 10. packages/core/src/assert.ts           ← Add assertFound (keep assert for Zero)
 11. apps/api/src/runtime.ts              ← ManagedRuntime + AppLayer
 12. apps/api/src/errors/mapping.ts       ← TaggedError → HTTP response mapping

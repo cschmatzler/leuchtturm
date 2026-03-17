@@ -12,26 +12,26 @@ import {
 	type CSSProperties,
 } from "react";
 
-import { Button } from "@one/web/components/ui/button";
-import { Input } from "@one/web/components/ui/input";
-import { Separator } from "@one/web/components/ui/separator";
+import { Button } from "@chevrotain/web/components/ui/button";
+import { Input } from "@chevrotain/web/components/ui/input";
+import { Separator } from "@chevrotain/web/components/ui/separator";
 import {
 	Sheet,
 	SheetContent,
 	SheetDescription,
 	SheetHeader,
 	SheetTitle,
-} from "@one/web/components/ui/sheet";
-import { Skeleton } from "@one/web/components/ui/skeleton";
+} from "@chevrotain/web/components/ui/sheet";
+import { Skeleton } from "@chevrotain/web/components/ui/skeleton";
 import {
 	Tooltip,
 	TooltipContent,
 	TooltipProvider,
 	TooltipTrigger,
-} from "@one/web/components/ui/tooltip";
-import { useLocalStorage } from "@one/web/hooks/use-local-storage";
-import { useIsMobile } from "@one/web/hooks/use-mobile";
-import { cn } from "@one/web/lib/cn";
+} from "@chevrotain/web/components/ui/tooltip";
+import { useLocalStorage } from "@chevrotain/web/hooks/use-local-storage";
+import { useIsMobile } from "@chevrotain/web/hooks/use-mobile";
+import { cn } from "@chevrotain/web/lib/cn";
 
 const SIDEBAR_STORAGE_KEY = "sidebar_state";
 const SIDEBAR_WIDTH = "16rem";

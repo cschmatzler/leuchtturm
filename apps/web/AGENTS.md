@@ -1,4 +1,4 @@
-# @one/web - React Frontend
+# @chevrotain/web - React Frontend
 
 ## Overview
 
@@ -65,7 +65,7 @@ const { data } = useReactQuery(deviceSessionsQuery());
 
 **Type Usage**:
 
-- Base `*Row` types from `@one/zero/schema` are **ALLOWED** for internal typing (e.g., `BrewRow`, `BeanRow`)
+- Base `*Row` types from `@chevrotain/zero/schema` are **ALLOWED** for internal typing (e.g., `BrewRow`, `BeanRow`)
 - Compound type aliases combining Row types with relations are **NOT ALLOWED** (e.g., `BeanWithBrewsRow`, `BrewWithDetailsRow`)
 - Inline types where needed (e.g., `createFilterBuilder<(typeof rows)[number]>()`)
 
@@ -257,7 +257,7 @@ const { t } = useTranslation();
 Use `reportUiError` for async errors:
 
 ```typescript
-import { reportUiError } from "@one/web/lib/report-ui-error";
+import { reportUiError } from "@chevrotain/web/lib/report-ui-error";
 
 try {
 	await zero.mutate.bean.create(beanData);
@@ -298,7 +298,7 @@ Located in `components/ui/`. Follow shadcn/ui patterns:
 ```typescript
 import { useRender } from "@base-ui/react/use-render";
 import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "@one/web/lib/cn";
+import { cn } from "@chevrotain/web/lib/cn";
 
 const buttonVariants = cva("inline-flex items-center justify-center gap-2 ...", {
 	variants: {
@@ -441,7 +441,7 @@ Vite config in `vite.config.ts`:
 - TanStack Router plugin for file-based routing
 - React plugin with React Compiler
 - Tailwind CSS via Vite plugin
-- Path aliases via `@one/*` and `~/`
+- Path aliases via `@chevrotain/*` and `~/`
 
 ### Key Build Settings
 
@@ -483,7 +483,7 @@ export default defineConfig({
 ```typescript
 // clients/api.ts
 import { hc } from "hono/client";
-import type { Routes } from "@one/api";
+import type { Routes } from "@chevrotain/api";
 
 const baseUrl = import.meta.env.VITE_BASE_URL;
 export const api = hc<Routes>(baseUrl).api;

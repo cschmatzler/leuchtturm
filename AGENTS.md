@@ -1,4 +1,4 @@
-# ONE
+# CHEVROTAIN
 
 **Generated:** 2026-03-16
 
@@ -9,7 +9,7 @@ Local-first Node.js monorepo (pnpm). React frontend, Hono API, @rocicorp/zero fo
 ## Monorepo Structure
 
 ```
-one/
+chevrotain/
 ├── apps/
 │   ├── api/          # Hono server (see apps/api/AGENTS.md)
 │   ├── web/          # React + TanStack + Zero frontend (see apps/web/AGENTS.md)
@@ -39,8 +39,8 @@ vp test                           # Run all tests
 vp test path/to/file              # Single test file
 
 # Database (from root)
-pnpm --filter @one/core exec drizzle-kit generate --name migration_name
-pnpm --filter @one/core exec drizzle-kit push      # Apply to dev DB
+pnpm --filter @chevrotain/core exec drizzle-kit generate --name migration_name
+pnpm --filter @chevrotain/core exec drizzle-kit push      # Apply to dev DB
 
 # Local dev (via devenv)
 # Starts: Caddy (34600), Postgres (34601), Vite (5173), API (3000), Zero (4848)
@@ -75,25 +75,25 @@ These rules apply to **every package and app** in the monorepo:
 ### Linting
 
 - **Linter**: oxlint with typescript, react, unicorn, import plugins
-- **Custom rule**: `no-relative-imports/no-relative-imports` - must use `@one/*` imports
+- **Custom rule**: `no-relative-imports/no-relative-imports` - must use `@chevrotain/*` imports
 
 ### Imports
 
 Sorted order (enforced by oxfmt):
 
 1. External modules (`"react"`, `"hono"`)
-2. Internal packages (`"@one/core"`, `"@one/zero"`)
+2. Internal packages (`"@chevrotain/core"`, `"@chevrotain/zero"`)
 3. Relative imports (`"./file"`, `"../file"`)
 
 ```typescript
 // Correct:
 import { describe, it, expect } from "vitest";
-import { createId } from "@one/core/id";
+import { createId } from "@chevrotain/core/id";
 import { schema } from "./schema";
 
 // Wrong:
 import { schema } from "./schema";
-import { createId } from "@one/core/id";
+import { createId } from "@chevrotain/core/id";
 import { describe, it, expect } from "vitest";
 ```
 
@@ -149,7 +149,7 @@ Testing conventions:
 ### ID Generation
 
 ```typescript
-import { createId } from "@one/core/id";
+import { createId } from "@chevrotain/core/id";
 const brewId = createId("brew"); // "bre_01HXYZ..."
 ```
 
@@ -158,7 +158,7 @@ Prefixed ULIDs. Add new prefixes to `packages/core/src/id.ts`.
 ### Error Handling
 
 ```typescript
-import { PublicError } from "@one/core/result";
+import { PublicError } from "@chevrotain/core/result";
 
 throw new PublicError({ status: 403, global: [{ message: "Forbidden" }] });
 throw new PublicError({
@@ -182,7 +182,7 @@ API errors use `PublicError` with status codes and structured error format:
 ### Assertions
 
 ```typescript
-import { assert } from "@one/core/assert";
+import { assert } from "@chevrotain/core/assert";
 
 const [bean] = await db.select().from(beanTable).where(eq(beanTable.id, id)).limit(1);
 assert(bean); // Narrows T | null | undefined → T, throws 404 if missing
@@ -228,7 +228,7 @@ void zero.mutate.bean.create(data); // Wrong
 | `git commit --amend`                       | Always create new commits                |
 | Python/Perl for scripts                    | Use Nushell (`nu`) for all scripting     |
 | Direct package manager usage               | Use `vp` commands, not pnpm/npm directly |
-| Relative imports across packages           | Use `@one/*` package imports             |
+| Relative imports across packages           | Use `@chevrotain/*` package imports      |
 
 ## Tech Stack Quick Reference
 
@@ -263,16 +263,16 @@ vp add <pkg>    # Add dependency
 
 ### Development (devenv)
 
-| Variable             | Value                                              | Purpose                 |
-| -------------------- | -------------------------------------------------- | ----------------------- |
-| `BASE_URL`           | `http://localhost:34600`                           | CORS origin             |
-| `PORT`               | `3005`                                             | API server port         |
-| `DATABASE_URL`       | `postgres://postgres:postgres@localhost:34601/one` | PostgreSQL              |
-| `CLICKHOUSE_URL`     | `http://localhost:34602`                           | Analytics DB            |
-| `ZERO_APP_ID`        | `one`                                              | Zero app identifier     |
-| `ZERO_UPSTREAM_DB`   | `${DATABASE_URL}`                                  | Zero replication source |
-| `ZERO_REPLICA_FILE`  | `/tmp/zero.db`                                     | SQLite replica file     |
-| `BETTER_AUTH_SECRET` | (dev secret)                                       | Auth signing key        |
+| Variable             | Value                                                     | Purpose                 |
+| -------------------- | --------------------------------------------------------- | ----------------------- |
+| `BASE_URL`           | `http://localhost:34600`                                  | CORS origin             |
+| `PORT`               | `3005`                                                    | API server port         |
+| `DATABASE_URL`       | `postgres://postgres:postgres@localhost:34601/chevrotain` | PostgreSQL              |
+| `CLICKHOUSE_URL`     | `http://localhost:34602`                                  | Analytics DB            |
+| `ZERO_APP_ID`        | `chevrotain`                                              | Zero app identifier     |
+| `ZERO_UPSTREAM_DB`   | `${DATABASE_URL}`                                         | Zero replication source |
+| `ZERO_REPLICA_FILE`  | `/tmp/zero.db`                                            | SQLite replica file     |
+| `BETTER_AUTH_SECRET` | (dev secret)                                              | Auth signing key        |
 
 ### Production
 

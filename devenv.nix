@@ -97,7 +97,7 @@
 		'';
 		initialDatabases = [
 			{
-				name = "one";
+				name = "chevrotain";
 				user = "postgres";
 			}
 		];
@@ -120,14 +120,14 @@
 	env.VITE_BASE_URL = "http://localhost:34600";
 
 	# Database
-	env.DATABASE_URL = "postgres://postgres:postgres@localhost:34601/one";
+	env.DATABASE_URL = "postgres://postgres:postgres@localhost:34601/chevrotain";
 	env.CLICKHOUSE_URL = "http://localhost:34602";
 
 	# Auth
 	env.BETTER_AUTH_SECRET = "alberta-germany-gallons-outright-intubate-sake-verity";
 
 	# Zero
-	env.ZERO_APP_ID = "one";
+	env.ZERO_APP_ID = "chevrotain";
 	env.ZERO_UPSTREAM_DB = config.env.DATABASE_URL;
 	env.ZERO_REPLICA_FILE = "/tmp/zero.db";
 	env.ZERO_QUERY_URL = "http://localhost:34600/api/query";

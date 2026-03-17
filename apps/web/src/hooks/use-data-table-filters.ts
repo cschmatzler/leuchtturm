@@ -1,18 +1,18 @@
 import { useMemo, useState, type Dispatch, type SetStateAction } from "react";
 
-import { createFilterColumns } from "@one/web/components/data-table-filter/filters";
+import { createFilterColumns } from "@chevrotain/web/components/data-table-filter/filters";
 import {
 	createDateFilterValue,
 	createNumberFilterValue,
 	isColumnOptionArray,
 	isColumnOptionMap,
 	isMinMaxTuple,
-} from "@one/web/components/data-table-filter/helpers";
+} from "@chevrotain/web/components/data-table-filter/helpers";
 import {
 	dateFilterOperators,
 	DEFAULT_OPERATORS,
 	determineNewOperator,
-} from "@one/web/components/data-table-filter/operators";
+} from "@chevrotain/web/components/data-table-filter/operators";
 import type {
 	ColumnConfig,
 	ColumnDataType,
@@ -24,8 +24,8 @@ import type {
 	NumberColumnIds,
 	OptionBasedColumnDataType,
 	OptionColumnIds,
-} from "@one/web/components/data-table-filter/types";
-import { addUniq, removeUniq, uniq } from "@one/web/lib/array";
+} from "@chevrotain/web/components/data-table-filter/types";
+import { addUniq, removeUniq, uniq } from "@chevrotain/web/lib/array";
 
 export interface DataTableFiltersOptions<
 	TData,

@@ -1,8 +1,8 @@
 import { createClient } from "@clickhouse/client";
 import { Config, Effect, Layer, ServiceMap } from "effect";
 
-import type { AnalyticsEvent } from "@one/core/analytics/schema";
-import { ClickHouseError } from "@one/core/errors";
+import type { AnalyticsEvent } from "@chevrotain/core/analytics/schema";
+import { ClickHouseError } from "@chevrotain/core/errors";
 
 export type ErrorEventRow = {
 	source: "api" | "web";

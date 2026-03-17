@@ -10,7 +10,7 @@ import type {
 	RateLimitError,
 	UnauthorizedError,
 	ValidationError,
-} from "@one/core/errors";
+} from "@chevrotain/core/errors";
 
 type TaggedApiError =
 	| NotFoundError

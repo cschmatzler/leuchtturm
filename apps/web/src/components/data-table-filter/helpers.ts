@@ -1,6 +1,6 @@
 import { isBefore } from "date-fns";
 
-import type { Column, ColumnOption } from "@one/web/components/data-table-filter/types";
+import type { Column, ColumnOption } from "@chevrotain/web/components/data-table-filter/types";
 
 export function getColumn<TData>(filterColumns: Column<TData>[], id: string) {
 	const column = filterColumns.find((c) => c.id === id);

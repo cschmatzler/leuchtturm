@@ -13,7 +13,7 @@ import {
 import { render } from "@react-email/render";
 import { Tailwind } from "@react-email/tailwind";
 
-import { tailwindConfig } from "@one/email/tailwind";
+import { tailwindConfig } from "@chevrotain/email/tailwind";
 
 const preheaderText = "Reset your Sixth Coffee password.";
 
@@ -39,7 +39,7 @@ const PasswordResetEmail = ({ resetUrl, userName }: { resetUrl: string; userName
 								</Text>
 								<Text className="m-0 mb-5 text-base leading-[24px] text-muted-foreground">
 									We received a request to reset the password on your Sixth Coffee account. Use the
-									button below to set a new one.
+									button below to set a new chevrotain.
 								</Text>
 								<Button
 									href={resetUrl}

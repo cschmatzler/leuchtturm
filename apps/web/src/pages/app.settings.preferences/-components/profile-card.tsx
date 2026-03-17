@@ -4,14 +4,19 @@ import { Loader2Icon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
-import { User } from "@one/core/auth/schema";
-import { Button } from "@one/web/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@one/web/components/ui/card";
-import { FieldDescription, FieldError, FieldGroup, FieldLabel } from "@one/web/components/ui/field";
-import { Input } from "@one/web/components/ui/input";
-import { useZero, useZeroQuery } from "@one/web/lib/query";
-import { mutators } from "@one/zero/mutators";
-import { queries } from "@one/zero/queries";
+import { User } from "@chevrotain/core/auth/schema";
+import { Button } from "@chevrotain/web/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@chevrotain/web/components/ui/card";
+import {
+	FieldDescription,
+	FieldError,
+	FieldGroup,
+	FieldLabel,
+} from "@chevrotain/web/components/ui/field";
+import { Input } from "@chevrotain/web/components/ui/input";
+import { useZero, useZeroQuery } from "@chevrotain/web/lib/query";
+import { mutators } from "@chevrotain/zero/mutators";
+import { queries } from "@chevrotain/zero/queries";
 
 export function ProfileCard() {
 	const zero = useZero();

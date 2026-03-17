@@ -27,7 +27,7 @@ in {
 				scrape_interval = "15s";
 			}
 			{
-				job_name = "one-api";
+				job_name = "chevrotain-api";
 				static_configs = [
 					{
 						targets = ["127.0.0.1:${toString cfg.ports.api}"];

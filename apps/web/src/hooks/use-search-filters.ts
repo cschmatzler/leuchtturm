@@ -1,7 +1,7 @@
 import { functionalUpdate } from "@tanstack/react-router";
 import { useCallback, type SetStateAction } from "react";
 
-import type { FiltersState } from "@one/web/components/data-table-filter/types";
+import type { FiltersState } from "@chevrotain/web/components/data-table-filter/types";
 
 type SearchRoute = {
 	useSearch: () => Record<string, unknown>;

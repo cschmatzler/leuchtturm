@@ -1,6 +1,6 @@
 import { toast } from "sonner";
 
-import { sendErrorReport } from "@one/web/lib/analytics";
+import { sendErrorReport } from "@chevrotain/web/lib/analytics";
 
 export function reportUiError({ error, message }: { error: unknown; message: string }) {
 	if (import.meta.env.DEV) {

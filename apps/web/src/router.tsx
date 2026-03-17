@@ -2,10 +2,10 @@ import type { QueryClient } from "@tanstack/react-query";
 import { createRouter as createTanStackRouter } from "@tanstack/react-router";
 import type { Session, User } from "better-auth";
 
-import { NotFound } from "@one/web/components/app/not-found";
-import { parseSearch, stringifySearch } from "@one/web/lib/search-params";
-import { routeTree } from "@one/web/routeTree.gen";
-import type { Zero } from "@one/zero/schema";
+import { NotFound } from "@chevrotain/web/components/app/not-found";
+import { parseSearch, stringifySearch } from "@chevrotain/web/lib/search-params";
+import { routeTree } from "@chevrotain/web/routeTree.gen";
+import type { Zero } from "@chevrotain/zero/schema";
 
 export interface RouterContext {
 	queryClient: QueryClient;

@@ -4,8 +4,8 @@ const { mockInsert } = vi.hoisted(() => ({
 	mockInsert: vi.fn(),
 }));
 
-import { analyticsClient, insertEvents } from "@one/core/analytics/clickhouse";
-import type { AnalyticsEvent } from "@one/core/analytics/schema";
+import { analyticsClient, insertEvents } from "@chevrotain/core/analytics/clickhouse";
+import type { AnalyticsEvent } from "@chevrotain/core/analytics/schema";
 
 describe("insertEvents", () => {
 	beforeEach(() => {

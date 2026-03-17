@@ -1,6 +1,6 @@
 import type { ComponentProps } from "react";
 
-import { cn } from "@one/web/lib/cn";
+import { cn } from "@chevrotain/web/lib/cn";
 
 function Textarea({ className, ...props }: ComponentProps<"textarea">) {
 	return (

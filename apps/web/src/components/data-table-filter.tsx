@@ -1,16 +1,16 @@
 import {
 	ActiveFilters,
 	ActiveFiltersMobileContainer,
-} from "@one/web/components/data-table-filter/active-filters";
-import { DataTableFilterProvider } from "@one/web/components/data-table-filter/context";
-import { FilterActions } from "@one/web/components/data-table-filter/filter-actions";
-import { FilterSelector } from "@one/web/components/data-table-filter/filter-selector";
+} from "@chevrotain/web/components/data-table-filter/active-filters";
+import { DataTableFilterProvider } from "@chevrotain/web/components/data-table-filter/context";
+import { FilterActions } from "@chevrotain/web/components/data-table-filter/filter-actions";
+import { FilterSelector } from "@chevrotain/web/components/data-table-filter/filter-selector";
 import type {
 	Column,
 	DataTableFilterActions,
 	FiltersState,
-} from "@one/web/components/data-table-filter/types";
-import { useIsMobile } from "@one/web/hooks/use-mobile";
+} from "@chevrotain/web/components/data-table-filter/types";
+import { useIsMobile } from "@chevrotain/web/hooks/use-mobile";
 
 export interface DataTableFilterProps<TData> {
 	filterColumns: Column<TData>[];

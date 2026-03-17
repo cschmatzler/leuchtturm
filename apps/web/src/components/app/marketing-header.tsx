@@ -1,10 +1,10 @@
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
-import { Button } from "@one/web/components/ui/button";
-import { cn } from "@one/web/lib/cn";
-import { useReactQuery } from "@one/web/lib/query";
-import { sessionQuery } from "@one/web/queries/session";
+import { Button } from "@chevrotain/web/components/ui/button";
+import { cn } from "@chevrotain/web/lib/cn";
+import { useReactQuery } from "@chevrotain/web/lib/query";
+import { sessionQuery } from "@chevrotain/web/queries/session";
 
 type MarketingHeaderProps = {
 	variant?: "default" | "hero";

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { MarketingHeader } from "@one/web/components/app/marketing-header";
+import { MarketingHeader } from "@chevrotain/web/components/app/marketing-header";
 
 export const Route = createFileRoute("/privacy-policy")({
 	component: Page,
