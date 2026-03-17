@@ -15,7 +15,7 @@
 - **Hono** as HTTP framework (bridged to Effect via `ManagedRuntime`)
 - **`hc` type-safe client** in the web app (depends on Hono's `typeof app` export)
 - **arktype** for validation (not switching to `@effect/schema` — the repo is deeply integrated with arktype)
-- **Drizzle table definitions** (`.sql.ts` files stay as-is, accessed through `@effect/sql-drizzle`)
+- **Drizzle table definitions** (`.sql.ts` files stay as-is, accessed through `drizzle-orm/effect-postgres`)
 - **better-auth** configuration (wrapped in an Effect Service, internals unchanged)
 - **Zero** mutators, queries, schema — entirely untouched
 - **Web app** — entirely untouched
@@ -92,56 +92,61 @@ This means:
 - Services are accessed via `yield*` inside `Effect.gen`
 - Auth middleware remains Hono-native (it bridges to better-auth's session API)
 
-### `@effect/sql-drizzle` Integration
+### Drizzle + Effect Integration (Native)
 
-Effect provides `@effect/sql-drizzle` which bridges Drizzle ORM to Effect's SQL layer. From the Effect monorepo source (`packages/sql-drizzle/src/Pg.ts`):
+Drizzle ORM has **native** Effect support built into `drizzle-orm/effect-postgres` (available since `drizzle-orm@1.0.0-beta.9`). This is NOT the `@effect/sql-drizzle` package — it's built directly into Drizzle itself. See https://orm.drizzle.team/docs/connect-effect-postgres
 
-```typescript
-// The bridge patches Drizzle's QueryPromise to also be an Effect
-declare module "drizzle-orm" {
-  export interface QueryPromise<T> extends Effect.Effect<T, SqlError> {}
-}
-
-// This means Drizzle queries become yieldable Effects:
-const users = yield* db.select().from(usersTable);
-//            ^^^^^^ works because QueryPromise is now an Effect
-```
-
-From the test suite (`packages/sql-drizzle/test/Pg.test.ts`):
+It uses `@effect/sql-pg` for the underlying connection pool. Queries return `Effect` values that can be `yield*`'d in `Effect.gen` blocks.
 
 ```typescript
-// Define a Drizzle table as usual
-const users = D.pgTable("users", {
-  id: D.serial("id").primaryKey(),
-  name: D.text("name").notNull(),
+import * as PgDrizzle from "drizzle-orm/effect-postgres";
+import { PgClient } from "@effect/sql-pg";
+import * as Effect from "effect/Effect";
+import * as Redacted from "effect/Redacted";
+import { types } from "pg";
+
+// 1. Configure the PgClient layer
+const PgClientLive = PgClient.layer({
+  url: Redacted.make(process.env.DATABASE_URL!),
+  types: {
+    getTypeParser: (typeId, format) => {
+      // Return raw values for date/time types to let Drizzle handle parsing
+      if ([1184, 1114, 1082, 1186, 1231, 1115, 1185, 1187, 1182].includes(typeId)) {
+        return (val: any) => val;
+      }
+      return types.getTypeParser(typeId, format);
+    },
+  },
 });
 
-// Wrap Drizzle in an Effect Service
-class ORM extends Effect.Service<ORM>()("ORM", {
-  effect: Pg.make({ schema: { users } }),
-}) {
-  static Client = this.Default.pipe(Layer.provideMerge(PgContainer.ClientLive));
-}
-
-// Use in tests/handlers
-Effect.gen(function* () {
-  const db = yield* ORM;
-  yield* db.insert(users).values({ name: "Alice" });
-  const results = yield* db.select().from(users);
-  // results: [{ id: 1, name: "Alice" }]
+// 2. Create Drizzle instance as an Effect
+const program = Effect.gen(function*() {
+  const db = yield* PgDrizzle.makeWithDefaults();
+  const users = yield* db.select().from(usersTable);
+  return users;
 });
+
+Effect.runPromise(program.pipe(Effect.provide(PgClientLive)));
 ```
 
-The underlying `@effect/sql-pg` PgClient manages connection pooling with `acquireRelease`:
+For DI, wrap in a Layer:
 
 ```typescript
-// From packages/sql-drizzle/test/utils-pg.ts
-PgClient.layer({
-  url: Redacted.make(connectionUri),
-  transformResultNames: String.snakeToCamel,  // optional
-  transformQueryNames: String.camelToSnake,    // optional
-})
+import * as Context from "effect/Context";
+import * as Layer from "effect/Layer";
+import * as relations from "./schema/relations";
+
+const dbEffect = PgDrizzle.make({ relations }).pipe(
+  Effect.provide(PgDrizzle.DefaultServices),
+);
+
+class DB extends Context.Tag("DB")<DB, Effect.Effect.Success<typeof dbEffect>>() {}
+
+const DBLive = Layer.effect(DB, dbEffect);
+const AppLive = Layer.provideMerge(DBLive, PgClientLive);
 ```
+
+**Version compatibility note**: Published Drizzle betas list `@effect/sql-pg: ^0.49.7` as a peer dependency (Effect v3 range). However, at runtime `drizzle-orm/effect-postgres` ONLY imports `PgClient` from `@effect/sql-pg/PgClient` — and this export exists identically in `@effect/sql-pg@4.0.0-beta.33`. The Drizzle `.d.ts` files reference `@effect/sql/SqlError` (a v3 package that doesn't exist in v4), but the root tsconfig has `skipLibCheck: true`, so these opaque type references won't cause build errors. The peer dep mismatch will produce pnpm warnings but no runtime issues.
 
 ### Tagged Errors (Effect v4)
 
@@ -263,12 +268,10 @@ Add to `packages/core/package.json`:
 ```json
 {
   "dependencies": {
-    "effect": "^4.0.0",
-    "@effect/sql": "^0.30.0",
-    "@effect/sql-pg": "^0.30.0",
-    "@effect/sql-drizzle": "^0.30.0",
-    "@effect/opentelemetry": "^0.45.0",
-    "@effect/platform-node": "^0.75.0"
+    "effect": "4.0.0-beta.33",
+    "@effect/sql-pg": "4.0.0-beta.33",
+    "@effect/opentelemetry": "4.0.0-beta.33",
+    "@effect/platform-node": "4.0.0-beta.33"
   }
 }
 ```
@@ -278,12 +281,24 @@ Add to `apps/api/package.json`:
 ```json
 {
   "dependencies": {
-    "effect": "^4.0.0"
+    "effect": "4.0.0-beta.33"
   }
 }
 ```
 
-> Note: Pin to the latest v4 versions after checking npm. The versions above are illustrative.
+Add `@effect/vitest` as a dev dependency at the root or in each test-bearing package:
+
+```json
+{
+  "devDependencies": {
+    "@effect/vitest": "4.0.0-beta.33"
+  }
+}
+```
+
+**No `@effect/sql` or `@effect/sql-drizzle` needed** — in v4, SQL modules moved into the main `effect` package (`effect/unstable/sql/*`), and Drizzle's own `drizzle-orm/effect-postgres` replaces `@effect/sql-drizzle`.
+
+Drizzle's peer dependency on `@effect/sql-pg: ^0.49.7` will produce pnpm warnings since we're installing `4.0.0-beta.33`. This is expected and harmless — the runtime API is identical (see Research Notes above).
 
 ### 1.2 Define Tagged Errors
 
@@ -382,39 +397,51 @@ This fails early at startup with a clear error (`ConfigError: Missing configurat
 
 ### 1.4 Create `DatabaseService`
 
-Replace the current singleton `db` export with a managed service:
+Replace the current singleton `db` export with a managed service using Drizzle's native Effect support (`drizzle-orm/effect-postgres`):
 
 ```typescript
 // packages/core/src/drizzle/service.ts
+import * as PgDrizzle from "drizzle-orm/effect-postgres";
 import { PgClient } from "@effect/sql-pg";
-import * as DrizzlePg from "@effect/sql-drizzle/Pg";
-import { Effect, Layer, Redacted } from "effect";
-import * as authSchema from "@one/core/auth/auth.sql";
-import { AppConfig } from "@one/core/config";
+import { Context, Config, Effect, Layer, Redacted } from "effect";
+import { types } from "pg";
+import * as relations from "@one/core/auth/auth.sql";
 
-// Drizzle instance as an Effect Service
-export class DatabaseService extends Effect.Service<DatabaseService>()(
-  "DatabaseService",
-  {
-    effect: Effect.gen(function* () {
-      const db = yield* DrizzlePg.make({
-        schema: { ...authSchema },
-      });
-      return { db };
-    }),
-    dependencies: [
-      // PgClient.layer manages the connection pool lifecycle
-      Layer.unwrapEffect(
-        Effect.gen(function* () {
-          const config = yield* AppConfig;
-          return PgClient.layer({
-            url: config.databaseUrl,
-          });
-        }),
-      ),
-    ],
-  },
-) {}
+// PgClient layer — manages the connection pool lifecycle
+// PgClient.layer uses acquireRelease internally to guarantee pool.end() on shutdown
+const PgClientLive = Layer.unwrapEffect(
+  Effect.gen(function* () {
+    const databaseUrl = yield* Config.redacted("DATABASE_URL");
+    return PgClient.layer({
+      url: databaseUrl,
+      types: {
+        getTypeParser: (typeId, format) => {
+          // Return raw values for date/time types — let Drizzle handle parsing
+          if ([1184, 1114, 1082, 1186, 1231, 1115, 1185, 1187, 1182].includes(typeId)) {
+            return (val: unknown) => val;
+          }
+          return types.getTypeParser(typeId, format);
+        },
+      },
+    });
+  }),
+);
+
+// Create the Drizzle Effect with default services (no logging, no caching)
+const dbEffect = PgDrizzle.make({ relations }).pipe(
+  Effect.provide(PgDrizzle.DefaultServices),
+);
+
+// DB service tag for dependency injection
+export class DatabaseService extends Context.Tag("DatabaseService")<
+  DatabaseService,
+  Effect.Effect.Success<typeof dbEffect>
+>() {
+  // Layer that provides both PgClient and the Drizzle instance
+  static Live = Layer.effect(DatabaseService, dbEffect).pipe(
+    Layer.provide(PgClientLive),
+  );
+}
 ```
 
 Current code (`packages/core/src/drizzle/index.ts`):
@@ -423,9 +450,18 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 export const db = drizzle({ client: pool, relations: { ...authRelations } });
 ```
 
-The current pattern has no shutdown handling — the pool is never closed. Effect's `PgClient.layer` uses `acquireRelease` internally to guarantee the pool is closed on shutdown.
+The current pattern has no shutdown handling — the pool is never closed. `PgClient.layer` uses `acquireRelease` internally to guarantee the pool is closed on shutdown.
 
-> **Important**: The raw `db` export must remain available for better-auth's `drizzleAdapter()`, which expects a plain Drizzle instance. The `DatabaseService` provides both the Effect-managed version and a way to get the underlying instance for interop.
+Usage in handlers:
+```typescript
+Effect.gen(function* () {
+  const db = yield* DatabaseService;
+  const users = yield* db.select().from(userTable);
+  return users;
+});
+```
+
+> **Important**: The raw `db` export must remain available for better-auth's `drizzleAdapter()`, which expects a plain Drizzle instance. Keep the existing `drizzle/index.ts` for better-auth interop; the `DatabaseService` is used for all Effect-managed database access.
 
 ### 1.5 Create `ClickHouseService`
 
@@ -1035,7 +1071,7 @@ const app = new Hono<{ Variables: AuthVariables }>()
 
     const result = await runEffect(
       Effect.gen(function* () {
-        const { db } = yield* DatabaseService;
+        const db = yield* DatabaseService;
         const dbProvider = zeroDrizzle(schema, db);
 
         return yield* Effect.tryPromise({
@@ -1117,7 +1153,7 @@ treefmt                             # Format
 File-by-file order, designed so each step compiles independently:
 
 ```
- 1. packages/core/package.json            ← Add effect, @effect/sql-*, etc.
+ 1. packages/core/package.json            ← Add effect, @effect/sql-pg, @effect/opentelemetry, @effect/platform-node
  2. apps/api/package.json                 ← Add effect
  3. pnpm install + nu scripts/update-pnpm-hash.nu
  4. packages/core/src/errors.ts           ← New TaggedError definitions
@@ -1146,14 +1182,15 @@ File-by-file order, designed so each step compiles independently:
 ## Dependency Graph
 
 ```
-AppConfig
-├── DatabaseService (depends on: AppConfig → PgClient.layer)
-├── ClickHouseService (depends on: AppConfig)
-├── BillingService (depends on: AppConfig)
-└── EmailService (depends on: AppConfig)
+PgClient.layer (from @effect/sql-pg — manages connection pool lifecycle)
+└── DatabaseService (drizzle-orm/effect-postgres — wraps PgClient into Drizzle)
 
-AppLayer = merge(Database, ClickHouse, Billing, Email, Telemetry)
-         .provideMerge(AppConfig)
+AppConfig (effect/Config — typed env var access)
+├── ClickHouseService (scoped — acquireRelease for client lifecycle)
+├── BillingService (wraps autumn-js)
+└── EmailService (wraps resend)
+
+AppLayer = merge(DatabaseService.Live, ClickHouse, Billing, Email, Telemetry)
 
 ManagedRuntime(AppLayer) → runEffect() → Hono handlers
 ```
@@ -1164,9 +1201,9 @@ ManagedRuntime(AppLayer) → runEffect() → Hono handlers
 
 | Risk | Mitigation |
 |------|------------|
-| better-auth expects a raw Drizzle `db` instance | `DatabaseService` exposes the underlying `PgRemoteDatabase` which satisfies Drizzle's interface. Alternatively, construct `drizzleAdapter(db)` inside `AuthService` using the raw pool. |
+| better-auth expects a raw Drizzle `db` instance | Keep the existing `packages/core/src/drizzle/index.ts` with its plain `Pool` + `drizzle()` for better-auth's `drizzleAdapter()`. The `DatabaseService` is for Effect-managed access only. Two separate pools is acceptable — better-auth's pool handles auth routes, DatabaseService handles everything else. |
 | Zero mutators still throw `PublicError` | Keep `PublicError` in `result.ts`. The Hono `.onError` handler checks for both `PublicError` (instanceof) and TaggedErrors (`_tag` property). This is an intentional boundary — Zero owns its lifecycle. |
-| `@effect/sql-drizzle` compatibility with Drizzle beta (`1.0.0-beta.12`) | Test early. If incompatible, fall back to wrapping the existing `drizzle()` call in `Effect.sync()` and managing the pool with `Effect.acquireRelease` directly, without `@effect/sql-drizzle`. |
+| `drizzle-orm/effect-postgres` peer dep mismatch | Drizzle lists `@effect/sql-pg: ^0.49.7` (v3 range) but we use `4.0.0-beta.33`. At runtime, only `PgClient` is imported from `@effect/sql-pg/PgClient` — this export is identical in both versions. The `.d.ts` type references to `@effect/sql/SqlError` are handled by `skipLibCheck: true`. pnpm will warn but not fail. |
 | Bundle size increase | Effect tree-shakes aggressively. Only the used modules are included. The entire `effect` package is ~50KB gzipped. |
 | Team learning curve | The [effect-ts-skills](https://github.com/mrevanzak/effect-ts-skills) repo covers fundamentals, errors, resources, concurrency, and anti-patterns. Start with `effect-ts-fundamentals`, then `effect-ts-errors`. |
 | Config fails at startup for missing optional vars | Use `Config.option` or `Config.withDefault` for truly optional variables. Only required vars should fail-fast. |
