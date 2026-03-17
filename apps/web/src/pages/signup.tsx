@@ -1,5 +1,5 @@
 import { useForm } from "@tanstack/react-form";
-import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { type } from "arktype";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -9,13 +9,7 @@ import { authClient } from "@one/web/clients/auth";
 import { Button } from "@one/web/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@one/web/components/ui/field";
 import { Input } from "@one/web/components/ui/input";
-import { sessionQuery } from "@one/web/queries/session";
-
 export const Route = createFileRoute("/signup")({
-	beforeLoad: async ({ context: { queryClient } }) => {
-		const session = await queryClient.ensureQueryData(sessionQuery());
-		if (session) throw redirect({ to: "/app" });
-	},
 	component: Page,
 });
 

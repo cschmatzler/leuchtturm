@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { multiSession } from "better-auth/plugins";
 
 import * as schema from "@one/core/auth/auth.sql";
 import { autumn } from "@one/core/billing/autumn";
@@ -48,6 +49,7 @@ export const auth = betterAuth({
 			clientSecret: process.env.GITHUB_CLIENT_SECRET,
 		},
 	},
+	plugins: [multiSession()],
 	session: {
 		cookieCache: {
 			enabled: true,
