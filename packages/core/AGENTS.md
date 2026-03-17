@@ -26,8 +26,7 @@ src/
 │   └── service.ts         # EmailService Layer
 ├── errors.ts              # Tagged error classes (Effect Schema.TaggedErrorClass)
 ├── assert.ts              # Existence assertions (throwing + Effect-native)
-├── id.ts                  # Prefixed ULID generation + validation
-└── result.ts              # PublicError, Failure types (Effect Schema)
+└── id.ts                  # Prefixed ULID generation + validation
 ```
 
 ## Where to Look
@@ -181,23 +180,22 @@ Two assertion flavors — throwing (for Zero mutators) and Effect-native (for ha
 import { assert, assertFound } from "@chevrotain/core/assert";
 
 // Throwing (Zero mutators, non-Effect code)
-assert(bean); // Narrows T | null | undefined → T, throws PublicError 404
+assert(bean); // Narrows T | null | undefined → T, throws NotFoundError
 
 // Effect-native (handlers)
 const bean = yield * assertFound(maybeBeanRow, "bean");
 // Returns Effect<T, NotFoundError>
 ```
 
-### PublicError
+### Throwing Tagged Errors
 
-Legacy structured error type, still used by Zero mutators and `assert()`:
+Tagged errors extend `Error` and can be thrown in non-Effect code (Zero mutators, `assert()`):
 
 ```typescript
-throw new PublicError({ status: 403, global: [{ message: "Forbidden" }] });
-throw new PublicError({
-	status: 400,
-	fields: [{ path: ["email"], message: "Invalid email" }],
-});
+import { ForbiddenError, UnauthorizedError } from "@chevrotain/core/errors";
+
+throw new ForbiddenError({ message: "Not owner" });
+throw new UnauthorizedError({ message: "Not logged in" });
 ```
 
 ### Table Definition Pattern

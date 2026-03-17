@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vite-plus/test";
 
 import { assert } from "@chevrotain/core/assert";
-import { PublicError } from "@chevrotain/core/result";
+import { NotFoundError } from "@chevrotain/core/errors";
 
 describe("assert", () => {
 	it("does not throw for a truthy value", () => {
@@ -20,25 +20,23 @@ describe("assert", () => {
 		expect(() => assert("")).not.toThrow();
 	});
 
-	it("throws a PublicError with status 404 for null", () => {
-		expect(() => assert(null)).toThrow(PublicError);
+	it("throws a NotFoundError for null", () => {
+		expect(() => assert(null)).toThrow(NotFoundError);
 		try {
 			assert(null);
 		} catch (error) {
-			expect(error).toBeInstanceOf(PublicError);
-			expect((error as PublicError).status).toBe(404);
-			expect((error as PublicError).global).toEqual([{ message: "Not found" }]);
+			expect(error).toBeInstanceOf(NotFoundError);
+			expect((error as NotFoundError).message).toBe("Not found");
 		}
 	});
 
-	it("throws a PublicError with status 404 for undefined", () => {
-		expect(() => assert(undefined)).toThrow(PublicError);
+	it("throws a NotFoundError for undefined", () => {
+		expect(() => assert(undefined)).toThrow(NotFoundError);
 		try {
 			assert(undefined);
 		} catch (error) {
-			expect(error).toBeInstanceOf(PublicError);
-			expect((error as PublicError).status).toBe(404);
-			expect((error as PublicError).global).toEqual([{ message: "Not found" }]);
+			expect(error).toBeInstanceOf(NotFoundError);
+			expect((error as NotFoundError).message).toBe("Not found");
 		}
 	});
 

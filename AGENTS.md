@@ -172,12 +172,12 @@ return (
 );
 ```
 
-In Zero mutators and non-Effect code, use `PublicError`:
+In Zero mutators and non-Effect code, throw tagged errors directly (they extend `Error`):
 
 ```typescript
-import { PublicError } from "@chevrotain/core/result";
+import { ForbiddenError } from "@chevrotain/core/errors";
 
-throw new PublicError({ status: 403, global: [{ message: "Forbidden" }] });
+throw new ForbiddenError({ message: "Forbidden" });
 ```
 
 API error response format:

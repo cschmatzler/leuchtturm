@@ -1,6 +1,6 @@
 import { type Transaction, defineMutatorsWithType } from "@rocicorp/zero";
 
-import { PublicError } from "@chevrotain/core/result";
+import { ForbiddenError, UnauthorizedError } from "@chevrotain/core/errors";
 import { type Context, type Schema } from "@chevrotain/zero/schema";
 
 export const defineMutators = defineMutatorsWithType<Schema>();
@@ -8,7 +8,7 @@ export const defineMutators = defineMutatorsWithType<Schema>();
 export type Tx = Transaction<Schema, unknown>;
 
 export function assertLoggedIn(ctx: Context): asserts ctx is { userId: string } {
-	if (!ctx?.userId) throw new PublicError({ status: 401 });
+	if (!ctx?.userId) throw new UnauthorizedError({ message: "Not logged in" });
 }
 
 export function assertOwnership<T extends { userId: string }>(
@@ -16,6 +16,6 @@ export function assertOwnership<T extends { userId: string }>(
 	userId: string,
 ): asserts entity is T {
 	if (!entity || entity.userId !== userId) {
-		throw new PublicError({ status: 403 });
+		throw new ForbiddenError({ message: "Not owner" });
 	}
 }
