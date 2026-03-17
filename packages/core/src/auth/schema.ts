@@ -1,69 +1,86 @@
-import { type } from "arktype";
+import { Schema, SchemaGetter } from "effect";
 
 import { Id } from "@chevrotain/core/id";
 
-export const User = type({
+const TrimmedNonEmptyString = Schema.String.pipe(
+	Schema.decodeTo(Schema.NonEmptyString, {
+		decode: SchemaGetter.transform((s: string) => s.trim()),
+		encode: SchemaGetter.transform((s: string) => s),
+	}),
+);
+
+const EmailPattern = Schema.String.check(Schema.isPattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/));
+
+const TrimmedLowercaseEmail = Schema.String.pipe(
+	Schema.decodeTo(EmailPattern, {
+		decode: SchemaGetter.transform((s: string) => s.trim().toLowerCase()),
+		encode: SchemaGetter.transform((s: string) => s),
+	}),
+);
+
+export const User = Schema.Struct({
 	id: Id,
-	name: type("string")
-		.pipe((s) => s.trim(), type("string > 0"))
-		.describe("Name is required"),
-	email: type("string.email").pipe((s) => s.trim().toLowerCase()),
-	"image?": "string | null",
-	"language?": "string | null",
-	emailVerified: type("boolean").default(() => false),
-	createdAt: "Date",
-	updatedAt: "Date",
+	name: TrimmedNonEmptyString.annotate({ description: "Name is required" }),
+	email: TrimmedLowercaseEmail,
+	image: Schema.optional(Schema.NullOr(Schema.String)),
+	language: Schema.optional(Schema.NullOr(Schema.String)),
+	emailVerified: Schema.Boolean.pipe(
+		Schema.optional,
+		Schema.withDecodingDefault(() => false),
+	),
+	createdAt: Schema.Date,
+	updatedAt: Schema.Date,
 });
 
-export type User = typeof User.infer;
+export type User = typeof User.Type;
 
-export const Session = type({
+export const Session = Schema.Struct({
 	id: Id,
-	token: "string",
-	"ipAddress?": "string | null",
-	"userAgent?": "string | null",
-	expiresAt: "Date",
+	token: Schema.String,
+	ipAddress: Schema.optional(Schema.NullOr(Schema.String)),
+	userAgent: Schema.optional(Schema.NullOr(Schema.String)),
+	expiresAt: Schema.Date,
 	userId: Id,
-	createdAt: "Date",
-	updatedAt: "Date",
+	createdAt: Schema.Date,
+	updatedAt: Schema.Date,
 });
 
-export type Session = typeof Session.infer;
+export type Session = typeof Session.Type;
 
-export const Account = type({
+export const Account = Schema.Struct({
 	id: Id,
-	accountId: "string",
-	providerId: "string",
+	accountId: Schema.String,
+	providerId: Schema.String,
 	userId: Id,
-	"accessToken?": "string | null",
-	"refreshToken?": "string | null",
-	"idToken?": "string | null",
-	"accessTokenExpiresAt?": "Date | null",
-	"refreshTokenExpiresAt?": "Date | null",
-	"scope?": "string | null",
-	"password?": "string > 12 | null",
-	createdAt: "Date",
-	updatedAt: "Date",
+	accessToken: Schema.optional(Schema.NullOr(Schema.String)),
+	refreshToken: Schema.optional(Schema.NullOr(Schema.String)),
+	idToken: Schema.optional(Schema.NullOr(Schema.String)),
+	accessTokenExpiresAt: Schema.optional(Schema.NullOr(Schema.Date)),
+	refreshTokenExpiresAt: Schema.optional(Schema.NullOr(Schema.Date)),
+	scope: Schema.optional(Schema.NullOr(Schema.String)),
+	password: Schema.optional(Schema.NullOr(Schema.String.check(Schema.isMinLength(13)))),
+	createdAt: Schema.Date,
+	updatedAt: Schema.Date,
 });
 
-export type Account = typeof Account.infer;
+export type Account = typeof Account.Type;
 
-export const Verification = type({
+export const Verification = Schema.Struct({
 	id: Id,
-	identifier: "string",
-	value: "string",
-	expiresAt: "Date",
-	createdAt: "Date",
-	updatedAt: "Date",
+	identifier: Schema.String,
+	value: Schema.String,
+	expiresAt: Schema.Date,
+	createdAt: Schema.Date,
+	updatedAt: Schema.Date,
 });
 
-export type Verification = typeof Verification.infer;
+export type Verification = typeof Verification.Type;
 
-export const JWKS = type({
+export const JWKS = Schema.Struct({
 	id: Id,
-	publicKey: "string",
-	privateKey: "string",
-	createdAt: "Date",
+	publicKey: Schema.String,
+	privateKey: Schema.String,
+	createdAt: Schema.Date,
 });
 
-export type JWKS = typeof JWKS.infer;
+export type JWKS = typeof JWKS.Type;

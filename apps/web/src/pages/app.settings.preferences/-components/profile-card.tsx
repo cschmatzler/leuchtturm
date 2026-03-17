@@ -1,5 +1,5 @@
 import { useForm } from "@tanstack/react-form";
-import { type } from "arktype";
+import { Schema } from "effect";
 import { Loader2Icon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -18,17 +18,17 @@ import { useZero, useZeroQuery } from "@chevrotain/web/lib/query";
 import { mutators } from "@chevrotain/zero/mutators";
 import { queries } from "@chevrotain/zero/queries";
 
+const profileShape = Schema.Struct({
+	name: User.fields.name,
+});
+
 export function ProfileCard() {
 	const zero = useZero();
 	const { t } = useTranslation();
 
 	const [currentUser] = useZeroQuery(queries.currentUser());
 
-	const shape = type({
-		name: User.get("name"),
-	});
-
-	const onSubmit = async (value: typeof shape.infer) => {
+	const onSubmit = async (value: typeof profileShape.Type) => {
 		if (!currentUser) return;
 		zero.mutate(mutators.user.update({ id: currentUser.id, name: value.name }));
 		toast.success(t("Profile updated"));
@@ -58,7 +58,7 @@ export function ProfileCard() {
 						<form.Field
 							name="name"
 							validators={{
-								onChange: shape.get("name"),
+								onChange: Schema.toStandardSchemaV1(profileShape.fields.name),
 							}}
 						>
 							{(field) => {
@@ -81,7 +81,7 @@ export function ProfileCard() {
 											/>
 											{!field.state.meta.isValid && (
 												<FieldError className="mt-2">
-													{String(field.state.meta.errors[0])}
+													{field.state.meta.errors[0]?.message}
 												</FieldError>
 											)}
 										</div>

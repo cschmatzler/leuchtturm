@@ -1,28 +1,35 @@
-import { type } from "arktype";
+import { Schema, SchemaGetter } from "effect";
 
-export const AnalyticsEvent = type({
-	eventType: type("string").pipe((s) => s.trim(), type("string > 0")),
-	url: "string",
-	referrer: "string",
-	"properties?": "Record<string, unknown>",
-});
-export type AnalyticsEvent = typeof AnalyticsEvent.infer;
+const TrimmedNonEmptyString = Schema.String.pipe(
+	Schema.decodeTo(Schema.NonEmptyString, {
+		decode: SchemaGetter.transform((s: string) => s.trim()),
+		encode: SchemaGetter.transform((s: string) => s),
+	}),
+);
 
-export const AnalyticsPayload = type({
-	events: AnalyticsEvent.array(),
+export const AnalyticsEvent = Schema.Struct({
+	eventType: TrimmedNonEmptyString,
+	url: Schema.String,
+	referrer: Schema.String,
+	properties: Schema.optional(Schema.Record(Schema.String, Schema.Unknown)),
 });
-export type AnalyticsPayload = typeof AnalyticsPayload.infer;
+export type AnalyticsEvent = typeof AnalyticsEvent.Type;
 
-export const ErrorReport = type({
-	errorType: "string",
-	message: type("string").pipe((s) => s.trim(), type("string > 0")),
-	"stackTrace?": "string",
-	"url?": "string",
-	"properties?": "Record<string, unknown>",
+export const AnalyticsPayload = Schema.Struct({
+	events: Schema.Array(AnalyticsEvent),
 });
-export type ErrorReport = typeof ErrorReport.infer;
+export type AnalyticsPayload = typeof AnalyticsPayload.Type;
 
-export const ErrorPayload = type({
-	errors: ErrorReport.array(),
+export const ErrorReport = Schema.Struct({
+	errorType: Schema.String,
+	message: TrimmedNonEmptyString,
+	stackTrace: Schema.optional(Schema.String),
+	url: Schema.optional(Schema.String),
+	properties: Schema.optional(Schema.Record(Schema.String, Schema.Unknown)),
 });
-export type ErrorPayload = typeof ErrorPayload.infer;
+export type ErrorReport = typeof ErrorReport.Type;
+
+export const ErrorPayload = Schema.Struct({
+	errors: Schema.Array(ErrorReport),
+});
+export type ErrorPayload = typeof ErrorPayload.Type;

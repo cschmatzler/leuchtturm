@@ -1,4 +1,4 @@
-import { type } from "arktype";
+import { Schema } from "effect";
 
 import type {
 	ColumnDataType,
@@ -6,14 +6,14 @@ import type {
 	FiltersState,
 } from "@chevrotain/web/components/data-table-filter/types";
 
-const filterModelSchema = type({
-	columnId: "string",
-	type: "'text' | 'number' | 'date' | 'option' | 'multiOption'",
-	operator: "string",
-	values: "unknown[]",
+const filterModelSchema = Schema.Struct({
+	columnId: Schema.String,
+	type: Schema.Literals(["text", "number", "date", "option", "multiOption"]),
+	operator: Schema.String,
+	values: Schema.Array(Schema.Unknown),
 });
 
-export const filtersStateSchema = filterModelSchema.array().default(() => []);
+export const filtersStateSchema = Schema.toStandardSchemaV1(Schema.Array(filterModelSchema));
 
 const TYPE_CODES = {
 	text: "t",

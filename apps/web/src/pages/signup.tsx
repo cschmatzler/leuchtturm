@@ -1,14 +1,21 @@
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { type } from "arktype";
+import { Schema } from "effect";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
-import { Account, User } from "@chevrotain/core/auth/schema";
+import { User } from "@chevrotain/core/auth/schema";
 import { authClient } from "@chevrotain/web/clients/auth";
 import { Button } from "@chevrotain/web/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@chevrotain/web/components/ui/field";
 import { Input } from "@chevrotain/web/components/ui/input";
+
+const signupShape = Schema.Struct({
+	name: User.fields.name,
+	email: User.fields.email,
+	password: Schema.String.check(Schema.isMinLength(13)),
+});
+
 export const Route = createFileRoute("/signup")({
 	component: Page,
 });
@@ -17,13 +24,7 @@ function Page() {
 	const navigate = useNavigate();
 	const { t } = useTranslation();
 
-	const shape = type({
-		name: User.get("name"),
-		email: User.get("email"),
-		password: Account.get("password").exclude("null"),
-	});
-
-	const onSubmit = async (value: typeof shape.infer) => {
+	const onSubmit = async (value: typeof signupShape.Type) => {
 		await authClient.signUp.email(
 			{
 				email: value.email,
@@ -81,7 +82,7 @@ function Page() {
 								<form.Field
 									name="name"
 									validators={{
-										onChange: shape.get("name"),
+										onChange: Schema.toStandardSchemaV1(signupShape.fields.name),
 									}}
 								>
 									{(field) => (
@@ -97,7 +98,7 @@ function Page() {
 												required
 											/>
 											{field.state.meta.errors.length > 0 && (
-												<FieldError>{String(field.state.meta.errors[0])}</FieldError>
+												<FieldError>{field.state.meta.errors[0]?.message}</FieldError>
 											)}
 										</Field>
 									)}
@@ -105,7 +106,7 @@ function Page() {
 								<form.Field
 									name="email"
 									validators={{
-										onChange: shape.get("email"),
+										onChange: Schema.toStandardSchemaV1(signupShape.fields.email),
 									}}
 								>
 									{(field) => (
@@ -122,7 +123,7 @@ function Page() {
 												required
 											/>
 											{field.state.meta.errors.length > 0 && (
-												<FieldError>{String(field.state.meta.errors[0])}</FieldError>
+												<FieldError>{field.state.meta.errors[0]?.message}</FieldError>
 											)}
 										</Field>
 									)}
@@ -130,7 +131,7 @@ function Page() {
 								<form.Field
 									name="password"
 									validators={{
-										onChange: shape.get("password"),
+										onChange: Schema.toStandardSchemaV1(signupShape.fields.password),
 									}}
 								>
 									{(field) => (

@@ -1,6 +1,6 @@
 import { useForm } from "@tanstack/react-form";
 import { Link } from "@tanstack/react-router";
-import { type } from "arktype";
+import { Schema } from "effect";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
@@ -10,14 +10,14 @@ import { Button } from "@chevrotain/web/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@chevrotain/web/components/ui/field";
 import { Input } from "@chevrotain/web/components/ui/input";
 
+const forgotPasswordShape = Schema.Struct({
+	email: User.fields.email,
+});
+
 export function ForgotPasswordForm() {
 	const { t } = useTranslation();
 
-	const shape = type({
-		email: User.get("email"),
-	});
-
-	const onSubmit = async (value: typeof shape.infer) => {
+	const onSubmit = async (value: typeof forgotPasswordShape.Type) => {
 		const { error } = await authClient.requestPasswordReset({
 			email: value.email,
 			redirectTo: `${window.location.origin}/reset-password`,
@@ -55,7 +55,7 @@ export function ForgotPasswordForm() {
 				<form.Field
 					name="email"
 					validators={{
-						onChange: shape.get("email"),
+						onChange: Schema.toStandardSchemaV1(forgotPasswordShape.fields.email),
 					}}
 				>
 					{(field) => (
@@ -72,7 +72,7 @@ export function ForgotPasswordForm() {
 								required
 							/>
 							{field.state.meta.errors.length > 0 && (
-								<FieldError>{String(field.state.meta.errors[0])}</FieldError>
+								<FieldError>{field.state.meta.errors[0]?.message}</FieldError>
 							)}
 						</Field>
 					)}

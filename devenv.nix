@@ -11,6 +11,7 @@
 		pkgs.nushell
 		pkgs.readline
 		pkgs.sops
+		pkgs.tea
 		pkgs.treefmt
 	];
 

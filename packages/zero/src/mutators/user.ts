@@ -1,5 +1,5 @@
 import { defineMutator } from "@rocicorp/zero";
-import { type } from "arktype";
+import { Schema } from "effect";
 
 import { User } from "@chevrotain/core/auth/schema";
 import { PublicError } from "@chevrotain/core/result";
@@ -7,12 +7,14 @@ import { assertLoggedIn } from "@chevrotain/zero/mutators/shared";
 
 export const userMutators = {
 	update: defineMutator(
-		type({
-			id: "string",
-			"email?": User.get("email"),
-			"name?": User.get("name"),
-			"language?": User.get("language").exclude("null"),
-		}),
+		Schema.toStandardSchemaV1(
+			Schema.Struct({
+				id: Schema.String,
+				email: Schema.optional(User.fields.email),
+				name: Schema.optional(User.fields.name),
+				language: Schema.optional(Schema.String),
+			}),
+		),
 		async ({ tx, ctx, args }) => {
 			assertLoggedIn(ctx);
 

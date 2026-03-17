@@ -1,4 +1,4 @@
-import { type } from "arktype";
+import { Option, Schema } from "effect";
 import { ulid } from "ulid";
 import { describe, expect, it } from "vite-plus/test";
 
@@ -19,38 +19,29 @@ describe("createId", () => {
 describe("Id", () => {
 	it("accepts a valid prefixed ULID", () => {
 		const id = ulid();
-		const result = Id(`${PREFIXES.user}_${id}`);
+		const result = Schema.decodeUnknownOption(Id)(`${PREFIXES.user}_${id}`);
 
-		expect(result instanceof type.errors).toBe(false);
-		if (!(result instanceof type.errors)) {
-			expect(result).toBe(`${PREFIXES.user}_${id}`);
+		expect(Option.isSome(result)).toBe(true);
+		if (Option.isSome(result)) {
+			expect(result.value).toBe(`${PREFIXES.user}_${id}`);
 		}
 	});
 
 	it("rejects values with an unknown prefix", () => {
-		const result = Id(`bad_${ulid()}`);
+		const result = Schema.decodeUnknownOption(Id)(`bad_${ulid()}`);
 
-		expect(result instanceof type.errors).toBe(true);
-		if (result instanceof type.errors) {
-			expect(result.summary).toContain("a valid ID format");
-		}
+		expect(Option.isNone(result)).toBe(true);
 	});
 
 	it("rejects values that do not contain a valid ULID", () => {
-		const result = Id(`${PREFIXES.user}_not-a-ulid`);
+		const result = Schema.decodeUnknownOption(Id)(`${PREFIXES.user}_not-a-ulid`);
 
-		expect(result instanceof type.errors).toBe(true);
-		if (result instanceof type.errors) {
-			expect(result.summary).toContain("a valid ID format");
-		}
+		expect(Option.isNone(result)).toBe(true);
 	});
 
 	it("rejects values missing the expected separator", () => {
-		const result = Id(`${PREFIXES.user}${ulid()}`);
+		const result = Schema.decodeUnknownOption(Id)(`${PREFIXES.user}${ulid()}`);
 
-		expect(result instanceof type.errors).toBe(true);
-		if (result instanceof type.errors) {
-			expect(result.summary).toContain("a valid ID format");
-		}
+		expect(Option.isNone(result)).toBe(true);
 	});
 });

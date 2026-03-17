@@ -20,7 +20,7 @@ export default defineConfig({
 					if (id.includes("node_modules")) {
 						if (id.includes("@rocicorp")) return "vendor-zero";
 						if (id.includes("@base-ui") || id.includes("@floating-ui")) return "vendor-ui";
-						if (id.includes("arktype") || id.includes("@ark/")) return "vendor-schema";
+						if (id.includes("effect") || id.includes("@effect")) return "vendor-schema";
 					}
 				},
 			},

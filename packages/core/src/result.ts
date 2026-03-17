@@ -1,17 +1,17 @@
-import { type } from "arktype";
+import { Schema } from "effect";
 
-const GlobalError = type({
-	"code?": "string",
-	message: "string",
+export const GlobalError = Schema.Struct({
+	code: Schema.optional(Schema.String),
+	message: Schema.String,
 });
-type GlobalError = typeof GlobalError.infer;
+export type GlobalError = typeof GlobalError.Type;
 
-const FieldError = type({
-	"code?": "string",
-	message: "string",
-	path: "(string | number)[]",
+export const FieldError = Schema.Struct({
+	code: Schema.optional(Schema.String),
+	message: Schema.String,
+	path: Schema.Array(Schema.Union([Schema.String, Schema.Number])),
 });
-type FieldError = typeof FieldError.infer;
+export type FieldError = typeof FieldError.Type;
 
 export interface PublicErrorOptions {
 	status?: number;
@@ -27,16 +27,16 @@ export class PublicError extends Error {
 	constructor(options: PublicErrorOptions) {
 		super();
 		this.status = options?.status;
-		this.global = options?.global || [];
-		this.fields = options?.fields || [];
+		this.global = options.global ?? [];
+		this.fields = options.fields ?? [];
 	}
 }
 
-export const Failure = type({
-	success: "false",
-	error: {
-		global: GlobalError.array(),
-		fields: FieldError.array(),
-	},
+export const Failure = Schema.Struct({
+	success: Schema.Literal(false),
+	error: Schema.Struct({
+		global: Schema.Array(GlobalError),
+		fields: Schema.Array(FieldError),
+	}),
 });
-export type Failure = typeof Failure.infer;
+export type Failure = typeof Failure.Type;

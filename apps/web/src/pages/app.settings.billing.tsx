@@ -1,6 +1,6 @@
 import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
-import { type } from "arktype";
 import { useCustomer } from "autumn-js/react";
+import { Schema } from "effect";
 import { ExternalLinkIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -15,13 +15,13 @@ import {
 } from "@chevrotain/web/components/ui/card";
 import { PricingTable } from "@chevrotain/web/pages/app.settings.billing/-components/pricing-table";
 
-const searchSchema = type({
-	interval: type("'month' | 'year'").default(() => "month" as const),
+const searchSchema = Schema.Struct({
+	interval: Schema.optional(Schema.Literals(["month", "year"])),
 });
 
 export const Route = createFileRoute("/app/settings/billing")({
 	component: Page,
-	validateSearch: searchSchema,
+	validateSearch: Schema.toStandardSchemaV1(searchSchema),
 	search: {
 		middlewares: [stripSearchParams({ interval: "month" })],
 	},

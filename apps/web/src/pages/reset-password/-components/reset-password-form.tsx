@@ -1,25 +1,24 @@
 import { useForm } from "@tanstack/react-form";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
-import { type } from "arktype";
+import { Schema } from "effect";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
-import { Account } from "@chevrotain/core/auth/schema";
 import { authClient } from "@chevrotain/web/clients/auth";
 import { Button } from "@chevrotain/web/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@chevrotain/web/components/ui/field";
 import { Input } from "@chevrotain/web/components/ui/input";
+
+const resetPasswordShape = Schema.Struct({
+	password: Schema.String.check(Schema.isMinLength(13)),
+});
 
 export function ResetPasswordForm() {
 	const navigate = useNavigate();
 	const { token } = useSearch({ from: "/reset-password" });
 	const { t } = useTranslation();
 
-	const shape = type({
-		password: Account.get("password").exclude("null"),
-	});
-
-	const onSubmit = async (value: typeof shape.infer) => {
+	const onSubmit = async (value: typeof resetPasswordShape.Type) => {
 		const { error } = await authClient.resetPassword({
 			token,
 			newPassword: value.password,
@@ -61,7 +60,7 @@ export function ResetPasswordForm() {
 				<form.Field
 					name="password"
 					validators={{
-						onChange: shape.get("password"),
+						onChange: Schema.toStandardSchemaV1(resetPasswordShape.fields.password),
 					}}
 				>
 					{(field) => (
