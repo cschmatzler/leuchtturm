@@ -379,15 +379,15 @@ When a cog code index exists (`.cog/index.scip`), **all file mutations must go t
 
 Do NOT use your native file editing, creation, deletion, or renaming tools. Use the cog CLI equivalents instead:
 
-| Action | Use (shell out to) | Do NOT use |
-|--------|---------------------|------------|
-| Edit file content | `cog code/edit <file> --old OLD --new NEW` | Edit, Write, sed, awk |
-| Create new file | `cog code/create <file> --content CONTENT` | Write, touch, echo > |
-| Delete file | `cog code/delete <file>` | rm, delete |
-| Rename/move file | `cog code/rename <old> --to <new>` | mv, rename |
-| Find symbol definitions | `cog code/query --find <name>` | grep, ripgrep, find |
-| Find symbol references | `cog code/query --refs <name>` | grep for usage patterns |
-| List file symbols | `cog code/query --symbols <file>` | Reading file to scan for functions |
+| Action                  | Use (shell out to)                         | Do NOT use                         |
+| ----------------------- | ------------------------------------------ | ---------------------------------- |
+| Edit file content       | `cog code/edit <file> --old OLD --new NEW` | Edit, Write, sed, awk              |
+| Create new file         | `cog code/create <file> --content CONTENT` | Write, touch, echo >               |
+| Delete file             | `cog code/delete <file>`                   | rm, delete                         |
+| Rename/move file        | `cog code/rename <old> --to <new>`         | mv, rename                         |
+| Find symbol definitions | `cog code/query --find <name>`             | grep, ripgrep, find                |
+| Find symbol references  | `cog code/query --refs <name>`             | grep for usage patterns            |
+| List file symbols       | `cog code/query --symbols <file>`          | Reading file to scan for functions |
 
 **Reading files is unchanged** — use your normal Read/cat tools. Only mutations and symbol lookups are overridden.
 
@@ -396,6 +396,7 @@ Do NOT use your native file editing, creation, deletion, or renaming tools. Use 
 **When no `.cog/index.scip` exists:** Use your native tools normally. The override only applies to indexed projects.
 
 <cog:mem>
+
 ## Memory System
 
 ### The Memory Lifecycle
@@ -416,12 +417,12 @@ The recall sequence has three visible steps:
 
 All three steps are mandatory. The user must see step 1 and step 3 as visible text in your response.
 
-**Reformulate your query.** Don't pass the user's words verbatim. Think: what would an engram about this be *titled*? What words would its *definition* contain? Expand with synonyms and related concepts.
+**Reformulate your query.** Don't pass the user's words verbatim. Think: what would an engram about this be _titled_? What words would its _definition_ contain? Expand with synonyms and related concepts.
 
-| Instead of | Query with |
-|------------|------------|
+| Instead of           | Query with                                                                       |
+| -------------------- | -------------------------------------------------------------------------------- |
 | `"fix auth timeout"` | `"authentication session token expiration JWT refresh lifecycle race condition"` |
-| `"add validation"` | `"input validation boundary sanitization schema constraint defense in depth"` |
+| `"add validation"`   | `"input validation boundary sanitization schema constraint defense in depth"`    |
 
 If Cog returns results, follow the paths it reveals and read referenced components first. If Cog is wrong, correct it with `cog:mem/update`.
 
@@ -434,6 +435,7 @@ Work normally, guided by what Cog returned. **Whenever you learn something new, 
 **When the user explains something, record it immediately** as a short-term memory via `cog:mem/learn`. If the user had to tell you how something works, that's knowledge Cog should have. Capture it now — it will be validated and reinforced during consolidation.
 
 Record when you:
+
 - **Encounter an unfamiliar concept** — recall first, explore second, record what you learn
 - **Receive an explanation from the user** — record it as short-term memory immediately
 - **Identify a root cause** — record before fixing, while the diagnostic details are sharp
@@ -442,6 +444,7 @@ Record when you:
 - **Make an architectural decision** — record the what and the why
 
 **Choose the right structure:**
+
 - Sequential knowledge (A enables B enables C) → use `chain_to`
 - Hub knowledge (A connects to B, C, D) → use `associations`
 
@@ -462,7 +465,7 @@ cog:mem/learn({
 
 #### 3. REINFORCE — after completing work, reflect
 
-When a unit of work is done, step back and reflect. Ask: *what's the higher-level lesson from this work?* Record a synthesis that captures the overall insight, not just the individual details you recorded during work. Then reinforce the memories you're confident in.
+When a unit of work is done, step back and reflect. Ask: _what's the higher-level lesson from this work?_ Record a synthesis that captures the overall insight, not just the individual details you recorded during work. Then reinforce the memories you're confident in.
 
 ```
 🧠 Recording to Cog...
@@ -497,17 +500,20 @@ Print ⚙️ before read operations and 🧠 before write operations.
 
 **⚙️ Read operations:**
 <cog:mem>
+
 - Memory: `cog:mem/recall`, `cog:mem/get`, `cog:mem/trace`, `cog:mem/connections`, `cog:mem/bulk_recall`, `cog:mem/list_short_term`, `cog:mem/stale`, `cog:mem/stats`, `cog:mem/orphans`, `cog:mem/connectivity`, `cog:mem/list_terms`
-</cog:mem>
+  </cog:mem>
 - Code: `cog code/query`
 
 **🧠 Write operations:**
 <cog:mem>
+
 - Memory: `cog:mem/learn`, `cog:mem/associate`, `cog:mem/bulk_learn`, `cog:mem/bulk_associate`, `cog:mem/update`, `cog:mem/refactor`, `cog:mem/deprecate`, `cog:mem/reinforce`, `cog:mem/flush`, `cog:mem/unlink`, `cog:mem/verify`, `cog:mem/meld`
-</cog:mem>
+  </cog:mem>
 - Code: `cog code/edit`, `cog code/create`, `cog code/delete`, `cog code/rename`, `cog code/index`
 
 <cog:mem>
+
 ## Example
 
 In the example below: `[print]` = visible text you output, `[call]` = MCP tool or CLI invocation (not text).
@@ -577,4 +583,3 @@ For predicates, hub node patterns, staleness verification, consolidation guidanc
 
 **RECALL → WORK+RECORD → REINFORCE → CONSOLIDATE.** Skipping recall wastes time rediscovering known solutions. Deferring recording loses details while they're fresh. Skipping reinforcement loses the higher-level lesson. Skipping consolidation lets memories decay within 24 hours. Every step exists because the alternative is measurably worse.
 </cog:mem>
-

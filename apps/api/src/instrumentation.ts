@@ -1,30 +1,52 @@
-import { context, trace } from "@opentelemetry/api";
-import { AsyncLocalStorageContextManager } from "@opentelemetry/context-async-hooks";
+import { NodeSdk } from "@effect/opentelemetry";
+import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-http";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
-import { registerInstrumentations } from "@opentelemetry/instrumentation";
 import { PgInstrumentation } from "@opentelemetry/instrumentation-pg";
 import { UndiciInstrumentation } from "@opentelemetry/instrumentation-undici";
-import { resourceFromAttributes } from "@opentelemetry/resources";
-import { BasicTracerProvider, BatchSpanProcessor } from "@opentelemetry/sdk-trace-base";
+import { PeriodicExportingMetricReader } from "@opentelemetry/sdk-metrics";
+import { BatchSpanProcessor } from "@opentelemetry/sdk-trace-base";
+import { Metric } from "effect";
 
-const resource = resourceFromAttributes({
-	"service.name": "chevrotain-api",
+// --- HTTP Metrics ---
+
+/** Counter for total HTTP requests. */
+export const httpRequestCount = Metric.counter("http_requests_total", {
+	description: "Total number of HTTP requests",
 });
 
-const contextManager = new AsyncLocalStorageContextManager();
-context.setGlobalContextManager(contextManager);
-
-const tracerProvider = new BasicTracerProvider({
-	resource,
-	spanProcessors: [new BatchSpanProcessor(new OTLPTraceExporter())],
-});
-trace.setGlobalTracerProvider(tracerProvider);
-
-registerInstrumentations({
-	tracerProvider,
-	instrumentations: [new PgInstrumentation(), new UndiciInstrumentation()],
+/** Histogram for HTTP request duration. */
+export const httpRequestDuration = Metric.histogram("http_request_duration_ms", {
+	boundaries: Metric.linearBoundaries({ start: 0, width: 50, count: 20 }),
+	description: "HTTP request duration in milliseconds",
 });
 
-export async function shutdownTelemetry() {
-	await tracerProvider.shutdown();
+/** Counter for HTTP errors. */
+export const httpErrorCount = Metric.counter("http_errors_total", {
+	description: "Total number of HTTP errors",
+});
+
+// --- OpenTelemetry Layer ---
+
+const traceExporter = new OTLPTraceExporter();
+const spanProcessor = new BatchSpanProcessor(traceExporter);
+
+const metricExporter = new OTLPMetricExporter();
+const metricReader = new PeriodicExportingMetricReader({
+	exporter: metricExporter,
+	exportIntervalMillis: 10000,
+});
+
+// Register instrumentations globally (OpenTelemetry pattern)
+new PgInstrumentation().enable();
+new UndiciInstrumentation().enable();
+
+export const InstrumentationLive = NodeSdk.layer(() => ({
+	resource: { serviceName: "chevrotain-api" },
+	spanProcessor,
+	metricReader,
+}));
+
+export async function shutdownTelemetry(): Promise<void> {
+	// Effect's OTel handles shutdown automatically on runtime dispose
+	// PeriodicExportingMetricReader flushes on export interval
 }
