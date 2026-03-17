@@ -26,10 +26,9 @@ export const PgClientLive = Layer.unwrap(
 );
 
 /** Effect-managed Drizzle database instance backed by @effect/sql-pg connection pool. */
-export class DatabaseService extends ServiceMap.Service<
-	DatabaseService,
-	EffectPgDatabase
->()("DatabaseService") {}
+export class DatabaseService extends ServiceMap.Service<DatabaseService, EffectPgDatabase>()(
+	"DatabaseService",
+) {}
 
 /** Layer that provides DatabaseService by creating a Drizzle instance from the PgClient. */
 export const DatabaseServiceLive = Layer.effect(DatabaseService)(

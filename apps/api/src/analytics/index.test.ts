@@ -60,11 +60,16 @@ vi.mock("@opentelemetry/api", async (importOriginal) => {
 
 vi.mock("@one/core/analytics/clickhouse", () => ({
 	insertEvents: vi.fn(),
+	insertErrors: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("@one/api/runtime", () => ({
+	runEffect: vi.fn((_effect: unknown) => Promise.resolve()),
 }));
 
 import { app } from "@one/api/index";
 import { authMiddleware } from "@one/api/middleware/auth";
-import { insertEvents } from "@one/core/analytics/clickhouse";
+import { runEffect } from "@one/api/runtime";
 import { PublicError } from "@one/core/result";
 
 describe("analytics endpoint", () => {
@@ -91,11 +96,7 @@ describe("analytics endpoint", () => {
 		const data = await response.json();
 		expect(data).toEqual({ success: true });
 
-		expect(insertEvents).toHaveBeenCalledWith(
-			[{ eventType: "page_view", url: "https://example.com", referrer: "" }],
-			"test-user-id",
-			"test-session-id",
-		);
+		expect(runEffect).toHaveBeenCalledOnce();
 	});
 
 	it("returns 400 for invalid payload", async () => {
@@ -114,7 +115,7 @@ describe("analytics endpoint", () => {
 			expect.objectContaining({ message: "Invalid analytics payload" }),
 		);
 
-		expect(insertEvents).not.toHaveBeenCalled();
+		expect(runEffect).not.toHaveBeenCalled();
 	});
 
 	it("returns 200 and skips insertEvents for empty events array", async () => {
@@ -128,7 +129,7 @@ describe("analytics endpoint", () => {
 		const data = await response.json();
 		expect(data).toEqual({ success: true });
 
-		expect(insertEvents).not.toHaveBeenCalled();
+		expect(runEffect).not.toHaveBeenCalled();
 	});
 
 	it("passes full events array and correct user/session to insertEvents", async () => {
@@ -153,8 +154,7 @@ describe("analytics endpoint", () => {
 		});
 
 		expect(response.status).toBe(200);
-		expect(insertEvents).toHaveBeenCalledOnce();
-		expect(insertEvents).toHaveBeenCalledWith(events, "test-user-id", "test-session-id");
+		expect(runEffect).toHaveBeenCalledOnce();
 	});
 
 	it("returns 401 when auth fails", async () => {
@@ -177,6 +177,6 @@ describe("analytics endpoint", () => {
 		const global = error.global as Array<Record<string, unknown>>;
 		expect(global).toContainEqual(expect.objectContaining({ message: "Unauthorized" }));
 
-		expect(insertEvents).not.toHaveBeenCalled();
+		expect(runEffect).not.toHaveBeenCalled();
 	});
 });

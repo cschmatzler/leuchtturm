@@ -1,10 +1,12 @@
 import { sValidator } from "@hono/standard-validator";
+import { Effect } from "effect";
 import { Hono } from "hono";
 
 import { authMiddleware, type AuthVariables } from "@one/api/middleware/auth";
-import { insertEvents } from "@one/core/analytics/clickhouse";
+import { runEffect } from "@one/api/runtime";
 import { AnalyticsPayload } from "@one/core/analytics/schema";
-import { PublicError } from "@one/core/result";
+import { ClickHouseService } from "@one/core/analytics/service";
+import { ValidationError } from "@one/core/errors";
 
 const app = new Hono<{ Variables: AuthVariables }>().use(authMiddleware).post(
 	"/",
@@ -13,8 +15,7 @@ const app = new Hono<{ Variables: AuthVariables }>().use(authMiddleware).post(
 			return;
 		}
 
-		throw new PublicError({
-			status: 400,
+		throw new ValidationError({
 			global: [{ message: "Invalid analytics payload" }],
 		});
 	}),
@@ -27,7 +28,13 @@ const app = new Hono<{ Variables: AuthVariables }>().use(authMiddleware).post(
 			return c.json({ success: true });
 		}
 
-		await insertEvents(payload.events, user.id, session.id);
+		await runEffect(
+			Effect.gen(function* () {
+				const analytics = yield* ClickHouseService;
+				yield* analytics.insertEvents(payload.events, user.id, session.id);
+			}),
+		);
+
 		return c.json({ success: true });
 	},
 );

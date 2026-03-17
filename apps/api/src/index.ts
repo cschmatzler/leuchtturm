@@ -1,6 +1,7 @@
 import { httpInstrumentationMiddleware } from "@hono/otel";
 import { prometheus } from "@hono/prometheus";
 import { SpanStatusCode, trace } from "@opentelemetry/api";
+import { Effect } from "effect";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
@@ -9,11 +10,18 @@ import { register } from "prom-client";
 import analytics from "@one/api/analytics/index";
 import autumn from "@one/api/autumn";
 import errors from "@one/api/errors/index";
+import { isTaggedError, taggedErrorToResponse, taggedErrorToStatus } from "@one/api/errors/mapping";
 import mutate from "@one/api/mutate";
 import query from "@one/api/query";
-import { insertErrors } from "@one/core/analytics/clickhouse";
+import { runEffectFork } from "@one/api/runtime";
+import { ClickHouseService } from "@one/core/analytics/service";
 import { auth } from "@one/core/auth/index";
 import { PublicError } from "@one/core/result";
+
+const baseUrl = process.env.BASE_URL;
+if (!baseUrl) {
+	throw new Error("BASE_URL environment variable is required");
+}
 
 const { printMetrics, registerMetrics } = prometheus({
 	collectDefaultMetrics: true,
@@ -26,7 +34,7 @@ const app = new Hono()
 	.use(registerMetrics)
 	.use(
 		cors({
-			origin: process.env.BASE_URL!,
+			origin: baseUrl,
 			allowHeaders: ["Content-Type", "Authorization"],
 			allowMethods: ["GET", "POST", "OPTIONS"],
 			exposeHeaders: ["Content-Length"],
@@ -44,6 +52,44 @@ const app = new Hono()
 	.route("/analytics", analytics)
 	.route("/errors", errors)
 	.onError((error, c) => {
+		// Effect TaggedErrors (from Effect-managed handlers)
+		if (isTaggedError(error)) {
+			const status = taggedErrorToStatus(error);
+
+			if (status === 500) {
+				const span = trace.getActiveSpan();
+				if (span) {
+					const errorMessage =
+						"message" in error && typeof error.message === "string" ? error.message : error._tag;
+					span.recordException(error instanceof Error ? error : new Error(errorMessage));
+					span.setStatus({ code: SpanStatusCode.ERROR, message: errorMessage });
+				}
+
+				runEffectFork(
+					Effect.gen(function* () {
+						const analytics = yield* ClickHouseService;
+						yield* analytics.insertErrors([
+							{
+								source: "api",
+								errorType: error._tag,
+								message:
+									"message" in error && typeof error.message === "string"
+										? error.message
+										: error._tag,
+								url: c.req.path,
+								method: c.req.method,
+								statusCode: 500,
+								userAgent: c.req.header("user-agent"),
+							},
+						]);
+					}),
+				);
+			}
+
+			return c.json({ success: false, error: taggedErrorToResponse(error) }, status);
+		}
+
+		// Legacy PublicError (from Zero mutators)
 		if (error instanceof PublicError) {
 			return c.json(
 				{
@@ -57,6 +103,7 @@ const app = new Hono()
 			);
 		}
 
+		// Unhandled defects
 		const normalizedError =
 			error instanceof Error
 				? error
@@ -68,18 +115,23 @@ const app = new Hono()
 			span.setStatus({ code: SpanStatusCode.ERROR, message: normalizedError.message });
 		}
 
-		insertErrors([
-			{
-				source: "api",
-				errorType: normalizedError.name,
-				message: normalizedError.message,
-				stackTrace: normalizedError.stack,
-				url: c.req.path,
-				method: c.req.method,
-				statusCode: 500,
-				userAgent: c.req.header("user-agent"),
-			},
-		]).catch(() => {});
+		runEffectFork(
+			Effect.gen(function* () {
+				const analytics = yield* ClickHouseService;
+				yield* analytics.insertErrors([
+					{
+						source: "api",
+						errorType: normalizedError.name,
+						message: normalizedError.message,
+						stackTrace: normalizedError.stack,
+						url: c.req.path,
+						method: c.req.method,
+						statusCode: 500,
+						userAgent: c.req.header("user-agent"),
+					},
+				]);
+			}),
+		);
 
 		return c.json(
 			{

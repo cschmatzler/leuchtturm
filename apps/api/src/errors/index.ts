@@ -1,9 +1,11 @@
 import { sValidator } from "@hono/standard-validator";
+import { Effect } from "effect";
 import { Hono } from "hono";
 
-import { insertErrors } from "@one/core/analytics/clickhouse";
+import { runEffect } from "@one/api/runtime";
 import { ErrorPayload } from "@one/core/analytics/schema";
-import { PublicError } from "@one/core/result";
+import { ClickHouseService } from "@one/core/analytics/service";
+import { RateLimitError, ValidationError } from "@one/core/errors";
 
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX_REQUESTS = 30;
@@ -23,8 +25,8 @@ function isRateLimited(ip: string): boolean {
 	return entry.count > RATE_LIMIT_MAX_REQUESTS;
 }
 
-// Periodically clean up stale entries to prevent unbounded memory growth.
-setInterval(() => {
+/** Periodically clean up stale entries to prevent unbounded memory growth. */
+const cleanupInterval = setInterval(() => {
 	const now = Date.now();
 	for (const [ip, entry] of requestCounts) {
 		if (now >= entry.resetAt) {
@@ -33,6 +35,11 @@ setInterval(() => {
 	}
 }, RATE_LIMIT_WINDOW_MS);
 
+/** Stop the cleanup timer (called during graceful shutdown). */
+export function stopRateLimitCleanup(): void {
+	clearInterval(cleanupInterval);
+}
+
 const app = new Hono().post(
 	"/",
 	sValidator("json", ErrorPayload, (result) => {
@@ -40,8 +47,7 @@ const app = new Hono().post(
 			return;
 		}
 
-		throw new PublicError({
-			status: 400,
+		throw new ValidationError({
 			global: [{ message: "Invalid error payload" }],
 		});
 	}),
@@ -52,10 +58,7 @@ const app = new Hono().post(
 			"unknown";
 
 		if (isRateLimited(ip)) {
-			throw new PublicError({
-				status: 429,
-				global: [{ message: "Too many error reports" }],
-			});
+			throw new RateLimitError({ message: "Too many error reports" });
 		}
 
 		const payload = c.req.valid("json");
@@ -66,16 +69,21 @@ const app = new Hono().post(
 
 		const userAgent = c.req.header("user-agent") ?? "";
 
-		await insertErrors(
-			payload.errors.map((error) => ({
-				source: "web" as const,
-				errorType: error.errorType,
-				message: error.message,
-				stackTrace: error.stackTrace,
-				url: error.url,
-				userAgent,
-				properties: error.properties,
-			})),
+		await runEffect(
+			Effect.gen(function* () {
+				const analytics = yield* ClickHouseService;
+				yield* analytics.insertErrors(
+					payload.errors.map((error) => ({
+						source: "web" as const,
+						errorType: error.errorType,
+						message: error.message,
+						stackTrace: error.stackTrace,
+						url: error.url,
+						userAgent,
+						properties: error.properties,
+					})),
+				);
+			}),
 		);
 
 		return c.json({ success: true });

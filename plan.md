@@ -2,13 +2,13 @@
 
 ## Scope Assessment
 
-| Package | Fit | Rationale |
-|---------|-----|-----------|
-| `packages/core` | **High** | Services, DB, auth, analytics, billing, error types — all benefit from Effect's DI, resource management, and typed error channels |
-| `apps/api` | **High** | Handler composition, error handling, telemetry, config — `Effect.gen` replaces imperative async/await with composable pipelines |
-| `packages/zero` | **Skip** | Zero controls its own transaction lifecycle (`tx.mutate`, `tx.run`). Mutator signatures are dictated by `@rocicorp/zero`. Adding Effect here creates friction with no benefit |
-| `apps/web` | **Skip** | React hooks-driven (useState, useZeroQuery, TanStack Form). No complex async orchestration. Effect adds no value to reactive UI |
-| `packages/email` | **Skip** | Two rendering functions. Not worth the overhead |
+| Package          | Fit      | Rationale                                                                                                                                                                     |
+| ---------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `packages/core`  | **High** | Services, DB, auth, analytics, billing, error types — all benefit from Effect's DI, resource management, and typed error channels                                             |
+| `apps/api`       | **High** | Handler composition, error handling, telemetry, config — `Effect.gen` replaces imperative async/await with composable pipelines                                               |
+| `packages/zero`  | **Skip** | Zero controls its own transaction lifecycle (`tx.mutate`, `tx.run`). Mutator signatures are dictated by `@rocicorp/zero`. Adding Effect here creates friction with no benefit |
+| `apps/web`       | **Skip** | React hooks-driven (useState, useZeroQuery, TanStack Form). No complex async orchestration. Effect adds no value to reactive UI                                               |
+| `packages/email` | **Skip** | Two rendering functions. Not worth the overhead                                                                                                                               |
 
 ## What Stays the Same
 
@@ -30,17 +30,17 @@ Effect v4 introduces `Effect.Service`, which combines a Tag and a Layer into a s
 ```typescript
 // Effect v4 Service definition
 class MyService extends Effect.Service<MyService>()("MyService", {
-  // Choose ONE of: sync, effect, or scoped
-  effect: Effect.gen(function* () {
-    const dep = yield* SomeDependency;
-    return {
-      doThing: (x: string) => Effect.succeed(x.toUpperCase()),
-    };
-  }),
-  // Optionally generate top-level accessors (e.g. MyService.doThing(...))
-  accessors: true,
-  // Declare Layer dependencies — folded into MyService.Default automatically
-  dependencies: [SomeDependency.Default],
+	// Choose ONE of: sync, effect, or scoped
+	effect: Effect.gen(function* () {
+		const dep = yield* SomeDependency;
+		return {
+			doThing: (x: string) => Effect.succeed(x.toUpperCase()),
+		};
+	}),
+	// Optionally generate top-level accessors (e.g. MyService.doThing(...))
+	accessors: true,
+	// Declare Layer dependencies — folded into MyService.Default automatically
+	dependencies: [SomeDependency.Default],
 }) {}
 
 // Usage:
@@ -50,6 +50,7 @@ class MyService extends Effect.Service<MyService>()("MyService", {
 ```
 
 Key points from the Effect docs:
+
 - `sync: () => ({...})` — for services with no effectful setup
 - `effect: Effect.gen(...)` — for services needing async init or other services
 - `scoped: Effect.gen(...)` — for services with resource lifecycle (acquireRelease)
@@ -63,10 +64,10 @@ Cap (CapSoftware/Cap) uses Effect + Hono in production. Their bridge pattern fro
 ```typescript
 // 1. Compose all service layers
 const Dependencies = Layer.mergeAll(
-  S3Buckets.Default,
-  Videos.Default,
-  Database.Default,
-  // ... all services
+	S3Buckets.Default,
+	Videos.Default,
+	Database.Default,
+	// ... all services
 );
 
 // 2. Create a managed runtime (lives for the app's lifetime)
@@ -74,18 +75,19 @@ const EffectRuntime = ManagedRuntime.make(Dependencies);
 
 // 3. Bridge function: runs an Effect inside a Hono handler
 export const runPromise = <A, E>(
-  effect: Effect.Effect<A, E, Layer.Layer.Success<typeof Dependencies>>,
+	effect: Effect.Effect<A, E, Layer.Layer.Success<typeof Dependencies>>,
 ) =>
-  EffectRuntime.runPromiseExit(effect).then((res) => {
-    if (Exit.isFailure(res)) {
-      if (Cause.isDieType(res.cause)) throw res.cause.defect;
-      throw res;
-    }
-    return res.value;
-  });
+	EffectRuntime.runPromiseExit(effect).then((res) => {
+		if (Exit.isFailure(res)) {
+			if (Cause.isDieType(res.cause)) throw res.cause.defect;
+			throw res;
+		}
+		return res.value;
+	});
 ```
 
 This means:
+
 - Hono stays as the HTTP router and middleware framework
 - Each handler calls `runPromise(Effect.gen(function* () { ... }))` internally
 - The `ManagedRuntime` holds all service layers and manages their lifecycle
@@ -107,23 +109,23 @@ import { types } from "pg";
 
 // 1. Configure the PgClient layer
 const PgClientLive = PgClient.layer({
-  url: Redacted.make(process.env.DATABASE_URL!),
-  types: {
-    getTypeParser: (typeId, format) => {
-      // Return raw values for date/time types to let Drizzle handle parsing
-      if ([1184, 1114, 1082, 1186, 1231, 1115, 1185, 1187, 1182].includes(typeId)) {
-        return (val: any) => val;
-      }
-      return types.getTypeParser(typeId, format);
-    },
-  },
+	url: Redacted.make(process.env.DATABASE_URL!),
+	types: {
+		getTypeParser: (typeId, format) => {
+			// Return raw values for date/time types to let Drizzle handle parsing
+			if ([1184, 1114, 1082, 1186, 1231, 1115, 1185, 1187, 1182].includes(typeId)) {
+				return (val: any) => val;
+			}
+			return types.getTypeParser(typeId, format);
+		},
+	},
 });
 
 // 2. Create Drizzle instance as an Effect
-const program = Effect.gen(function*() {
-  const db = yield* PgDrizzle.makeWithDefaults();
-  const users = yield* db.select().from(usersTable);
-  return users;
+const program = Effect.gen(function* () {
+	const db = yield* PgDrizzle.makeWithDefaults();
+	const users = yield* db.select().from(usersTable);
+	return users;
 });
 
 Effect.runPromise(program.pipe(Effect.provide(PgClientLive)));
@@ -136,9 +138,7 @@ import * as Context from "effect/Context";
 import * as Layer from "effect/Layer";
 import * as relations from "./schema/relations";
 
-const dbEffect = PgDrizzle.make({ relations }).pipe(
-  Effect.provide(PgDrizzle.DefaultServices),
-);
+const dbEffect = PgDrizzle.make({ relations }).pipe(Effect.provide(PgDrizzle.DefaultServices));
 
 class DB extends Context.Tag("DB")<DB, Effect.Effect.Success<typeof dbEffect>>() {}
 
@@ -157,32 +157,31 @@ import { Data, Effect } from "effect";
 
 // Define errors
 class NotFoundError extends Data.TaggedError("NotFoundError")<{
-  resource?: string;
+	resource?: string;
 }> {}
 
 class DatabaseError extends Data.TaggedError("DatabaseError")<{
-  message: string;
+	message: string;
 }> {}
 
 // Use in effects
 const getUser = (id: string): Effect.Effect<User, NotFoundError | DatabaseError> =>
-  Effect.gen(function* () {
-    const result = yield* queryDatabase(id);
-    if (!result) return yield* new NotFoundError({ resource: "user" });
-    return result;
-  });
+	Effect.gen(function* () {
+		const result = yield* queryDatabase(id);
+		if (!result) return yield* new NotFoundError({ resource: "user" });
+		return result;
+	});
 
 // Handle specific errors with catchTag
 const handled = getUser(id).pipe(
-  Effect.catchTag("NotFoundError", (e) =>
-    Effect.succeed({ id: e.resource, name: "Guest" })
-  )
+	Effect.catchTag("NotFoundError", (e) => Effect.succeed({ id: e.resource, name: "Guest" })),
 );
 // Type: Effect<User, DatabaseError>
 // NotFoundError is removed from the error channel
 ```
 
 Key points:
+
 - `_tag` is automatically set from the string passed to `Data.TaggedError`
 - Errors are structurally equal (value semantics via `Data`)
 - `Effect.catchTag` narrows the error channel type
@@ -197,19 +196,18 @@ Effect provides `Config` for type-safe environment variable access:
 import { Config, Effect } from "effect";
 
 // Basic usage
-const port = yield* Config.number("PORT");
-const dbUrl = yield* Config.string("DATABASE_URL");
-const secret = yield* Config.redacted("BETTER_AUTH_SECRET");
+const port = yield * Config.number("PORT");
+const dbUrl = yield * Config.string("DATABASE_URL");
+const secret = yield * Config.redacted("BETTER_AUTH_SECRET");
 
 // With defaults
-const clickhouseUrl = yield* Config.string("CLICKHOUSE_URL").pipe(
-  Config.withDefault("http://localhost:8123")
-);
+const clickhouseUrl =
+	yield * Config.string("CLICKHOUSE_URL").pipe(Config.withDefault("http://localhost:8123"));
 
 // Nested config
 const dbConfig = Config.all({
-  url: Config.string("DATABASE_URL"),
-  poolSize: Config.number("DB_POOL_SIZE").pipe(Config.withDefault(10)),
+	url: Config.string("DATABASE_URL"),
+	poolSize: Config.number("DB_POOL_SIZE").pipe(Config.withDefault(10)),
 });
 
 // Fails at startup with clear error message if missing:
@@ -228,32 +226,28 @@ import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 import { BatchSpanProcessor } from "@opentelemetry/sdk-trace-base";
 
 const TracingLayer = NodeSdk.layer(() => ({
-  resource: { serviceName: "one-api" },
-  spanProcessor: new BatchSpanProcessor(
-    new OTLPTraceExporter({ url: "http://alloy:4318/v1/traces" })
-  ),
+	resource: { serviceName: "one-api" },
+	spanProcessor: new BatchSpanProcessor(
+		new OTLPTraceExporter({ url: "http://alloy:4318/v1/traces" }),
+	),
 }));
 
 // Add to AppLayer — all Effects are now automatically traced
-const AppLayer = Layer.mergeAll(
-  DatabaseService.Default,
-  AuthService.Default,
-  TracingLayer,
-);
+const AppLayer = Layer.mergeAll(DatabaseService.Default, AuthService.Default, TracingLayer);
 ```
 
 ### Anti-Patterns to Avoid
 
 From the Effect TS skills repo (`effect-ts-anti-patterns/SKILL.md`):
 
-| Anti-Pattern | Why | Correct |
-|---|---|---|
-| `yield` without `*` | Returns the Effect object, not its value | `yield*` |
-| `throw new Error()` inside `Effect.gen` | Creates a Defect (crash), bypasses error channel | `yield* Effect.fail(new TaggedError())` |
-| `await Effect.runPromise(fx)` mid-function | Bypasses error channel and tracing | `yield* fx` (compose effects) |
-| `Effect.all(tasks)` on large arrays | Unbounded parallelism, OOM risk | `Effect.all(tasks, { concurrency: 10 })` |
-| `try/finally` for cleanup | Bypasses Effect's interruption model | `Effect.acquireRelease(...)` |
-| Scattering `Effect.runPromise` | Loses context, tracing, interruption safety | Compose effects, run ONCE at boundary |
+| Anti-Pattern                               | Why                                              | Correct                                  |
+| ------------------------------------------ | ------------------------------------------------ | ---------------------------------------- |
+| `yield` without `*`                        | Returns the Effect object, not its value         | `yield*`                                 |
+| `throw new Error()` inside `Effect.gen`    | Creates a Defect (crash), bypasses error channel | `yield* Effect.fail(new TaggedError())`  |
+| `await Effect.runPromise(fx)` mid-function | Bypasses error channel and tracing               | `yield* fx` (compose effects)            |
+| `Effect.all(tasks)` on large arrays        | Unbounded parallelism, OOM risk                  | `Effect.all(tasks, { concurrency: 10 })` |
+| `try/finally` for cleanup                  | Bypasses Effect's interruption model             | `Effect.acquireRelease(...)`             |
+| Scattering `Effect.runPromise`             | Loses context, tracing, interruption safety      | Compose effects, run ONCE at boundary    |
 
 **The golden rule**: Effects should be composed with `yield*` and run at the boundary (Hono handler or server entry point). Never `Effect.runPromise` inside a helper function.
 
@@ -267,12 +261,12 @@ Add to `packages/core/package.json`:
 
 ```json
 {
-  "dependencies": {
-    "effect": "4.0.0-beta.33",
-    "@effect/sql-pg": "4.0.0-beta.33",
-    "@effect/opentelemetry": "4.0.0-beta.33",
-    "@effect/platform-node": "4.0.0-beta.33"
-  }
+	"dependencies": {
+		"effect": "4.0.0-beta.33",
+		"@effect/sql-pg": "4.0.0-beta.33",
+		"@effect/opentelemetry": "4.0.0-beta.33",
+		"@effect/platform-node": "4.0.0-beta.33"
+	}
 }
 ```
 
@@ -280,9 +274,9 @@ Add to `apps/api/package.json`:
 
 ```json
 {
-  "dependencies": {
-    "effect": "4.0.0-beta.33"
-  }
+	"dependencies": {
+		"effect": "4.0.0-beta.33"
+	}
 }
 ```
 
@@ -290,9 +284,9 @@ Add `@effect/vitest` as a dev dependency at the root or in each test-bearing pac
 
 ```json
 {
-  "devDependencies": {
-    "@effect/vitest": "4.0.0-beta.33"
-  }
+	"devDependencies": {
+		"@effect/vitest": "4.0.0-beta.33"
+	}
 }
 ```
 
@@ -310,50 +304,50 @@ import { Data } from "effect";
 // --- HTTP-mappable errors ---
 
 export class NotFoundError extends Data.TaggedError("NotFoundError")<{
-  readonly resource?: string;
-  readonly message?: string;
+	readonly resource?: string;
+	readonly message?: string;
 }> {}
 
 export class UnauthorizedError extends Data.TaggedError("UnauthorizedError")<{
-  readonly message?: string;
+	readonly message?: string;
 }> {}
 
 export class ForbiddenError extends Data.TaggedError("ForbiddenError")<{
-  readonly message?: string;
+	readonly message?: string;
 }> {}
 
 export class ValidationError extends Data.TaggedError("ValidationError")<{
-  readonly fields?: ReadonlyArray<{
-    readonly path: ReadonlyArray<string | number>;
-    readonly message: string;
-    readonly code?: string;
-  }>;
-  readonly global?: ReadonlyArray<{
-    readonly message: string;
-    readonly code?: string;
-  }>;
+	readonly fields?: ReadonlyArray<{
+		readonly path: ReadonlyArray<string | number>;
+		readonly message: string;
+		readonly code?: string;
+	}>;
+	readonly global?: ReadonlyArray<{
+		readonly message: string;
+		readonly code?: string;
+	}>;
 }> {}
 
 export class RateLimitError extends Data.TaggedError("RateLimitError")<{
-  readonly message?: string;
+	readonly message?: string;
 }> {}
 
 // --- Infrastructure errors ---
 
 export class DatabaseError extends Data.TaggedError("DatabaseError")<{
-  readonly cause: unknown;
+	readonly cause: unknown;
 }> {}
 
 export class ClickHouseError extends Data.TaggedError("ClickHouseError")<{
-  readonly cause: unknown;
+	readonly cause: unknown;
 }> {}
 
 export class EmailError extends Data.TaggedError("EmailError")<{
-  readonly cause: unknown;
+	readonly cause: unknown;
 }> {}
 
 export class BillingError extends Data.TaggedError("BillingError")<{
-  readonly cause: unknown;
+	readonly cause: unknown;
 }> {}
 ```
 
@@ -368,28 +362,22 @@ Replace all `process.env.X` access with a typed config service:
 import { Config, Effect, Redacted } from "effect";
 
 export class AppConfig extends Effect.Service<AppConfig>()("AppConfig", {
-  effect: Effect.gen(function* () {
-    return {
-      baseUrl: yield* Config.string("BASE_URL"),
-      port: yield* Config.number("PORT").pipe(Config.withDefault(3005)),
-      databaseUrl: yield* Config.redacted("DATABASE_URL"),
-      clickhouseUrl: yield* Config.string("CLICKHOUSE_URL").pipe(
-        Config.withDefault("http://localhost:8123"),
-      ),
-      betterAuthSecret: yield* Config.redacted("BETTER_AUTH_SECRET"),
-      resendApiKey: yield* Config.redacted("RESEND_API_KEY"),
-      autumnSecretKey: yield* Config.redacted("AUTUMN_SECRET_KEY"),
-      githubClientId: yield* Config.string("GITHUB_CLIENT_ID").pipe(
-        Config.withDefault(""),
-      ),
-      githubClientSecret: yield* Config.string("GITHUB_CLIENT_SECRET").pipe(
-        Config.withDefault(""),
-      ),
-      openaiApiKey: yield* Config.redacted("OPENAI_API_KEY").pipe(
-        Config.option,
-      ),
-    };
-  }),
+	effect: Effect.gen(function* () {
+		return {
+			baseUrl: yield* Config.string("BASE_URL"),
+			port: yield* Config.number("PORT").pipe(Config.withDefault(3005)),
+			databaseUrl: yield* Config.redacted("DATABASE_URL"),
+			clickhouseUrl: yield* Config.string("CLICKHOUSE_URL").pipe(
+				Config.withDefault("http://localhost:8123"),
+			),
+			betterAuthSecret: yield* Config.redacted("BETTER_AUTH_SECRET"),
+			resendApiKey: yield* Config.redacted("RESEND_API_KEY"),
+			autumnSecretKey: yield* Config.redacted("AUTUMN_SECRET_KEY"),
+			githubClientId: yield* Config.string("GITHUB_CLIENT_ID").pipe(Config.withDefault("")),
+			githubClientSecret: yield* Config.string("GITHUB_CLIENT_SECRET").pipe(Config.withDefault("")),
+			openaiApiKey: yield* Config.redacted("OPENAI_API_KEY").pipe(Config.option),
+		};
+	}),
 }) {}
 ```
 
@@ -410,41 +398,38 @@ import * as relations from "@one/core/auth/auth.sql";
 // PgClient layer — manages the connection pool lifecycle
 // PgClient.layer uses acquireRelease internally to guarantee pool.end() on shutdown
 const PgClientLive = Layer.unwrapEffect(
-  Effect.gen(function* () {
-    const databaseUrl = yield* Config.redacted("DATABASE_URL");
-    return PgClient.layer({
-      url: databaseUrl,
-      types: {
-        getTypeParser: (typeId, format) => {
-          // Return raw values for date/time types — let Drizzle handle parsing
-          if ([1184, 1114, 1082, 1186, 1231, 1115, 1185, 1187, 1182].includes(typeId)) {
-            return (val: unknown) => val;
-          }
-          return types.getTypeParser(typeId, format);
-        },
-      },
-    });
-  }),
+	Effect.gen(function* () {
+		const databaseUrl = yield* Config.redacted("DATABASE_URL");
+		return PgClient.layer({
+			url: databaseUrl,
+			types: {
+				getTypeParser: (typeId, format) => {
+					// Return raw values for date/time types — let Drizzle handle parsing
+					if ([1184, 1114, 1082, 1186, 1231, 1115, 1185, 1187, 1182].includes(typeId)) {
+						return (val: unknown) => val;
+					}
+					return types.getTypeParser(typeId, format);
+				},
+			},
+		});
+	}),
 );
 
 // Create the Drizzle Effect with default services (no logging, no caching)
-const dbEffect = PgDrizzle.make({ relations }).pipe(
-  Effect.provide(PgDrizzle.DefaultServices),
-);
+const dbEffect = PgDrizzle.make({ relations }).pipe(Effect.provide(PgDrizzle.DefaultServices));
 
 // DB service tag for dependency injection
 export class DatabaseService extends Context.Tag("DatabaseService")<
-  DatabaseService,
-  Effect.Effect.Success<typeof dbEffect>
+	DatabaseService,
+	Effect.Effect.Success<typeof dbEffect>
 >() {
-  // Layer that provides both PgClient and the Drizzle instance
-  static Live = Layer.effect(DatabaseService, dbEffect).pipe(
-    Layer.provide(PgClientLive),
-  );
+	// Layer that provides both PgClient and the Drizzle instance
+	static Live = Layer.effect(DatabaseService, dbEffect).pipe(Layer.provide(PgClientLive));
 }
 ```
 
 Current code (`packages/core/src/drizzle/index.ts`):
+
 ```typescript
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 export const db = drizzle({ client: pool, relations: { ...authRelations } });
@@ -453,11 +438,12 @@ export const db = drizzle({ client: pool, relations: { ...authRelations } });
 The current pattern has no shutdown handling — the pool is never closed. `PgClient.layer` uses `acquireRelease` internally to guarantee the pool is closed on shutdown.
 
 Usage in handlers:
+
 ```typescript
 Effect.gen(function* () {
-  const db = yield* DatabaseService;
-  const users = yield* db.select().from(userTable);
-  return users;
+	const db = yield* DatabaseService;
+	const users = yield* db.select().from(userTable);
+	return users;
 });
 ```
 
@@ -473,96 +459,90 @@ import { AppConfig } from "@one/core/config";
 import { ClickHouseError } from "@one/core/errors";
 import type { AnalyticsEvent } from "@one/core/analytics/schema";
 
-export class ClickHouseService extends Effect.Service<ClickHouseService>()(
-  "ClickHouseService",
-  {
-    accessors: true,
-    scoped: Effect.gen(function* () {
-      const config = yield* AppConfig;
+export class ClickHouseService extends Effect.Service<ClickHouseService>()("ClickHouseService", {
+	accessors: true,
+	scoped: Effect.gen(function* () {
+		const config = yield* AppConfig;
 
-      const client = yield* Effect.acquireRelease(
-        Effect.sync(() =>
-          createClient({
-            url: config.clickhouseUrl,
-            clickhouse_settings: { async_insert: 1, wait_end_of_query: 1 },
-          }),
-        ),
-        (client) => Effect.promise(() => client.close()),
-      );
+		const client = yield* Effect.acquireRelease(
+			Effect.sync(() =>
+				createClient({
+					url: config.clickhouseUrl,
+					clickhouse_settings: { async_insert: 1, wait_end_of_query: 1 },
+				}),
+			),
+			(client) => Effect.promise(() => client.close()),
+		);
 
-      const insertEvents = (
-        events: AnalyticsEvent[],
-        userId: string,
-        sessionId: string,
-      ) =>
-        Effect.tryPromise({
-          try: () =>
-            client.insert({
-              table: "analytics_events",
-              values: events.map((event) => ({
-                timestamp: new Date().toISOString().replace("T", " ").replace("Z", ""),
-                event_id: crypto.randomUUID(),
-                session_id: sessionId,
-                user_id: userId,
-                event_type: event.eventType,
-                url: event.url,
-                referrer: event.referrer,
-                properties: JSON.stringify(event.properties ?? {}),
-              })),
-              format: "JSONEachRow",
-            }),
-          catch: (cause) => new ClickHouseError({ cause }),
-        });
+		const insertEvents = (events: AnalyticsEvent[], userId: string, sessionId: string) =>
+			Effect.tryPromise({
+				try: () =>
+					client.insert({
+						table: "analytics_events",
+						values: events.map((event) => ({
+							timestamp: new Date().toISOString().replace("T", " ").replace("Z", ""),
+							event_id: crypto.randomUUID(),
+							session_id: sessionId,
+							user_id: userId,
+							event_type: event.eventType,
+							url: event.url,
+							referrer: event.referrer,
+							properties: JSON.stringify(event.properties ?? {}),
+						})),
+						format: "JSONEachRow",
+					}),
+				catch: (cause) => new ClickHouseError({ cause }),
+			});
 
-      const insertErrors = (
-        errors: Array<{
-          source: "api" | "web";
-          errorType: string;
-          message: string;
-          userId?: string;
-          sessionId?: string;
-          stackTrace?: string;
-          url?: string;
-          method?: string;
-          statusCode?: number;
-          userAgent?: string;
-          properties?: Record<string, unknown>;
-        }>,
-      ) =>
-        Effect.tryPromise({
-          try: () =>
-            client.insert({
-              table: "error_events",
-              values: errors.map((error) => ({
-                timestamp: new Date().toISOString().replace("T", " ").replace("Z", ""),
-                error_id: crypto.randomUUID(),
-                source: error.source,
-                user_id: error.userId ?? "",
-                session_id: error.sessionId ?? "",
-                error_type: error.errorType,
-                message: error.message,
-                stack_trace: error.stackTrace ?? "",
-                url: error.url ?? "",
-                method: error.method ?? "",
-                status_code: error.statusCode ?? 0,
-                user_agent: error.userAgent ?? "",
-                properties: JSON.stringify(error.properties ?? {}),
-              })),
-              format: "JSONEachRow",
-            }),
-          catch: (cause) => new ClickHouseError({ cause }),
-        });
+		const insertErrors = (
+			errors: Array<{
+				source: "api" | "web";
+				errorType: string;
+				message: string;
+				userId?: string;
+				sessionId?: string;
+				stackTrace?: string;
+				url?: string;
+				method?: string;
+				statusCode?: number;
+				userAgent?: string;
+				properties?: Record<string, unknown>;
+			}>,
+		) =>
+			Effect.tryPromise({
+				try: () =>
+					client.insert({
+						table: "error_events",
+						values: errors.map((error) => ({
+							timestamp: new Date().toISOString().replace("T", " ").replace("Z", ""),
+							error_id: crypto.randomUUID(),
+							source: error.source,
+							user_id: error.userId ?? "",
+							session_id: error.sessionId ?? "",
+							error_type: error.errorType,
+							message: error.message,
+							stack_trace: error.stackTrace ?? "",
+							url: error.url ?? "",
+							method: error.method ?? "",
+							status_code: error.statusCode ?? 0,
+							user_agent: error.userAgent ?? "",
+							properties: JSON.stringify(error.properties ?? {}),
+						})),
+						format: "JSONEachRow",
+					}),
+				catch: (cause) => new ClickHouseError({ cause }),
+			});
 
-      return { client, insertEvents, insertErrors };
-    }),
-    dependencies: [AppConfig.Default],
-  },
-) {}
+		return { client, insertEvents, insertErrors };
+	}),
+	dependencies: [AppConfig.Default],
+}) {}
 ```
 
 Note the use of `scoped` instead of `effect` — this tells Effect the service acquires resources that need cleanup. The ClickHouse client is acquired and released via `Effect.acquireRelease`, guaranteeing `client.close()` runs on shutdown.
 
 Current code (`packages/core/src/analytics/clickhouse.ts`) has no cleanup:
+
 ```typescript
 const client = createClient({ url: process.env.CLICKHOUSE_URL ?? "..." });
 // client is never closed
@@ -577,43 +557,33 @@ import { Effect, Redacted } from "effect";
 import { AppConfig } from "@one/core/config";
 import { BillingError } from "@one/core/errors";
 
-export class BillingService extends Effect.Service<BillingService>()(
-  "BillingService",
-  {
-    effect: Effect.gen(function* () {
-      const config = yield* AppConfig;
-      const autumn = new Autumn({
-        secretKey: Redacted.value(config.autumnSecretKey),
-      });
+export class BillingService extends Effect.Service<BillingService>()("BillingService", {
+	effect: Effect.gen(function* () {
+		const config = yield* AppConfig;
+		const autumn = new Autumn({
+			secretKey: Redacted.value(config.autumnSecretKey),
+		});
 
-      return {
-        autumn,
-        getOrCreateCustomer: (params: {
-          customerId: string;
-          name: string;
-          email: string;
-        }) =>
-          Effect.tryPromise({
-            try: () => autumn.customers.getOrCreate(params),
-            catch: (cause) => new BillingError({ cause }),
-          }),
-        updateCustomer: (params: {
-          customerId: string;
-          name: string;
-          email: string;
-        }) =>
-          Effect.tryPromise({
-            try: () => autumn.customers.update(params),
-            catch: (cause) => new BillingError({ cause }),
-          }),
-      };
-    }),
-    dependencies: [AppConfig.Default],
-  },
-) {}
+		return {
+			autumn,
+			getOrCreateCustomer: (params: { customerId: string; name: string; email: string }) =>
+				Effect.tryPromise({
+					try: () => autumn.customers.getOrCreate(params),
+					catch: (cause) => new BillingError({ cause }),
+				}),
+			updateCustomer: (params: { customerId: string; name: string; email: string }) =>
+				Effect.tryPromise({
+					try: () => autumn.customers.update(params),
+					catch: (cause) => new BillingError({ cause }),
+				}),
+		};
+	}),
+	dependencies: [AppConfig.Default],
+}) {}
 ```
 
 Current code (`packages/core/src/billing/autumn.ts`):
+
 ```typescript
 const autumn = new Autumn({ secretKey: process.env.AUTUMN_SECRET_KEY });
 ```
@@ -627,30 +597,21 @@ import { Resend } from "resend";
 import { AppConfig } from "@one/core/config";
 import { EmailError } from "@one/core/errors";
 
-export class EmailService extends Effect.Service<EmailService>()(
-  "EmailService",
-  {
-    effect: Effect.gen(function* () {
-      const config = yield* AppConfig;
-      const resend = new Resend(Redacted.value(config.resendApiKey));
+export class EmailService extends Effect.Service<EmailService>()("EmailService", {
+	effect: Effect.gen(function* () {
+		const config = yield* AppConfig;
+		const resend = new Resend(Redacted.value(config.resendApiKey));
 
-      return {
-        send: (params: {
-          from: string;
-          to: string;
-          subject: string;
-          html: string;
-          text: string;
-        }) =>
-          Effect.tryPromise({
-            try: () => resend.emails.send(params),
-            catch: (cause) => new EmailError({ cause }),
-          }),
-      };
-    }),
-    dependencies: [AppConfig.Default],
-  },
-) {}
+		return {
+			send: (params: { from: string; to: string; subject: string; html: string; text: string }) =>
+				Effect.tryPromise({
+					try: () => resend.emails.send(params),
+					catch: (cause) => new EmailError({ cause }),
+				}),
+		};
+	}),
+	dependencies: [AppConfig.Default],
+}) {}
 ```
 
 ### 1.8 Replace `assert()` with Effect-native helper
@@ -665,12 +626,10 @@ import { NotFoundError } from "@one/core/errors";
  * Use inside Effect.gen blocks.
  */
 export const assertFound = <T>(
-  value: T | null | undefined,
-  resource?: string,
+	value: T | null | undefined,
+	resource?: string,
 ): Effect.Effect<T, NotFoundError> =>
-  value != null
-    ? Effect.succeed(value)
-    : Effect.fail(new NotFoundError({ resource }));
+	value != null ? Effect.succeed(value) : Effect.fail(new NotFoundError({ resource }));
 
 // Keep the throwing version for Zero mutators (they can't use Effect)
 export { assert } from "@one/core/result-compat";
@@ -684,10 +643,17 @@ const [bean] = await db.select().from(beanTable).where(eq(beanTable.id, id)).lim
 assert(bean); // throws PublicError
 
 // After (Effect):
-const bean = yield* db.select().from(beanTable).where(eq(beanTable.id, id)).limit(1).pipe(
-  Effect.map((rows) => rows[0]),
-  Effect.flatMap((row) => assertFound(row, "bean")),
-);
+const bean =
+	yield *
+	db
+		.select()
+		.from(beanTable)
+		.where(eq(beanTable.id, id))
+		.limit(1)
+		.pipe(
+			Effect.map((rows) => rows[0]),
+			Effect.flatMap((row) => assertFound(row, "bean")),
+		);
 ```
 
 ---
@@ -700,13 +666,7 @@ This is the central piece — a single runtime that holds all service layers and
 
 ```typescript
 // apps/api/src/runtime.ts
-import {
-  Cause,
-  Effect,
-  Exit,
-  Layer,
-  ManagedRuntime,
-} from "effect";
+import { Cause, Effect, Exit, Layer, ManagedRuntime } from "effect";
 import { AppConfig } from "@one/core/config";
 import { DatabaseService } from "@one/core/drizzle/service";
 import { ClickHouseService } from "@one/core/analytics/service";
@@ -715,13 +675,11 @@ import { EmailService } from "@one/core/email/service";
 
 // Compose all service layers
 export const AppLayer = Layer.mergeAll(
-  DatabaseService.Default,
-  ClickHouseService.Default,
-  BillingService.Default,
-  EmailService.Default,
-).pipe(
-  Layer.provideMerge(AppConfig.Default),
-);
+	DatabaseService.Default,
+	ClickHouseService.Default,
+	BillingService.Default,
+	EmailService.Default,
+).pipe(Layer.provideMerge(AppConfig.Default));
 
 // Type alias for the services available in handlers
 export type AppServices = Layer.Layer.Success<typeof AppLayer>;
@@ -733,24 +691,22 @@ const AppRuntime = ManagedRuntime.make(AppLayer);
  * Run an Effect inside a Hono handler.
  * This is the ONLY place Effect.runPromise should appear.
  */
-export const runEffect = <A, E>(
-  effect: Effect.Effect<A, E, AppServices>,
-): Promise<A> =>
-  AppRuntime.runPromiseExit(effect).then((exit) => {
-    if (Exit.isFailure(exit)) {
-      // Re-throw defects (bugs) as regular errors for Hono's .onError
-      if (Cause.isDieType(exit.cause)) {
-        throw exit.cause.defect;
-      }
-      // Re-throw typed failures — Hono's .onError will catch TaggedErrors
-      const failure = Cause.failureOption(exit.cause);
-      if (failure._tag === "Some") {
-        throw failure.value;
-      }
-      throw exit;
-    }
-    return exit.value;
-  });
+export const runEffect = <A, E>(effect: Effect.Effect<A, E, AppServices>): Promise<A> =>
+	AppRuntime.runPromiseExit(effect).then((exit) => {
+		if (Exit.isFailure(exit)) {
+			// Re-throw defects (bugs) as regular errors for Hono's .onError
+			if (Cause.isDieType(exit.cause)) {
+				throw exit.cause.defect;
+			}
+			// Re-throw typed failures — Hono's .onError will catch TaggedErrors
+			const failure = Cause.failureOption(exit.cause);
+			if (failure._tag === "Some") {
+				throw failure.value;
+			}
+			throw exit;
+		}
+		return exit.value;
+	});
 
 /**
  * Shutdown the runtime (called on SIGINT/SIGTERM).
@@ -767,88 +723,88 @@ Update the `.onError` handler to map tagged errors to HTTP responses:
 // apps/api/src/errors/mapping.ts
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import {
-  NotFoundError,
-  UnauthorizedError,
-  ForbiddenError,
-  ValidationError,
-  RateLimitError,
-  DatabaseError,
-  ClickHouseError,
-  EmailError,
-  BillingError,
+	NotFoundError,
+	UnauthorizedError,
+	ForbiddenError,
+	ValidationError,
+	RateLimitError,
+	DatabaseError,
+	ClickHouseError,
+	EmailError,
+	BillingError,
 } from "@one/core/errors";
 
 type TaggedApiError =
-  | NotFoundError
-  | UnauthorizedError
-  | ForbiddenError
-  | ValidationError
-  | RateLimitError
-  | DatabaseError
-  | ClickHouseError
-  | EmailError
-  | BillingError;
+	| NotFoundError
+	| UnauthorizedError
+	| ForbiddenError
+	| ValidationError
+	| RateLimitError
+	| DatabaseError
+	| ClickHouseError
+	| EmailError
+	| BillingError;
 
 const STATUS_MAP: Record<string, ContentfulStatusCode> = {
-  NotFoundError: 404,
-  UnauthorizedError: 401,
-  ForbiddenError: 403,
-  ValidationError: 400,
-  RateLimitError: 429,
-  DatabaseError: 500,
-  ClickHouseError: 500,
-  EmailError: 500,
-  BillingError: 500,
+	NotFoundError: 404,
+	UnauthorizedError: 401,
+	ForbiddenError: 403,
+	ValidationError: 400,
+	RateLimitError: 429,
+	DatabaseError: 500,
+	ClickHouseError: 500,
+	EmailError: 500,
+	BillingError: 500,
 };
 
 export function isTaggedError(error: unknown): error is TaggedApiError {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "_tag" in error &&
-    typeof (error as { _tag: unknown })._tag === "string" &&
-    (error as { _tag: string })._tag in STATUS_MAP
-  );
+	return (
+		typeof error === "object" &&
+		error !== null &&
+		"_tag" in error &&
+		typeof (error as { _tag: unknown })._tag === "string" &&
+		(error as { _tag: string })._tag in STATUS_MAP
+	);
 }
 
 export function taggedErrorToStatus(error: TaggedApiError): ContentfulStatusCode {
-  return STATUS_MAP[error._tag] ?? 500;
+	return STATUS_MAP[error._tag] ?? 500;
 }
 
 export function taggedErrorToResponse(error: TaggedApiError) {
-  switch (error._tag) {
-    case "ValidationError":
-      return {
-        global: error.global ?? [],
-        fields: error.fields ?? [],
-      };
-    case "NotFoundError":
-      return {
-        global: [{ code: "not_found", message: error.message ?? "Not found" }],
-        fields: [],
-      };
-    case "UnauthorizedError":
-      return {
-        global: [{ code: "unauthorized", message: error.message ?? "Unauthorized" }],
-        fields: [],
-      };
-    case "ForbiddenError":
-      return {
-        global: [{ code: "forbidden", message: error.message ?? "Forbidden" }],
-        fields: [],
-      };
-    case "RateLimitError":
-      return {
-        global: [{ code: "rate_limit", message: error.message ?? "Too many requests" }],
-        fields: [],
-      };
-    default:
-      // Infrastructure errors — don't leak internals
-      return {
-        global: [{ code: "internal", message: "Internal server error" }],
-        fields: [],
-      };
-  }
+	switch (error._tag) {
+		case "ValidationError":
+			return {
+				global: error.global ?? [],
+				fields: error.fields ?? [],
+			};
+		case "NotFoundError":
+			return {
+				global: [{ code: "not_found", message: error.message ?? "Not found" }],
+				fields: [],
+			};
+		case "UnauthorizedError":
+			return {
+				global: [{ code: "unauthorized", message: error.message ?? "Unauthorized" }],
+				fields: [],
+			};
+		case "ForbiddenError":
+			return {
+				global: [{ code: "forbidden", message: error.message ?? "Forbidden" }],
+				fields: [],
+			};
+		case "RateLimitError":
+			return {
+				global: [{ code: "rate_limit", message: error.message ?? "Too many requests" }],
+				fields: [],
+			};
+		default:
+			// Infrastructure errors — don't leak internals
+			return {
+				global: [{ code: "internal", message: "Internal server error" }],
+				fields: [],
+			};
+	}
 }
 ```
 
@@ -998,8 +954,8 @@ const server = serve({ port, fetch: app.fetch });
 console.log(`API server running on port ${port} (pid: ${process.pid})`);
 
 async function shutdown() {
-  server.close();
-  await shutdownRuntime(); // closes DB pool, ClickHouse client, etc.
+	server.close();
+	await shutdownRuntime(); // closes DB pool, ClickHouse client, etc.
 }
 
 process.on("SIGINT", shutdown);
@@ -1018,14 +974,14 @@ import { BatchSpanProcessor } from "@opentelemetry/sdk-trace-base";
 import { Layer } from "effect";
 
 export const TelemetryLayer = NodeSdk.layer(() => ({
-  resource: {
-    serviceName: "one-api",
-  },
-  spanProcessor: new BatchSpanProcessor(
-    new OTLPTraceExporter({
-      url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT ?? "http://localhost:4318/v1/traces",
-    }),
-  ),
+	resource: {
+		serviceName: "one-api",
+	},
+	spanProcessor: new BatchSpanProcessor(
+		new OTLPTraceExporter({
+			url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT ?? "http://localhost:4318/v1/traces",
+		}),
+	),
 }));
 ```
 
@@ -1033,14 +989,12 @@ Add `TelemetryLayer` to `AppLayer`:
 
 ```typescript
 export const AppLayer = Layer.mergeAll(
-  DatabaseService.Default,
-  ClickHouseService.Default,
-  BillingService.Default,
-  EmailService.Default,
-  TelemetryLayer,
-).pipe(
-  Layer.provideMerge(AppConfig.Default),
-);
+	DatabaseService.Default,
+	ClickHouseService.Default,
+	BillingService.Default,
+	EmailService.Default,
+	TelemetryLayer,
+).pipe(Layer.provideMerge(AppConfig.Default));
 ```
 
 After this, you can remove `@hono/otel`, `@opentelemetry/context-async-hooks`, `@opentelemetry/instrumentation`, `@opentelemetry/instrumentation-pg`, `@opentelemetry/instrumentation-undici`, `@opentelemetry/resources`, `@opentelemetry/sdk-trace-base` from `apps/api/package.json`. Keep only `@opentelemetry/exporter-trace-otlp-http` and `@opentelemetry/api` (Effect uses the standard OTEL API).
@@ -1050,8 +1004,8 @@ The manual span recording in the error handler:
 ```typescript
 const span = trace.getActiveSpan();
 if (span) {
-  span.recordException(normalizedError);
-  span.setStatus({ code: SpanStatusCode.ERROR, message: normalizedError.message });
+	span.recordException(normalizedError);
+	span.setStatus({ code: SpanStatusCode.ERROR, message: normalizedError.message });
 }
 ```
 
@@ -1063,36 +1017,34 @@ These endpoints bridge Zero's sync protocol to Hono. They stay mostly the same s
 
 ```typescript
 // apps/api/src/mutate.ts (after)
-const app = new Hono<{ Variables: AuthVariables }>()
-  .use(authMiddleware)
-  .post("/", async (c) => {
-    const user = c.get("user");
-    const ctx = { userId: user.id };
+const app = new Hono<{ Variables: AuthVariables }>().use(authMiddleware).post("/", async (c) => {
+	const user = c.get("user");
+	const ctx = { userId: user.id };
 
-    const result = await runEffect(
-      Effect.gen(function* () {
-        const db = yield* DatabaseService;
-        const dbProvider = zeroDrizzle(schema, db);
+	const result = await runEffect(
+		Effect.gen(function* () {
+			const db = yield* DatabaseService;
+			const dbProvider = zeroDrizzle(schema, db);
 
-        return yield* Effect.tryPromise({
-          try: () =>
-            handleMutateRequest(
-              dbProvider,
-              async (transact) => {
-                return await transact(async (tx, name, args) => {
-                  const mutator = mustGetMutator(mutators, name);
-                  return await mutator.fn({ tx, ctx, args });
-                });
-              },
-              c.req.raw,
-            ),
-          catch: (cause) => new DatabaseError({ cause }),
-        });
-      }),
-    );
+			return yield* Effect.tryPromise({
+				try: () =>
+					handleMutateRequest(
+						dbProvider,
+						async (transact) => {
+							return await transact(async (tx, name, args) => {
+								const mutator = mustGetMutator(mutators, name);
+								return await mutator.fn({ tx, ctx, args });
+							});
+						},
+						c.req.raw,
+					),
+				catch: (cause) => new DatabaseError({ cause }),
+			});
+		}),
+	);
 
-    return c.json(result);
-  });
+	return c.json(result);
+});
 ```
 
 > Note: Inside the `transact` callback, we're still in Zero's world — `async/await`, not `Effect.gen`. Zero mutators keep throwing `PublicError`. This is an intentional boundary.
@@ -1199,12 +1151,12 @@ ManagedRuntime(AppLayer) → runEffect() → Hono handlers
 
 ## Risks and Mitigations
 
-| Risk | Mitigation |
-|------|------------|
-| better-auth expects a raw Drizzle `db` instance | Keep the existing `packages/core/src/drizzle/index.ts` with its plain `Pool` + `drizzle()` for better-auth's `drizzleAdapter()`. The `DatabaseService` is for Effect-managed access only. Two separate pools is acceptable — better-auth's pool handles auth routes, DatabaseService handles everything else. |
-| Zero mutators still throw `PublicError` | Keep `PublicError` in `result.ts`. The Hono `.onError` handler checks for both `PublicError` (instanceof) and TaggedErrors (`_tag` property). This is an intentional boundary — Zero owns its lifecycle. |
-| `drizzle-orm/effect-postgres` peer dep mismatch | Drizzle lists `@effect/sql-pg: ^0.49.7` (v3 range) but we use `4.0.0-beta.33`. At runtime, only `PgClient` is imported from `@effect/sql-pg/PgClient` — this export is identical in both versions. The `.d.ts` type references to `@effect/sql/SqlError` are handled by `skipLibCheck: true`. pnpm will warn but not fail. |
-| Bundle size increase | Effect tree-shakes aggressively. Only the used modules are included. The entire `effect` package is ~50KB gzipped. |
-| Team learning curve | The [effect-ts-skills](https://github.com/mrevanzak/effect-ts-skills) repo covers fundamentals, errors, resources, concurrency, and anti-patterns. Start with `effect-ts-fundamentals`, then `effect-ts-errors`. |
-| Config fails at startup for missing optional vars | Use `Config.option` or `Config.withDefault` for truly optional variables. Only required vars should fail-fast. |
-| `@hono/otel` removal breaks existing traces | Effect's OTEL integration uses the same `@opentelemetry/api` — spans will appear in the same format in Grafana/Alloy. The `@hono/otel` middleware was just auto-instrumenting Hono requests; Effect's tracing covers that automatically for all `Effect.gen` blocks. Hono request-level tracing can be re-added as a simple middleware that creates a span manually if needed. |
+| Risk                                              | Mitigation                                                                                                                                                                                                                                                                                                                                                                     |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| better-auth expects a raw Drizzle `db` instance   | Keep the existing `packages/core/src/drizzle/index.ts` with its plain `Pool` + `drizzle()` for better-auth's `drizzleAdapter()`. The `DatabaseService` is for Effect-managed access only. Two separate pools is acceptable — better-auth's pool handles auth routes, DatabaseService handles everything else.                                                                  |
+| Zero mutators still throw `PublicError`           | Keep `PublicError` in `result.ts`. The Hono `.onError` handler checks for both `PublicError` (instanceof) and TaggedErrors (`_tag` property). This is an intentional boundary — Zero owns its lifecycle.                                                                                                                                                                       |
+| `drizzle-orm/effect-postgres` peer dep mismatch   | Drizzle lists `@effect/sql-pg: ^0.49.7` (v3 range) but we use `4.0.0-beta.33`. At runtime, only `PgClient` is imported from `@effect/sql-pg/PgClient` — this export is identical in both versions. The `.d.ts` type references to `@effect/sql/SqlError` are handled by `skipLibCheck: true`. pnpm will warn but not fail.                                                     |
+| Bundle size increase                              | Effect tree-shakes aggressively. Only the used modules are included. The entire `effect` package is ~50KB gzipped.                                                                                                                                                                                                                                                             |
+| Team learning curve                               | The [effect-ts-skills](https://github.com/mrevanzak/effect-ts-skills) repo covers fundamentals, errors, resources, concurrency, and anti-patterns. Start with `effect-ts-fundamentals`, then `effect-ts-errors`.                                                                                                                                                               |
+| Config fails at startup for missing optional vars | Use `Config.option` or `Config.withDefault` for truly optional variables. Only required vars should fail-fast.                                                                                                                                                                                                                                                                 |
+| `@hono/otel` removal breaks existing traces       | Effect's OTEL integration uses the same `@opentelemetry/api` — spans will appear in the same format in Grafana/Alloy. The `@hono/otel` middleware was just auto-instrumenting Hono requests; Effect's tracing covers that automatically for all `Effect.gen` blocks. Hono request-level tracing can be re-added as a simple middleware that creates a span manually if needed. |

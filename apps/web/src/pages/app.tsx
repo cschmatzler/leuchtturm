@@ -80,7 +80,11 @@ function Layout() {
 	const { session } = Route.useRouteContext();
 
 	return (
-		<AutumnProvider key={session.user.id} backendUrl={import.meta.env.VITE_BASE_URL} includeCredentials>
+		<AutumnProvider
+			key={session.user.id}
+			backendUrl={import.meta.env.VITE_BASE_URL}
+			includeCredentials
+		>
 			<App session={session} />
 		</AutumnProvider>
 	);
@@ -265,9 +269,7 @@ function Shell({ session }: { session: SessionData }) {
 									<MenuSeparator />
 								</>
 							)}
-							<MenuItem
-								onClick={() => navigate({ to: "/login" })}
-							>
+							<MenuItem onClick={() => navigate({ to: "/login" })}>
 								<PlusIcon />
 								<span>{t("Add another account")}</span>
 							</MenuItem>

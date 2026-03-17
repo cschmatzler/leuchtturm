@@ -1,4 +1,5 @@
 import { Autumn } from "autumn-js";
+import type { Customer, UpdateCustomerResponse } from "autumn-js";
 import { Config, Effect, Layer, Redacted, ServiceMap } from "effect";
 
 import { BillingError } from "@one/core/errors";
@@ -9,19 +10,18 @@ export interface BillingServiceShape {
 		customerId: string;
 		name: string;
 		email: string;
-	}) => Effect.Effect<unknown, BillingError>;
+	}) => Effect.Effect<Customer, BillingError>;
 	readonly updateCustomer: (params: {
 		customerId: string;
 		name: string;
 		email: string;
-	}) => Effect.Effect<unknown, BillingError>;
+	}) => Effect.Effect<UpdateCustomerResponse, BillingError>;
 }
 
 /** Autumn billing service wrapping the autumn-js client. */
-export class BillingService extends ServiceMap.Service<
-	BillingService,
-	BillingServiceShape
->()("BillingService") {}
+export class BillingService extends ServiceMap.Service<BillingService, BillingServiceShape>()(
+	"BillingService",
+) {}
 
 /** Layer that provides BillingService. */
 export const BillingServiceLive = Layer.effect(BillingService)(
