@@ -1,6 +1,6 @@
 @import "tailwindcss";
-@import "@fontsource/montserrat/variable.css";
-@import "@fontsource/cormorant-garamond/variable.css";
+@import "@fontsource/montserrat";
+@import "@fontsource/cormorant-garamond";
 @import "@fontsource/geist-mono";
 
 @custom-variant dark (&:is(.dark *));
