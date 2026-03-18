@@ -110,6 +110,7 @@ in
 				merge_vstore_deps "pg@[0-9]*"
 				merge_vstore_deps "pg-types@*"
 				merge_vstore_deps "pgpass@*"
+				merge_vstore_deps "postgres-bytea@*"
 				merge_vstore_deps "postgres-interval@*"
 
 				mkdir -p $out/bin
