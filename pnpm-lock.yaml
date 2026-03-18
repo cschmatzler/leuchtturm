@@ -108,15 +108,15 @@ importers:
       '@chevrotain/zero':
         specifier: workspace:*
         version: link:../../packages/zero
-      '@fontsource/ibm-plex-mono':
-        specifier: 5.2.7
+      '@fontsource/cormorant-garamond':
+        specifier: ^5.2.11
+        version: 5.2.11
+      '@fontsource/geist-mono':
+        specifier: ^5.2.7
         version: 5.2.7
-      '@fontsource/plus-jakarta-sans':
-        specifier: 5.2.8
+      '@fontsource/montserrat':
+        specifier: ^5.2.8
         version: 5.2.8
-      '@fontsource/space-grotesk':
-        specifier: 5.2.10
-        version: 5.2.10
       '@rocicorp/zero':
         specifier: 0.26.1
         version: 0.26.1(@opentelemetry/core@2.6.0(@opentelemetry/api@1.9.0))
@@ -1273,14 +1273,14 @@ packages:
   '@floating-ui/utils@0.2.11':
     resolution: {integrity: sha512-RiB/yIh78pcIxl6lLMG0CgBXAZ2Y0eVHqMPYugu+9U0AeT6YBeiJpf7lbdJNIugFP5SIjwNRgo4DhR1Qxi26Gg==}
 
-  '@fontsource/ibm-plex-mono@5.2.7':
-    resolution: {integrity: sha512-MKAb8qV+CaiMQn2B0dIi1OV3565NYzp3WN5b4oT6LTkk+F0jR6j0ZN+5BKJiIhffDC3rtBULsYZE65+0018z9w==}
+  '@fontsource/cormorant-garamond@5.2.11':
+    resolution: {integrity: sha512-5JjpN023lhA5soijgVT0BdRGzmlijm402ppjccMd6h+vRE0mX2lJnE+41UPfnlidrkV9/rCo1mf58WZlHnB0CA==}
 
-  '@fontsource/plus-jakarta-sans@5.2.8':
-    resolution: {integrity: sha512-P5qE49fqdeD+7DXH1KBxmMPlB17LTz1zvBhFH0tFzfnYTKVJVyb0pR6plh0ZGXxcB+Oayb54FZZw3V42/DawTw==}
+  '@fontsource/geist-mono@5.2.7':
+    resolution: {integrity: sha512-xVPVFISJg/K0VVd+aQN0Y7X/sw9hUcJPyDWFJ5GpyU3bHELhoRsJkPSRSHXW32mOi0xZCUQDOaPj1sqIFJ1FGg==}
 
-  '@fontsource/space-grotesk@5.2.10':
-    resolution: {integrity: sha512-XNXEbT74OIITPqw2H6HXwPDp85fy43uxfBwFR5PU+9sLnjuLj12KlhVM9nZVN6q6dlKjkuN8JisW/OBxwxgUew==}
+  '@fontsource/montserrat@5.2.8':
+    resolution: {integrity: sha512-xTjLxSbSfCycDB0pwmNsfNvdfWPaDaRQ2LC6yt/ZI7SdvXG52zHnzNYC/09mzuAuWNJyShkteutfCoDgym56hQ==}
 
   '@google-cloud/precise-date@4.0.0':
     resolution: {integrity: sha512-1TUx3KdaU3cN7nfCdNf+UVqA/PSX29Cjcox3fZZBtINlRrXVTmUkQnCKv2MbBUbCopbK4olAT1IHl76uZyCiVA==}
@@ -7091,11 +7091,11 @@ snapshots:
 
   '@floating-ui/utils@0.2.11': {}
 
-  '@fontsource/ibm-plex-mono@5.2.7': {}
+  '@fontsource/cormorant-garamond@5.2.11': {}
 
-  '@fontsource/plus-jakarta-sans@5.2.8': {}
+  '@fontsource/geist-mono@5.2.7': {}
 
-  '@fontsource/space-grotesk@5.2.10': {}
+  '@fontsource/montserrat@5.2.8': {}
 
   '@google-cloud/precise-date@4.0.0': {}
 
