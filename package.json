@@ -20,7 +20,7 @@
 	"packageManager": "pnpm@10.28.0",
 	"pnpm": {
 		"overrides": {
-			"effect": "4.0.0-beta.33"
+			"effect": "4.0.0-beta.34"
 		}
 	},
 	"trustedDependencies": [

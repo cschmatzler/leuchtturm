@@ -17,7 +17,9 @@
 		modulesPath,
 		pkgs,
 		...
-	}: {
+	}: let
+		cfg = import ../nix/config.nix;
+	in {
 		_module.args.packages = inputs.self.packages.${pkgs.system};
 
 		imports = [
@@ -33,6 +35,16 @@
 		];
 
 		networking.hostName = "chevrotain-zero";
+
+		services.prometheus.exporters.node = {
+			enable = true;
+			port = cfg.ports.nodeExporter;
+			enabledCollectors = ["systemd"];
+		};
+
+		networking.firewall.interfaces."tailscale0".allowedTCPPorts = [
+			cfg.ports.nodeExporter
+		];
 
 		virtualisation.docker = {
 			enable = true;

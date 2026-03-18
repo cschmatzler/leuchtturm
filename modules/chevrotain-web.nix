@@ -18,7 +18,9 @@
 		modulesPath,
 		pkgs,
 		...
-	}: {
+	}: let
+		cfg = import ../nix/config.nix;
+	in {
 		_module.args.packages = inputs.self.packages.${pkgs.system};
 
 		imports = [
@@ -34,6 +36,16 @@
 		];
 
 		networking.hostName = "chevrotain-web";
+
+		services.prometheus.exporters.node = {
+			enable = true;
+			port = cfg.ports.nodeExporter;
+			enabledCollectors = ["systemd"];
+		};
+
+		networking.firewall.interfaces."tailscale0".allowedTCPPorts = [
+			cfg.ports.nodeExporter
+		];
 
 		swapDevices = [
 			{

@@ -7,7 +7,7 @@
 	"dependencies": {
 		"@chevrotain/core": "workspace:*",
 		"@rocicorp/zero": "0.26.1",
-		"effect": "4.0.0-beta.33"
+		"effect": "4.0.0-beta.34"
 	},
 	"devDependencies": {
 		"typescript": "5.9.3"

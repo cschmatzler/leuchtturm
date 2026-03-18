@@ -3,30 +3,25 @@ import { HttpMiddleware, HttpRouter, HttpServer } from "effect/unstable/http";
 import { HttpApiBuilder } from "effect/unstable/httpapi";
 
 import { ChevrotainApi } from "@chevrotain/api/contract";
-import { AnalyticsHandlerLive } from "@chevrotain/api/handlers/analytics";
 import { AuthHandlerLive } from "@chevrotain/api/handlers/auth";
 import { AutumnHandlerLive } from "@chevrotain/api/handlers/autumn";
-import { ErrorsHandlerLive } from "@chevrotain/api/handlers/errors";
 import { HealthHandlerLive } from "@chevrotain/api/handlers/health";
+import { RpcLive } from "@chevrotain/api/handlers/rpc";
 import { ZeroHandlerLive } from "@chevrotain/api/handlers/zero";
 import { AuthMiddlewareLive } from "@chevrotain/api/middleware/auth";
 import { AppLayer } from "@chevrotain/api/runtime";
 
-/** All handler group implementations. */
+/** HttpApi handler groups (passthrough endpoints only). */
 const HandlersLive = Layer.mergeAll(
 	HealthHandlerLive,
-	AnalyticsHandlerLive,
-	ErrorsHandlerLive,
 	ZeroHandlerLive,
 	AuthHandlerLive,
 	AutumnHandlerLive,
 );
 
 /**
- * App layer: HttpApi contract + all handler groups + middleware + services.
- *
- * AppLayer is provided once at the outermost point so services are shared
- * across handlers, middleware, and the serve pipeline (no duplicate instances).
+ * HttpApi layer for passthrough endpoints (auth, autumn, zero, health).
+ * Analytics and errors are now served via RPC.
  */
 const ApiLive = HttpApiBuilder.layer(ChevrotainApi).pipe(
 	Layer.provide(HandlersLive),
@@ -34,13 +29,17 @@ const ApiLive = HttpApiBuilder.layer(ChevrotainApi).pipe(
 );
 
 /**
- * Convert the router-based API layer into a serveable HTTP application effect,
- * then serve it with CORS middleware.
+ * Combined layer: HttpApi routes + RPC routes on the same HttpRouter.
  *
- * BASE_URL is read via Effect Config so all configuration flows through the
- * same channel instead of raw process.env reads at module level.
+ * RpcLive registers POST /api/rpc on the router. ApiLive registers the
+ * remaining HttpApi routes. Both share the same HttpRouter instance.
  */
-const httpApp = Effect.flatten(HttpRouter.toHttpEffect(ApiLive));
+const RoutesLive = Layer.mergeAll(ApiLive, RpcLive);
+
+/**
+ * Convert the router into a serveable HTTP application and add CORS.
+ */
+const httpApp = Effect.flatten(HttpRouter.toHttpEffect(RoutesLive));
 
 export const ServerLive = Layer.unwrap(
 	Effect.gen(function* () {

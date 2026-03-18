@@ -1,4 +1,4 @@
-import { api } from "@chevrotain/web/clients/api";
+import { ingestEvents, reportErrors } from "@chevrotain/web/clients/rpc";
 
 type AnalyticsEvent = {
 	eventType: string;
@@ -51,9 +51,7 @@ function pushEvent(
 }
 
 async function sendBatch(events: AnalyticsEvent[]): Promise<void> {
-	await api.analytics.$post({
-		json: { events },
-	});
+	await ingestEvents({ events });
 }
 
 async function splitAndSend(events: AnalyticsEvent[]): Promise<void> {
@@ -141,7 +139,7 @@ async function flushErrors(): Promise<void> {
 	errorBuffer = [];
 
 	try {
-		await api.errors.$post({ json: { errors } });
+		await reportErrors({ errors });
 	} catch {
 		// Silently drop — error reporting should never cause additional errors.
 	}

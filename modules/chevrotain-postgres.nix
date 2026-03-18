@@ -87,6 +87,7 @@
 
 			authentication =
 				lib.mkAfter ''
+					local chevrotain prometheus trust
 					host chevrotain grafana 100.64.0.0/10 trust
 				'';
 
@@ -137,8 +138,15 @@
 			];
 		};
 
+		services.prometheus.exporters.node = {
+			enable = true;
+			port = cfg.ports.nodeExporter;
+			enabledCollectors = ["systemd"];
+		};
+
 		networking.firewall.interfaces."tailscale0".allowedTCPPorts = [
 			cfg.ports.postgresExporter
+			cfg.ports.nodeExporter
 		];
 	};
 }

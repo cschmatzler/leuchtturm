@@ -8,15 +8,34 @@ in {
 		extraFlags = ["--web.enable-remote-write-receiver"];
 		listenAddress = "0.0.0.0";
 		scrapeConfigs = [
-			# Local observability services
+			# Node metrics from all hosts
 			{
 				job_name = "node";
 				static_configs = [
 					{
 						targets = ["127.0.0.1:${toString cfg.ports.nodeExporter}"];
+						labels.instance = "observability";
+					}
+					{
+						targets = ["${cfg.hosts.web}:${toString cfg.ports.nodeExporter}"];
+						labels.instance = "web";
+					}
+					{
+						targets = ["${cfg.hosts.zero}:${toString cfg.ports.nodeExporter}"];
+						labels.instance = "zero";
+					}
+					{
+						targets = ["${cfg.hosts.postgres}:${toString cfg.ports.nodeExporter}"];
+						labels.instance = "postgres";
 					}
 				];
 				scrape_interval = "15s";
+				relabel_configs = [
+					{
+						source_labels = ["instance"];
+						target_label = "instance";
+					}
+				];
 			}
 			{
 				job_name = "prometheus";

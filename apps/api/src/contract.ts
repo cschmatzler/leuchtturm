@@ -2,41 +2,21 @@ import { Schema } from "effect";
 import { HttpApi, HttpApiEndpoint, HttpApiGroup } from "effect/unstable/httpapi";
 
 import { AuthMiddleware } from "@chevrotain/api/middleware/auth";
-import { AnalyticsPayload, ErrorPayload } from "@chevrotain/core/analytics/schema";
 import {
 	BillingError,
-	ClickHouseError,
 	DatabaseError,
-	RateLimitError,
 	UnauthorizedError,
 	ValidationError,
 } from "@chevrotain/core/errors";
 
 const SuccessResponse = Schema.Struct({ success: Schema.Literal(true) });
 
-// --- Endpoint groups ---
+// --- Endpoint groups (passthrough endpoints only) ---
+// Analytics and errors are now served via Effect RPC at /api/rpc.
 
 const healthGroup = HttpApiGroup.make("health").add(
 	HttpApiEndpoint.get("healthCheck", "/up", {
 		success: SuccessResponse,
-	}),
-);
-
-const analyticsGroup = HttpApiGroup.make("analytics")
-	.add(
-		HttpApiEndpoint.post("ingestEvents", "/analytics", {
-			payload: AnalyticsPayload,
-			success: SuccessResponse,
-			error: [ValidationError, ClickHouseError],
-		}),
-	)
-	.middleware(AuthMiddleware);
-
-const errorsGroup = HttpApiGroup.make("errors").add(
-	HttpApiEndpoint.post("reportErrors", "/errors", {
-		payload: ErrorPayload,
-		success: SuccessResponse,
-		error: [ValidationError, RateLimitError, ClickHouseError],
 	}),
 );
 
@@ -57,5 +37,5 @@ const autumnGroup = HttpApiGroup.make("autumn")
 // --- Full API ---
 
 export class ChevrotainApi extends HttpApi.make("chevrotain")
-	.add(healthGroup, analyticsGroup, errorsGroup, zeroGroup, authGroup, autumnGroup)
+	.add(healthGroup, zeroGroup, authGroup, autumnGroup)
 	.prefix("/api") {}

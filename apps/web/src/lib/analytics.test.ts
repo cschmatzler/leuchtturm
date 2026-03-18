@@ -1,15 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vite-plus/test";
 
-const { postMock } = vi.hoisted(() => ({
-	postMock: vi.fn(),
+const { ingestEventsMock, reportErrorsMock } = vi.hoisted(() => ({
+	ingestEventsMock: vi.fn(),
+	reportErrorsMock: vi.fn(),
 }));
 
-vi.mock("@chevrotain/web/clients/api", () => ({
-	api: {
-		analytics: {
-			$post: postMock,
-		},
-	},
+vi.mock("@chevrotain/web/clients/rpc", () => ({
+	ingestEvents: ingestEventsMock,
+	reportErrors: reportErrorsMock,
 }));
 
 type AnalyticsModule = typeof import("@chevrotain/web/lib/analytics");
@@ -32,8 +30,10 @@ describe("analytics", () => {
 	beforeEach(() => {
 		vi.useFakeTimers();
 
-		postMock.mockReset();
-		postMock.mockResolvedValue({});
+		ingestEventsMock.mockReset();
+		ingestEventsMock.mockResolvedValue(undefined);
+		reportErrorsMock.mockReset();
+		reportErrorsMock.mockResolvedValue(undefined);
 
 		sendBeaconMock = vi.fn().mockReturnValue(true);
 		documentAddEventListenerMock = vi.fn();
@@ -64,20 +64,18 @@ describe("analytics", () => {
 		analytics.track("form_submit", defaultLocation);
 		await analytics.flush();
 
-		expect(postMock).toHaveBeenCalledOnce();
-		const firstCall = postMock.mock.calls[0][0] as {
-			json: {
-				events: Array<Record<string, unknown>>;
-			};
+		expect(ingestEventsMock).toHaveBeenCalledOnce();
+		const payload = ingestEventsMock.mock.calls[0][0] as {
+			events: Array<Record<string, unknown>>;
 		};
-		expect(firstCall.json.events).toHaveLength(2);
-		expect(firstCall.json.events[0]).toEqual({
+		expect(payload.events).toHaveLength(2);
+		expect(payload.events[0]).toEqual({
 			eventType: "button_click",
 			url: "https://chevrotain.app/dashboard",
 			referrer: "https://example.com",
 			properties: { buttonId: "save" },
 		});
-		expect(firstCall.json.events[1]).toEqual({
+		expect(payload.events[1]).toEqual({
 			eventType: "form_submit",
 			url: "https://chevrotain.app/dashboard",
 			referrer: "https://example.com",
@@ -94,31 +92,27 @@ describe("analytics", () => {
 
 		await vi.advanceTimersByTimeAsync(0);
 
-		expect(postMock).toHaveBeenCalledOnce();
-		const firstCall = postMock.mock.calls[0][0] as {
-			json: {
-				events: Array<Record<string, unknown>>;
-			};
+		expect(ingestEventsMock).toHaveBeenCalledOnce();
+		const payload = ingestEventsMock.mock.calls[0][0] as {
+			events: Array<Record<string, unknown>>;
 		};
-		expect(firstCall.json.events).toHaveLength(50);
+		expect(payload.events).toHaveLength(50);
 	});
 
 	it("buffer flushes on timer (5s interval)", async () => {
 		const analytics = await loadAnalyticsModule();
 
 		analytics.track("page_view", defaultLocation);
-		expect(postMock).not.toHaveBeenCalled();
+		expect(ingestEventsMock).not.toHaveBeenCalled();
 
 		await vi.advanceTimersByTimeAsync(5000);
 
-		expect(postMock).toHaveBeenCalledOnce();
-		const firstCall = postMock.mock.calls[0][0] as {
-			json: {
-				events: Array<Record<string, unknown>>;
-			};
+		expect(ingestEventsMock).toHaveBeenCalledOnce();
+		const payload = ingestEventsMock.mock.calls[0][0] as {
+			events: Array<Record<string, unknown>>;
 		};
-		expect(firstCall.json.events).toHaveLength(1);
-		expect(firstCall.json.events[0]?.eventType).toBe("page_view");
+		expect(payload.events).toHaveLength(1);
+		expect(payload.events[0]?.eventType).toBe("page_view");
 	});
 
 	it("buffer flushes on visibilitychange to hidden", async () => {
@@ -140,24 +134,22 @@ describe("analytics", () => {
 		visibilityHandler();
 		await vi.advanceTimersByTimeAsync(0);
 
-		expect(postMock).toHaveBeenCalledOnce();
+		expect(ingestEventsMock).toHaveBeenCalledOnce();
 	});
 
-	it("flush sends events via api client", async () => {
+	it("flush sends events via RPC client", async () => {
 		const analytics = await loadAnalyticsModule();
 
 		analytics.track("test_event", defaultLocation);
 		await analytics.flush();
 
-		expect(postMock).toHaveBeenCalledWith({
-			json: {
-				events: expect.any(Array),
-			},
+		expect(ingestEventsMock).toHaveBeenCalledWith({
+			events: expect.any(Array),
 		});
 	});
 
 	it("flush does not use sendBeacon when request fails", async () => {
-		postMock.mockRejectedValueOnce(new Error("Network error"));
+		ingestEventsMock.mockRejectedValueOnce(new Error("Network error"));
 		const analytics = await loadAnalyticsModule();
 
 		analytics.track("test_event", defaultLocation);
@@ -176,14 +168,12 @@ describe("analytics", () => {
 
 		await analytics.flush();
 
-		expect(postMock.mock.calls.length).toBeGreaterThanOrEqual(2);
-		for (const call of postMock.mock.calls) {
-			const argument = call[0] as {
-				json: {
-					events: Array<Record<string, unknown>>;
-				};
+		expect(ingestEventsMock.mock.calls.length).toBeGreaterThanOrEqual(2);
+		for (const call of ingestEventsMock.mock.calls) {
+			const payload = call[0] as {
+				events: Array<Record<string, unknown>>;
 			};
-			const byteLength = new TextEncoder().encode(JSON.stringify(argument.json)).byteLength;
+			const byteLength = new TextEncoder().encode(JSON.stringify(payload)).byteLength;
 			expect(byteLength).toBeLessThanOrEqual(50 * 1024);
 		}
 	});
@@ -194,14 +184,12 @@ describe("analytics", () => {
 		analytics.trackPageView("/dashboard", "/login");
 		await analytics.flush();
 
-		expect(postMock).toHaveBeenCalledOnce();
-		const firstCall = postMock.mock.calls[0][0] as {
-			json: {
-				events: Array<Record<string, unknown>>;
-			};
+		expect(ingestEventsMock).toHaveBeenCalledOnce();
+		const payload = ingestEventsMock.mock.calls[0][0] as {
+			events: Array<Record<string, unknown>>;
 		};
-		expect(firstCall.json.events).toHaveLength(1);
-		expect(firstCall.json.events[0]).toEqual({
+		expect(payload.events).toHaveLength(1);
+		expect(payload.events[0]).toEqual({
 			eventType: "page_view",
 			url: "/dashboard",
 			referrer: "/login",
@@ -213,7 +201,7 @@ describe("analytics", () => {
 		const analytics = await loadAnalyticsModule();
 
 		await analytics.flush();
-		expect(postMock).not.toHaveBeenCalled();
+		expect(ingestEventsMock).not.toHaveBeenCalled();
 		expect(sendBeaconMock).not.toHaveBeenCalled();
 	});
 
