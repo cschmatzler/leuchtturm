@@ -27,6 +27,7 @@
 			inputs.sops-nix.nixosModules.sops
 			(modulesPath + "/installer/scan/not-detected.nix")
 			(modulesPath + "/profiles/qemu-guest.nix")
+			../platform/hosts/alloy-agent.nix
 			../platform/hosts/chevrotain-zero/caddy.nix
 			../platform/hosts/chevrotain-zero/zero.nix
 			../platform/hosts/chevrotain-zero/disk-config.nix

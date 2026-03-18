@@ -1,6 +1,6 @@
 {
 	"memory": {
-		"brain": "https://trycog.ai/christoph/Chevrotain",
-		"model": "opencode-go/minimax-m2.5"
+		"brain": "file:.cog/brain.db",
+		"model": "opencode-go/minimax-m2.7"
 	}
 }

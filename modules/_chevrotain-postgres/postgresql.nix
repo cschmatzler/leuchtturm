@@ -14,9 +14,11 @@
 		};
 		authentication =
 			pkgs.lib.mkOverride 10 ''
+				local   all       prometheus                  trust
 				local   all       all                         peer
 				host    all       all         127.0.0.1/32    scram-sha-256
 				host    all       all         ::1/128         scram-sha-256
+				host    chevrotain grafana    100.64.0.0/10   trust
 				host    all       all         100.64.0.0/10   scram-sha-256
 			'';
 	};

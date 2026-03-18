@@ -23,13 +23,13 @@
 				"current": {
 					"selected": true,
 					"text": "All",
-					"value": "$__all"
+					"value": "all"
 				},
 				"options": [
 					{
 						"selected": true,
 						"text": "All",
-						"value": "$__all"
+						"value": "all"
 					},
 					{
 						"selected": false,
@@ -43,6 +43,7 @@
 					}
 				],
 				"query": "api,web",
+				"allValue": "all",
 				"includeAll": true,
 				"multi": false
 			}
@@ -124,7 +125,7 @@
 						"type": "grafana-clickhouse-datasource",
 						"uid": "clickhouse"
 					},
-					"rawSql": "SELECT count() AS total FROM error_events WHERE timestamp >= $__fromTime AND timestamp <= $__toTime AND ('$source' = '$__all' OR source = '$source')",
+					"rawSql": "SELECT count() AS total FROM error_events WHERE timestamp >= $__fromTime AND timestamp <= $__toTime AND ('${source}' = 'all' OR source = '${source}')",
 					"format": 1,
 					"refId": "A"
 				}
@@ -265,7 +266,7 @@
 						"type": "grafana-clickhouse-datasource",
 						"uid": "clickhouse"
 					},
-					"rawSql": "SELECT uniq(error_type) AS unique_types FROM error_events WHERE timestamp >= $__fromTime AND timestamp <= $__toTime AND ('$source' = '$__all' OR source = '$source')",
+					"rawSql": "SELECT uniq(error_type) AS unique_types FROM error_events WHERE timestamp >= $__fromTime AND timestamp <= $__toTime AND ('${source}' = 'all' OR source = '${source}')",
 					"format": 1,
 					"refId": "A"
 				}
@@ -321,7 +322,7 @@
 						"type": "grafana-clickhouse-datasource",
 						"uid": "clickhouse"
 					},
-					"rawSql": "SELECT $__timeInterval(timestamp) AS time, source, count() AS errors FROM error_events WHERE timestamp >= $__fromTime AND timestamp <= $__toTime AND ('$source' = '$__all' OR source = '$source') GROUP BY time, source ORDER BY time",
+					"rawSql": "SELECT $__timeInterval(timestamp) AS time, source, count() AS errors FROM error_events WHERE timestamp >= $__fromTime AND timestamp <= $__toTime AND ('${source}' = 'all' OR source = '${source}') GROUP BY time, source ORDER BY time",
 					"format": 0,
 					"refId": "A"
 				}
@@ -428,7 +429,7 @@
 						"type": "grafana-clickhouse-datasource",
 						"uid": "clickhouse"
 					},
-					"rawSql": "SELECT error_type, count() AS errors FROM error_events WHERE timestamp >= $__fromTime AND timestamp <= $__toTime AND ('$source' = '$__all' OR source = '$source') GROUP BY error_type ORDER BY errors DESC LIMIT 10",
+					"rawSql": "SELECT error_type, count() AS errors FROM error_events WHERE timestamp >= $__fromTime AND timestamp <= $__toTime AND ('${source}' = 'all' OR source = '${source}') GROUP BY error_type ORDER BY errors DESC LIMIT 10",
 					"format": 1,
 					"refId": "A"
 				}
@@ -547,7 +548,7 @@
 						"type": "grafana-clickhouse-datasource",
 						"uid": "clickhouse"
 					},
-					"rawSql": "SELECT timestamp, source, error_type, message, url, method, status_code, stack_trace, user_agent FROM error_events WHERE timestamp >= $__fromTime AND timestamp <= $__toTime AND ('$source' = '$__all' OR source = '$source') ORDER BY timestamp DESC LIMIT 100",
+					"rawSql": "SELECT timestamp, source, error_type, message, url, method, status_code, stack_trace, user_agent FROM error_events WHERE timestamp >= $__fromTime AND timestamp <= $__toTime AND ('${source}' = 'all' OR source = '${source}') ORDER BY timestamp DESC LIMIT 100",
 					"format": 1,
 					"refId": "A"
 				}
@@ -594,7 +595,7 @@
 						"type": "grafana-clickhouse-datasource",
 						"uid": "clickhouse"
 					},
-					"rawSql": "SELECT url, count() AS errors, uniq(error_type) AS unique_types FROM error_events WHERE timestamp >= $__fromTime AND timestamp <= $__toTime AND url != '' AND ('$source' = '$__all' OR source = '$source') GROUP BY url ORDER BY errors DESC LIMIT 20",
+					"rawSql": "SELECT url, count() AS errors, uniq(error_type) AS unique_types FROM error_events WHERE timestamp >= $__fromTime AND timestamp <= $__toTime AND url != '' AND ('${source}' = 'all' OR source = '${source}') GROUP BY url ORDER BY errors DESC LIMIT 20",
 					"format": 1,
 					"refId": "A"
 				}
@@ -641,7 +642,7 @@
 						"type": "grafana-clickhouse-datasource",
 						"uid": "clickhouse"
 					},
-					"rawSql": "SELECT user_id, count() AS errors, uniq(error_type) AS unique_types FROM error_events WHERE timestamp >= $__fromTime AND timestamp <= $__toTime AND user_id != '' AND ('$source' = '$__all' OR source = '$source') GROUP BY user_id ORDER BY errors DESC LIMIT 20",
+					"rawSql": "SELECT user_id, count() AS errors, uniq(error_type) AS unique_types FROM error_events WHERE timestamp >= $__fromTime AND timestamp <= $__toTime AND user_id != '' AND ('${source}' = 'all' OR source = '${source}') GROUP BY user_id ORDER BY errors DESC LIMIT 20",
 					"format": 1,
 					"refId": "A"
 				}

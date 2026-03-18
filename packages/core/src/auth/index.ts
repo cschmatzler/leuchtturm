@@ -1,25 +1,25 @@
 import { checkout, polar, portal, webhooks } from "@polar-sh/better-auth";
-import { Polar } from "@polar-sh/sdk";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { multiSession } from "better-auth/plugins";
 
 import * as schema from "@chevrotain/core/auth/auth.sql";
+import {
+	polarClient,
+	POLAR_SUCCESS_URL,
+	POLAR_WEBHOOK_SECRET,
+} from "@chevrotain/core/billing/polar";
+import { POLAR_PRO_PRODUCT_ID, POLAR_PRO_PRODUCT_SLUG } from "@chevrotain/core/billing/products";
+import { polarWebhookHandlers } from "@chevrotain/core/billing/webhooks";
+import { coreAuthConfig } from "@chevrotain/core/config";
 import { db } from "@chevrotain/core/drizzle/index";
 import { PREFIXES, createId, type IdPrefix } from "@chevrotain/core/id";
 import { resend } from "@chevrotain/email/index";
 import { renderPasswordResetEmail } from "@chevrotain/email/password-reset";
 
-const polarClient = new Polar({
-	accessToken: process.env.POLAR_ACCESS_TOKEN,
-	server: process.env.POLAR_SERVER === "production" ? "production" : "sandbox",
-});
-
-const polarWebhookSecret = process.env.POLAR_WEBHOOK_SECRET ?? "polar_webhook_secret_placeholder";
-
 export const auth = betterAuth({
-	baseURL: `${process.env.BASE_URL}/api/auth`,
-	trustedOrigins: [process.env.BASE_URL!],
+	baseURL: `${coreAuthConfig.baseUrl}/api/auth`,
+	trustedOrigins: [coreAuthConfig.baseUrl],
 	database: drizzleAdapter(db, {
 		provider: "pg",
 		schema,
@@ -53,8 +53,8 @@ export const auth = betterAuth({
 	},
 	socialProviders: {
 		github: {
-			clientId: process.env.GITHUB_CLIENT_ID!,
-			clientSecret: process.env.GITHUB_CLIENT_SECRET,
+			clientId: coreAuthConfig.githubClientId,
+			clientSecret: coreAuthConfig.githubClientSecret,
 		},
 	},
 	plugins: [
@@ -66,22 +66,20 @@ export const auth = betterAuth({
 				checkout({
 					products: [
 						{
-							productId: "76bcdda5-ba1d-4706-8a5c-6433e62d792d",
-							slug: "Chevrotain-Pro",
+							productId: POLAR_PRO_PRODUCT_ID,
+							slug: POLAR_PRO_PRODUCT_SLUG,
 						},
 					],
-					successUrl: process.env.POLAR_SUCCESS_URL,
-					returnUrl: `${process.env.BASE_URL}/app/settings/billing`,
+					successUrl: POLAR_SUCCESS_URL,
+					returnUrl: `${coreAuthConfig.baseUrl}/app/settings/billing`,
 					authenticatedUsersOnly: true,
 				}),
 				portal({
-					returnUrl: `${process.env.BASE_URL}/app/settings/billing`,
+					returnUrl: `${coreAuthConfig.baseUrl}/app/settings/billing`,
 				}),
 				webhooks({
-					secret: polarWebhookSecret,
-					onPayload: async (_payload) => {
-						return;
-					},
+					secret: POLAR_WEBHOOK_SECRET,
+					...polarWebhookHandlers,
 				}),
 			],
 		}),

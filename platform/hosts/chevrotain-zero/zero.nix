@@ -29,7 +29,7 @@ in {
 					ZERO_QUERY_URL = "https://api.${cfg.domain}/api/query";
 					ZERO_MUTATE_URL = "https://api.${cfg.domain}/api/mutate";
 					ZERO_REPLICA_FILE = "/data/zero.db";
-					OTEL_EXPORTER_OTLP_ENDPOINT = "http://${cfg.hosts.observability}:${toString cfg.ports.alloyOtlp}";
+					OTEL_EXPORTER_OTLP_ENDPOINT = "http://host.docker.internal:${toString cfg.ports.alloyOtlp}";
 					OTEL_SERVICE_NAME = "zero-cache";
 					OTEL_RESOURCE_ATTRIBUTES = "service.namespace=chevrotain,deployment.environment=production";
 					OTEL_NODE_RESOURCE_DETECTORS = "env,host,os";

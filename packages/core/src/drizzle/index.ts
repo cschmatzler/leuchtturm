@@ -3,9 +3,10 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 
 import { account, session, user } from "@chevrotain/core/auth/auth.sql";
+import { databaseUrl } from "@chevrotain/core/config";
 
 const pool = new Pool({
-	connectionString: process.env.DATABASE_URL,
+	connectionString: databaseUrl,
 });
 
 const authRelations = defineRelationsPart({ user, session, account }, (r) => ({

@@ -27,6 +27,7 @@
 			inputs.sops-nix.nixosModules.sops
 			(modulesPath + "/installer/scan/not-detected.nix")
 			(modulesPath + "/profiles/qemu-guest.nix")
+			../platform/hosts/alloy-agent.nix
 			./_chevrotain-postgres/postgresql.nix
 			./_chevrotain-postgres/pgbackrest.nix
 			../platform/hosts/chevrotain-postgres/pgbackrest.nix
@@ -84,12 +85,6 @@
 					ensureClauses.login = true;
 				}
 			];
-
-			authentication =
-				lib.mkAfter ''
-					local chevrotain prometheus trust
-					host chevrotain grafana 100.64.0.0/10 trust
-				'';
 
 			settings = {
 				shared_buffers = lib.mkForce "1GB";

@@ -1,7 +1,9 @@
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { ExternalLinkIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { POLAR_PRO_PRODUCT_SLUG } from "@chevrotain/core/billing/products";
 import { authClient } from "@chevrotain/web/clients/auth";
 import { Content, Header } from "@chevrotain/web/components/app/layout";
 import { Button } from "@chevrotain/web/components/ui/button";
@@ -13,15 +15,22 @@ import {
 	CardTitle,
 } from "@chevrotain/web/components/ui/card";
 import { reportUiError } from "@chevrotain/web/lib/report-ui-error";
+import { customerStateQuery } from "@chevrotain/web/queries/billing";
 
 export const Route = createFileRoute("/app/settings/billing")({
 	component: Page,
 });
 
-const PRO_PLAN_SLUG = "Chevrotain-Pro";
-
 function Page() {
 	const { t } = useTranslation();
+	const { data: customerState } = useQuery(customerStateQuery());
+	const activeSubscription = customerState?.activeSubscriptions[0];
+	const renewalDate = activeSubscription?.currentPeriodEnd.toLocaleDateString();
+	const accessMessage = activeSubscription
+		? activeSubscription.cancelAtPeriodEnd
+			? t("Your subscription remains active until {{date}}.", { date: renewalDate })
+			: t("Your subscription is active through {{date}}.", { date: renewalDate })
+		: t("You do not have an active subscription yet.");
 
 	const openPortal = async () => {
 		try {
@@ -33,7 +42,7 @@ function Page() {
 
 	const startCheckout = async () => {
 		try {
-			await authClient.checkout({ slug: PRO_PLAN_SLUG });
+			await authClient.checkout({ slug: POLAR_PRO_PRODUCT_SLUG });
 		} catch (error) {
 			reportUiError({ error, message: t("Could not open checkout") });
 		}
@@ -62,14 +71,16 @@ function Page() {
 						<Card>
 							<CardHeader>
 								<CardTitle>{t("Chevrotain Pro")}</CardTitle>
-								<CardDescription>
-									{t(
-										"Start checkout in Polar to manage your subscription with the hosted billing flow.",
-									)}
-								</CardDescription>
+								<CardDescription>{accessMessage}</CardDescription>
 							</CardHeader>
 							<CardContent>
-								<Button onClick={() => void startCheckout()}>{t("Open checkout")}</Button>
+								{activeSubscription ? (
+									<Button variant="outline" onClick={() => void openPortal()}>
+										{t("Manage subscription in Polar")}
+									</Button>
+								) : (
+									<Button onClick={() => void startCheckout()}>{t("Open checkout")}</Button>
+								)}
 							</CardContent>
 						</Card>
 					</div>

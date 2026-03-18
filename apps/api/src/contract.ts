@@ -15,6 +15,8 @@ const healthGroup = HttpApiGroup.make("health").add(
 	}),
 );
 
+const metricsGroup = HttpApiGroup.make("metrics").add(HttpApiEndpoint.get("metrics", "/metrics"));
+
 const zeroGroup = HttpApiGroup.make("zero")
 	.add(HttpApiEndpoint.post("query", "/query", { error: DatabaseError }))
 	.add(HttpApiEndpoint.post("mutate", "/mutate", { error: DatabaseError }))
@@ -27,5 +29,5 @@ const authGroup = HttpApiGroup.make("auth")
 // --- Full API ---
 
 export class ChevrotainApi extends HttpApi.make("chevrotain")
-	.add(healthGroup, zeroGroup, authGroup)
+	.add(healthGroup, metricsGroup, zeroGroup, authGroup)
 	.prefix("/api") {}

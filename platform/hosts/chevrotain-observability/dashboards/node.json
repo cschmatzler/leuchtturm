@@ -22,7 +22,7 @@
 				"query": "label_values(node_uname_info{job=\"node\", instance=~\"$instance\"}, instance)",
 				"refresh": 1,
 				"includeAll": true,
-				"multi": false,
+				"multi": true,
 				"allValue": ".*",
 				"current": {
 					"selected": true,
@@ -65,12 +65,12 @@
 				"reduceOptions": { "calcs": ["lastNotNull"] },
 				"colorMode": "value",
 				"graphMode": "none",
-				"textMode": "value"
+				"textMode": "value_and_name"
 			},
 			"targets": [
 				{
 					"expr": "time() - node_boot_time_seconds{job=\"node\", instance=~\"$instance\"}",
-					"legendFormat": "",
+					"legendFormat": "{{instance}}",
 					"refId": "A"
 				}
 			]
@@ -96,12 +96,12 @@
 				"reduceOptions": { "calcs": ["lastNotNull"] },
 				"colorMode": "value",
 				"graphMode": "none",
-				"textMode": "value"
+				"textMode": "value_and_name"
 			},
 			"targets": [
 				{
-					"expr": "count(node_cpu_seconds_total{job=\"node\", instance=~\"$instance\", mode=\"idle\"})",
-					"legendFormat": "",
+					"expr": "count by (instance) (node_cpu_seconds_total{job=\"node\", instance=~\"$instance\", mode=\"idle\"})",
+					"legendFormat": "{{instance}}",
 					"refId": "A"
 				}
 			]
@@ -127,12 +127,12 @@
 				"reduceOptions": { "calcs": ["lastNotNull"] },
 				"colorMode": "value",
 				"graphMode": "none",
-				"textMode": "value"
+				"textMode": "value_and_name"
 			},
 			"targets": [
 				{
 					"expr": "node_memory_MemTotal_bytes{job=\"node\", instance=~\"$instance\"}",
-					"legendFormat": "",
+					"legendFormat": "{{instance}}",
 					"refId": "A"
 				}
 			]
@@ -158,12 +158,12 @@
 				"reduceOptions": { "calcs": ["lastNotNull"] },
 				"colorMode": "value",
 				"graphMode": "none",
-				"textMode": "value"
+				"textMode": "value_and_name"
 			},
 			"targets": [
 				{
 					"expr": "node_memory_SwapTotal_bytes{job=\"node\", instance=~\"$instance\"}",
-					"legendFormat": "",
+					"legendFormat": "{{instance}}",
 					"refId": "A"
 				}
 			]
@@ -189,19 +189,19 @@
 				"reduceOptions": { "calcs": ["lastNotNull"] },
 				"colorMode": "value",
 				"graphMode": "none",
-				"textMode": "value"
+				"textMode": "value_and_name"
 			},
 			"targets": [
 				{
 					"expr": "node_filesystem_size_bytes{job=\"node\", instance=~\"$instance\", mountpoint=\"/\", fstype!=\"rootfs\"}",
-					"legendFormat": "",
+					"legendFormat": "{{instance}}",
 					"refId": "A"
 				}
 			]
 		},
 		{
 			"id": 7,
-			"type": "gauge",
+			"type": "stat",
 			"title": "CPU Busy",
 			"gridPos": { "h": 5, "w": 5, "x": 0, "y": 5 },
 			"datasource": { "type": "prometheus", "uid": "prometheus" },
@@ -223,20 +223,21 @@
 			},
 			"options": {
 				"reduceOptions": { "calcs": ["lastNotNull"] },
-				"showThresholdMarkers": true,
-				"showThresholdLabels": false
+				"colorMode": "value",
+				"graphMode": "none",
+				"textMode": "value_and_name"
 			},
 			"targets": [
 				{
-					"expr": "(1 - avg(rate(node_cpu_seconds_total{job=\"node\", instance=~\"$instance\", mode=\"idle\"}[$__rate_interval]))) * 100",
-					"legendFormat": "",
+					"expr": "100 * (1 - avg by (instance) (rate(node_cpu_seconds_total{job=\"node\", instance=~\"$instance\", mode=\"idle\"}[$__rate_interval])))",
+					"legendFormat": "{{instance}}",
 					"refId": "A"
 				}
 			]
 		},
 		{
 			"id": 8,
-			"type": "gauge",
+			"type": "stat",
 			"title": "Load / Core",
 			"gridPos": { "h": 5, "w": 5, "x": 5, "y": 5 },
 			"datasource": { "type": "prometheus", "uid": "prometheus" },
@@ -259,20 +260,21 @@
 			},
 			"options": {
 				"reduceOptions": { "calcs": ["lastNotNull"] },
-				"showThresholdMarkers": true,
-				"showThresholdLabels": false
+				"colorMode": "value",
+				"graphMode": "none",
+				"textMode": "value_and_name"
 			},
 			"targets": [
 				{
-					"expr": "node_load5{job=\"node\", instance=~\"$instance\"} / count(node_cpu_seconds_total{job=\"node\", instance=~\"$instance\", mode=\"idle\"})",
-					"legendFormat": "",
+					"expr": "node_load5{job=\"node\", instance=~\"$instance\"} / count by (instance) (node_cpu_seconds_total{job=\"node\", instance=~\"$instance\", mode=\"idle\"})",
+					"legendFormat": "{{instance}}",
 					"refId": "A"
 				}
 			]
 		},
 		{
 			"id": 9,
-			"type": "gauge",
+			"type": "stat",
 			"title": "RAM Used",
 			"gridPos": { "h": 5, "w": 5, "x": 10, "y": 5 },
 			"datasource": { "type": "prometheus", "uid": "prometheus" },
@@ -294,20 +296,21 @@
 			},
 			"options": {
 				"reduceOptions": { "calcs": ["lastNotNull"] },
-				"showThresholdMarkers": true,
-				"showThresholdLabels": false
+				"colorMode": "value",
+				"graphMode": "none",
+				"textMode": "value_and_name"
 			},
 			"targets": [
 				{
 					"expr": "(1 - node_memory_MemAvailable_bytes{job=\"node\", instance=~\"$instance\"} / node_memory_MemTotal_bytes{job=\"node\", instance=~\"$instance\"}) * 100",
-					"legendFormat": "",
+					"legendFormat": "{{instance}}",
 					"refId": "A"
 				}
 			]
 		},
 		{
 			"id": 10,
-			"type": "gauge",
+			"type": "stat",
 			"title": "Swap Used",
 			"gridPos": { "h": 5, "w": 5, "x": 15, "y": 5 },
 			"datasource": { "type": "prometheus", "uid": "prometheus" },
@@ -329,20 +332,21 @@
 			},
 			"options": {
 				"reduceOptions": { "calcs": ["lastNotNull"] },
-				"showThresholdMarkers": true,
-				"showThresholdLabels": false
+				"colorMode": "value",
+				"graphMode": "none",
+				"textMode": "value_and_name"
 			},
 			"targets": [
 				{
 					"expr": "((node_memory_SwapTotal_bytes{job=\"node\", instance=~\"$instance\"} - node_memory_SwapFree_bytes{job=\"node\", instance=~\"$instance\"}) / node_memory_SwapTotal_bytes{job=\"node\", instance=~\"$instance\"}) * 100",
-					"legendFormat": "",
+					"legendFormat": "{{instance}}",
 					"refId": "A"
 				}
 			]
 		},
 		{
 			"id": 11,
-			"type": "gauge",
+			"type": "stat",
 			"title": "Root FS Used",
 			"gridPos": { "h": 5, "w": 4, "x": 20, "y": 5 },
 			"datasource": { "type": "prometheus", "uid": "prometheus" },
@@ -364,13 +368,14 @@
 			},
 			"options": {
 				"reduceOptions": { "calcs": ["lastNotNull"] },
-				"showThresholdMarkers": true,
-				"showThresholdLabels": false
+				"colorMode": "value",
+				"graphMode": "none",
+				"textMode": "value_and_name"
 			},
 			"targets": [
 				{
 					"expr": "(1 - node_filesystem_avail_bytes{job=\"node\", instance=~\"$instance\", mountpoint=\"/\", fstype!=\"rootfs\"} / node_filesystem_size_bytes{job=\"node\", instance=~\"$instance\", mountpoint=\"/\", fstype!=\"rootfs\"}) * 100",
-					"legendFormat": "",
+					"legendFormat": "{{instance}}",
 					"refId": "A"
 				}
 			]
@@ -386,60 +391,27 @@
 		{
 			"id": 13,
 			"type": "timeseries",
-			"title": "CPU Usage",
-			"description": "CPU time spent in each mode, stacked to 100%",
+			"title": "CPU Busy by Host",
+			"description": "Overall CPU busy percentage per host",
 			"gridPos": { "h": 8, "w": 12, "x": 0, "y": 11 },
 			"datasource": { "type": "prometheus", "uid": "prometheus" },
 			"fieldConfig": {
 				"defaults": {
-					"color": { "mode": "fixed" },
+					"color": { "mode": "palette-classic" },
 					"unit": "percent",
 					"min": 0,
 					"max": 100,
 					"custom": {
 						"drawStyle": "line",
-						"fillOpacity": 80,
-						"lineWidth": 0,
+						"fillOpacity": 20,
+						"lineWidth": 2,
 						"lineInterpolation": "smooth",
 						"showPoints": "never",
 						"spanNulls": false,
-						"stacking": { "group": "A", "mode": "normal" }
+						"stacking": { "group": "A", "mode": "none" }
 					}
 				},
-				"overrides": [
-					{
-						"matcher": { "id": "byName", "options": "User" },
-						"properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#3274D9" } }]
-					},
-					{
-						"matcher": { "id": "byName", "options": "System" },
-						"properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#E02F44" } }]
-					},
-					{
-						"matcher": { "id": "byName", "options": "I/O Wait" },
-						"properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#FF9830" } }]
-					},
-					{
-						"matcher": { "id": "byName", "options": "Steal" },
-						"properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#8F3BB8" } }]
-					},
-					{
-						"matcher": { "id": "byName", "options": "Nice" },
-						"properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#56A64B" } }]
-					},
-					{
-						"matcher": { "id": "byName", "options": "IRQ" },
-						"properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#33B5E5" } }]
-					},
-					{
-						"matcher": { "id": "byName", "options": "SoftIRQ" },
-						"properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#73BF69" } }]
-					},
-					{
-						"matcher": { "id": "byName", "options": "Idle" },
-						"properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#C8C8C8" } }]
-					}
-				]
+				"overrides": []
 			},
 			"options": {
 				"tooltip": { "mode": "multi", "sort": "desc" },
@@ -451,44 +423,9 @@
 			},
 			"targets": [
 				{
-					"expr": "avg(rate(node_cpu_seconds_total{job=\"node\", instance=~\"$instance\", mode=\"user\"}[$__rate_interval])) * 100",
-					"legendFormat": "User",
+					"expr": "100 * (1 - avg by (instance) (rate(node_cpu_seconds_total{job=\"node\", instance=~\"$instance\", mode=\"idle\"}[$__rate_interval])))",
+					"legendFormat": "{{instance}}",
 					"refId": "A"
-				},
-				{
-					"expr": "avg(rate(node_cpu_seconds_total{job=\"node\", instance=~\"$instance\", mode=\"system\"}[$__rate_interval])) * 100",
-					"legendFormat": "System",
-					"refId": "B"
-				},
-				{
-					"expr": "avg(rate(node_cpu_seconds_total{job=\"node\", instance=~\"$instance\", mode=\"iowait\"}[$__rate_interval])) * 100",
-					"legendFormat": "I/O Wait",
-					"refId": "C"
-				},
-				{
-					"expr": "avg(rate(node_cpu_seconds_total{job=\"node\", instance=~\"$instance\", mode=\"steal\"}[$__rate_interval])) * 100",
-					"legendFormat": "Steal",
-					"refId": "D"
-				},
-				{
-					"expr": "avg(rate(node_cpu_seconds_total{job=\"node\", instance=~\"$instance\", mode=\"nice\"}[$__rate_interval])) * 100",
-					"legendFormat": "Nice",
-					"refId": "E"
-				},
-				{
-					"expr": "avg(rate(node_cpu_seconds_total{job=\"node\", instance=~\"$instance\", mode=\"irq\"}[$__rate_interval])) * 100",
-					"legendFormat": "IRQ",
-					"refId": "F"
-				},
-				{
-					"expr": "avg(rate(node_cpu_seconds_total{job=\"node\", instance=~\"$instance\", mode=\"softirq\"}[$__rate_interval])) * 100",
-					"legendFormat": "SoftIRQ",
-					"refId": "G"
-				},
-				{
-					"expr": "avg(rate(node_cpu_seconds_total{job=\"node\", instance=~\"$instance\", mode=\"idle\"}[$__rate_interval])) * 100",
-					"legendFormat": "Idle",
-					"refId": "H"
 				}
 			]
 		},
@@ -535,22 +472,22 @@
 			"targets": [
 				{
 					"expr": "node_load1{job=\"node\", instance=~\"$instance\"}",
-					"legendFormat": "Load 1m",
+					"legendFormat": "{{instance}} load 1m",
 					"refId": "A"
 				},
 				{
 					"expr": "node_load5{job=\"node\", instance=~\"$instance\"}",
-					"legendFormat": "Load 5m",
+					"legendFormat": "{{instance}} load 5m",
 					"refId": "B"
 				},
 				{
 					"expr": "node_load15{job=\"node\", instance=~\"$instance\"}",
-					"legendFormat": "Load 15m",
+					"legendFormat": "{{instance}} load 15m",
 					"refId": "C"
 				},
 				{
-					"expr": "count(node_cpu_seconds_total{job=\"node\", instance=~\"$instance\", mode=\"idle\"})",
-					"legendFormat": "CPU Cores",
+					"expr": "count by (instance) (node_cpu_seconds_total{job=\"node\", instance=~\"$instance\", mode=\"idle\"})",
+					"legendFormat": "{{instance}} cores",
 					"refId": "D"
 				}
 			]
@@ -615,22 +552,22 @@
 			"targets": [
 				{
 					"expr": "node_memory_MemTotal_bytes{job=\"node\", instance=~\"$instance\"} - node_memory_MemFree_bytes{job=\"node\", instance=~\"$instance\"} - node_memory_Buffers_bytes{job=\"node\", instance=~\"$instance\"} - node_memory_Cached_bytes{job=\"node\", instance=~\"$instance\"} - node_memory_SReclaimable_bytes{job=\"node\", instance=~\"$instance\"}",
-					"legendFormat": "Used",
+					"legendFormat": "{{instance}} Used",
 					"refId": "A"
 				},
 				{
 					"expr": "node_memory_Buffers_bytes{job=\"node\", instance=~\"$instance\"}",
-					"legendFormat": "Buffers",
+					"legendFormat": "{{instance}} Buffers",
 					"refId": "B"
 				},
 				{
 					"expr": "node_memory_Cached_bytes{job=\"node\", instance=~\"$instance\"} + node_memory_SReclaimable_bytes{job=\"node\", instance=~\"$instance\"}",
-					"legendFormat": "Cached",
+					"legendFormat": "{{instance}} Cached",
 					"refId": "C"
 				},
 				{
 					"expr": "node_memory_MemFree_bytes{job=\"node\", instance=~\"$instance\"}",
-					"legendFormat": "Free",
+					"legendFormat": "{{instance}} Free",
 					"refId": "D"
 				}
 			]
@@ -685,22 +622,22 @@
 			"targets": [
 				{
 					"expr": "node_memory_SwapTotal_bytes{job=\"node\", instance=~\"$instance\"} - node_memory_SwapFree_bytes{job=\"node\", instance=~\"$instance\"}",
-					"legendFormat": "Swap Used",
+					"legendFormat": "{{instance}} Swap Used",
 					"refId": "A"
 				},
 				{
 					"expr": "node_memory_SwapFree_bytes{job=\"node\", instance=~\"$instance\"}",
-					"legendFormat": "Swap Free",
+					"legendFormat": "{{instance}} Swap Free",
 					"refId": "B"
 				},
 				{
 					"expr": "rate(node_vmstat_pswpin{job=\"node\", instance=~\"$instance\"}[$__rate_interval]) * 4096",
-					"legendFormat": "Swap In",
+					"legendFormat": "{{instance}} Swap In",
 					"refId": "C"
 				},
 				{
 					"expr": "rate(node_vmstat_pswpout{job=\"node\", instance=~\"$instance\"}[$__rate_interval]) * 4096",
-					"legendFormat": "Swap Out",
+					"legendFormat": "{{instance}} Swap Out",
 					"refId": "D"
 				}
 			]
@@ -744,12 +681,12 @@
 			"targets": [
 				{
 					"expr": "rate(node_disk_read_bytes_total{job=\"node\", instance=~\"$instance\", device!~\"dm-.*|loop.*\"}[$__rate_interval])",
-					"legendFormat": "{{device}} read",
+					"legendFormat": "{{instance}} {{device}} read",
 					"refId": "A"
 				},
 				{
 					"expr": "-rate(node_disk_written_bytes_total{job=\"node\", instance=~\"$instance\", device!~\"dm-.*|loop.*\"}[$__rate_interval])",
-					"legendFormat": "{{device}} write",
+					"legendFormat": "{{instance}} {{device}} write",
 					"refId": "B"
 				}
 			]
@@ -785,12 +722,12 @@
 			"targets": [
 				{
 					"expr": "rate(node_disk_reads_completed_total{job=\"node\", instance=~\"$instance\", device!~\"dm-.*|loop.*\"}[$__rate_interval])",
-					"legendFormat": "{{device}} reads",
+					"legendFormat": "{{instance}} {{device}} reads",
 					"refId": "A"
 				},
 				{
 					"expr": "-rate(node_disk_writes_completed_total{job=\"node\", instance=~\"$instance\", device!~\"dm-.*|loop.*\"}[$__rate_interval])",
-					"legendFormat": "{{device}} writes",
+					"legendFormat": "{{instance}} {{device}} writes",
 					"refId": "B"
 				}
 			]
@@ -827,7 +764,7 @@
 			"targets": [
 				{
 					"expr": "rate(node_disk_io_time_seconds_total{job=\"node\", instance=~\"$instance\", device!~\"dm-.*|loop.*\"}[$__rate_interval])",
-					"legendFormat": "{{device}}",
+					"legendFormat": "{{instance}} {{device}}",
 					"refId": "A"
 				}
 			]
@@ -864,7 +801,7 @@
 			"targets": [
 				{
 					"expr": "1 - node_filesystem_avail_bytes{job=\"node\", instance=~\"$instance\", fstype!~\"tmpfs|devtmpfs|rootfs|overlay|squashfs|nsfs\"} / node_filesystem_size_bytes{job=\"node\", instance=~\"$instance\", fstype!~\"tmpfs|devtmpfs|rootfs|overlay|squashfs|nsfs\"}",
-					"legendFormat": "{{mountpoint}}",
+					"legendFormat": "{{instance}} {{mountpoint}}",
 					"refId": "A"
 				}
 			]
@@ -908,12 +845,12 @@
 			"targets": [
 				{
 					"expr": "rate(node_network_receive_bytes_total{job=\"node\", instance=~\"$instance\", device!~\"lo|veth.*|docker.*|br-.*\"}[$__rate_interval])",
-					"legendFormat": "{{device}} rx",
+					"legendFormat": "{{instance}} {{device}} rx",
 					"refId": "A"
 				},
 				{
 					"expr": "-rate(node_network_transmit_bytes_total{job=\"node\", instance=~\"$instance\", device!~\"lo|veth.*|docker.*|br-.*\"}[$__rate_interval])",
-					"legendFormat": "{{device}} tx",
+					"legendFormat": "{{instance}} {{device}} tx",
 					"refId": "B"
 				}
 			]
@@ -949,12 +886,12 @@
 			"targets": [
 				{
 					"expr": "rate(node_network_receive_packets_total{job=\"node\", instance=~\"$instance\", device!~\"lo|veth.*|docker.*|br-.*\"}[$__rate_interval])",
-					"legendFormat": "{{device}} rx",
+					"legendFormat": "{{instance}} {{device}} rx",
 					"refId": "A"
 				},
 				{
 					"expr": "-rate(node_network_transmit_packets_total{job=\"node\", instance=~\"$instance\", device!~\"lo|veth.*|docker.*|br-.*\"}[$__rate_interval])",
-					"legendFormat": "{{device}} tx",
+					"legendFormat": "{{instance}} {{device}} tx",
 					"refId": "B"
 				}
 			]
@@ -989,22 +926,22 @@
 			"targets": [
 				{
 					"expr": "rate(node_network_receive_errs_total{job=\"node\", instance=~\"$instance\", device!~\"lo\"}[$__rate_interval])",
-					"legendFormat": "{{device}} rx errors",
+					"legendFormat": "{{instance}} {{device}} rx errors",
 					"refId": "A"
 				},
 				{
 					"expr": "rate(node_network_transmit_errs_total{job=\"node\", instance=~\"$instance\", device!~\"lo\"}[$__rate_interval])",
-					"legendFormat": "{{device}} tx errors",
+					"legendFormat": "{{instance}} {{device}} tx errors",
 					"refId": "B"
 				},
 				{
 					"expr": "rate(node_network_receive_drop_total{job=\"node\", instance=~\"$instance\", device!~\"lo\"}[$__rate_interval])",
-					"legendFormat": "{{device}} rx drops",
+					"legendFormat": "{{instance}} {{device}} rx drops",
 					"refId": "C"
 				},
 				{
 					"expr": "rate(node_network_transmit_drop_total{job=\"node\", instance=~\"$instance\", device!~\"lo\"}[$__rate_interval])",
-					"legendFormat": "{{device}} tx drops",
+					"legendFormat": "{{instance}} {{device}} tx drops",
 					"refId": "D"
 				}
 			]
@@ -1047,12 +984,12 @@
 			"targets": [
 				{
 					"expr": "rate(node_context_switches_total{job=\"node\", instance=~\"$instance\"}[$__rate_interval])",
-					"legendFormat": "Context Switches",
+					"legendFormat": "{{instance}} Context Switches",
 					"refId": "A"
 				},
 				{
 					"expr": "rate(node_intr_total{job=\"node\", instance=~\"$instance\"}[$__rate_interval])",
-					"legendFormat": "Interrupts",
+					"legendFormat": "{{instance}} Interrupts",
 					"refId": "B"
 				}
 			]
@@ -1100,12 +1037,12 @@
 			"targets": [
 				{
 					"expr": "node_filefd_allocated{job=\"node\", instance=~\"$instance\"}",
-					"legendFormat": "Allocated",
+					"legendFormat": "{{instance}} Allocated",
 					"refId": "A"
 				},
 				{
 					"expr": "node_filefd_maximum{job=\"node\", instance=~\"$instance\"}",
-					"legendFormat": "Max",
+					"legendFormat": "{{instance}} Max",
 					"refId": "B"
 				}
 			]
@@ -1145,17 +1082,17 @@
 			"targets": [
 				{
 					"expr": "node_procs_running{job=\"node\", instance=~\"$instance\"}",
-					"legendFormat": "Running",
+					"legendFormat": "{{instance}} Running",
 					"refId": "A"
 				},
 				{
 					"expr": "node_procs_blocked{job=\"node\", instance=~\"$instance\"}",
-					"legendFormat": "Blocked",
+					"legendFormat": "{{instance}} Blocked",
 					"refId": "B"
 				},
 				{
 					"expr": "rate(node_forks_total{job=\"node\", instance=~\"$instance\"}[$__rate_interval])",
-					"legendFormat": "Forks/s",
+					"legendFormat": "{{instance}} Forks/s",
 					"refId": "C"
 				}
 			]
