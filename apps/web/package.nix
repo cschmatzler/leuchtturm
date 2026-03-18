@@ -21,7 +21,7 @@
 					(rootPath + "/tsconfig.json")
 					(rootPath + "/tsconfig.node.json")
 					(rootPath + "/tsconfig.web.json")
-					(rootPath + "/apps/api/package.json")
+					(rootPath + "/apps/api")
 					(rootPath + "/apps/web")
 					(rootPath + "/apps/zero-cache/package.json")
 					(rootPath + "/packages")

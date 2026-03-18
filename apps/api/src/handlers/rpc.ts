@@ -3,7 +3,7 @@ import { Headers, HttpServerRequest } from "effect/unstable/http";
 import { RpcSerialization, RpcServer } from "effect/unstable/rpc";
 
 import { ChevrotainRpcs } from "@chevrotain/api/contract-rpc";
-import { CurrentUser, RpcAuthMiddlewareLive } from "@chevrotain/api/middleware/auth";
+import { CurrentUser, RpcAuthMiddlewareLive } from "@chevrotain/api/middleware/auth-live";
 import { ClickHouseService } from "@chevrotain/core/analytics/service";
 import { RateLimitService } from "@chevrotain/core/rate-limit/service";
 

@@ -8,7 +8,7 @@ import { AutumnHandlerLive } from "@chevrotain/api/handlers/autumn";
 import { HealthHandlerLive } from "@chevrotain/api/handlers/health";
 import { RpcLive } from "@chevrotain/api/handlers/rpc";
 import { ZeroHandlerLive } from "@chevrotain/api/handlers/zero";
-import { AuthMiddlewareLive } from "@chevrotain/api/middleware/auth";
+import { AuthMiddlewareLive } from "@chevrotain/api/middleware/auth-live";
 import { AppLayer } from "@chevrotain/api/runtime";
 
 /** HttpApi handler groups (passthrough endpoints only). */
