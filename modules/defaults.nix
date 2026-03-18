@@ -24,6 +24,18 @@
 		den.default.homeManager.home.stateVersion = "25.11";
 		den.default.nixos.nixpkgs.overlays = [inputs.nixos-config.overlays.default];
 
+		den.default.nixos.security.sudo.extraRules = [
+			{
+				users = ["cschmatzler"];
+				commands = [
+					{
+						command = "ALL";
+						options = ["NOPASSWD"];
+					}
+				];
+			}
+		];
+
 		den.default.includes = [
 			den.provides.define-user
 			den.provides.inputs'
