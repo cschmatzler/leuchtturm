@@ -16,8 +16,8 @@ function Page() {
 						<h1 className="text-3xl font-semibold">Privacy Policy</h1>
 						<p className="text-muted-foreground">Last updated: Jan 24, 2026</p>
 						<p className="text-muted-foreground">
-							This Privacy Policy explains how Sixth Coffee ("we", "us", or "our") collects, uses,
-							and protects your personal data when you use our service. We are based in Germany and
+							This Privacy Policy explains how Chevrotain ("we", "us", or "our") collects, uses, and
+							protects your personal data when you use our service. We are based in Germany and
 							process data under the GDPR.
 						</p>
 					</div>

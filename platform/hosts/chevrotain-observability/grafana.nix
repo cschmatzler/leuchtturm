@@ -3,7 +3,7 @@
 	pkgs,
 	...
 }: let
-	cfg = import ../../../../nix/config.nix;
+	cfg = import ../../../nix/config.nix;
 in {
 	services.grafana = {
 		enable = true;
@@ -14,7 +14,7 @@ in {
 			server = {
 				http_port = cfg.ports.grafana;
 				http_addr = "0.0.0.0";
-				domain = "sixth-coffee";
+				domain = "chevrotain-observability";
 			};
 			security = {
 				admin_password = "$__file{${config.sops.secrets.grafana-admin-password.path}}";
@@ -83,7 +83,7 @@ in {
 				name = "PostgreSQL";
 				uid = "postgres";
 				type = "postgres";
-				url = "127.0.0.1:5432";
+				url = "${cfg.hosts.postgres}:5432";
 				user = "grafana";
 				jsonData = {
 					database = "chevrotain";

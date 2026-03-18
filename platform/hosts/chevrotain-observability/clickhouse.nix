@@ -1,5 +1,5 @@
 {pkgs, ...}: let
-	cfg = import ../../../../nix/config.nix;
+	cfg = import ../../../nix/config.nix;
 
 	schema =
 		pkgs.writeText "clickhouse-schema.sql" ''
@@ -45,7 +45,7 @@ in {
 		serverConfig = {
 			http_port = cfg.ports.clickhouse;
 			tcp_port = cfg.ports.clickhouseNative;
-			listen_host = "127.0.0.1";
+			listen_host = "::";
 			max_server_memory_usage = 1073741824; # 1GB
 		};
 		usersConfig = {
@@ -65,4 +65,9 @@ in {
 		};
 		wantedBy = ["multi-user.target"];
 	};
+
+	networking.firewall.interfaces."tailscale0".allowedTCPPorts = [
+		cfg.ports.clickhouse
+		cfg.ports.clickhouseNative
+	];
 }

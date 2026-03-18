@@ -53,10 +53,14 @@ in
 								# Write .env.production (takes precedence over .env in production builds)
 								cat > apps/web/.env.production <<EOF
 				VITE_BASE_URL=https://${cfg.domain}
+				VITE_API_URL=https://api.${cfg.domain}
+				VITE_SYNC_URL=https://sync.${cfg.domain}
 				EOF
 			'';
 
 			VITE_BASE_URL = "https://${cfg.domain}";
+			VITE_API_URL = "https://api.${cfg.domain}";
+			VITE_SYNC_URL = "https://sync.${cfg.domain}";
 
 			buildPhase = ''
 				runHook preBuild

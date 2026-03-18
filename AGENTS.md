@@ -46,7 +46,10 @@ pnpm --filter @chevrotain/core exec drizzle-kit push      # Apply to dev DB
 # Starts: Caddy (34600), Postgres (34601), Vite (5173), API (3000), Zero (4848)
 
 # Deployment
-deploy .#sixth-coffee              # Deploy to production (NixOS via deploy-rs)
+deploy .#chevrotain-web            # Deploy web+API host
+deploy .#chevrotain-zero           # Deploy Zero sync host
+deploy .#chevrotain-postgres       # Deploy PostgreSQL host
+deploy .#chevrotain-observability  # Deploy observability host
 ```
 
 Always run `vp check` and `vp test` after making changes.
@@ -315,7 +318,7 @@ Shared configuration constants:
 
 ```nix
 {
-  domain = "sixth.coffee";
+  domain = "chevrotain.schmatzler.com";
   ports = {
     api = 3080;
     zeroCache = 3081;
@@ -341,7 +344,7 @@ Shared configuration constants:
 3. **Format**: `treefmt`
 4. **Update Hash**: `nu scripts/update-pnpm-hash.nu` (if deps changed)
 5. **Build**: `nix build .#api .#web`
-6. **Deploy**: `deploy .#sixth-coffee`
+6. **Deploy**: `deploy .#chevrotain-{web,zero,postgres,observability}`
 
 ## Where to Look
 

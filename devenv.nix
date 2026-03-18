@@ -120,6 +120,8 @@
 	# App
 	env.BASE_URL = "http://localhost:34600";
 	env.VITE_BASE_URL = "http://localhost:34600";
+	env.VITE_API_URL = "http://localhost:34600";
+	env.VITE_SYNC_URL = "http://localhost:34600/sync";
 
 	# Database
 	env.DATABASE_URL = "postgres://postgres:postgres@localhost:34601/chevrotain";

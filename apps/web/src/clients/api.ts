@@ -1,7 +1,7 @@
-const baseUrl = import.meta.env.VITE_BASE_URL;
+const apiUrl = import.meta.env.VITE_API_URL;
 
 async function postJson(path: string, body: unknown): Promise<unknown> {
-	const response = await fetch(`${baseUrl}/api${path}`, {
+	const response = await fetch(`${apiUrl}/api${path}`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		credentials: "include",

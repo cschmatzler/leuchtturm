@@ -46,12 +46,12 @@ const WelcomeEmail = ({ userName }: { userName: string }) => {
 	return (
 		<Html lang="en">
 			<Tailwind config={tailwindConfig}>
-				<Preview>Welcome to Sixth Coffee</Preview>
+				<Preview>Welcome to Chevrotain</Preview>
 				<Body className="bg-background font-sans text-foreground">
 					<Container className="mx-auto w-full max-w-[560px] px-4 py-10">
 						<Heading>Welcome {userName}</Heading>
-						<Text>Thank you for joining Sixth Coffee.</Text>
-						<Button href="https://sixth.coffee">Get Started</Button>
+						<Text>Thank you for joining Chevrotain.</Text>
+						<Button href="https://chevrotain.schmatzler.com">Get Started</Button>
 					</Container>
 				</Body>
 			</Tailwind>
@@ -64,7 +64,7 @@ export async function renderWelcomeEmail({ userName }: { userName: string }) {
 		pretty: false,
 	});
 
-	const text = `Welcome ${userName}!\n\nThank you for joining Sixth Coffee.`;
+	const text = `Welcome ${userName}!\n\nThank you for joining Chevrotain.`;
 
 	return { html, text };
 }
@@ -184,7 +184,7 @@ const { html, text } = await renderPasswordResetEmail({
 });
 
 await resend.emails.send({
-	from: "Sixth Coffee <noreply@sixth.coffee>",
+	from: "Chevrotain <noreply@chevrotain.schmatzler.com>",
 	to: user.email,
 	subject: "Reset your password",
 	html,
@@ -253,7 +253,7 @@ Or send test emails via Resend:
 
 ```typescript
 await resend.emails.send({
-	from: "test@sixth.coffee",
+	from: "test@chevrotain.schmatzler.com",
 	to: "your@email.com",
 	subject: "Test",
 	html: "<p>Test</p>",
@@ -272,7 +272,7 @@ emailAndPassword: {
 			userName: user.name,
 		});
 		await resend.emails.send({
-			from: "Sixth Coffee <noreply@sixth.coffee>",
+			from: "Chevrotain <noreply@chevrotain.schmatzler.com>",
 			to: user.email,
 			subject: "Reset your password",
 			html,
@@ -331,7 +331,7 @@ vi.mock("@chevrotain/email", () => ({
 
 // Verify send was called
 expect(resend.emails.send).toHaveBeenCalledWith({
-	from: expect.stringContaining("sixth.coffee"),
+	from: expect.stringContaining("chevrotain.schmatzler.com"),
 	to: "user@example.com",
 	subject: expect.any(String),
 	html: expect.any(String),

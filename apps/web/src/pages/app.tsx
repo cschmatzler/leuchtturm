@@ -82,7 +82,7 @@ function Layout() {
 	return (
 		<AutumnProvider
 			key={session.user.id}
-			backendUrl={import.meta.env.VITE_BASE_URL}
+			backendUrl={import.meta.env.VITE_API_URL}
 			includeCredentials
 		>
 			<App session={session} />

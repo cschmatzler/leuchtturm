@@ -26,9 +26,9 @@ export const auth = betterAuth({
 			});
 
 			await resend.emails.send({
-				from: "Sixth Coffee <no-reply@sixth.coffee>",
+				from: "Chevrotain <no-reply@chevrotain.schmatzler.com>",
 				to: user.email,
-				subject: "Reset your Sixth Coffee password",
+				subject: "Reset your Chevrotain password",
 				html,
 				text,
 			});
@@ -57,6 +57,10 @@ export const auth = betterAuth({
 		},
 	},
 	advanced: {
+		crossSubDomainCookies: {
+			enabled: true,
+			domain: ".chevrotain.schmatzler.com",
+		},
 		database: {
 			generateId: ({ model }) => {
 				if (!(model in PREFIXES)) throw new Error(`Unknown auth model: ${model}`);

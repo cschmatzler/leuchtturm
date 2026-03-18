@@ -1,9 +1,9 @@
 {...}: let
-	cfg = import ../../../../nix/config.nix;
+	cfg = import ../../../nix/config.nix;
 in {
 	services.alloy.enable = true;
 
-	networking.firewall.interfaces."docker0".allowedTCPPorts = [cfg.ports.alloyOtlp];
+	networking.firewall.interfaces."tailscale0".allowedTCPPorts = [cfg.ports.alloyOtlp];
 
 	environment.etc."alloy/config.alloy".text = ''
 		otelcol.receiver.otlp "default" {

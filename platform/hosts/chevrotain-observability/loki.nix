@@ -1,5 +1,5 @@
 {...}: let
-	cfg = import ../../../../nix/config.nix;
+	cfg = import ../../../nix/config.nix;
 in {
 	services.loki = {
 		enable = true;
@@ -7,9 +7,9 @@ in {
 			auth_enabled = false;
 			server = {
 				http_listen_port = cfg.ports.loki;
-				http_listen_address = "127.0.0.1";
+				http_listen_address = "0.0.0.0";
 				grpc_listen_port = cfg.ports.lokiGrpc;
-				grpc_listen_address = "127.0.0.1";
+				grpc_listen_address = "0.0.0.0";
 			};
 			common = {
 				ring = {
@@ -54,4 +54,9 @@ in {
 			};
 		};
 	};
+
+	networking.firewall.interfaces."tailscale0".allowedTCPPorts = [
+		cfg.ports.loki
+		cfg.ports.lokiGrpc
+	];
 }

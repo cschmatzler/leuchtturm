@@ -15,7 +15,7 @@ import { Tailwind } from "@react-email/tailwind";
 
 import { tailwindConfig } from "@chevrotain/email/tailwind";
 
-const preheaderText = "Reset your Sixth Coffee password.";
+const preheaderText = "Reset your Chevrotain password.";
 
 const PasswordResetEmail = ({ resetUrl, userName }: { resetUrl: string; userName: string }) => {
 	return (
@@ -27,7 +27,7 @@ const PasswordResetEmail = ({ resetUrl, userName }: { resetUrl: string; userName
 						<Section className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
 							<Section className="border-b border-border px-6 py-5">
 								<Text className="m-0 text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-									Sixth Coffee
+									Chevrotain
 								</Text>
 							</Section>
 							<Section className="px-6 py-6">
@@ -38,8 +38,8 @@ const PasswordResetEmail = ({ resetUrl, userName }: { resetUrl: string; userName
 									Hi {userName},
 								</Text>
 								<Text className="m-0 mb-5 text-base leading-[24px] text-muted-foreground">
-									We received a request to reset the password on your Sixth Coffee account. Use the
-									button below to set a new chevrotain.
+									We received a request to reset the password on your Chevrotain account. Use the
+									button below to set a new password.
 								</Text>
 								<Button
 									href={resetUrl}
@@ -84,7 +84,7 @@ export async function renderPasswordResetEmail({
 	});
 
 	const text = [
-		"Reset your Sixth Coffee password.",
+		"Reset your Chevrotain password.",
 		"",
 		"Use this link to choose a new password:",
 		resetUrl,

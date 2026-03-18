@@ -26,8 +26,8 @@ in {
 					ZERO_PORT = toString cfg.ports.zeroCache;
 					ZERO_QUERY_FORWARD_COOKIES = "true";
 					ZERO_MUTATE_FORWARD_COOKIES = "true";
-					ZERO_QUERY_URL = "https://${cfg.domain}/api/query";
-					ZERO_MUTATE_URL = "https://${cfg.domain}/api/mutate";
+					ZERO_QUERY_URL = "https://api.${cfg.domain}/api/query";
+					ZERO_MUTATE_URL = "https://api.${cfg.domain}/api/mutate";
 					ZERO_REPLICA_FILE = "/data/zero.db";
 					OTEL_EXPORTER_OTLP_ENDPOINT = "http://host.docker.internal:${toString cfg.ports.alloyOtlp}";
 					OTEL_SERVICE_NAME = "zero-cache";
@@ -37,11 +37,6 @@ in {
 				environmentFiles = [config.sops.secrets.zero-env.path];
 			};
 		};
-	};
-
-	systemd.services.docker-zero = {
-		after = ["chevrotain-api.service"];
-		requires = ["chevrotain-api.service"];
 	};
 
 	systemd.tmpfiles.rules = ["d /data/zero-cache 0755 root root -"];

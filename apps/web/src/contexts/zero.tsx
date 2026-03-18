@@ -21,7 +21,7 @@ export function ZeroProvider({ session, children }: { session: SessionData; chil
 	return (
 		<ZeroProviderPrimitive
 			schema={schema}
-			cacheURL={`${import.meta.env.VITE_BASE_URL}/sync`}
+			cacheURL={import.meta.env.VITE_SYNC_URL}
 			userID={session.user.id}
 			context={{ userId: session.user.id }}
 			mutators={mutators}

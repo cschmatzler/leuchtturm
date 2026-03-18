@@ -1,5 +1,11 @@
 {
-	domain = "sixth.coffee";
+	domain = "chevrotain.schmatzler.com";
+	hosts = {
+		web = "chevrotain-web";
+		zero = "chevrotain-zero";
+		postgres = "chevrotain-postgres";
+		observability = "chevrotain-observability";
+	};
 	ports = {
 		api = 3080;
 		zeroCache = 3081;

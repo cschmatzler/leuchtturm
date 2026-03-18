@@ -16,8 +16,8 @@ function Page() {
 						<h1 className="text-3xl font-semibold">Terms of Service</h1>
 						<p className="text-muted-foreground">Last updated: Jan 24, 2026</p>
 						<p className="text-muted-foreground">
-							These Terms of Service ("Terms") govern your use of Sixth Coffee. By accessing or
-							using the service, you agree to these Terms.
+							These Terms of Service ("Terms") govern your use of Chevrotain. By accessing or using
+							the service, you agree to these Terms.
 						</p>
 					</div>
 					<section className="flex flex-col gap-3">

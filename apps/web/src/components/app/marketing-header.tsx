@@ -51,7 +51,7 @@ export function MarketingHeader({ variant = "default" }: MarketingHeaderProps) {
 							/>
 						</svg>
 					</div>
-					<span>Sixth Coffee</span>
+					<span>Chevrotain</span>
 				</Link>
 				{!isLoading && (
 					<div className="flex items-center gap-2">
