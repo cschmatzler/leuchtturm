@@ -38,15 +38,15 @@
 
 		networking.hostName = "chevrotain-web";
 
-		services.prometheus.exporters.node = {
-			enable = true;
-			port = cfg.ports.nodeExporter;
-			enabledCollectors = ["systemd"];
-		};
-
-		networking.firewall.interfaces."tailscale0".allowedTCPPorts = [
-			cfg.ports.nodeExporter
-		];
+		chevrotain.alloy.extraConfig = ''
+			prometheus.scrape "chevrotain-api" {
+				job_name        = "chevrotain-api"
+				targets         = [{"__address__" = "127.0.0.1:${toString cfg.ports.api}"}]
+				metrics_path    = "/api/metrics"
+				scrape_interval = "15s"
+				forward_to      = [prometheus.remote_write.default.receiver]
+			}
+		'';
 
 		swapDevices = [
 			{

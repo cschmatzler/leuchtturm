@@ -55,8 +55,9 @@ in {
 		};
 	};
 
+	# Only the HTTP port is needed on Tailscale (agent Alloys push logs here).
+	# gRPC is internal only (frontend_worker uses 127.0.0.1).
 	networking.firewall.interfaces."tailscale0".allowedTCPPorts = [
 		cfg.ports.loki
-		cfg.ports.lokiGrpc
 	];
 }

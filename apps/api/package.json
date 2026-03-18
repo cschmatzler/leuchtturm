@@ -31,7 +31,7 @@
 		"prom-client": "15.1.3"
 	},
 	"devDependencies": {
-		"rolldown": "1.0.0-rc.9",
+		"rolldown": "1.0.0-rc.10",
 		"typescript": "5.9.3"
 	}
 }

@@ -37,14 +37,8 @@
 
 		networking.hostName = "chevrotain-zero";
 
-		services.prometheus.exporters.node = {
-			enable = true;
-			port = cfg.ports.nodeExporter;
-			enabledCollectors = ["systemd"];
-		};
-
-		networking.firewall.interfaces."tailscale0".allowedTCPPorts = [
-			cfg.ports.nodeExporter
+		networking.firewall.interfaces."docker0".allowedTCPPorts = [
+			cfg.ports.alloyOtlp
 		];
 
 		virtualisation.docker = {

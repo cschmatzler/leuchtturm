@@ -18,8 +18,6 @@ in {
 		};
 	};
 
-	networking.firewall.interfaces."tailscale0".allowedTCPPorts = [
-		cfg.ports.tempo
-		cfg.ports.tempoOtlp
-	];
+	# Tempo is only accessed locally by the gateway Alloy and Grafana.
+	# No Tailscale firewall ports needed.
 }

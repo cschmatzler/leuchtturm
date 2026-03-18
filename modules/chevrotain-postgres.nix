@@ -133,15 +133,13 @@
 			];
 		};
 
-		services.prometheus.exporters.node = {
-			enable = true;
-			port = cfg.ports.nodeExporter;
-			enabledCollectors = ["systemd"];
-		};
-
-		networking.firewall.interfaces."tailscale0".allowedTCPPorts = [
-			cfg.ports.postgresExporter
-			cfg.ports.nodeExporter
-		];
+		chevrotain.alloy.extraConfig = ''
+			prometheus.scrape "postgres" {
+				job_name        = "postgres"
+				targets         = [{"__address__" = "127.0.0.1:${toString cfg.ports.postgresExporter}"}]
+				scrape_interval = "15s"
+				forward_to      = [prometheus.remote_write.default.receiver]
+			}
+		'';
 	};
 }

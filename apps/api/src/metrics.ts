@@ -113,18 +113,17 @@ function recordRequestMetric(
 export const MetricsMiddleware = HttpMiddleware.make((app) =>
 	Effect.gen(function* () {
 		const request = yield* HttpServerRequest.HttpServerRequest;
-		const rawRequest = yield* HttpServerRequest.toWeb(request).pipe(Effect.orDie);
-		const pathname = normalizeRoute(pathnameFromUrl(rawRequest.url));
+		const pathname = normalizeRoute(pathnameFromUrl(request.url));
 		const startedAt = performance.now();
 		const exit = yield* Effect.exit(app);
 		const durationSeconds = (performance.now() - startedAt) / 1000;
 
 		if (Exit.isSuccess(exit)) {
-			recordRequestMetric(rawRequest.method, pathname, exit.value.status, durationSeconds);
+			recordRequestMetric(request.method, pathname, exit.value.status, durationSeconds);
 			return exit.value;
 		}
 
-		recordRequestMetric(rawRequest.method, pathname, statusFromCause(exit.cause), durationSeconds);
+		recordRequestMetric(request.method, pathname, statusFromCause(exit.cause), durationSeconds);
 		return yield* Effect.failCause(exit.cause);
 	}),
 );

@@ -2,55 +2,84 @@
 	"id": null,
 	"uid": "zero-cache",
 	"title": "Zero Cache",
-	"description": "Zero traffic and host health via API and node metrics",
-	"tags": ["zero", "cache"],
+	"description": "Rocicorp Zero Cache sync server — clients, hydration, pokes, CVR, replication, mutations",
+	"tags": ["zero-cache"],
 	"editable": true,
 	"graphTooltip": 2,
 	"schemaVersion": 39,
-	"time": { "from": "now-1h", "to": "now" },
+	"time": {
+		"from": "now-1h",
+		"to": "now"
+	},
 	"refresh": "30s",
 	"timezone": "browser",
 	"fiscalYearStartMonth": 0,
-	"templating": { "list": [] },
-	"annotations": { "list": [] },
+	"templating": {
+		"list": []
+	},
+	"annotations": {
+		"list": []
+	},
 	"links": [],
 	"panels": [
 		{
 			"id": 1,
 			"type": "row",
 			"title": "Overview",
-			"gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+			"gridPos": {
+				"h": 1,
+				"w": 24,
+				"x": 0,
+				"y": 0
+			},
 			"collapsed": false,
 			"panels": []
 		},
 		{
 			"id": 2,
 			"type": "stat",
-			"title": "API Target Up",
-			"gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
-			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"title": "Uptime",
+			"gridPos": {
+				"h": 4,
+				"w": 4,
+				"x": 0,
+				"y": 1
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
 			"fieldConfig": {
 				"defaults": {
-					"unit": "short",
+					"unit": "dtdurations",
+					"color": {
+						"mode": "fixed",
+						"fixedColor": "text"
+					},
 					"thresholds": {
 						"mode": "absolute",
 						"steps": [
-							{ "color": "red", "value": null },
-							{ "color": "green", "value": 1 }
+							{
+								"color": "text",
+								"value": null
+							}
 						]
 					}
 				},
 				"overrides": []
 			},
 			"options": {
-				"reduceOptions": { "calcs": ["lastNotNull"] },
+				"reduceOptions": {
+					"calcs": ["lastNotNull"]
+				},
 				"colorMode": "value",
 				"graphMode": "none",
 				"textMode": "value"
 			},
 			"targets": [
 				{
-					"expr": "up{job=\"chevrotain-api\", instance=\"chevrotain-web:3080\"}",
+					"expr": "zero_server_uptime_seconds{job=\"chevrotain/zero-cache\"}",
+					"legendFormat": "",
 					"refId": "A"
 				}
 			]
@@ -58,31 +87,48 @@
 		{
 			"id": 3,
 			"type": "stat",
-			"title": "Zero Host Up",
-			"gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
-			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"title": "Active Clients",
+			"gridPos": {
+				"h": 4,
+				"w": 4,
+				"x": 4,
+				"y": 1
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
 			"fieldConfig": {
 				"defaults": {
 					"unit": "short",
+					"color": {
+						"mode": "fixed",
+						"fixedColor": "text"
+					},
 					"thresholds": {
 						"mode": "absolute",
 						"steps": [
-							{ "color": "red", "value": null },
-							{ "color": "green", "value": 1 }
+							{
+								"color": "text",
+								"value": null
+							}
 						]
 					}
 				},
 				"overrides": []
 			},
 			"options": {
-				"reduceOptions": { "calcs": ["lastNotNull"] },
+				"reduceOptions": {
+					"calcs": ["lastNotNull"]
+				},
 				"colorMode": "value",
-				"graphMode": "none",
+				"graphMode": "area",
 				"textMode": "value"
 			},
 			"targets": [
 				{
-					"expr": "up{job=\"node\", instance=\"zero\"}",
+					"expr": "sum(zero_sync_active_clients{job=\"chevrotain/zero-cache\"})",
+					"legendFormat": "",
 					"refId": "A"
 				}
 			]
@@ -90,25 +136,48 @@
 		{
 			"id": 4,
 			"type": "stat",
-			"title": "Query Requests / min",
-			"gridPos": { "h": 4, "w": 5, "x": 8, "y": 1 },
-			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"title": "Protocol Version",
+			"gridPos": {
+				"h": 4,
+				"w": 4,
+				"x": 8,
+				"y": 1
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
 			"fieldConfig": {
 				"defaults": {
-					"unit": "ops",
-					"decimals": 2
+					"unit": "short",
+					"color": {
+						"mode": "fixed",
+						"fixedColor": "text"
+					},
+					"thresholds": {
+						"mode": "absolute",
+						"steps": [
+							{
+								"color": "text",
+								"value": null
+							}
+						]
+					}
 				},
 				"overrides": []
 			},
 			"options": {
-				"reduceOptions": { "calcs": ["lastNotNull"] },
+				"reduceOptions": {
+					"calcs": ["lastNotNull"]
+				},
 				"colorMode": "value",
-				"graphMode": "area",
+				"graphMode": "none",
 				"textMode": "value"
 			},
 			"targets": [
 				{
-					"expr": "sum(rate(http_requests_total{job=\"chevrotain-api\", route=\"/api/query\"}[$__rate_interval])) * 60",
+					"expr": "zero_sync_max_protocol_version{job=\"chevrotain/zero-cache\"}",
+					"legendFormat": "",
 					"refId": "A"
 				}
 			]
@@ -116,73 +185,186 @@
 		{
 			"id": 5,
 			"type": "stat",
-			"title": "Mutate Requests / min",
-			"gridPos": { "h": 4, "w": 5, "x": 13, "y": 1 },
-			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"title": "Hydrations / min",
+			"gridPos": {
+				"h": 4,
+				"w": 4,
+				"x": 12,
+				"y": 1
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
 			"fieldConfig": {
 				"defaults": {
-					"unit": "ops",
-					"decimals": 2
-				},
-				"overrides": []
-			},
-			"options": {
-				"reduceOptions": { "calcs": ["lastNotNull"] },
-				"colorMode": "value",
-				"graphMode": "area",
-				"textMode": "value"
-			},
-			"targets": [
-				{
-					"expr": "sum(rate(http_requests_total{job=\"chevrotain-api\", route=\"/api/mutate\"}[$__rate_interval])) * 60",
-					"refId": "A"
-				}
-			]
-		},
-		{
-			"id": 6,
-			"type": "gauge",
-			"title": "Zero API Error Rate",
-			"gridPos": { "h": 4, "w": 6, "x": 18, "y": 1 },
-			"datasource": { "type": "prometheus", "uid": "prometheus" },
-			"fieldConfig": {
-				"defaults": {
-					"unit": "percent",
-					"min": 0,
-					"max": 100,
+					"unit": "short",
+					"decimals": 1,
+					"color": {
+						"mode": "fixed",
+						"fixedColor": "text"
+					},
 					"thresholds": {
 						"mode": "absolute",
 						"steps": [
-							{ "color": "green", "value": null },
-							{ "color": "orange", "value": 1 },
-							{ "color": "red", "value": 5 }
+							{
+								"color": "text",
+								"value": null
+							}
 						]
 					}
 				},
 				"overrides": []
 			},
 			"options": {
-				"reduceOptions": { "calcs": ["lastNotNull"] },
-				"showThresholdMarkers": true,
-				"showThresholdLabels": false
+				"reduceOptions": {
+					"calcs": ["lastNotNull"]
+				},
+				"colorMode": "value",
+				"graphMode": "area",
+				"textMode": "value"
 			},
 			"targets": [
 				{
-					"expr": "100 * sum(rate(http_requests_total{job=\"chevrotain-api\", route=~\"/api/query|/api/mutate\", ok=\"false\"}[$__rate_interval])) / clamp_min(sum(rate(http_requests_total{job=\"chevrotain-api\", route=~\"/api/query|/api/mutate\"}[$__rate_interval])), 0.0001)",
+					"expr": "rate(zero_sync_hydration_total{job=\"chevrotain/zero-cache\"}[5m]) * 60",
+					"legendFormat": "",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 6,
+			"type": "stat",
+			"title": "Poke Rows / s",
+			"gridPos": {
+				"h": 4,
+				"w": 4,
+				"x": 16,
+				"y": 1
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"unit": "ops",
+					"color": {
+						"mode": "fixed",
+						"fixedColor": "text"
+					},
+					"thresholds": {
+						"mode": "absolute",
+						"steps": [
+							{
+								"color": "text",
+								"value": null
+							}
+						]
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"reduceOptions": {
+					"calcs": ["lastNotNull"]
+				},
+				"colorMode": "value",
+				"graphMode": "area",
+				"textMode": "value"
+			},
+			"targets": [
+				{
+					"expr": "rate(zero_sync_poke_rows_total{job=\"chevrotain/zero-cache\"}[5m])",
+					"legendFormat": "",
 					"refId": "A"
 				}
 			]
 		},
 		{
 			"id": 7,
-			"type": "timeseries",
-			"title": "Zero API Throughput",
-			"gridPos": { "h": 8, "w": 12, "x": 0, "y": 5 },
-			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"type": "stat",
+			"title": "CVR Rows / s",
+			"gridPos": {
+				"h": 4,
+				"w": 4,
+				"x": 20,
+				"y": 1
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
 			"fieldConfig": {
 				"defaults": {
-					"color": { "mode": "palette-classic" },
-					"unit": "reqps",
+					"unit": "ops",
+					"color": {
+						"mode": "fixed",
+						"fixedColor": "text"
+					},
+					"thresholds": {
+						"mode": "absolute",
+						"steps": [
+							{
+								"color": "text",
+								"value": null
+							}
+						]
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"reduceOptions": {
+					"calcs": ["lastNotNull"]
+				},
+				"colorMode": "value",
+				"graphMode": "area",
+				"textMode": "value"
+			},
+			"targets": [
+				{
+					"expr": "rate(zero_sync_cvr_rows_flushed_total{job=\"chevrotain/zero-cache\"}[5m])",
+					"legendFormat": "",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 8,
+			"type": "row",
+			"title": "Clients & Hydration",
+			"gridPos": {
+				"h": 1,
+				"w": 24,
+				"x": 0,
+				"y": 5
+			},
+			"collapsed": false,
+			"panels": []
+		},
+		{
+			"id": 9,
+			"type": "timeseries",
+			"title": "Active Clients",
+			"description": "Connected sync clients by protocol version",
+			"gridPos": {
+				"h": 8,
+				"w": 12,
+				"x": 0,
+				"y": 6
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"color": {
+						"mode": "palette-classic"
+					},
+					"unit": "short",
+					"min": 0,
 					"custom": {
 						"drawStyle": "line",
 						"fillOpacity": 20,
@@ -190,38 +372,870 @@
 						"lineWidth": 2,
 						"showPoints": "never",
 						"spanNulls": false,
-						"stacking": { "group": "A", "mode": "none" }
+						"stacking": {
+							"group": "A",
+							"mode": "normal"
+						}
 					}
 				},
 				"overrides": []
 			},
 			"options": {
-				"tooltip": { "mode": "multi", "sort": "desc" },
-				"legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }
+				"tooltip": {
+					"mode": "multi",
+					"sort": "desc"
+				},
+				"legend": {
+					"displayMode": "table",
+					"placement": "bottom",
+					"calcs": ["mean", "max"]
+				}
 			},
 			"targets": [
 				{
-					"expr": "sum(rate(http_requests_total{job=\"chevrotain-api\", route=\"/api/query\"}[$__rate_interval]))",
-					"legendFormat": "Query",
+					"expr": "zero_sync_active_clients{job=\"chevrotain/zero-cache\"}",
+					"legendFormat": "v{{protocol_version}}",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 10,
+			"type": "timeseries",
+			"title": "Hydration Rate",
+			"description": "Client hydrations per second — initial data loads for new or reconnecting clients",
+			"gridPos": {
+				"h": 8,
+				"w": 12,
+				"x": 12,
+				"y": 6
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"color": {
+						"mode": "palette-classic"
+					},
+					"unit": "ops",
+					"min": 0,
+					"custom": {
+						"drawStyle": "line",
+						"fillOpacity": 20,
+						"lineInterpolation": "smooth",
+						"lineWidth": 1,
+						"showPoints": "never",
+						"spanNulls": false,
+						"stacking": {
+							"group": "A",
+							"mode": "none"
+						}
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"tooltip": {
+					"mode": "multi",
+					"sort": "desc"
+				},
+				"legend": {
+					"displayMode": "table",
+					"placement": "bottom",
+					"calcs": ["mean", "max"]
+				}
+			},
+			"targets": [
+				{
+					"expr": "rate(zero_sync_hydration_total{job=\"chevrotain/zero-cache\"}[5m])",
+					"legendFormat": "Hydrations",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 11,
+			"type": "row",
+			"title": "Sync",
+			"gridPos": {
+				"h": 1,
+				"w": 24,
+				"x": 0,
+				"y": 14
+			},
+			"collapsed": false,
+			"panels": []
+		},
+		{
+			"id": 12,
+			"type": "timeseries",
+			"title": "Poke Activity",
+			"description": "Rows and transactions pushed to connected clients",
+			"gridPos": {
+				"h": 8,
+				"w": 12,
+				"x": 0,
+				"y": 15
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"color": {
+						"mode": "palette-classic"
+					},
+					"unit": "ops",
+					"min": 0,
+					"custom": {
+						"drawStyle": "line",
+						"fillOpacity": 20,
+						"lineInterpolation": "smooth",
+						"lineWidth": 1,
+						"showPoints": "never",
+						"spanNulls": false,
+						"stacking": {
+							"group": "A",
+							"mode": "none"
+						}
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"tooltip": {
+					"mode": "multi",
+					"sort": "desc"
+				},
+				"legend": {
+					"displayMode": "table",
+					"placement": "bottom",
+					"calcs": ["mean", "max"]
+				}
+			},
+			"targets": [
+				{
+					"expr": "rate(zero_sync_poke_rows_total{job=\"chevrotain/zero-cache\"}[5m])",
+					"legendFormat": "Rows / s",
 					"refId": "A"
 				},
 				{
-					"expr": "sum(rate(http_requests_total{job=\"chevrotain-api\", route=\"/api/mutate\"}[$__rate_interval]))",
-					"legendFormat": "Mutate",
+					"expr": "rate(zero_sync_poke_transactions_total{job=\"chevrotain/zero-cache\"}[5m])",
+					"legendFormat": "Transactions / s",
 					"refId": "B"
 				}
 			]
 		},
 		{
-			"id": 8,
+			"id": 13,
 			"type": "timeseries",
-			"title": "Zero API P95 Latency",
-			"gridPos": { "h": 8, "w": 12, "x": 12, "y": 5 },
-			"datasource": { "type": "prometheus", "uid": "prometheus" },
+			"title": "CVR Flush Activity",
+			"description": "Client View Record rows flushed to storage",
+			"gridPos": {
+				"h": 8,
+				"w": 12,
+				"x": 12,
+				"y": 15
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
 			"fieldConfig": {
 				"defaults": {
-					"color": { "mode": "palette-classic" },
+					"color": {
+						"mode": "palette-classic"
+					},
+					"unit": "ops",
+					"min": 0,
+					"custom": {
+						"drawStyle": "line",
+						"fillOpacity": 20,
+						"lineInterpolation": "smooth",
+						"lineWidth": 1,
+						"showPoints": "never",
+						"spanNulls": false,
+						"stacking": {
+							"group": "A",
+							"mode": "none"
+						}
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"tooltip": {
+					"mode": "multi",
+					"sort": "desc"
+				},
+				"legend": {
+					"displayMode": "table",
+					"placement": "bottom",
+					"calcs": ["mean", "max"]
+				}
+			},
+			"targets": [
+				{
+					"expr": "rate(zero_sync_cvr_rows_flushed_total{job=\"chevrotain/zero-cache\"}[5m])",
+					"legendFormat": "Rows Flushed / s",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 14,
+			"type": "row",
+			"title": "Latency",
+			"gridPos": {
+				"h": 1,
+				"w": 24,
+				"x": 0,
+				"y": 23
+			},
+			"collapsed": false,
+			"panels": []
+		},
+		{
+			"id": 15,
+			"type": "timeseries",
+			"title": "Hydration Time",
+			"description": "Time to hydrate a client — p50, p95, p99",
+			"gridPos": {
+				"h": 8,
+				"w": 12,
+				"x": 0,
+				"y": 24
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"color": {
+						"mode": "palette-classic"
+					},
 					"unit": "s",
+					"min": 0,
+					"custom": {
+						"drawStyle": "line",
+						"fillOpacity": 0,
+						"lineInterpolation": "smooth",
+						"lineWidth": 2,
+						"showPoints": "never",
+						"spanNulls": false,
+						"stacking": {
+							"group": "A",
+							"mode": "none"
+						}
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"tooltip": {
+					"mode": "multi",
+					"sort": "desc"
+				},
+				"legend": {
+					"displayMode": "table",
+					"placement": "bottom",
+					"calcs": ["mean", "max"]
+				}
+			},
+			"targets": [
+				{
+					"expr": "histogram_quantile(0.50, rate(zero_sync_hydration_time_seconds_bucket{job=\"chevrotain/zero-cache\"}[5m]))",
+					"legendFormat": "p50",
+					"refId": "A"
+				},
+				{
+					"expr": "histogram_quantile(0.95, rate(zero_sync_hydration_time_seconds_bucket{job=\"chevrotain/zero-cache\"}[5m]))",
+					"legendFormat": "p95",
+					"refId": "B"
+				},
+				{
+					"expr": "histogram_quantile(0.99, rate(zero_sync_hydration_time_seconds_bucket{job=\"chevrotain/zero-cache\"}[5m]))",
+					"legendFormat": "p99",
+					"refId": "C"
+				}
+			]
+		},
+		{
+			"id": 16,
+			"type": "timeseries",
+			"title": "Poke Time",
+			"description": "Time to push updates to clients — p50, p95, p99",
+			"gridPos": {
+				"h": 8,
+				"w": 12,
+				"x": 12,
+				"y": 24
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"color": {
+						"mode": "palette-classic"
+					},
+					"unit": "s",
+					"min": 0,
+					"custom": {
+						"drawStyle": "line",
+						"fillOpacity": 0,
+						"lineInterpolation": "smooth",
+						"lineWidth": 2,
+						"showPoints": "never",
+						"spanNulls": false,
+						"stacking": {
+							"group": "A",
+							"mode": "none"
+						}
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"tooltip": {
+					"mode": "multi",
+					"sort": "desc"
+				},
+				"legend": {
+					"displayMode": "table",
+					"placement": "bottom",
+					"calcs": ["mean", "max"]
+				}
+			},
+			"targets": [
+				{
+					"expr": "histogram_quantile(0.50, rate(zero_sync_poke_time_seconds_bucket{job=\"chevrotain/zero-cache\"}[5m]))",
+					"legendFormat": "p50",
+					"refId": "A"
+				},
+				{
+					"expr": "histogram_quantile(0.95, rate(zero_sync_poke_time_seconds_bucket{job=\"chevrotain/zero-cache\"}[5m]))",
+					"legendFormat": "p95",
+					"refId": "B"
+				},
+				{
+					"expr": "histogram_quantile(0.99, rate(zero_sync_poke_time_seconds_bucket{job=\"chevrotain/zero-cache\"}[5m]))",
+					"legendFormat": "p99",
+					"refId": "C"
+				}
+			]
+		},
+		{
+			"id": 17,
+			"type": "timeseries",
+			"title": "CVR Flush Time",
+			"description": "Time to flush Client View Records by type — p50, p95, p99",
+			"gridPos": {
+				"h": 8,
+				"w": 12,
+				"x": 0,
+				"y": 32
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"color": {
+						"mode": "palette-classic"
+					},
+					"unit": "s",
+					"min": 0,
+					"custom": {
+						"drawStyle": "line",
+						"fillOpacity": 0,
+						"lineInterpolation": "smooth",
+						"lineWidth": 2,
+						"showPoints": "never",
+						"spanNulls": false,
+						"stacking": {
+							"group": "A",
+							"mode": "none"
+						}
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"tooltip": {
+					"mode": "multi",
+					"sort": "desc"
+				},
+				"legend": {
+					"displayMode": "table",
+					"placement": "bottom",
+					"calcs": ["mean", "max"]
+				}
+			},
+			"targets": [
+				{
+					"expr": "histogram_quantile(0.50, rate(zero_sync_cvr_flush_time_seconds_bucket{job=\"chevrotain/zero-cache\"}[5m]))",
+					"legendFormat": "p50 {{flush_type}}",
+					"refId": "A"
+				},
+				{
+					"expr": "histogram_quantile(0.95, rate(zero_sync_cvr_flush_time_seconds_bucket{job=\"chevrotain/zero-cache\"}[5m]))",
+					"legendFormat": "p95 {{flush_type}}",
+					"refId": "B"
+				},
+				{
+					"expr": "histogram_quantile(0.99, rate(zero_sync_cvr_flush_time_seconds_bucket{job=\"chevrotain/zero-cache\"}[5m]))",
+					"legendFormat": "p99 {{flush_type}}",
+					"refId": "C"
+				}
+			]
+		},
+		{
+			"id": 18,
+			"type": "timeseries",
+			"title": "Query Transformation Time",
+			"description": "Time to transform client queries — p50, p95, p99",
+			"gridPos": {
+				"h": 8,
+				"w": 12,
+				"x": 12,
+				"y": 32
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"color": {
+						"mode": "palette-classic"
+					},
+					"unit": "s",
+					"min": 0,
+					"custom": {
+						"drawStyle": "line",
+						"fillOpacity": 0,
+						"lineInterpolation": "smooth",
+						"lineWidth": 2,
+						"showPoints": "never",
+						"spanNulls": false,
+						"stacking": {
+							"group": "A",
+							"mode": "none"
+						}
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"tooltip": {
+					"mode": "multi",
+					"sort": "desc"
+				},
+				"legend": {
+					"displayMode": "table",
+					"placement": "bottom",
+					"calcs": ["mean", "max"]
+				}
+			},
+			"targets": [
+				{
+					"expr": "histogram_quantile(0.50, rate(zero_sync_query_transformation_time_seconds_bucket{job=\"chevrotain/zero-cache\"}[5m]))",
+					"legendFormat": "p50",
+					"refId": "A"
+				},
+				{
+					"expr": "histogram_quantile(0.95, rate(zero_sync_query_transformation_time_seconds_bucket{job=\"chevrotain/zero-cache\"}[5m]))",
+					"legendFormat": "p95",
+					"refId": "B"
+				},
+				{
+					"expr": "histogram_quantile(0.99, rate(zero_sync_query_transformation_time_seconds_bucket{job=\"chevrotain/zero-cache\"}[5m]))",
+					"legendFormat": "p99",
+					"refId": "C"
+				}
+			]
+		},
+		{
+			"id": 19,
+			"type": "timeseries",
+			"title": "Advance Time",
+			"description": "Time to advance IVM pipeline state — p50, p95, p99",
+			"gridPos": {
+				"h": 8,
+				"w": 12,
+				"x": 0,
+				"y": 40
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"color": {
+						"mode": "palette-classic"
+					},
+					"unit": "s",
+					"min": 0,
+					"custom": {
+						"drawStyle": "line",
+						"fillOpacity": 0,
+						"lineInterpolation": "smooth",
+						"lineWidth": 2,
+						"showPoints": "never",
+						"spanNulls": false,
+						"stacking": {
+							"group": "A",
+							"mode": "none"
+						}
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"tooltip": {
+					"mode": "multi",
+					"sort": "desc"
+				},
+				"legend": {
+					"displayMode": "table",
+					"placement": "bottom",
+					"calcs": ["mean", "max"]
+				}
+			},
+			"targets": [
+				{
+					"expr": "histogram_quantile(0.50, rate(zero_sync_advance_time_seconds_bucket{job=\"chevrotain/zero-cache\"}[5m]))",
+					"legendFormat": "Advance p50",
+					"refId": "A"
+				},
+				{
+					"expr": "histogram_quantile(0.95, rate(zero_sync_advance_time_seconds_bucket{job=\"chevrotain/zero-cache\"}[5m]))",
+					"legendFormat": "Advance p95",
+					"refId": "B"
+				},
+				{
+					"expr": "histogram_quantile(0.50, rate(zero_sync_ivm_advance_time_seconds_bucket{job=\"chevrotain/zero-cache\"}[5m]))",
+					"legendFormat": "IVM p50",
+					"refId": "C"
+				},
+				{
+					"expr": "histogram_quantile(0.95, rate(zero_sync_ivm_advance_time_seconds_bucket{job=\"chevrotain/zero-cache\"}[5m]))",
+					"legendFormat": "IVM p95",
+					"refId": "D"
+				}
+			]
+		},
+		{
+			"id": 20,
+			"type": "timeseries",
+			"title": "Average Latencies",
+			"description": "Average duration of each operation type",
+			"gridPos": {
+				"h": 8,
+				"w": 12,
+				"x": 12,
+				"y": 40
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"color": {
+						"mode": "palette-classic"
+					},
+					"unit": "s",
+					"min": 0,
+					"custom": {
+						"drawStyle": "line",
+						"fillOpacity": 10,
+						"lineInterpolation": "smooth",
+						"lineWidth": 1,
+						"showPoints": "never",
+						"spanNulls": false,
+						"stacking": {
+							"group": "A",
+							"mode": "none"
+						}
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"tooltip": {
+					"mode": "multi",
+					"sort": "desc"
+				},
+				"legend": {
+					"displayMode": "table",
+					"placement": "bottom",
+					"calcs": ["mean", "max"]
+				}
+			},
+			"targets": [
+				{
+					"expr": "rate(zero_sync_hydration_time_seconds_sum{job=\"chevrotain/zero-cache\"}[5m]) / rate(zero_sync_hydration_time_seconds_count{job=\"chevrotain/zero-cache\"}[5m])",
+					"legendFormat": "Hydration avg",
+					"refId": "A"
+				},
+				{
+					"expr": "rate(zero_sync_poke_time_seconds_sum{job=\"chevrotain/zero-cache\"}[5m]) / rate(zero_sync_poke_time_seconds_count{job=\"chevrotain/zero-cache\"}[5m])",
+					"legendFormat": "Poke avg",
+					"refId": "B"
+				},
+				{
+					"expr": "rate(zero_sync_cvr_flush_time_seconds_sum{job=\"chevrotain/zero-cache\"}[5m]) / rate(zero_sync_cvr_flush_time_seconds_count{job=\"chevrotain/zero-cache\"}[5m])",
+					"legendFormat": "CVR Flush avg",
+					"refId": "C"
+				},
+				{
+					"expr": "rate(zero_sync_query_transformation_time_seconds_sum{job=\"chevrotain/zero-cache\"}[5m]) / rate(zero_sync_query_transformation_time_seconds_count{job=\"chevrotain/zero-cache\"}[5m])",
+					"legendFormat": "Query Transform avg",
+					"refId": "D"
+				}
+			]
+		},
+		{
+			"id": 21,
+			"type": "row",
+			"title": "Replication & Mutations",
+			"gridPos": {
+				"h": 1,
+				"w": 24,
+				"x": 0,
+				"y": 48
+			},
+			"collapsed": false,
+			"panels": []
+		},
+		{
+			"id": 22,
+			"type": "timeseries",
+			"title": "Replication",
+			"description": "Events and transactions received from PostgreSQL logical replication",
+			"gridPos": {
+				"h": 8,
+				"w": 12,
+				"x": 0,
+				"y": 49
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"color": {
+						"mode": "palette-classic"
+					},
+					"unit": "ops",
+					"min": 0,
+					"custom": {
+						"drawStyle": "line",
+						"fillOpacity": 20,
+						"lineInterpolation": "smooth",
+						"lineWidth": 1,
+						"showPoints": "never",
+						"spanNulls": false,
+						"stacking": {
+							"group": "A",
+							"mode": "none"
+						}
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"tooltip": {
+					"mode": "multi",
+					"sort": "desc"
+				},
+				"legend": {
+					"displayMode": "table",
+					"placement": "bottom",
+					"calcs": ["mean", "max"]
+				}
+			},
+			"targets": [
+				{
+					"expr": "rate(zero_replication_events_total{job=\"chevrotain/zero-cache\"}[5m])",
+					"legendFormat": "Events / s",
+					"refId": "A"
+				},
+				{
+					"expr": "rate(zero_replication_transactions_total{job=\"chevrotain/zero-cache\"}[5m])",
+					"legendFormat": "Transactions / s",
+					"refId": "B"
+				}
+			]
+		},
+		{
+			"id": 23,
+			"type": "timeseries",
+			"title": "Mutations",
+			"description": "Mutation pushes and custom mutations processed",
+			"gridPos": {
+				"h": 8,
+				"w": 12,
+				"x": 12,
+				"y": 49
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"color": {
+						"mode": "palette-classic"
+					},
+					"unit": "ops",
+					"min": 0,
+					"custom": {
+						"drawStyle": "line",
+						"fillOpacity": 20,
+						"lineInterpolation": "smooth",
+						"lineWidth": 1,
+						"showPoints": "never",
+						"spanNulls": false,
+						"stacking": {
+							"group": "A",
+							"mode": "none"
+						}
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"tooltip": {
+					"mode": "multi",
+					"sort": "desc"
+				},
+				"legend": {
+					"displayMode": "table",
+					"placement": "bottom",
+					"calcs": ["mean", "max"]
+				}
+			},
+			"targets": [
+				{
+					"expr": "rate(zero_mutation_pushes_total{job=\"chevrotain/zero-cache\"}[5m])",
+					"legendFormat": "Pushes / s",
+					"refId": "A"
+				},
+				{
+					"expr": "rate(zero_mutation_custom_total{job=\"chevrotain/zero-cache\"}[5m])",
+					"legendFormat": "Custom / s",
+					"refId": "B"
+				}
+			]
+		},
+		{
+			"id": 24,
+			"type": "row",
+			"title": "Query Transformations",
+			"gridPos": {
+				"h": 1,
+				"w": 24,
+				"x": 0,
+				"y": 57
+			},
+			"collapsed": false,
+			"panels": []
+		},
+		{
+			"id": 25,
+			"type": "timeseries",
+			"title": "Query Transformation Rate",
+			"description": "Successful transformations and no-ops per second",
+			"gridPos": {
+				"h": 8,
+				"w": 12,
+				"x": 0,
+				"y": 58
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"color": {
+						"mode": "palette-classic"
+					},
+					"unit": "ops",
+					"min": 0,
+					"custom": {
+						"drawStyle": "line",
+						"fillOpacity": 20,
+						"lineInterpolation": "smooth",
+						"lineWidth": 1,
+						"showPoints": "never",
+						"spanNulls": false,
+						"stacking": {
+							"group": "A",
+							"mode": "none"
+						}
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"tooltip": {
+					"mode": "multi",
+					"sort": "desc"
+				},
+				"legend": {
+					"displayMode": "table",
+					"placement": "bottom",
+					"calcs": ["mean", "max"]
+				}
+			},
+			"targets": [
+				{
+					"expr": "rate(zero_sync_query_transformations_total{job=\"chevrotain/zero-cache\"}[5m])",
+					"legendFormat": "Transforms / s ({{result}})",
+					"refId": "A"
+				},
+				{
+					"expr": "rate(zero_sync_query_transformation_no_ops_total{job=\"chevrotain/zero-cache\"}[5m])",
+					"legendFormat": "No-ops / s",
+					"refId": "B"
+				}
+			]
+		},
+		{
+			"id": 26,
+			"type": "timeseries",
+			"title": "No-op Ratio",
+			"description": "Percentage of query transformations that were no-ops — higher means less work for the server",
+			"gridPos": {
+				"h": 8,
+				"w": 12,
+				"x": 12,
+				"y": 58
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"color": {
+						"mode": "palette-classic"
+					},
+					"unit": "percent",
+					"min": 0,
+					"max": 100,
 					"custom": {
 						"drawStyle": "line",
 						"fillOpacity": 10,
@@ -229,139 +1243,32 @@
 						"lineWidth": 2,
 						"showPoints": "never",
 						"spanNulls": false,
-						"stacking": { "group": "A", "mode": "none" }
+						"stacking": {
+							"group": "A",
+							"mode": "none"
+						}
 					}
 				},
 				"overrides": []
 			},
 			"options": {
-				"tooltip": { "mode": "multi", "sort": "desc" },
-				"legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }
-			},
-			"targets": [
-				{
-					"expr": "histogram_quantile(0.95, sum by (le, route) (rate(http_request_duration_seconds_bucket{job=\"chevrotain-api\", route=~\"/api/query|/api/mutate\"}[$__rate_interval])))",
-					"legendFormat": "{{route}}",
-					"refId": "A"
+				"tooltip": {
+					"mode": "multi",
+					"sort": "desc"
+				},
+				"legend": {
+					"displayMode": "table",
+					"placement": "bottom",
+					"calcs": ["mean", "lastNotNull"]
 				}
-			]
-		},
-		{
-			"id": 9,
-			"type": "row",
-			"title": "Zero Host",
-			"gridPos": { "h": 1, "w": 24, "x": 0, "y": 13 },
-			"collapsed": false,
-			"panels": []
-		},
-		{
-			"id": 10,
-			"type": "timeseries",
-			"title": "CPU Busy % (zero host)",
-			"gridPos": { "h": 8, "w": 8, "x": 0, "y": 14 },
-			"datasource": { "type": "prometheus", "uid": "prometheus" },
-			"fieldConfig": {
-				"defaults": {
-					"color": { "mode": "palette-classic" },
-					"unit": "percent",
-					"min": 0,
-					"max": 100,
-					"custom": {
-						"drawStyle": "line",
-						"fillOpacity": 20,
-						"lineInterpolation": "smooth",
-						"lineWidth": 2,
-						"showPoints": "never",
-						"spanNulls": false,
-						"stacking": { "group": "A", "mode": "none" }
-					}
-				},
-				"overrides": []
-			},
-			"options": {
-				"tooltip": { "mode": "multi", "sort": "desc" },
-				"legend": { "displayMode": "list", "placement": "bottom", "calcs": ["mean", "max"] }
 			},
 			"targets": [
 				{
-					"expr": "100 * (1 - avg(rate(node_cpu_seconds_total{job=\"node\", instance=\"zero\", mode=\"idle\"}[$__rate_interval])))",
-					"legendFormat": "CPU Busy",
-					"refId": "A"
-				}
-			]
-		},
-		{
-			"id": 11,
-			"type": "timeseries",
-			"title": "RAM Used % (zero host)",
-			"gridPos": { "h": 8, "w": 8, "x": 8, "y": 14 },
-			"datasource": { "type": "prometheus", "uid": "prometheus" },
-			"fieldConfig": {
-				"defaults": {
-					"color": { "mode": "palette-classic" },
-					"unit": "percent",
-					"min": 0,
-					"max": 100,
-					"custom": {
-						"drawStyle": "line",
-						"fillOpacity": 20,
-						"lineInterpolation": "smooth",
-						"lineWidth": 2,
-						"showPoints": "never",
-						"spanNulls": false,
-						"stacking": { "group": "A", "mode": "none" }
-					}
-				},
-				"overrides": []
-			},
-			"options": {
-				"tooltip": { "mode": "multi", "sort": "desc" },
-				"legend": { "displayMode": "list", "placement": "bottom", "calcs": ["mean", "max"] }
-			},
-			"targets": [
-				{
-					"expr": "100 * (1 - node_memory_MemAvailable_bytes{job=\"node\", instance=\"zero\"} / node_memory_MemTotal_bytes{job=\"node\", instance=\"zero\"})",
-					"legendFormat": "RAM Used",
-					"refId": "A"
-				}
-			]
-		},
-		{
-			"id": 12,
-			"type": "timeseries",
-			"title": "Root FS Used % (zero host)",
-			"gridPos": { "h": 8, "w": 8, "x": 16, "y": 14 },
-			"datasource": { "type": "prometheus", "uid": "prometheus" },
-			"fieldConfig": {
-				"defaults": {
-					"color": { "mode": "palette-classic" },
-					"unit": "percent",
-					"min": 0,
-					"max": 100,
-					"custom": {
-						"drawStyle": "line",
-						"fillOpacity": 20,
-						"lineInterpolation": "smooth",
-						"lineWidth": 2,
-						"showPoints": "never",
-						"spanNulls": false,
-						"stacking": { "group": "A", "mode": "none" }
-					}
-				},
-				"overrides": []
-			},
-			"options": {
-				"tooltip": { "mode": "multi", "sort": "desc" },
-				"legend": { "displayMode": "list", "placement": "bottom", "calcs": ["mean", "max"] }
-			},
-			"targets": [
-				{
-					"expr": "100 * (1 - node_filesystem_avail_bytes{job=\"node\", instance=\"zero\", mountpoint=\"/\", fstype!=\"rootfs\"} / node_filesystem_size_bytes{job=\"node\", instance=\"zero\", mountpoint=\"/\", fstype!=\"rootfs\"})",
-					"legendFormat": "Root FS Used",
+					"expr": "rate(zero_sync_query_transformation_no_ops_total{job=\"chevrotain/zero-cache\"}[5m]) / (rate(zero_sync_query_transformations_total{job=\"chevrotain/zero-cache\"}[5m]) + rate(zero_sync_query_transformation_no_ops_total{job=\"chevrotain/zero-cache\"}[5m])) * 100",
+					"legendFormat": "No-op %",
 					"refId": "A"
 				}
 			]
 		}
-	],
-	"version": 1
+	]
 }
