@@ -5,12 +5,12 @@ import { authClient } from "@chevrotain/web/clients/auth";
 export const sessionQuery = () =>
 	queryOptions({
 		queryKey: ["session"] as const,
-		staleTime: 5 * 60 * 1000,
+		staleTime: 0,
 		refetchInterval: 5 * 60 * 1000,
 		queryFn: async () => {
 			const { data: session } = await authClient.getSession();
 
-			return session;
+			return session?.session && session.user ? session : null;
 		},
 	});
 

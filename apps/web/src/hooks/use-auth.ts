@@ -2,14 +2,19 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useRouter } from "@tanstack/react-router";
 
 import { authClient } from "@chevrotain/web/clients/auth";
+import { sessionQuery } from "@chevrotain/web/queries/session";
 
 export function useAuth() {
 	const navigate = useNavigate();
 	const router = useRouter();
 	const queryClient = useQueryClient();
+	const { queryKey: sessionQueryKey } = sessionQuery();
 
 	const signOut = async () => {
 		await authClient.signOut();
+		queryClient.setQueryData(sessionQueryKey, null);
+		queryClient.removeQueries({ queryKey: ["deviceSessions"] });
+		await router.invalidate();
 		navigate({ to: "/login" });
 	};
 
@@ -33,6 +38,9 @@ export function useAuth() {
 			}
 		}
 		await authClient.signOut();
+		queryClient.setQueryData(sessionQueryKey, null);
+		queryClient.removeQueries({ queryKey: ["deviceSessions"] });
+		await router.invalidate();
 		navigate({ to: "/login" });
 	};
 

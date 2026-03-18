@@ -4,7 +4,6 @@ import { HttpApiBuilder } from "effect/unstable/httpapi";
 
 import { ChevrotainApi } from "@chevrotain/api/contract";
 import { AuthHandlerLive } from "@chevrotain/api/handlers/auth";
-import { AutumnHandlerLive } from "@chevrotain/api/handlers/autumn";
 import { HealthHandlerLive } from "@chevrotain/api/handlers/health";
 import { RpcLive } from "@chevrotain/api/handlers/rpc";
 import { ZeroHandlerLive } from "@chevrotain/api/handlers/zero";
@@ -12,15 +11,10 @@ import { AuthMiddlewareLive } from "@chevrotain/api/middleware/auth-live";
 import { AppLayer } from "@chevrotain/api/runtime";
 
 /** HttpApi handler groups (passthrough endpoints only). */
-const HandlersLive = Layer.mergeAll(
-	HealthHandlerLive,
-	ZeroHandlerLive,
-	AuthHandlerLive,
-	AutumnHandlerLive,
-);
+const HandlersLive = Layer.mergeAll(HealthHandlerLive, ZeroHandlerLive, AuthHandlerLive);
 
 /**
- * HttpApi layer for passthrough endpoints (auth, autumn, zero, health).
+ * HttpApi layer for passthrough endpoints (auth, zero, health).
  * Analytics and errors are now served via RPC.
  */
 const ApiLive = HttpApiBuilder.layer(ChevrotainApi).pipe(

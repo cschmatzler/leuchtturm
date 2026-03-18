@@ -8,303 +8,301 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from './pages/__root'
-import { Route as TermsOfServiceRouteImport } from './pages/terms-of-service'
-import { Route as SignupRouteImport } from './pages/signup'
-import { Route as ResetPasswordRouteImport } from './pages/reset-password'
-import { Route as PrivacyPolicyRouteImport } from './pages/privacy-policy'
-import { Route as LoginRouteImport } from './pages/login'
-import { Route as ForgotPasswordRouteImport } from './pages/forgot-password'
-import { Route as AppRouteImport } from './pages/app'
-import { Route as IndexRouteImport } from './pages/index'
-import { Route as AppIndexRouteImport } from './pages/app.index'
-import { Route as AppSettingsRouteImport } from './pages/app.settings'
-import { Route as AppSettingsPreferencesRouteImport } from './pages/app.settings.preferences'
-import { Route as AppSettingsBillingRouteImport } from './pages/app.settings.billing'
+import { Route as rootRouteImport } from "./pages/__root";
+import { Route as AppRouteImport } from "./pages/app";
+import { Route as AppIndexRouteImport } from "./pages/app.index";
+import { Route as AppSettingsRouteImport } from "./pages/app.settings";
+import { Route as AppSettingsBillingRouteImport } from "./pages/app.settings.billing";
+import { Route as AppSettingsPreferencesRouteImport } from "./pages/app.settings.preferences";
+import { Route as ForgotPasswordRouteImport } from "./pages/forgot-password";
+import { Route as IndexRouteImport } from "./pages/index";
+import { Route as LoginRouteImport } from "./pages/login";
+import { Route as PrivacyPolicyRouteImport } from "./pages/privacy-policy";
+import { Route as ResetPasswordRouteImport } from "./pages/reset-password";
+import { Route as SignupRouteImport } from "./pages/signup";
+import { Route as TermsOfServiceRouteImport } from "./pages/terms-of-service";
 
 const TermsOfServiceRoute = TermsOfServiceRouteImport.update({
-  id: '/terms-of-service',
-  path: '/terms-of-service',
-  getParentRoute: () => rootRouteImport,
-} as any)
+	id: "/terms-of-service",
+	path: "/terms-of-service",
+	getParentRoute: () => rootRouteImport,
+} as any);
 const SignupRoute = SignupRouteImport.update({
-  id: '/signup',
-  path: '/signup',
-  getParentRoute: () => rootRouteImport,
-} as any)
+	id: "/signup",
+	path: "/signup",
+	getParentRoute: () => rootRouteImport,
+} as any);
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
+	id: "/reset-password",
+	path: "/reset-password",
+	getParentRoute: () => rootRouteImport,
+} as any);
 const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
-  id: '/privacy-policy',
-  path: '/privacy-policy',
-  getParentRoute: () => rootRouteImport,
-} as any)
+	id: "/privacy-policy",
+	path: "/privacy-policy",
+	getParentRoute: () => rootRouteImport,
+} as any);
 const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
+	id: "/login",
+	path: "/login",
+	getParentRoute: () => rootRouteImport,
+} as any);
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
-  id: '/forgot-password',
-  path: '/forgot-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
+	id: "/forgot-password",
+	path: "/forgot-password",
+	getParentRoute: () => rootRouteImport,
+} as any);
 const AppRoute = AppRouteImport.update({
-  id: '/app',
-  path: '/app',
-  getParentRoute: () => rootRouteImport,
-} as any)
+	id: "/app",
+	path: "/app",
+	getParentRoute: () => rootRouteImport,
+} as any);
 const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
+	id: "/",
+	path: "/",
+	getParentRoute: () => rootRouteImport,
+} as any);
 const AppIndexRoute = AppIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppRoute,
-} as any)
+	id: "/",
+	path: "/",
+	getParentRoute: () => AppRoute,
+} as any);
 const AppSettingsRoute = AppSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AppRoute,
-} as any)
+	id: "/settings",
+	path: "/settings",
+	getParentRoute: () => AppRoute,
+} as any);
 const AppSettingsPreferencesRoute = AppSettingsPreferencesRouteImport.update({
-  id: '/preferences',
-  path: '/preferences',
-  getParentRoute: () => AppSettingsRoute,
-} as any)
+	id: "/preferences",
+	path: "/preferences",
+	getParentRoute: () => AppSettingsRoute,
+} as any);
 const AppSettingsBillingRoute = AppSettingsBillingRouteImport.update({
-  id: '/billing',
-  path: '/billing',
-  getParentRoute: () => AppSettingsRoute,
-} as any)
+	id: "/billing",
+	path: "/billing",
+	getParentRoute: () => AppSettingsRoute,
+} as any);
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/app': typeof AppRouteWithChildren
-  '/forgot-password': typeof ForgotPasswordRoute
-  '/login': typeof LoginRoute
-  '/privacy-policy': typeof PrivacyPolicyRoute
-  '/reset-password': typeof ResetPasswordRoute
-  '/signup': typeof SignupRoute
-  '/terms-of-service': typeof TermsOfServiceRoute
-  '/app/settings': typeof AppSettingsRouteWithChildren
-  '/app/': typeof AppIndexRoute
-  '/app/settings/billing': typeof AppSettingsBillingRoute
-  '/app/settings/preferences': typeof AppSettingsPreferencesRoute
+	"/": typeof IndexRoute;
+	"/app": typeof AppRouteWithChildren;
+	"/forgot-password": typeof ForgotPasswordRoute;
+	"/login": typeof LoginRoute;
+	"/privacy-policy": typeof PrivacyPolicyRoute;
+	"/reset-password": typeof ResetPasswordRoute;
+	"/signup": typeof SignupRoute;
+	"/terms-of-service": typeof TermsOfServiceRoute;
+	"/app/settings": typeof AppSettingsRouteWithChildren;
+	"/app/": typeof AppIndexRoute;
+	"/app/settings/billing": typeof AppSettingsBillingRoute;
+	"/app/settings/preferences": typeof AppSettingsPreferencesRoute;
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/forgot-password': typeof ForgotPasswordRoute
-  '/login': typeof LoginRoute
-  '/privacy-policy': typeof PrivacyPolicyRoute
-  '/reset-password': typeof ResetPasswordRoute
-  '/signup': typeof SignupRoute
-  '/terms-of-service': typeof TermsOfServiceRoute
-  '/app/settings': typeof AppSettingsRouteWithChildren
-  '/app': typeof AppIndexRoute
-  '/app/settings/billing': typeof AppSettingsBillingRoute
-  '/app/settings/preferences': typeof AppSettingsPreferencesRoute
+	"/": typeof IndexRoute;
+	"/forgot-password": typeof ForgotPasswordRoute;
+	"/login": typeof LoginRoute;
+	"/privacy-policy": typeof PrivacyPolicyRoute;
+	"/reset-password": typeof ResetPasswordRoute;
+	"/signup": typeof SignupRoute;
+	"/terms-of-service": typeof TermsOfServiceRoute;
+	"/app/settings": typeof AppSettingsRouteWithChildren;
+	"/app": typeof AppIndexRoute;
+	"/app/settings/billing": typeof AppSettingsBillingRoute;
+	"/app/settings/preferences": typeof AppSettingsPreferencesRoute;
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/app': typeof AppRouteWithChildren
-  '/forgot-password': typeof ForgotPasswordRoute
-  '/login': typeof LoginRoute
-  '/privacy-policy': typeof PrivacyPolicyRoute
-  '/reset-password': typeof ResetPasswordRoute
-  '/signup': typeof SignupRoute
-  '/terms-of-service': typeof TermsOfServiceRoute
-  '/app/settings': typeof AppSettingsRouteWithChildren
-  '/app/': typeof AppIndexRoute
-  '/app/settings/billing': typeof AppSettingsBillingRoute
-  '/app/settings/preferences': typeof AppSettingsPreferencesRoute
+	__root__: typeof rootRouteImport;
+	"/": typeof IndexRoute;
+	"/app": typeof AppRouteWithChildren;
+	"/forgot-password": typeof ForgotPasswordRoute;
+	"/login": typeof LoginRoute;
+	"/privacy-policy": typeof PrivacyPolicyRoute;
+	"/reset-password": typeof ResetPasswordRoute;
+	"/signup": typeof SignupRoute;
+	"/terms-of-service": typeof TermsOfServiceRoute;
+	"/app/settings": typeof AppSettingsRouteWithChildren;
+	"/app/": typeof AppIndexRoute;
+	"/app/settings/billing": typeof AppSettingsBillingRoute;
+	"/app/settings/preferences": typeof AppSettingsPreferencesRoute;
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/app'
-    | '/forgot-password'
-    | '/login'
-    | '/privacy-policy'
-    | '/reset-password'
-    | '/signup'
-    | '/terms-of-service'
-    | '/app/settings'
-    | '/app/'
-    | '/app/settings/billing'
-    | '/app/settings/preferences'
-  fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/forgot-password'
-    | '/login'
-    | '/privacy-policy'
-    | '/reset-password'
-    | '/signup'
-    | '/terms-of-service'
-    | '/app/settings'
-    | '/app'
-    | '/app/settings/billing'
-    | '/app/settings/preferences'
-  id:
-    | '__root__'
-    | '/'
-    | '/app'
-    | '/forgot-password'
-    | '/login'
-    | '/privacy-policy'
-    | '/reset-password'
-    | '/signup'
-    | '/terms-of-service'
-    | '/app/settings'
-    | '/app/'
-    | '/app/settings/billing'
-    | '/app/settings/preferences'
-  fileRoutesById: FileRoutesById
+	fileRoutesByFullPath: FileRoutesByFullPath;
+	fullPaths:
+		| "/"
+		| "/app"
+		| "/forgot-password"
+		| "/login"
+		| "/privacy-policy"
+		| "/reset-password"
+		| "/signup"
+		| "/terms-of-service"
+		| "/app/settings"
+		| "/app/"
+		| "/app/settings/billing"
+		| "/app/settings/preferences";
+	fileRoutesByTo: FileRoutesByTo;
+	to:
+		| "/"
+		| "/forgot-password"
+		| "/login"
+		| "/privacy-policy"
+		| "/reset-password"
+		| "/signup"
+		| "/terms-of-service"
+		| "/app/settings"
+		| "/app"
+		| "/app/settings/billing"
+		| "/app/settings/preferences";
+	id:
+		| "__root__"
+		| "/"
+		| "/app"
+		| "/forgot-password"
+		| "/login"
+		| "/privacy-policy"
+		| "/reset-password"
+		| "/signup"
+		| "/terms-of-service"
+		| "/app/settings"
+		| "/app/"
+		| "/app/settings/billing"
+		| "/app/settings/preferences";
+	fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  AppRoute: typeof AppRouteWithChildren
-  ForgotPasswordRoute: typeof ForgotPasswordRoute
-  LoginRoute: typeof LoginRoute
-  PrivacyPolicyRoute: typeof PrivacyPolicyRoute
-  ResetPasswordRoute: typeof ResetPasswordRoute
-  SignupRoute: typeof SignupRoute
-  TermsOfServiceRoute: typeof TermsOfServiceRoute
+	IndexRoute: typeof IndexRoute;
+	AppRoute: typeof AppRouteWithChildren;
+	ForgotPasswordRoute: typeof ForgotPasswordRoute;
+	LoginRoute: typeof LoginRoute;
+	PrivacyPolicyRoute: typeof PrivacyPolicyRoute;
+	ResetPasswordRoute: typeof ResetPasswordRoute;
+	SignupRoute: typeof SignupRoute;
+	TermsOfServiceRoute: typeof TermsOfServiceRoute;
 }
 
-declare module '@tanstack/react-router' {
-  interface FileRoutesByPath {
-    '/terms-of-service': {
-      id: '/terms-of-service'
-      path: '/terms-of-service'
-      fullPath: '/terms-of-service'
-      preLoaderRoute: typeof TermsOfServiceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/signup': {
-      id: '/signup'
-      path: '/signup'
-      fullPath: '/signup'
-      preLoaderRoute: typeof SignupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacy-policy': {
-      id: '/privacy-policy'
-      path: '/privacy-policy'
-      fullPath: '/privacy-policy'
-      preLoaderRoute: typeof PrivacyPolicyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/forgot-password': {
-      id: '/forgot-password'
-      path: '/forgot-password'
-      fullPath: '/forgot-password'
-      preLoaderRoute: typeof ForgotPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/app': {
-      id: '/app'
-      path: '/app'
-      fullPath: '/app'
-      preLoaderRoute: typeof AppRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/app/': {
-      id: '/app/'
-      path: '/'
-      fullPath: '/app/'
-      preLoaderRoute: typeof AppIndexRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/settings': {
-      id: '/app/settings'
-      path: '/settings'
-      fullPath: '/app/settings'
-      preLoaderRoute: typeof AppSettingsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/settings/preferences': {
-      id: '/app/settings/preferences'
-      path: '/preferences'
-      fullPath: '/app/settings/preferences'
-      preLoaderRoute: typeof AppSettingsPreferencesRouteImport
-      parentRoute: typeof AppSettingsRoute
-    }
-    '/app/settings/billing': {
-      id: '/app/settings/billing'
-      path: '/billing'
-      fullPath: '/app/settings/billing'
-      preLoaderRoute: typeof AppSettingsBillingRouteImport
-      parentRoute: typeof AppSettingsRoute
-    }
-  }
+declare module "@tanstack/react-router" {
+	interface FileRoutesByPath {
+		"/terms-of-service": {
+			id: "/terms-of-service";
+			path: "/terms-of-service";
+			fullPath: "/terms-of-service";
+			preLoaderRoute: typeof TermsOfServiceRouteImport;
+			parentRoute: typeof rootRouteImport;
+		};
+		"/signup": {
+			id: "/signup";
+			path: "/signup";
+			fullPath: "/signup";
+			preLoaderRoute: typeof SignupRouteImport;
+			parentRoute: typeof rootRouteImport;
+		};
+		"/reset-password": {
+			id: "/reset-password";
+			path: "/reset-password";
+			fullPath: "/reset-password";
+			preLoaderRoute: typeof ResetPasswordRouteImport;
+			parentRoute: typeof rootRouteImport;
+		};
+		"/privacy-policy": {
+			id: "/privacy-policy";
+			path: "/privacy-policy";
+			fullPath: "/privacy-policy";
+			preLoaderRoute: typeof PrivacyPolicyRouteImport;
+			parentRoute: typeof rootRouteImport;
+		};
+		"/login": {
+			id: "/login";
+			path: "/login";
+			fullPath: "/login";
+			preLoaderRoute: typeof LoginRouteImport;
+			parentRoute: typeof rootRouteImport;
+		};
+		"/forgot-password": {
+			id: "/forgot-password";
+			path: "/forgot-password";
+			fullPath: "/forgot-password";
+			preLoaderRoute: typeof ForgotPasswordRouteImport;
+			parentRoute: typeof rootRouteImport;
+		};
+		"/app": {
+			id: "/app";
+			path: "/app";
+			fullPath: "/app";
+			preLoaderRoute: typeof AppRouteImport;
+			parentRoute: typeof rootRouteImport;
+		};
+		"/": {
+			id: "/";
+			path: "/";
+			fullPath: "/";
+			preLoaderRoute: typeof IndexRouteImport;
+			parentRoute: typeof rootRouteImport;
+		};
+		"/app/": {
+			id: "/app/";
+			path: "/";
+			fullPath: "/app/";
+			preLoaderRoute: typeof AppIndexRouteImport;
+			parentRoute: typeof AppRoute;
+		};
+		"/app/settings": {
+			id: "/app/settings";
+			path: "/settings";
+			fullPath: "/app/settings";
+			preLoaderRoute: typeof AppSettingsRouteImport;
+			parentRoute: typeof AppRoute;
+		};
+		"/app/settings/preferences": {
+			id: "/app/settings/preferences";
+			path: "/preferences";
+			fullPath: "/app/settings/preferences";
+			preLoaderRoute: typeof AppSettingsPreferencesRouteImport;
+			parentRoute: typeof AppSettingsRoute;
+		};
+		"/app/settings/billing": {
+			id: "/app/settings/billing";
+			path: "/billing";
+			fullPath: "/app/settings/billing";
+			preLoaderRoute: typeof AppSettingsBillingRouteImport;
+			parentRoute: typeof AppSettingsRoute;
+		};
+	}
 }
 
 interface AppSettingsRouteChildren {
-  AppSettingsBillingRoute: typeof AppSettingsBillingRoute
-  AppSettingsPreferencesRoute: typeof AppSettingsPreferencesRoute
+	AppSettingsBillingRoute: typeof AppSettingsBillingRoute;
+	AppSettingsPreferencesRoute: typeof AppSettingsPreferencesRoute;
 }
 
 const AppSettingsRouteChildren: AppSettingsRouteChildren = {
-  AppSettingsBillingRoute: AppSettingsBillingRoute,
-  AppSettingsPreferencesRoute: AppSettingsPreferencesRoute,
-}
+	AppSettingsBillingRoute: AppSettingsBillingRoute,
+	AppSettingsPreferencesRoute: AppSettingsPreferencesRoute,
+};
 
-const AppSettingsRouteWithChildren = AppSettingsRoute._addFileChildren(
-  AppSettingsRouteChildren,
-)
+const AppSettingsRouteWithChildren = AppSettingsRoute._addFileChildren(AppSettingsRouteChildren);
 
 interface AppRouteChildren {
-  AppSettingsRoute: typeof AppSettingsRouteWithChildren
-  AppIndexRoute: typeof AppIndexRoute
+	AppSettingsRoute: typeof AppSettingsRouteWithChildren;
+	AppIndexRoute: typeof AppIndexRoute;
 }
 
 const AppRouteChildren: AppRouteChildren = {
-  AppSettingsRoute: AppSettingsRouteWithChildren,
-  AppIndexRoute: AppIndexRoute,
-}
+	AppSettingsRoute: AppSettingsRouteWithChildren,
+	AppIndexRoute: AppIndexRoute,
+};
 
-const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren);
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  AppRoute: AppRouteWithChildren,
-  ForgotPasswordRoute: ForgotPasswordRoute,
-  LoginRoute: LoginRoute,
-  PrivacyPolicyRoute: PrivacyPolicyRoute,
-  ResetPasswordRoute: ResetPasswordRoute,
-  SignupRoute: SignupRoute,
-  TermsOfServiceRoute: TermsOfServiceRoute,
-}
+	IndexRoute: IndexRoute,
+	AppRoute: AppRouteWithChildren,
+	ForgotPasswordRoute: ForgotPasswordRoute,
+	LoginRoute: LoginRoute,
+	PrivacyPolicyRoute: PrivacyPolicyRoute,
+	ResetPasswordRoute: ResetPasswordRoute,
+	SignupRoute: SignupRoute,
+	TermsOfServiceRoute: TermsOfServiceRoute,
+};
 export const routeTree = rootRouteImport
-  ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+	._addFileChildren(rootRouteChildren)
+	._addFileTypes<FileRouteTypes>();

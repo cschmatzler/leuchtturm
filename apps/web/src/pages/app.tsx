@@ -1,14 +1,6 @@
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQuery } from "@tanstack/react-query";
-import {
-	createFileRoute,
-	Outlet,
-	redirect,
-	RouterContextProvider,
-	useNavigate,
-	useRouter,
-} from "@tanstack/react-router";
-import { AutumnProvider, useCustomer } from "autumn-js/react";
+import { createFileRoute, Outlet, redirect, useNavigate } from "@tanstack/react-router";
 import {
 	CheckIcon,
 	ChevronDownIcon,
@@ -20,7 +12,6 @@ import {
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
-import { Loading } from "@chevrotain/web/components/app/loading";
 import { Avatar, AvatarFallback } from "@chevrotain/web/components/ui/avatar";
 import { renderOptionShiftShortcut } from "@chevrotain/web/components/ui/kbd";
 import { Link } from "@chevrotain/web/components/ui/link";
@@ -69,7 +60,7 @@ const SETTINGS_NAVIGATION = [
 
 export const Route = createFileRoute("/app")({
 	beforeLoad: async ({ context: { queryClient } }) => {
-		const session = await queryClient.ensureQueryData(sessionQuery());
+		const session = await queryClient.fetchQuery(sessionQuery());
 		if (!session) throw redirect({ to: "/login" });
 		return { session };
 	},
@@ -79,29 +70,14 @@ export const Route = createFileRoute("/app")({
 function Layout() {
 	const { session } = Route.useRouteContext();
 
-	return (
-		<AutumnProvider
-			key={session.user.id}
-			backendUrl={import.meta.env.VITE_API_URL}
-			includeCredentials
-		>
-			<App session={session} />
-		</AutumnProvider>
-	);
+	return <App session={session} />;
 }
 
 function App({ session }: { session: SessionData }) {
-	const router = useRouter();
-	const { refetch, isLoading, error } = useCustomer();
-
-	if (isLoading || Boolean(error)) return <Loading />;
-
 	return (
-		<RouterContextProvider router={router} context={{ refetch }}>
-			<ZeroProvider key={session.user.id} session={session}>
-				<Shell session={session} />
-			</ZeroProvider>
-		</RouterContextProvider>
+		<ZeroProvider key={session.user.id} session={session}>
+			<Shell session={session} />
+		</ZeroProvider>
 	);
 }
 
