@@ -5,17 +5,24 @@ import { HttpApiBuilder } from "effect/unstable/httpapi";
 
 import { ChevrotainApi } from "@chevrotain/api/contract";
 import { CurrentUser } from "@chevrotain/api/middleware/auth";
+import { BillingError, ValidationError } from "@chevrotain/core/errors";
 
 /** Passthrough handler that forwards requests to autumn-js billing SDK. */
-const passthrough = () =>
-	Effect.gen(function* () {
-		const { user } = yield* CurrentUser;
-		const request = yield* HttpServerRequest.HttpServerRequest;
-		const rawRequest = yield* HttpServerRequest.toWeb(request).pipe(Effect.orDie);
+const passthrough = Effect.fn("autumn.passthrough")(function* () {
+	const { user } = yield* CurrentUser;
+	const request = yield* HttpServerRequest.HttpServerRequest;
+	const rawRequest = yield* HttpServerRequest.toWeb(request).pipe(Effect.orDie);
 
-		const body = request.method !== "GET" ? yield* Effect.promise(() => rawRequest.json()) : null;
+	const body =
+		request.method !== "GET"
+			? yield* Effect.tryPromise({
+					try: () => rawRequest.json(),
+					catch: () => new ValidationError({ global: [{ message: "Invalid request body" }] }),
+				})
+			: null;
 
-		const { statusCode, response } = yield* Effect.promise(() =>
+	const { statusCode, response } = yield* Effect.tryPromise({
+		try: () =>
 			autumnHandler({
 				customerId: user.id,
 				customerData: {
@@ -28,10 +35,11 @@ const passthrough = () =>
 					body,
 				},
 			}),
-		);
-
-		return HttpServerResponse.jsonUnsafe(response, { status: statusCode });
+		catch: (cause) => new BillingError({ message: "Billing service unavailable", cause }),
 	});
+
+	return HttpServerResponse.jsonUnsafe(response, { status: statusCode });
+});
 
 export const AutumnHandlerLive = HttpApiBuilder.group(ChevrotainApi, "autumn", (handlers) =>
 	handlers.handleRaw("autumnGet", passthrough).handleRaw("autumnPost", passthrough),

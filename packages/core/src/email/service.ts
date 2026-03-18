@@ -33,10 +33,10 @@ export const EmailServiceLive = Layer.effect(EmailService)(
 						catch: (cause) => new EmailError({ message: "Resend API request failed", cause }),
 					});
 					// Resend never throws — API errors are returned as { data: null, error: {...} }
-					if (result.error) {
+					if (result.error || !result.data) {
 						return yield* new EmailError({
-							message: result.error.message,
-							cause: result.error,
+							message: result.error?.message ?? "Email sent but received no response data",
+							cause: result.error ?? result,
 						});
 					}
 					return result.data;

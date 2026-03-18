@@ -6,8 +6,9 @@ import { CurrentUser } from "@chevrotain/api/middleware/auth";
 import { ClickHouseService } from "@chevrotain/core/analytics/service";
 
 export const AnalyticsHandlerLive = HttpApiBuilder.group(ChevrotainApi, "analytics", (handlers) =>
-	handlers.handle("ingestEvents", ({ payload }) =>
-		Effect.gen(function* () {
+	handlers.handle(
+		"ingestEvents",
+		Effect.fn("analytics.ingestEvents")(function* ({ payload }) {
 			if (payload.events.length === 0) {
 				return { success: true as const };
 			}

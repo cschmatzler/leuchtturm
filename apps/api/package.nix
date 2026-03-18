@@ -50,7 +50,7 @@ in
 					inherit src;
 					pnpm = pnpm;
 					fetcherVersion = 3;
-					hash = "sha256-vamxTKjlEyHR0d+VBl88rbH1hgmBxty5LxCHJUiCtfM=";
+					hash = "sha256-vhzJu0KbAfpzM8YAHrTwLGoEL4nWwkuicOLd1GQihwA=";
 				};
 
 			nativeBuildInputs = [
@@ -77,14 +77,12 @@ in
 			'';
 
 			installPhase = ''
-				runHook preInstall
-				mkdir -p $out/lib/chevrotain-api
-				cp -r apps/api/dist $out/lib/chevrotain-api/
+					runHook preInstall
+					mkdir -p $out/lib/chevrotain-api
+					cp -r apps/api/dist $out/lib/chevrotain-api/
 
-				# Copy externalized runtime deps for OTel pg instrumentation.
-				# These can't be bundled because @opentelemetry/instrumentation-pg
-				# hooks into Node's module loader via import-in-the-middle to
-				# monkey-patch pg at import time.
+				# Copy externalized runtime deps that can't be bundled.
+				# pg has native bindings that must remain as node_modules.
 				#
 				# Strategy: merge each virtual store entry's node_modules/ tree
 				# into one flat output. Each entry already contains the package
@@ -114,17 +112,9 @@ in
 				merge_vstore_deps "pgpass@*"
 				merge_vstore_deps "postgres-interval@*"
 
-				# OTel instrumentation and its dependency trees
-				merge_vstore_deps "@opentelemetry+instrumentation-pg@*_@opentelemetry+api@*"
-				merge_vstore_deps "@opentelemetry+instrumentation@*_@opentelemetry+api@*"
-				merge_vstore_deps "import-in-the-middle@*"
-				merge_vstore_deps "require-in-the-middle@[0-9]*"
-				merge_vstore_deps "debug@*"
-
 				mkdir -p $out/bin
 				makeWrapper ${nodejs_25}/bin/node $out/bin/chevrotain-api \
-					--add-flags "--import $out/lib/chevrotain-api/dist/instrumentation.js" \
 					--add-flags "$out/lib/chevrotain-api/dist/server.js"
-				runHook postInstall
+					runHook postInstall
 			'';
 		})

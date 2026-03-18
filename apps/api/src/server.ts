@@ -4,9 +4,11 @@ import { createServer } from "node:http";
 
 import { stopRateLimitCleanup } from "@chevrotain/api/handlers/errors";
 import { ServerLive } from "@chevrotain/api/index";
-import { shutdownTelemetry } from "@chevrotain/api/instrumentation";
 
-const port = Number(process.env.PORT!);
+const port = Number(process.env.PORT);
+if (!Number.isFinite(port)) {
+	throw new Error("PORT environment variable must be a valid number");
+}
 
 /** Complete application layer: API + Node HTTP server on the configured port. */
 const AppLive = ServerLive.pipe(
@@ -24,7 +26,6 @@ console.log(`API server running on port ${port} (pid: ${process.pid})`);
 async function shutdown() {
 	stopRateLimitCleanup();
 	await runtime.dispose();
-	await shutdownTelemetry();
 }
 
 process.on("SIGINT", shutdown);

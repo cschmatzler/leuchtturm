@@ -44,8 +44,9 @@ export function stopRateLimitCleanup(): void {
 // --- Handler ---
 
 export const ErrorsHandlerLive = HttpApiBuilder.group(ChevrotainApi, "errors", (handlers) =>
-	handlers.handle("reportErrors", ({ payload }) =>
-		Effect.gen(function* () {
+	handlers.handle(
+		"reportErrors",
+		Effect.fn("errors.reportErrors")(function* ({ payload }) {
 			const request = yield* HttpServerRequest.HttpServerRequest;
 			const forwarded = Headers.get(request.headers, "x-forwarded-for").pipe(
 				Option.map((v) => v.split(",")[0]?.trim() ?? "unknown"),
