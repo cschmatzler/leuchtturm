@@ -1,13 +1,7 @@
 import { Schema, SchemaGetter } from "effect";
 
 import { Id } from "@chevrotain/core/id";
-
-const TrimmedNonEmptyString = Schema.String.pipe(
-	Schema.decodeTo(Schema.NonEmptyString, {
-		decode: SchemaGetter.transform((s: string) => s.trim()),
-		encode: SchemaGetter.transform((s: string) => s),
-	}),
-);
+import { TrimmedNonEmptyString } from "@chevrotain/core/schema";
 
 const EmailPattern = Schema.String.check(Schema.isPattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/));
 

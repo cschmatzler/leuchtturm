@@ -29,18 +29,18 @@ export const BillingServiceLive = Layer.effect(BillingService)(
 		const autumn = new Autumn({
 			secretKey: Redacted.value(autumnSecretKey),
 		});
+		yield* Effect.logInfo("BillingService initialized");
 
 		return {
 			getOrCreateCustomer: (params: { customerId: string; name: string; email: string }) =>
 				Effect.tryPromise({
 					try: () => autumn.customers.getOrCreate(params),
-					catch: (cause) =>
-						new BillingError({ message: "Failed to get or create customer", cause }),
+					catch: () => new BillingError({ message: "Failed to get or create customer" }),
 				}),
 			updateCustomer: (params: { customerId: string; name: string; email: string }) =>
 				Effect.tryPromise({
 					try: () => autumn.customers.update(params),
-					catch: (cause) => new BillingError({ message: "Failed to update customer", cause }),
+					catch: () => new BillingError({ message: "Failed to update customer" }),
 				}),
 		};
 	}),

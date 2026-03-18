@@ -13,7 +13,7 @@ const passthrough = Effect.fn("auth.passthrough")(function* () {
 	const response = yield* Effect.tryPromise({
 		try: () => auth.handler(rawRequest),
 		catch: () => new UnauthorizedError({ message: "Auth service error" }),
-	});
+	}).pipe(Effect.tapError(() => Effect.logError("Auth handler failed")));
 	return HttpServerResponse.fromWeb(response);
 });
 

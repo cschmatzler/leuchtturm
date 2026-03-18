@@ -24,19 +24,19 @@ export const EmailServiceLive = Layer.effect(EmailService)(
 	Effect.gen(function* () {
 		const resendApiKey = yield* Config.redacted("RESEND_API_KEY");
 		const resend = new Resend(Redacted.value(resendApiKey));
+		yield* Effect.logInfo("EmailService initialized");
 
 		return {
 			send: (params: { from: string; to: string; subject: string; html: string; text: string }) =>
 				Effect.gen(function* () {
 					const result = yield* Effect.tryPromise({
 						try: () => resend.emails.send(params),
-						catch: (cause) => new EmailError({ message: "Resend API request failed", cause }),
+						catch: () => new EmailError({ message: "Resend API request failed" }),
 					});
 					// Resend never throws — API errors are returned as { data: null, error: {...} }
 					if (result.error || !result.data) {
 						return yield* new EmailError({
 							message: result.error?.message ?? "Email sent but received no response data",
-							cause: result.error ?? result,
 						});
 					}
 					return result.data;

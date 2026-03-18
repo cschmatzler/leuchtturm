@@ -35,7 +35,7 @@ const passthrough = Effect.fn("autumn.passthrough")(function* () {
 					body,
 				},
 			}),
-		catch: (cause) => new BillingError({ message: "Billing service unavailable", cause }),
+		catch: () => new BillingError({ message: "Billing service unavailable" }),
 	});
 
 	return HttpServerResponse.jsonUnsafe(response, { status: statusCode });

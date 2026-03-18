@@ -14,7 +14,17 @@ export const AnalyticsHandlerLive = HttpApiBuilder.group(ChevrotainApi, "analyti
 			}
 			const { user, session } = yield* CurrentUser;
 			const analytics = yield* ClickHouseService;
-			yield* analytics.insertEvents([...payload.events], user.id, session.id);
+			// Analytics ingestion is best-effort — don't fail the client request if ClickHouse is down.
+			yield* analytics
+				.insertEvents([...payload.events], user.id, session.id)
+				.pipe(
+					Effect.catchTag("ClickHouseError", (e) =>
+						Effect.logError("Analytics insert failed, dropping events").pipe(
+							Effect.annotateLogs("error", e.message),
+							Effect.annotateLogs("eventCount", String(payload.events.length)),
+						),
+					),
+				);
 			return { success: true as const };
 		}),
 	),

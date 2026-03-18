@@ -1,18 +1,15 @@
 import { NodeHttpServer } from "@effect/platform-node";
-import { Effect, Layer, ManagedRuntime } from "effect";
+import { Config, Effect, Layer, ManagedRuntime } from "effect";
 import { createServer } from "node:http";
 
-import { stopRateLimitCleanup } from "@chevrotain/api/handlers/errors";
 import { ServerLive } from "@chevrotain/api/index";
 
-const port = Number(process.env.PORT);
-if (!Number.isFinite(port)) {
-	throw new Error("PORT environment variable must be a valid number");
-}
-
 /** Complete application layer: API + Node HTTP server on the configured port. */
-const AppLive = ServerLive.pipe(
-	Layer.provide(NodeHttpServer.layer(() => createServer(), { port })),
+const AppLive = Layer.unwrap(
+	Effect.gen(function* () {
+		const port = yield* Config.number("PORT");
+		return ServerLive.pipe(Layer.provide(NodeHttpServer.layer(() => createServer(), { port })));
+	}),
 );
 
 const runtime = ManagedRuntime.make(AppLive);
@@ -21,10 +18,10 @@ const runtime = ManagedRuntime.make(AppLive);
 // the layer (which starts listening) on first use.
 await runtime.runPromise(Effect.void);
 
+const port = process.env.PORT;
 console.log(`API server running on port ${port} (pid: ${process.pid})`);
 
 async function shutdown() {
-	stopRateLimitCleanup();
 	await runtime.dispose();
 }
 

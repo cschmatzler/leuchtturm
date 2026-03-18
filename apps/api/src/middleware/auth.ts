@@ -38,6 +38,7 @@ export const AuthMiddlewareLive = Layer.succeed(AuthMiddleware, (httpApp, _optio
 			catch: () => new UnauthorizedError({ message: "Auth check failed" }),
 		});
 		if (!session) {
+			yield* Effect.logWarning("Auth middleware rejected unauthenticated request");
 			return yield* new UnauthorizedError({ message: "Unauthorized" });
 		}
 		return yield* httpApp.pipe(

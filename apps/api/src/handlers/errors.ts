@@ -4,44 +4,7 @@ import { HttpApiBuilder } from "effect/unstable/httpapi";
 
 import { ChevrotainApi } from "@chevrotain/api/contract";
 import { ClickHouseService } from "@chevrotain/core/analytics/service";
-import { RateLimitError } from "@chevrotain/core/errors";
-
-// --- Rate limiting ---
-
-const RATE_LIMIT_WINDOW_MS = 60_000;
-const RATE_LIMIT_MAX_REQUESTS = 30;
-
-const requestCounts = new Map<string, { count: number; resetAt: number }>();
-
-function isRateLimited(ip: string): boolean {
-	const now = Date.now();
-	const entry = requestCounts.get(ip);
-
-	if (!entry || now >= entry.resetAt) {
-		requestCounts.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
-		return false;
-	}
-
-	entry.count++;
-	return entry.count > RATE_LIMIT_MAX_REQUESTS;
-}
-
-/** Periodically clean up stale entries to prevent unbounded memory growth. */
-const cleanupInterval = setInterval(() => {
-	const now = Date.now();
-	for (const [ip, entry] of requestCounts) {
-		if (now >= entry.resetAt) {
-			requestCounts.delete(ip);
-		}
-	}
-}, RATE_LIMIT_WINDOW_MS);
-
-/** Stop the cleanup timer (called during graceful shutdown). */
-export function stopRateLimitCleanup(): void {
-	clearInterval(cleanupInterval);
-}
-
-// --- Handler ---
+import { RateLimitService } from "@chevrotain/core/rate-limit/service";
 
 export const ErrorsHandlerLive = HttpApiBuilder.group(ChevrotainApi, "errors", (handlers) =>
 	handlers.handle(
@@ -54,9 +17,8 @@ export const ErrorsHandlerLive = HttpApiBuilder.group(ChevrotainApi, "errors", (
 			const realIp = Headers.get(request.headers, "x-real-ip");
 			const ip = Option.getOrElse(forwarded, () => Option.getOrElse(realIp, () => "unknown"));
 
-			if (isRateLimited(ip)) {
-				return yield* new RateLimitError({ message: "Too many error reports" });
-			}
+			const rateLimit = yield* RateLimitService;
+			yield* rateLimit.check(ip, "Too many error reports");
 
 			if (payload.errors.length === 0) {
 				return { success: true as const };
@@ -65,17 +27,27 @@ export const ErrorsHandlerLive = HttpApiBuilder.group(ChevrotainApi, "errors", (
 			const userAgent = Headers.get(request.headers, "user-agent").pipe(Option.getOrElse(() => ""));
 
 			const analytics = yield* ClickHouseService;
-			yield* analytics.insertErrors(
-				payload.errors.map((error) => ({
-					source: "web" as const,
-					errorType: error.errorType,
-					message: error.message,
-					stackTrace: error.stackTrace,
-					url: error.url,
-					userAgent,
-					properties: error.properties,
-				})),
-			);
+			// Error reporting is best-effort — don't fail the client request if ClickHouse is down.
+			yield* analytics
+				.insertErrors(
+					payload.errors.map((error) => ({
+						source: "web" as const,
+						errorType: error.errorType,
+						message: error.message,
+						stackTrace: error.stackTrace,
+						url: error.url,
+						userAgent,
+						properties: error.properties,
+					})),
+				)
+				.pipe(
+					Effect.catchTag("ClickHouseError", (e) =>
+						Effect.logError("Error report insert failed, dropping errors").pipe(
+							Effect.annotateLogs("error", e.message),
+							Effect.annotateLogs("errorCount", String(payload.errors.length)),
+						),
+					),
+				);
 
 			return { success: true as const };
 		}),

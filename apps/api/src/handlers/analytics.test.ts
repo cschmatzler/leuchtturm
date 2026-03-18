@@ -44,26 +44,3 @@ describe("ClickHouseService integration", () => {
 		expect(mockInsertEvents).toHaveBeenCalledWith(events, "user-1", "session-1");
 	});
 });
-
-// --- Tests ---
-
-describe("ClickHouseService integration", () => {
-	beforeEach(() => {
-		vi.clearAllMocks();
-	});
-
-	it("provides mock service via Layer", async () => {
-		const events: AnalyticsEvent[] = [
-			{ eventType: "page_view", url: "https://example.com", referrer: "" },
-		];
-
-		const program = Effect.gen(function* () {
-			const service = yield* ClickHouseService;
-			yield* service.insertEvents(events, "user-1", "session-1");
-		});
-
-		await Effect.runPromise(program.pipe(Effect.provide(MockClickHouseServiceLive)));
-
-		expect(mockInsertEvents).toHaveBeenCalledWith(events, "user-1", "session-1");
-	});
-});

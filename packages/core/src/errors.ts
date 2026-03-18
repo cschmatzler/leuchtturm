@@ -57,24 +57,24 @@ export class RateLimitError extends Schema.TaggedErrorClass<RateLimitError>()(
 
 export class DatabaseError extends Schema.TaggedErrorClass<DatabaseError>()(
 	"DatabaseError",
-	{ message: Schema.String, cause: Schema.Unknown },
+	{ message: Schema.String },
 	{ httpApiStatus: 500 },
 ) {}
 
 export class ClickHouseError extends Schema.TaggedErrorClass<ClickHouseError>()(
 	"ClickHouseError",
-	{ message: Schema.String, cause: Schema.Unknown },
+	{ message: Schema.String },
 	{ httpApiStatus: 500 },
 ) {}
 
 export class EmailError extends Schema.TaggedErrorClass<EmailError>()(
 	"EmailError",
-	{ message: Schema.String, cause: Schema.Unknown },
+	{ message: Schema.String },
 	{ httpApiStatus: 500 },
 ) {}
 
 export class BillingError extends Schema.TaggedErrorClass<BillingError>()(
 	"BillingError",
-	{ message: Schema.String, cause: Schema.Unknown },
+	{ message: Schema.String },
 	{ httpApiStatus: 500 },
 ) {}

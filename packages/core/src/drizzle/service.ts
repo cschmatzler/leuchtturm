@@ -34,6 +34,7 @@ export class DatabaseService extends ServiceMap.Service<DatabaseService, EffectP
 export const DatabaseServiceLive = Layer.effect(DatabaseService)(
 	Effect.gen(function* () {
 		const client = yield* PgClient.PgClient;
+		yield* Effect.logInfo("DatabaseService initialized");
 		return drizzle(client);
 	}),
 ).pipe(Layer.provide(PgClientLive));

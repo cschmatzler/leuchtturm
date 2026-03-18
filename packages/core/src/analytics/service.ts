@@ -40,6 +40,10 @@ export const ClickHouseServiceLive = Layer.effect(ClickHouseService)(
 			Config.withDefault("http://localhost:8123"),
 		);
 
+		yield* Effect.logInfo("ClickHouseService initializing").pipe(
+			Effect.annotateLogs("url", clickhouseUrl),
+		);
+
 		const client = yield* Effect.acquireRelease(
 			Effect.sync(() =>
 				createClient({
@@ -71,8 +75,7 @@ export const ClickHouseServiceLive = Layer.effect(ClickHouseService)(
 						})),
 						format: "JSONEachRow",
 					}),
-				catch: (cause) =>
-					new ClickHouseError({ message: "Failed to insert analytics events", cause }),
+				catch: () => new ClickHouseError({ message: "Failed to insert analytics events" }),
 			});
 
 		const insertErrors = (errors: ErrorEventRow[]): Effect.Effect<void, ClickHouseError> =>
@@ -97,7 +100,7 @@ export const ClickHouseServiceLive = Layer.effect(ClickHouseService)(
 						})),
 						format: "JSONEachRow",
 					}),
-				catch: (cause) => new ClickHouseError({ message: "Failed to insert error events", cause }),
+				catch: () => new ClickHouseError({ message: "Failed to insert error events" }),
 			});
 
 		return { insertEvents, insertErrors };

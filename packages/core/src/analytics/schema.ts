@@ -1,11 +1,6 @@
-import { Schema, SchemaGetter } from "effect";
+import { Schema } from "effect";
 
-const TrimmedNonEmptyString = Schema.String.pipe(
-	Schema.decodeTo(Schema.NonEmptyString, {
-		decode: SchemaGetter.transform((s: string) => s.trim()),
-		encode: SchemaGetter.transform((s: string) => s),
-	}),
-);
+import { TrimmedNonEmptyString } from "@chevrotain/core/schema";
 
 export const AnalyticsEvent = Schema.Struct({
 	eventType: TrimmedNonEmptyString,
