@@ -980,6 +980,55 @@
 					"refId": "A"
 				}
 			]
+		},
+		{
+			"id": 21,
+			"type": "row",
+			"title": "Logs",
+			"gridPos": {
+				"h": 1,
+				"w": 24,
+				"x": 0,
+				"y": 48
+			},
+			"collapsed": false,
+			"panels": []
+		},
+		{
+			"id": 22,
+			"type": "logs",
+			"title": "API Logs",
+			"description": "Live journal logs from the chevrotain-api service",
+			"gridPos": {
+				"h": 14,
+				"w": 24,
+				"x": 0,
+				"y": 49
+			},
+			"datasource": {
+				"type": "loki",
+				"uid": "loki"
+			},
+			"options": {
+				"showTime": true,
+				"showLabels": false,
+				"showCommonLabels": false,
+				"wrapLogMessage": true,
+				"prettifyLogMessage": false,
+				"enableLogDetails": true,
+				"sortOrder": "Descending",
+				"dedupStrategy": "none"
+			},
+			"targets": [
+				{
+					"datasource": {
+						"type": "loki",
+						"uid": "loki"
+					},
+					"expr": "{unit=\"chevrotain-api.service\"}",
+					"refId": "A"
+				}
+			]
 		}
 	]
 }
