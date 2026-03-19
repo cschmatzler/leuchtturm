@@ -3,17 +3,24 @@ import { Cookies, HttpServerRequest, HttpServerResponse } from "effect/unstable/
 import { HttpApiBuilder } from "effect/unstable/httpapi";
 
 import { ChevrotainApi } from "@chevrotain/api/contract";
+import { routeLabelFromUrl } from "@chevrotain/api/metrics";
 import { auth } from "@chevrotain/core/auth/index";
 import { UnauthorizedError } from "@chevrotain/core/errors";
 
 const passthrough = Effect.fn("auth.passthrough")(function* () {
 	const request = yield* HttpServerRequest.HttpServerRequest;
 	const rawRequest = yield* HttpServerRequest.toWeb(request).pipe(Effect.orDie);
+	const route = routeLabelFromUrl(request.url);
 
 	const response = yield* Effect.tryPromise({
 		try: () => auth.handler(rawRequest),
 		catch: () => new UnauthorizedError({ message: "Auth service error" }),
-	}).pipe(Effect.tapError(() => Effect.logError("Auth handler failed")));
+	}).pipe(
+		Effect.withSpan("auth.handler", {
+			attributes: { "http.route": route },
+		}),
+		Effect.tapError(() => Effect.logError("Auth handler failed")),
+	);
 
 	// HttpServerResponse.fromWeb() converts the body to a stream and drops the
 	// content-type (defaults to application/octet-stream). Read the body eagerly
@@ -21,7 +28,11 @@ const passthrough = Effect.fn("auth.passthrough")(function* () {
 	const body = yield* Effect.tryPromise({
 		try: () => response.arrayBuffer(),
 		catch: () => new UnauthorizedError({ message: "Failed to read auth response body" }),
-	});
+	}).pipe(
+		Effect.withSpan("auth.response.readBody", {
+			attributes: { "http.route": route },
+		}),
+	);
 
 	const headers = new globalThis.Headers(response.headers);
 	const setCookieHeaders = headers.getSetCookie();

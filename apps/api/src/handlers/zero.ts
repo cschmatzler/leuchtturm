@@ -21,6 +21,10 @@ export const ZeroHandlerLive = HttpApiBuilder.group(ChevrotainApi, "zero", (hand
 			"query",
 			Effect.fn("zero.query")(function* () {
 				const { user } = yield* CurrentUser;
+				yield* Effect.annotateCurrentSpan({
+					"enduser.id": user.id,
+					"zero.operation": "query",
+				});
 				const request = yield* HttpServerRequest.HttpServerRequest;
 				const rawRequest = yield* HttpServerRequest.toWeb(request).pipe(Effect.orDie);
 
@@ -35,7 +39,11 @@ export const ZeroHandlerLive = HttpApiBuilder.group(ChevrotainApi, "zero", (hand
 							rawRequest,
 						),
 					catch: () => new DatabaseError({ message: "Query execution failed" }),
-				});
+				}).pipe(
+					Effect.withSpan("zero.handleQueryRequest", {
+						attributes: { "zero.operation": "query" },
+					}),
+				);
 
 				return HttpServerResponse.jsonUnsafe(result);
 			}),
@@ -44,6 +52,10 @@ export const ZeroHandlerLive = HttpApiBuilder.group(ChevrotainApi, "zero", (hand
 			"mutate",
 			Effect.fn("zero.mutate")(function* () {
 				const { user } = yield* CurrentUser;
+				yield* Effect.annotateCurrentSpan({
+					"enduser.id": user.id,
+					"zero.operation": "mutate",
+				});
 				const ctx = { userId: user.id };
 				const request = yield* HttpServerRequest.HttpServerRequest;
 				const rawRequest = yield* HttpServerRequest.toWeb(request).pipe(Effect.orDie);
@@ -61,7 +73,11 @@ export const ZeroHandlerLive = HttpApiBuilder.group(ChevrotainApi, "zero", (hand
 							rawRequest,
 						),
 					catch: () => new DatabaseError({ message: "Mutation execution failed" }),
-				});
+				}).pipe(
+					Effect.withSpan("zero.handleMutateRequest", {
+						attributes: { "zero.operation": "mutate" },
+					}),
+				);
 
 				return HttpServerResponse.jsonUnsafe(result);
 			}),

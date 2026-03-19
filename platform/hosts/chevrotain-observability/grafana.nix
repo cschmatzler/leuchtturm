@@ -1,5 +1,6 @@
 {
 	config,
+	lib,
 	pkgs,
 	...
 }: let
@@ -13,12 +14,14 @@ in {
 		settings = {
 			server = {
 				http_port = cfg.ports.grafana;
-				http_addr = "0.0.0.0";
+				http_addr = "127.0.0.1";
 				domain = "chevrotain-observability";
 			};
 			security = {
 				admin_password = "$__file{${config.sops.secrets.grafana-admin-password.path}}";
 				secret_key = "$__file{${config.sops.secrets.grafana-secret-key.path}}";
+				cookie_secure = true;
+				strict_transport_security = true;
 			};
 		};
 		provision.dashboards.settings.providers = [
@@ -44,7 +47,7 @@ in {
 					derivedFields = [
 						{
 							name = "TraceID";
-							matcherRegex = "traceID=(\\w+)";
+							matcherRegex = "trace(?:ID|Id|_id)[=\\\": ]+([0-9a-fA-F]+)";
 							url = "$${__value.raw}";
 							datasourceUid = "tempo";
 							matcherType = "regex";
@@ -109,5 +112,52 @@ in {
 				};
 			}
 		];
+	};
+
+	systemd.services.grafana = {
+		after = [
+			"tailscaled.service"
+			"tailscaled-autoconnect.service"
+		];
+		wants = [
+			"tailscaled.service"
+			"tailscaled-autoconnect.service"
+		];
+		preStart =
+			lib.mkBefore ''
+				dns_name="$(${pkgs.tailscale}/bin/tailscale status --json | ${pkgs.jq}/bin/jq -r '.Self.DNSName | sub("\\.$"; "")')"
+
+				if [[ -z "$dns_name" || "$dns_name" == "null" ]]; then
+					echo "Unable to determine the Tailscale DNS name for Grafana" >&2
+					exit 1
+				fi
+
+				cat > /run/grafana/tailscale.env <<-EOF
+				GF_SERVER_DOMAIN=$dns_name
+				GF_SERVER_ROOT_URL=https://$dns_name/
+				EOF
+			'';
+		serviceConfig.EnvironmentFile = "-/run/grafana/tailscale.env";
+	};
+
+	systemd.services.tailscale-serve-grafana = {
+		description = "Expose Grafana over Tailscale HTTPS";
+		after = [
+			"grafana.service"
+			"tailscaled.service"
+			"tailscaled-autoconnect.service"
+		];
+		wants = [
+			"grafana.service"
+			"tailscaled.service"
+			"tailscaled-autoconnect.service"
+		];
+		wantedBy = ["multi-user.target"];
+		serviceConfig = {
+			Type = "oneshot";
+			RemainAfterExit = true;
+			ExecStart = "${pkgs.tailscale}/bin/tailscale serve --bg --yes --https=443 http://127.0.0.1:${toString cfg.ports.grafana}";
+			ExecStop = "-${pkgs.tailscale}/bin/tailscale serve --https=443 off";
+		};
 	};
 }

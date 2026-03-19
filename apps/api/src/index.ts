@@ -9,7 +9,7 @@ import { HealthHandlerLive } from "@chevrotain/api/handlers/health";
 import { MetricsHandlerLive } from "@chevrotain/api/handlers/metrics";
 import { RpcLive } from "@chevrotain/api/handlers/rpc";
 import { ZeroHandlerLive } from "@chevrotain/api/handlers/zero";
-import { MetricsMiddleware } from "@chevrotain/api/metrics";
+import { MetricsMiddleware, routeLabelFromUrl } from "@chevrotain/api/metrics";
 import { AuthMiddlewareLive } from "@chevrotain/api/middleware/auth-live";
 import { AppLayer } from "@chevrotain/api/runtime";
 
@@ -29,6 +29,15 @@ const RoutesLive = Layer.mergeAll(ApiLive, RpcLive);
 
 const httpApp = Effect.flatten(HttpRouter.toHttpEffect(RoutesLive));
 
+const HttpTracingLive = Layer.mergeAll(
+	HttpMiddleware.layerTracerDisabledForUrls(["/api/metrics"]),
+	Layer.succeed(
+		HttpMiddleware.SpanNameGenerator,
+		(request: { method: string; url: string }) =>
+			`${request.method} ${routeLabelFromUrl(request.url)}`,
+	),
+);
+
 export const ServerLive = Layer.unwrap(
 	Effect.gen(function* () {
 		const baseUrl = yield* ApiBaseUrlConfig;
@@ -41,6 +50,7 @@ export const ServerLive = Layer.unwrap(
 		const appMiddleware = HttpMiddleware.make((app) => corsMiddleware(MetricsMiddleware(app)));
 		return HttpServer.serve(httpApp, appMiddleware).pipe(
 			Layer.provide(HttpServer.layerServices),
+			Layer.provide(HttpTracingLive),
 			Layer.provide(AppLayer),
 		);
 	}),

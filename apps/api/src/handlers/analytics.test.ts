@@ -9,7 +9,7 @@ const mockInsertEvents =
 	vi.fn<(events: AnalyticsEvent[], userId: string, sessionId: string) => void>();
 const mockInsertErrors = vi.fn<(errors: ErrorEventRow[]) => void>();
 
-const MockClickHouseServiceLive = Layer.succeed(ClickHouseService, {
+const ClickHouseServiceMock = Layer.succeed(ClickHouseService, {
 	insertEvents: (events, userId, sessionId) => {
 		mockInsertEvents(events, userId, sessionId);
 		return Effect.void;
@@ -35,7 +35,7 @@ describe("ClickHouseService integration", () => {
 			yield* service.insertEvents(events, "user-1", "session-1");
 		});
 
-		await Effect.runPromise(program.pipe(Effect.provide(MockClickHouseServiceLive)));
+		await Effect.runPromise(program.pipe(Effect.provide(ClickHouseServiceMock)));
 
 		expect(mockInsertEvents).toHaveBeenCalledWith(events, "user-1", "session-1");
 	});

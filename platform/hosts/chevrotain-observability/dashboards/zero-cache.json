@@ -1314,7 +1314,7 @@
 						"type": "loki",
 						"uid": "loki"
 					},
-					"expr": "{job=\"chevrotain/zero-cache\"}",
+					"expr": "{job=\"chevrotain/zero-cache\"} | json",
 					"refId": "A"
 				}
 			]

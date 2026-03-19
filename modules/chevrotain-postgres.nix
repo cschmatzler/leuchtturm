@@ -130,6 +130,8 @@
 			dataSourceName = "user=prometheus host=/run/postgresql dbname=chevrotain";
 			extraFlags = [
 				"--collector.stat_statements"
+				"--collector.stat_statements.include_query"
+				"--collector.stat_statements.query_length=200"
 			];
 		};
 

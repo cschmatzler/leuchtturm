@@ -1,3 +1,4 @@
+import "@chevrotain/api/telemetry-preload";
 import { NodeHttpServer } from "@effect/platform-node";
 import { Effect, Layer, ManagedRuntime } from "effect";
 import { createServer } from "node:http";

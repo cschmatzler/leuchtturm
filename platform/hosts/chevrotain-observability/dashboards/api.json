@@ -1025,7 +1025,7 @@
 						"type": "loki",
 						"uid": "loki"
 					},
-					"expr": "{job=\"chevrotain/api\"}",
+					"expr": "{job=\"chevrotain/api\"} | json",
 					"refId": "A"
 				}
 			]

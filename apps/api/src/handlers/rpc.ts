@@ -15,11 +15,19 @@ const RpcHandlersLive = ChevrotainRpcs.toLayer(
 		return ChevrotainRpcs.of({
 			IngestEvents: (payload) =>
 				Effect.gen(function* () {
+					yield* Effect.annotateCurrentSpan({
+						"rpc.method": "IngestEvents",
+						"rpc.event_count": payload.events.length,
+					});
+
 					if (payload.events.length === 0) {
 						return { success: true as const };
 					}
 
 					const { user, session } = yield* CurrentUser;
+					yield* Effect.annotateCurrentSpan({
+						"enduser.id": user.id,
+					});
 
 					// Best-effort — don't fail the client request if ClickHouse is down.
 					yield* analytics
@@ -38,6 +46,11 @@ const RpcHandlersLive = ChevrotainRpcs.toLayer(
 
 			ReportErrors: (payload) =>
 				Effect.gen(function* () {
+					yield* Effect.annotateCurrentSpan({
+						"rpc.method": "ReportErrors",
+						"rpc.error_count": payload.errors.length,
+					});
+
 					// Rate limit by IP — extract from forwarded headers.
 					const request = yield* HttpServerRequest.HttpServerRequest;
 					const forwarded = Headers.get(request.headers, "x-forwarded-for").pipe(
@@ -45,6 +58,7 @@ const RpcHandlersLive = ChevrotainRpcs.toLayer(
 					);
 					const realIp = Headers.get(request.headers, "x-real-ip");
 					const ip = Option.getOrElse(forwarded, () => Option.getOrElse(realIp, () => "unknown"));
+					yield* Effect.annotateCurrentSpan("client.address", ip);
 
 					yield* rateLimit.check(ip, "Too many error reports");
 
@@ -55,6 +69,7 @@ const RpcHandlersLive = ChevrotainRpcs.toLayer(
 					const userAgent = Headers.get(request.headers, "user-agent").pipe(
 						Option.getOrElse(() => ""),
 					);
+					yield* Effect.annotateCurrentSpan("user_agent.original", userAgent);
 
 					// Best-effort — don't fail the client request if ClickHouse is down.
 					yield* analytics

@@ -59,6 +59,10 @@ function pathnameFromUrl(url: string): string {
 	}
 }
 
+export function routeLabelFromUrl(url: string): string {
+	return normalizeRoute(pathnameFromUrl(url));
+}
+
 function statusFromError(error: unknown): number {
 	if (typeof error === "object" && error !== null) {
 		const httpApiStatus = (error as { httpApiStatus?: unknown }).httpApiStatus;
@@ -113,7 +117,7 @@ function recordRequestMetric(
 export const MetricsMiddleware = HttpMiddleware.make((app) =>
 	Effect.gen(function* () {
 		const request = yield* HttpServerRequest.HttpServerRequest;
-		const pathname = normalizeRoute(pathnameFromUrl(request.url));
+		const pathname = routeLabelFromUrl(request.url);
 		const startedAt = performance.now();
 		const exit = yield* Effect.exit(app);
 		const durationSeconds = (performance.now() - startedAt) / 1000;

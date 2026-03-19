@@ -19,11 +19,19 @@ export const AuthMiddlewareLive = Layer.succeed(AuthMiddleware, (httpApp, _optio
 					headers: new globalThis.Headers(request.headers as Record<string, string>),
 				}),
 			catch: () => new UnauthorizedError({ message: "Auth check failed" }),
-		});
+		}).pipe(
+			Effect.withSpan("auth.session.lookup", {
+				attributes: { "auth.flow": "http" },
+			}),
+		);
 		if (!session) {
 			yield* Effect.logWarning("Auth middleware rejected unauthenticated request");
 			return yield* new UnauthorizedError({ message: "Unauthorized" });
 		}
+		yield* Effect.annotateCurrentSpan({
+			"auth.authenticated": true,
+			"enduser.id": session.user.id,
+		});
 		return yield* httpApp.pipe(
 			Effect.provideService(CurrentUser, {
 				user: session.user,
@@ -42,11 +50,19 @@ export const RpcAuthMiddlewareLive = Layer.succeed(RpcAuthMiddleware, (effect, _
 					headers: new globalThis.Headers(request.headers as Record<string, string>),
 				}),
 			catch: () => new UnauthorizedError({ message: "Auth check failed" }),
-		});
+		}).pipe(
+			Effect.withSpan("auth.session.lookup", {
+				attributes: { "auth.flow": "rpc" },
+			}),
+		);
 		if (!session) {
 			yield* Effect.logWarning("RPC auth middleware rejected unauthenticated request");
 			return yield* new UnauthorizedError({ message: "Unauthorized" });
 		}
+		yield* Effect.annotateCurrentSpan({
+			"auth.authenticated": true,
+			"enduser.id": session.user.id,
+		});
 		return yield* effect.pipe(
 			Effect.provideService(CurrentUser, {
 				user: session.user,
