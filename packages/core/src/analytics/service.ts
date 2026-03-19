@@ -27,13 +27,11 @@ export interface ClickHouseServiceShape {
 	readonly insertErrors: (errors: ErrorEventRow[]) => Effect.Effect<void, ClickHouseError>;
 }
 
-/** ClickHouse analytics service with managed client lifecycle. */
 export class ClickHouseService extends ServiceMap.Service<
 	ClickHouseService,
 	ClickHouseServiceShape
 >()("ClickHouseService") {}
 
-/** Layer that provides ClickHouseService with a scoped ClickHouse client. */
 export const ClickHouseServiceLive = Layer.effect(ClickHouseService)(
 	Effect.gen(function* () {
 		const clickhouseUrl = yield* Config.string("CLICKHOUSE_URL").pipe(

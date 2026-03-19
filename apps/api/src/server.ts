@@ -5,7 +5,6 @@ import { createServer } from "node:http";
 import { ApiPortConfig } from "@chevrotain/api/config";
 import { ServerLive } from "@chevrotain/api/index";
 
-/** Complete application layer: API + Node HTTP server on the configured port. */
 const AppLive = Layer.unwrap(
 	Effect.gen(function* () {
 		const port = yield* ApiPortConfig;
@@ -15,8 +14,6 @@ const AppLive = Layer.unwrap(
 
 const runtime = ManagedRuntime.make(AppLive);
 
-// Start the server by running a no-op effect - ManagedRuntime acquires
-// the layer (which starts listening) on first use.
 await runtime.runPromise(Effect.void);
 
 const port = await runtime.runPromise(

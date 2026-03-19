@@ -6,7 +6,6 @@ import { ChevrotainApi } from "@chevrotain/api/contract";
 import { auth } from "@chevrotain/core/auth/index";
 import { UnauthorizedError } from "@chevrotain/core/errors";
 
-/** Passthrough handler that forwards requests to better-auth. */
 const passthrough = Effect.fn("auth.passthrough")(function* () {
 	const request = yield* HttpServerRequest.HttpServerRequest;
 	const rawRequest = yield* HttpServerRequest.toWeb(request).pipe(Effect.orDie);

@@ -6,9 +6,6 @@ import { DatabaseError, UnauthorizedError } from "@chevrotain/core/errors";
 
 const SuccessResponse = Schema.Struct({ success: Schema.Literal(true) });
 
-// --- Endpoint groups (passthrough endpoints only) ---
-// Analytics and errors are now served via Effect RPC at /api/rpc.
-
 const healthGroup = HttpApiGroup.make("health").add(
 	HttpApiEndpoint.get("healthCheck", "/up", {
 		success: SuccessResponse,
@@ -25,8 +22,6 @@ const zeroGroup = HttpApiGroup.make("zero")
 const authGroup = HttpApiGroup.make("auth")
 	.add(HttpApiEndpoint.get("authGet", "/auth/*", { error: UnauthorizedError }))
 	.add(HttpApiEndpoint.post("authPost", "/auth/*", { error: UnauthorizedError }));
-
-// --- Full API ---
 
 export class ChevrotainApi extends HttpApi.make("chevrotain")
 	.add(healthGroup, metricsGroup, zeroGroup, authGroup)

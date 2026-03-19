@@ -13,7 +13,6 @@ import { MetricsMiddleware } from "@chevrotain/api/metrics";
 import { AuthMiddlewareLive } from "@chevrotain/api/middleware/auth-live";
 import { AppLayer } from "@chevrotain/api/runtime";
 
-/** HttpApi handler groups (passthrough endpoints only). */
 const HandlersLive = Layer.mergeAll(
 	HealthHandlerLive,
 	MetricsHandlerLive,
@@ -21,26 +20,13 @@ const HandlersLive = Layer.mergeAll(
 	AuthHandlerLive,
 );
 
-/**
- * HttpApi layer for passthrough endpoints (auth, zero, health).
- * Analytics and errors are now served via RPC.
- */
 const ApiLive = HttpApiBuilder.layer(ChevrotainApi).pipe(
 	Layer.provide(HandlersLive),
 	Layer.provide(AuthMiddlewareLive),
 );
 
-/**
- * Combined layer: HttpApi routes + RPC routes on the same HttpRouter.
- *
- * RpcLive registers POST /api/rpc on the router. ApiLive registers the
- * remaining HttpApi routes. Both share the same HttpRouter instance.
- */
 const RoutesLive = Layer.mergeAll(ApiLive, RpcLive);
 
-/**
- * Convert the router into a serveable HTTP application and add CORS.
- */
 const httpApp = Effect.flatten(HttpRouter.toHttpEffect(RoutesLive));
 
 export const ServerLive = Layer.unwrap(

@@ -140,9 +140,7 @@ async function flushErrors(): Promise<void> {
 
 	try {
 		await reportErrors({ errors });
-	} catch {
-		// Silently drop — error reporting should never cause additional errors.
-	}
+	} catch {}
 }
 
 export function sendErrorReport(

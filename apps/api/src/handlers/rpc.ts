@@ -7,7 +7,6 @@ import { CurrentUser, RpcAuthMiddlewareLive } from "@chevrotain/api/middleware/a
 import { ClickHouseService } from "@chevrotain/core/analytics/service";
 import { RateLimitService } from "@chevrotain/core/rate-limit/service";
 
-/** RPC handler implementations for IngestEvents, ReportErrors, and HealthCheck. */
 const RpcHandlersLive = ChevrotainRpcs.toLayer(
 	Effect.gen(function* () {
 		const analytics = yield* ClickHouseService;
@@ -87,11 +86,6 @@ const RpcHandlersLive = ChevrotainRpcs.toLayer(
 	}),
 );
 
-/**
- * RPC server layer — registers a POST route at /api/rpc on the HttpRouter.
- *
- * Uses HTTP protocol (not WebSocket) with NDJSON serialization.
- */
 export const RpcLive = RpcServer.layerHttp({
 	group: ChevrotainRpcs,
 	path: "/api/rpc",

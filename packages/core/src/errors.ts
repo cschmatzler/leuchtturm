@@ -1,7 +1,5 @@
 import { Schema } from "effect";
 
-// --- HTTP-mappable errors ---
-
 export class NotFoundError extends Schema.TaggedErrorClass<NotFoundError>()(
 	"NotFoundError",
 	{
@@ -52,8 +50,6 @@ export class RateLimitError extends Schema.TaggedErrorClass<RateLimitError>()(
 	{ message: Schema.optional(Schema.String) },
 	{ httpApiStatus: 429 },
 ) {}
-
-// --- Infrastructure errors ---
 
 export class DatabaseError extends Schema.TaggedErrorClass<DatabaseError>()(
 	"DatabaseError",
