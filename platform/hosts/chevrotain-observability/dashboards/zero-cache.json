@@ -78,7 +78,7 @@
 			},
 			"targets": [
 				{
-					"expr": "zero_server_uptime_seconds{job=\"chevrotain/zero\"}",
+					"expr": "zero_server_uptime_seconds{job=\"chevrotain/zero-cache\"}",
 					"legendFormat": "",
 					"refId": "A"
 				}
@@ -127,7 +127,7 @@
 			},
 			"targets": [
 				{
-					"expr": "sum(zero_sync_active_clients{job=\"chevrotain/zero\"})",
+					"expr": "sum(zero_sync_active_clients{job=\"chevrotain/zero-cache\"})",
 					"legendFormat": "",
 					"refId": "A"
 				}
@@ -176,7 +176,7 @@
 			},
 			"targets": [
 				{
-					"expr": "zero_sync_max_protocol_version{job=\"chevrotain/zero\"}",
+					"expr": "zero_sync_max_protocol_version{job=\"chevrotain/zero-cache\"}",
 					"legendFormat": "",
 					"refId": "A"
 				}
@@ -226,7 +226,7 @@
 			},
 			"targets": [
 				{
-					"expr": "rate(zero_sync_hydration_total{job=\"chevrotain/zero\"}[5m]) * 60",
+					"expr": "rate(zero_sync_hydration_total{job=\"chevrotain/zero-cache\"}[5m]) * 60",
 					"legendFormat": "",
 					"refId": "A"
 				}
@@ -275,7 +275,7 @@
 			},
 			"targets": [
 				{
-					"expr": "rate(zero_sync_poke_rows_total{job=\"chevrotain/zero\"}[5m])",
+					"expr": "rate(zero_sync_poke_rows_total{job=\"chevrotain/zero-cache\"}[5m])",
 					"legendFormat": "",
 					"refId": "A"
 				}
@@ -324,7 +324,7 @@
 			},
 			"targets": [
 				{
-					"expr": "rate(zero_sync_cvr_rows_flushed_total{job=\"chevrotain/zero\"}[5m])",
+					"expr": "rate(zero_sync_cvr_rows_flushed_total{job=\"chevrotain/zero-cache\"}[5m])",
 					"legendFormat": "",
 					"refId": "A"
 				}
@@ -393,7 +393,7 @@
 			},
 			"targets": [
 				{
-					"expr": "zero_sync_active_clients{job=\"chevrotain/zero\"}",
+					"expr": "zero_sync_active_clients{job=\"chevrotain/zero-cache\"}",
 					"legendFormat": "v{{protocol_version}}",
 					"refId": "A"
 				}
@@ -449,7 +449,7 @@
 			},
 			"targets": [
 				{
-					"expr": "rate(zero_sync_hydration_total{job=\"chevrotain/zero\"}[5m])",
+					"expr": "rate(zero_sync_hydration_total{job=\"chevrotain/zero-cache\"}[5m])",
 					"legendFormat": "Hydrations",
 					"refId": "A"
 				}
@@ -518,12 +518,12 @@
 			},
 			"targets": [
 				{
-					"expr": "rate(zero_sync_poke_rows_total{job=\"chevrotain/zero\"}[5m])",
+					"expr": "rate(zero_sync_poke_rows_total{job=\"chevrotain/zero-cache\"}[5m])",
 					"legendFormat": "Rows / s",
 					"refId": "A"
 				},
 				{
-					"expr": "rate(zero_sync_poke_transactions_total{job=\"chevrotain/zero\"}[5m])",
+					"expr": "rate(zero_sync_poke_transactions_total{job=\"chevrotain/zero-cache\"}[5m])",
 					"legendFormat": "Transactions / s",
 					"refId": "B"
 				}
@@ -579,7 +579,7 @@
 			},
 			"targets": [
 				{
-					"expr": "rate(zero_sync_cvr_rows_flushed_total{job=\"chevrotain/zero\"}[5m])",
+					"expr": "rate(zero_sync_cvr_rows_flushed_total{job=\"chevrotain/zero-cache\"}[5m])",
 					"legendFormat": "Rows Flushed / s",
 					"refId": "A"
 				}
@@ -648,17 +648,17 @@
 			},
 			"targets": [
 				{
-					"expr": "histogram_quantile(0.50, rate(zero_sync_hydration_time_seconds_bucket{job=\"chevrotain/zero\"}[5m]))",
+					"expr": "histogram_quantile(0.50, rate(zero_sync_hydration_time_seconds_bucket{job=\"chevrotain/zero-cache\"}[5m]))",
 					"legendFormat": "p50",
 					"refId": "A"
 				},
 				{
-					"expr": "histogram_quantile(0.95, rate(zero_sync_hydration_time_seconds_bucket{job=\"chevrotain/zero\"}[5m]))",
+					"expr": "histogram_quantile(0.95, rate(zero_sync_hydration_time_seconds_bucket{job=\"chevrotain/zero-cache\"}[5m]))",
 					"legendFormat": "p95",
 					"refId": "B"
 				},
 				{
-					"expr": "histogram_quantile(0.99, rate(zero_sync_hydration_time_seconds_bucket{job=\"chevrotain/zero\"}[5m]))",
+					"expr": "histogram_quantile(0.99, rate(zero_sync_hydration_time_seconds_bucket{job=\"chevrotain/zero-cache\"}[5m]))",
 					"legendFormat": "p99",
 					"refId": "C"
 				}
@@ -714,17 +714,17 @@
 			},
 			"targets": [
 				{
-					"expr": "histogram_quantile(0.50, rate(zero_sync_poke_time_seconds_bucket{job=\"chevrotain/zero\"}[5m]))",
+					"expr": "histogram_quantile(0.50, rate(zero_sync_poke_time_seconds_bucket{job=\"chevrotain/zero-cache\"}[5m]))",
 					"legendFormat": "p50",
 					"refId": "A"
 				},
 				{
-					"expr": "histogram_quantile(0.95, rate(zero_sync_poke_time_seconds_bucket{job=\"chevrotain/zero\"}[5m]))",
+					"expr": "histogram_quantile(0.95, rate(zero_sync_poke_time_seconds_bucket{job=\"chevrotain/zero-cache\"}[5m]))",
 					"legendFormat": "p95",
 					"refId": "B"
 				},
 				{
-					"expr": "histogram_quantile(0.99, rate(zero_sync_poke_time_seconds_bucket{job=\"chevrotain/zero\"}[5m]))",
+					"expr": "histogram_quantile(0.99, rate(zero_sync_poke_time_seconds_bucket{job=\"chevrotain/zero-cache\"}[5m]))",
 					"legendFormat": "p99",
 					"refId": "C"
 				}
@@ -780,17 +780,17 @@
 			},
 			"targets": [
 				{
-					"expr": "histogram_quantile(0.50, rate(zero_sync_cvr_flush_time_seconds_bucket{job=\"chevrotain/zero\"}[5m]))",
+					"expr": "histogram_quantile(0.50, rate(zero_sync_cvr_flush_time_seconds_bucket{job=\"chevrotain/zero-cache\"}[5m]))",
 					"legendFormat": "p50 {{flush_type}}",
 					"refId": "A"
 				},
 				{
-					"expr": "histogram_quantile(0.95, rate(zero_sync_cvr_flush_time_seconds_bucket{job=\"chevrotain/zero\"}[5m]))",
+					"expr": "histogram_quantile(0.95, rate(zero_sync_cvr_flush_time_seconds_bucket{job=\"chevrotain/zero-cache\"}[5m]))",
 					"legendFormat": "p95 {{flush_type}}",
 					"refId": "B"
 				},
 				{
-					"expr": "histogram_quantile(0.99, rate(zero_sync_cvr_flush_time_seconds_bucket{job=\"chevrotain/zero\"}[5m]))",
+					"expr": "histogram_quantile(0.99, rate(zero_sync_cvr_flush_time_seconds_bucket{job=\"chevrotain/zero-cache\"}[5m]))",
 					"legendFormat": "p99 {{flush_type}}",
 					"refId": "C"
 				}
@@ -846,17 +846,17 @@
 			},
 			"targets": [
 				{
-					"expr": "histogram_quantile(0.50, rate(zero_sync_query_transformation_time_seconds_bucket{job=\"chevrotain/zero\"}[5m]))",
+					"expr": "histogram_quantile(0.50, rate(zero_sync_query_transformation_time_seconds_bucket{job=\"chevrotain/zero-cache\"}[5m]))",
 					"legendFormat": "p50",
 					"refId": "A"
 				},
 				{
-					"expr": "histogram_quantile(0.95, rate(zero_sync_query_transformation_time_seconds_bucket{job=\"chevrotain/zero\"}[5m]))",
+					"expr": "histogram_quantile(0.95, rate(zero_sync_query_transformation_time_seconds_bucket{job=\"chevrotain/zero-cache\"}[5m]))",
 					"legendFormat": "p95",
 					"refId": "B"
 				},
 				{
-					"expr": "histogram_quantile(0.99, rate(zero_sync_query_transformation_time_seconds_bucket{job=\"chevrotain/zero\"}[5m]))",
+					"expr": "histogram_quantile(0.99, rate(zero_sync_query_transformation_time_seconds_bucket{job=\"chevrotain/zero-cache\"}[5m]))",
 					"legendFormat": "p99",
 					"refId": "C"
 				}
@@ -912,22 +912,22 @@
 			},
 			"targets": [
 				{
-					"expr": "histogram_quantile(0.50, rate(zero_sync_advance_time_seconds_bucket{job=\"chevrotain/zero\"}[5m]))",
+					"expr": "histogram_quantile(0.50, rate(zero_sync_advance_time_seconds_bucket{job=\"chevrotain/zero-cache\"}[5m]))",
 					"legendFormat": "Advance p50",
 					"refId": "A"
 				},
 				{
-					"expr": "histogram_quantile(0.95, rate(zero_sync_advance_time_seconds_bucket{job=\"chevrotain/zero\"}[5m]))",
+					"expr": "histogram_quantile(0.95, rate(zero_sync_advance_time_seconds_bucket{job=\"chevrotain/zero-cache\"}[5m]))",
 					"legendFormat": "Advance p95",
 					"refId": "B"
 				},
 				{
-					"expr": "histogram_quantile(0.50, rate(zero_sync_ivm_advance_time_seconds_bucket{job=\"chevrotain/zero\"}[5m]))",
+					"expr": "histogram_quantile(0.50, rate(zero_sync_ivm_advance_time_seconds_bucket{job=\"chevrotain/zero-cache\"}[5m]))",
 					"legendFormat": "IVM p50",
 					"refId": "C"
 				},
 				{
-					"expr": "histogram_quantile(0.95, rate(zero_sync_ivm_advance_time_seconds_bucket{job=\"chevrotain/zero\"}[5m]))",
+					"expr": "histogram_quantile(0.95, rate(zero_sync_ivm_advance_time_seconds_bucket{job=\"chevrotain/zero-cache\"}[5m]))",
 					"legendFormat": "IVM p95",
 					"refId": "D"
 				}
@@ -983,22 +983,22 @@
 			},
 			"targets": [
 				{
-					"expr": "rate(zero_sync_hydration_time_seconds_sum{job=\"chevrotain/zero\"}[5m]) / rate(zero_sync_hydration_time_seconds_count{job=\"chevrotain/zero\"}[5m])",
+					"expr": "rate(zero_sync_hydration_time_seconds_sum{job=\"chevrotain/zero-cache\"}[5m]) / rate(zero_sync_hydration_time_seconds_count{job=\"chevrotain/zero-cache\"}[5m])",
 					"legendFormat": "Hydration avg",
 					"refId": "A"
 				},
 				{
-					"expr": "rate(zero_sync_poke_time_seconds_sum{job=\"chevrotain/zero\"}[5m]) / rate(zero_sync_poke_time_seconds_count{job=\"chevrotain/zero\"}[5m])",
+					"expr": "rate(zero_sync_poke_time_seconds_sum{job=\"chevrotain/zero-cache\"}[5m]) / rate(zero_sync_poke_time_seconds_count{job=\"chevrotain/zero-cache\"}[5m])",
 					"legendFormat": "Poke avg",
 					"refId": "B"
 				},
 				{
-					"expr": "rate(zero_sync_cvr_flush_time_seconds_sum{job=\"chevrotain/zero\"}[5m]) / rate(zero_sync_cvr_flush_time_seconds_count{job=\"chevrotain/zero\"}[5m])",
+					"expr": "rate(zero_sync_cvr_flush_time_seconds_sum{job=\"chevrotain/zero-cache\"}[5m]) / rate(zero_sync_cvr_flush_time_seconds_count{job=\"chevrotain/zero-cache\"}[5m])",
 					"legendFormat": "CVR Flush avg",
 					"refId": "C"
 				},
 				{
-					"expr": "rate(zero_sync_query_transformation_time_seconds_sum{job=\"chevrotain/zero\"}[5m]) / rate(zero_sync_query_transformation_time_seconds_count{job=\"chevrotain/zero\"}[5m])",
+					"expr": "rate(zero_sync_query_transformation_time_seconds_sum{job=\"chevrotain/zero-cache\"}[5m]) / rate(zero_sync_query_transformation_time_seconds_count{job=\"chevrotain/zero-cache\"}[5m])",
 					"legendFormat": "Query Transform avg",
 					"refId": "D"
 				}
@@ -1067,12 +1067,12 @@
 			},
 			"targets": [
 				{
-					"expr": "rate(zero_replication_events_total{job=\"chevrotain/zero\"}[5m])",
+					"expr": "rate(zero_replication_events_total{job=\"chevrotain/zero-cache\"}[5m])",
 					"legendFormat": "Events / s",
 					"refId": "A"
 				},
 				{
-					"expr": "rate(zero_replication_transactions_total{job=\"chevrotain/zero\"}[5m])",
+					"expr": "rate(zero_replication_transactions_total{job=\"chevrotain/zero-cache\"}[5m])",
 					"legendFormat": "Transactions / s",
 					"refId": "B"
 				}
@@ -1128,12 +1128,12 @@
 			},
 			"targets": [
 				{
-					"expr": "rate(zero_mutation_pushes_total{job=\"chevrotain/zero\"}[5m])",
+					"expr": "rate(zero_mutation_pushes_total{job=\"chevrotain/zero-cache\"}[5m])",
 					"legendFormat": "Pushes / s",
 					"refId": "A"
 				},
 				{
-					"expr": "rate(zero_mutation_custom_total{job=\"chevrotain/zero\"}[5m])",
+					"expr": "rate(zero_mutation_custom_total{job=\"chevrotain/zero-cache\"}[5m])",
 					"legendFormat": "Custom / s",
 					"refId": "B"
 				}
@@ -1202,12 +1202,12 @@
 			},
 			"targets": [
 				{
-					"expr": "rate(zero_sync_query_transformations_total{job=\"chevrotain/zero\"}[5m])",
+					"expr": "rate(zero_sync_query_transformations_total{job=\"chevrotain/zero-cache\"}[5m])",
 					"legendFormat": "Transforms / s ({{result}})",
 					"refId": "A"
 				},
 				{
-					"expr": "rate(zero_sync_query_transformation_no_ops_total{job=\"chevrotain/zero\"}[5m])",
+					"expr": "rate(zero_sync_query_transformation_no_ops_total{job=\"chevrotain/zero-cache\"}[5m])",
 					"legendFormat": "No-ops / s",
 					"refId": "B"
 				}
@@ -1264,8 +1264,57 @@
 			},
 			"targets": [
 				{
-					"expr": "rate(zero_sync_query_transformation_no_ops_total{job=\"chevrotain/zero\"}[5m]) / (rate(zero_sync_query_transformations_total{job=\"chevrotain/zero\"}[5m]) + rate(zero_sync_query_transformation_no_ops_total{job=\"chevrotain/zero\"}[5m])) * 100",
+					"expr": "rate(zero_sync_query_transformation_no_ops_total{job=\"chevrotain/zero-cache\"}[5m]) / (rate(zero_sync_query_transformations_total{job=\"chevrotain/zero-cache\"}[5m]) + rate(zero_sync_query_transformation_no_ops_total{job=\"chevrotain/zero-cache\"}[5m])) * 100",
 					"legendFormat": "No-op %",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 27,
+			"type": "row",
+			"title": "Logs",
+			"gridPos": {
+				"h": 1,
+				"w": 24,
+				"x": 0,
+				"y": 66
+			},
+			"collapsed": false,
+			"panels": []
+		},
+		{
+			"id": 28,
+			"type": "logs",
+			"title": "Zero Cache Logs",
+			"description": "Live journal logs from the zero-cache container",
+			"gridPos": {
+				"h": 14,
+				"w": 24,
+				"x": 0,
+				"y": 67
+			},
+			"datasource": {
+				"type": "loki",
+				"uid": "loki"
+			},
+			"options": {
+				"showTime": true,
+				"showLabels": false,
+				"showCommonLabels": false,
+				"wrapLogMessage": true,
+				"prettifyLogMessage": false,
+				"enableLogDetails": true,
+				"sortOrder": "Descending",
+				"dedupStrategy": "none"
+			},
+			"targets": [
+				{
+					"datasource": {
+						"type": "loki",
+						"uid": "loki"
+					},
+					"expr": "{job=\"chevrotain/zero-cache\"}",
 					"refId": "A"
 				}
 			]

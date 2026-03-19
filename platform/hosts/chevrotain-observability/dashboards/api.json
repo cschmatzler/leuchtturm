@@ -1025,7 +1025,7 @@
 						"type": "loki",
 						"uid": "loki"
 					},
-					"expr": "{unit=\"chevrotain-api.service\"}",
+					"expr": "{job=\"chevrotain/api\"}",
 					"refId": "A"
 				}
 			]
