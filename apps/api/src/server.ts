@@ -4,11 +4,15 @@ import { createServer } from "node:http";
 
 import { ApiPortConfig } from "@chevrotain/api/config";
 import { ServerLive } from "@chevrotain/api/index";
+import { ObservabilityLive } from "@chevrotain/api/observability";
 
 const AppLive = Layer.unwrap(
 	Effect.gen(function* () {
 		const port = yield* ApiPortConfig;
-		return ServerLive.pipe(Layer.provide(NodeHttpServer.layer(() => createServer(), { port })));
+		return Layer.mergeAll(
+			ServerLive.pipe(Layer.provide(NodeHttpServer.layer(() => createServer(), { port }))),
+			ObservabilityLive,
+		);
 	}),
 );
 
@@ -21,11 +25,24 @@ const port = await runtime.runPromise(
 		return yield* ApiPortConfig;
 	}),
 );
-console.log(`API server running on port ${port} (pid: ${process.pid})`);
 
-async function shutdown() {
+await runtime.runPromise(
+	Effect.logInfo("API server running").pipe(
+		Effect.annotateLogs("pid", String(process.pid)),
+		Effect.annotateLogs("port", String(port)),
+	),
+);
+
+async function shutdown(signal: string) {
+	await runtime.runPromise(
+		Effect.logInfo("API server shutting down").pipe(
+			Effect.annotateLogs("pid", String(process.pid)),
+			Effect.annotateLogs("signal", signal),
+		),
+	);
+
 	await runtime.dispose();
 }
 
-process.on("SIGINT", shutdown);
-process.on("SIGTERM", shutdown);
+process.on("SIGINT", () => void shutdown("SIGINT"));
+process.on("SIGTERM", () => void shutdown("SIGTERM"));
