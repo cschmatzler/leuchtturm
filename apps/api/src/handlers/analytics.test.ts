@@ -5,8 +5,6 @@ import type { AnalyticsEvent } from "@chevrotain/core/analytics/schema";
 import { ClickHouseService } from "@chevrotain/core/analytics/service";
 import type { ErrorEventRow } from "@chevrotain/core/analytics/service";
 
-// --- Mocks ---
-
 const mockInsertEvents =
 	vi.fn<(events: AnalyticsEvent[], userId: string, sessionId: string) => void>();
 const mockInsertErrors = vi.fn<(errors: ErrorEventRow[]) => void>();
@@ -21,8 +19,6 @@ const MockClickHouseServiceLive = Layer.succeed(ClickHouseService, {
 		return Effect.void;
 	},
 });
-
-// --- Tests ---
 
 describe("ClickHouseService integration", () => {
 	beforeEach(() => {

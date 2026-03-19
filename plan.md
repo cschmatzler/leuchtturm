@@ -187,6 +187,7 @@ forwarded telemetry.
 - [x] **Step 4** — Update observability Alloy to scrape local services
 - [x] **Step 5** — Remove centralized scrape configs from Prometheus
 - [x] **Step 7** — Remove exporter firewall rules
+- [x] **Hotfix** — Removed Prometheus self-scrape `scrapeConfigs` (duplicate sample conflict)
 - [ ] **Verify** — Deploy to one node first, confirm metrics flow, then roll out to all
 
 ## Implementation notes

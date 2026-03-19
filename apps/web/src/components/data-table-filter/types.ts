@@ -15,10 +15,6 @@ export type ElementType<T> = T extends (infer U)[] ? U : T;
 
 export type Nullable<T> = T | null | undefined;
 
-/*
- * The model of a column option.
- * Used for representing underlying column values of type `option` or `multiOption`.
- */
 export interface ColumnOption {
 	/* The label to display for the option. */
 	label: string;

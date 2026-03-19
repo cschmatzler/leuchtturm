@@ -7,19 +7,10 @@ in {
 		retentionTime = "30d";
 		extraFlags = ["--web.enable-remote-write-receiver"];
 		listenAddress = "0.0.0.0";
-		scrapeConfigs = [
-			# Self-scrape as a fallback — if Alloy goes down, Prometheus still
-			# monitors itself so we can detect the outage.
-			{
-				job_name = "prometheus";
-				static_configs = [
-					{
-						targets = ["127.0.0.1:${toString cfg.ports.prometheus}"];
-					}
-				];
-				scrape_interval = "60s";
-			}
-		];
+		# All scraping is handled by Alloy. No native scrapeConfigs to avoid
+		# duplicate samples — Prometheus rejects remote_write batches that
+		# contain samples already written by a native scrape job.
+		scrapeConfigs = [];
 	};
 
 	networking.firewall.interfaces."tailscale0".allowedTCPPorts = [

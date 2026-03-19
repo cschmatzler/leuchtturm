@@ -33,7 +33,6 @@ export const DEFAULT_OPERATORS: Record<
 	},
 };
 
-/* Details for all the filter operators for option data type */
 export const optionFilterOperators = {
 	is: {
 		key: "is",
@@ -73,7 +72,6 @@ export const optionFilterOperators = {
 	},
 } as const satisfies FilterDetails<"option">;
 
-/* Details for all the filter operators for multi-option data type */
 export const multiOptionFilterOperators = {
 	include: {
 		key: "include",
@@ -131,7 +129,6 @@ export const multiOptionFilterOperators = {
 	},
 } as const satisfies FilterDetails<"multiOption">;
 
-/* Details for all the filter operators for date data type */
 export const dateFilterOperators = {
 	is: {
 		key: "is",
@@ -207,7 +204,6 @@ export const dateFilterOperators = {
 	},
 } as const satisfies FilterDetails<"date">;
 
-/* Details for all the filter operators for text data type */
 export const textFilterOperators = {
 	contains: {
 		key: "contains",
@@ -227,7 +223,6 @@ export const textFilterOperators = {
 	},
 } as const satisfies FilterDetails<"text">;
 
-/* Details for all the filter operators for number data type */
 export const numberFilterOperators = {
 	is: {
 		key: "is",
@@ -335,17 +330,6 @@ export const filterTypeOperatorDetails: FilterTypeOperatorDetails = {
 	multiOption: multiOptionFilterOperators,
 };
 
-/*
- *
- * Determines the new operator for a filter based on the current operator, old and new filter values.
- *
- * This handles cases where the filter values have transitioned from a single value to multiple values (or vice versa),
- * and the current operator needs to be transitioned to its plural form (or singular form).
- *
- * For example, if the current operator is 'is', and the new filter values have a length of 2, the
- * new operator would be 'is any of'.
- *
- */
 export function determineNewOperator<TType extends ColumnDataType>(
 	type: TType,
 	oldVals: FilterValues<TType>,

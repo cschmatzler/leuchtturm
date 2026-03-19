@@ -83,8 +83,6 @@ function FilterValueDisplay<TData, TType extends ColumnDataType>({
 	filter,
 	column,
 }: FilterValueDisplayProps<TData, TType>) {
-	// TypeScript can't narrow generic TType through switch(column.type).
-	// These casts are safe because the switch guarantees the correct branch.
 	switch (column.type) {
 		case "option":
 		case "multiOption":
@@ -252,8 +250,6 @@ function FilterValueNumberDisplay<TData>({ filter }: FilterValueDisplayProps<TDa
 	return <span className="tracking-tight tabular-nums">{value}</span>;
 }
 
-/****** Property Filter Value Controller ******/
-
 interface FilterValueControllerProps<TData, TType extends ColumnDataType> {
 	filter: FilterModel<TType>;
 	column: Column<TData, TType>;
@@ -267,8 +263,6 @@ function __FilterValueController<TData, TType extends ColumnDataType>({
 	filter,
 	column,
 }: FilterValueControllerProps<TData, TType>) {
-	// TypeScript can't narrow generic TType through switch(column.type).
-	// These casts are safe because the switch guarantees the correct branch.
 	switch (column.type) {
 		case "option":
 		case "multiOption":
