@@ -24,7 +24,7 @@ export const Route = createFileRoute("/app/settings/billing")({
 function Page() {
 	const { t } = useTranslation();
 	const { data: customerState } = useQuery(customerStateQuery());
-	const activeSubscription = customerState?.activeSubscriptions[0];
+	const activeSubscription = customerState?.activeSubscriptions?.[0] ?? null;
 	const renewalDate = activeSubscription?.currentPeriodEnd.toLocaleDateString();
 	const accessMessage = activeSubscription
 		? activeSubscription.cancelAtPeriodEnd
