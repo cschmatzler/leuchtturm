@@ -16,7 +16,7 @@ in {
 			BASE_URL = "https://${cfg.domain}";
 			AUTH_BASE_URL = "https://api.${cfg.domain}";
 			OTEL_EXPORTER_OTLP_ENDPOINT = "http://127.0.0.1:${toString cfg.ports.alloyOtlp}";
-			OTEL_SERVICE_NAME = "chevrotain-api";
+			OTEL_SERVICE_NAME = "chevrotain/api";
 			OTEL_RESOURCE_ATTRIBUTES = "service.namespace=chevrotain,deployment.environment=production";
 			CLICKHOUSE_URL = "http://${cfg.hosts.observability}:${toString cfg.ports.clickhouse}";
 		};
