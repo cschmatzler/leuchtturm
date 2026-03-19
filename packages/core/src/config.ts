@@ -5,11 +5,13 @@ const loadSync = <A>(effect: Effect.Effect<A, unknown, never>): A => Effect.runS
 export const coreAuthConfig = loadSync(
 	Effect.gen(function* () {
 		const baseUrl = yield* Config.string("BASE_URL");
+		const authBaseUrl = yield* Config.withDefault(Config.string("AUTH_BASE_URL"), baseUrl);
 		const githubClientId = yield* Config.string("GITHUB_CLIENT_ID");
 		const githubClientSecret = yield* Config.redacted("GITHUB_CLIENT_SECRET");
 
 		return {
 			baseUrl,
+			authBaseUrl,
 			githubClientId,
 			githubClientSecret: Redacted.value(githubClientSecret),
 		} as const;

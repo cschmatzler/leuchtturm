@@ -18,8 +18,8 @@ import { resend } from "@chevrotain/email/index";
 import { renderPasswordResetEmail } from "@chevrotain/email/password-reset";
 
 export const auth = betterAuth({
-	baseURL: `${coreAuthConfig.baseUrl}/api/auth`,
-	trustedOrigins: [coreAuthConfig.baseUrl],
+	baseURL: `${coreAuthConfig.authBaseUrl}/api/auth`,
+	trustedOrigins: [coreAuthConfig.baseUrl, coreAuthConfig.authBaseUrl],
 	database: drizzleAdapter(db, {
 		provider: "pg",
 		schema,

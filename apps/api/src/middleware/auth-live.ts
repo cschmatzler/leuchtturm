@@ -10,9 +10,14 @@ export { AuthMiddleware, CurrentUser, RpcAuthMiddleware };
 export const AuthMiddlewareLive = Layer.succeed(AuthMiddleware, (httpApp, _options) =>
 	Effect.gen(function* () {
 		const request = yield* HttpServerRequest.HttpServerRequest;
-		const rawRequest = yield* HttpServerRequest.toWeb(request).pipe(Effect.orDie);
+		// Pass headers directly instead of calling toWeb(), which would create a
+		// ReadableStream from the request body and prevent downstream handlers
+		// (e.g. Zero) from reading it.
 		const session = yield* Effect.tryPromise({
-			try: () => auth.api.getSession({ headers: rawRequest.headers }),
+			try: () =>
+				auth.api.getSession({
+					headers: new globalThis.Headers(request.headers as Record<string, string>),
+				}),
 			catch: () => new UnauthorizedError({ message: "Auth check failed" }),
 		});
 		if (!session) {
@@ -31,9 +36,11 @@ export const AuthMiddlewareLive = Layer.succeed(AuthMiddleware, (httpApp, _optio
 export const RpcAuthMiddlewareLive = Layer.succeed(RpcAuthMiddleware, (effect, _options) =>
 	Effect.gen(function* () {
 		const request = yield* HttpServerRequest.HttpServerRequest;
-		const rawRequest = yield* HttpServerRequest.toWeb(request).pipe(Effect.orDie);
 		const session = yield* Effect.tryPromise({
-			try: () => auth.api.getSession({ headers: rawRequest.headers }),
+			try: () =>
+				auth.api.getSession({
+					headers: new globalThis.Headers(request.headers as Record<string, string>),
+				}),
 			catch: () => new UnauthorizedError({ message: "Auth check failed" }),
 		});
 		if (!session) {
