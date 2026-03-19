@@ -40,7 +40,7 @@
 
 		chevrotain.alloy.extraConfig = ''
 			prometheus.scrape "chevrotain_api" {
-				job_name        = "chevrotain-api"
+				job_name        = "chevrotain/api"
 				targets         = [{"__address__" = "127.0.0.1:${toString cfg.ports.api}"}]
 				metrics_path    = "/api/metrics"
 				scrape_interval = "15s"
