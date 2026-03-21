@@ -17,6 +17,7 @@ Do not use file globbing or text grep for code exploration when the Cog index is
 ### Turn 1 — Batch explore
 
 Identify every symbol you need to locate. Call `cog_code_explore` with ALL of them in a single `queries` array. The tool returns:
+
 - Complete function/struct body snippets
 - `file_symbols` listing every symbol in the same file (a table of contents)
 - `references` listing symbols called within each function body
@@ -30,6 +31,7 @@ cog_code_explore({ queries: [{ name: "init", kind: "function" }, { name: "Settin
 ### Turn 2 — Follow-up only if needed
 
 Valid follow-ups are:
+
 - `cog_code_query` with `refs` mode to find all call sites / references to a symbol
 - One targeted `cog_code_query(mode="overview"|"imports"|"contains"|"calls"|"callers")` when a single concrete ambiguity remains after Turn 1
 
@@ -40,6 +42,7 @@ Before any follow-up call, check whether the answer is already present in the fi
 ### Repository summaries
 
 For "tell me about this project", architecture overviews, or repository summaries:
+
 - Do not call `cog_mem_recall`
 - Do not enumerate files with repeated `cog_code_query(mode="symbols", file=...)`
 - Do not enumerate files with repeated file-scoped `cog_code_query(mode="overview"|"imports"|"contains"|"calls"|"callers")`
@@ -55,6 +58,7 @@ For "tell me about this project", architecture overviews, or repository summarie
 - When the request is about architecture or rationale, prioritize artifacts that explain design intent such as ADRs, docs, config, tests, commit-linked docs, or comments after the index identifies the relevant area
 
 ## Rules
+
 - Never guess filenames — let `cog_code_explore` tell you
 - Use `kind` filter to narrow results (function, method, struct, variable, etc.)
 - The `name` parameter supports glob patterns: `*init*`, `get*`, `Handle?`
@@ -70,4 +74,5 @@ For "tell me about this project", architecture overviews, or repository summarie
 - Fall back to file or text search only when the Cog index is unavailable or the question is about raw strings/log lines
 
 ## Output
+
 Return a concise summary of what you found. Include file paths and line numbers for key definitions. Do not dump raw tool output — synthesize it.

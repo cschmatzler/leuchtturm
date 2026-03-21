@@ -4,7 +4,6 @@ in {
 	services.caddy = {
 		enable = true;
 
-		# Static SPA
 		virtualHosts.${cfg.domain} = {
 			extraConfig = ''
 				header {
@@ -31,7 +30,6 @@ in {
 			'';
 		};
 
-		# API reverse proxy
 		virtualHosts."api.${cfg.domain}" = {
 			extraConfig = ''
 				handle /api/metrics {

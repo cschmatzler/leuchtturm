@@ -27,7 +27,7 @@ const ApiLive = HttpApiBuilder.layer(ChevrotainApi).pipe(
 
 const RoutesLive = Layer.mergeAll(ApiLive, RpcLive);
 
-const httpApp = Effect.flatten(HttpRouter.toHttpEffect(RoutesLive));
+const httpApp = HttpRouter.toHttpEffect(RoutesLive).pipe(Effect.flatten);
 
 const HttpTracingLive = Layer.mergeAll(
 	HttpMiddleware.layerTracerDisabledForUrls(["/api/metrics"]),

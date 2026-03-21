@@ -1,1 +1,9 @@
-{"mcpServers":{"cog":{"type":"stdio","command":"cog","args":["mcp"]}}}
+{
+	"mcpServers": {
+		"cog": {
+			"type": "stdio",
+			"command": "cog",
+			"args": ["mcp"]
+		}
+	}
+}

@@ -1,12 +1,8 @@
 {
-  "code": {
-    "index": [
-      "**/*.nix",
-      "**/*.ts",
-      "**/*.tsx"
-    ]
-  },
-  "memory": {
-    "brain": "https://trycog.ai/christoph/Chevrotain"
-  }
+	"code": {
+		"index": ["**/*.nix", "**/*.ts", "**/*.tsx"]
+	},
+	"memory": {
+		"brain": "https://trycog.ai/christoph/Chevrotain"
+	}
 }

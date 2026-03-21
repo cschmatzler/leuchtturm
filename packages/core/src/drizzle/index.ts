@@ -1,13 +1,9 @@
 import { defineRelationsPart } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
+import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
+import { Config, Effect, Layer, Redacted, ServiceMap } from "effect";
 import { Pool } from "pg";
 
 import { account, session, user } from "@chevrotain/core/auth/auth.sql";
-import { databaseUrl } from "@chevrotain/core/config";
-
-const pool = new Pool({
-	connectionString: databaseUrl,
-});
 
 const authRelations = defineRelationsPart({ user, session, account }, (r) => ({
 	user: {
@@ -22,9 +18,30 @@ const authRelations = defineRelationsPart({ user, session, account }, (r) => ({
 	},
 }));
 
-export const db = drizzle({
-	client: pool,
-	relations: {
-		...authRelations,
-	},
-});
+export type NodeDatabaseClient = NodePgDatabase<Record<string, never>, typeof authRelations> & {
+	$client: Pool;
+};
+
+export class NodeDatabase extends ServiceMap.Service<NodeDatabase, NodeDatabaseClient>()(
+	"NodeDatabase",
+) {}
+
+export const NodeDatabaseLive = Layer.effect(NodeDatabase)(
+	Effect.gen(function* () {
+		const databaseUrl = yield* Config.redacted("DATABASE_URL");
+		const pool = yield* Effect.acquireRelease(
+			Effect.sync(
+				() =>
+					new Pool({
+						connectionString: Redacted.value(databaseUrl),
+					}),
+			),
+			(pool) => Effect.promise(() => pool.end()),
+		);
+
+		return drizzle({
+			client: pool,
+			relations: authRelations,
+		});
+	}),
+);

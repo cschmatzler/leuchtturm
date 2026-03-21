@@ -1,7 +1,381 @@
 {
-  "version": 2,
-  "processed_subsystems": [
-    {"id": "61a52c8d029bf4f5", "files": ["apps/web/src/components/app/layout.tsx", "apps/web/src/components/app/loading.tsx", "apps/web/src/components/app/marketing-header.test.tsx", "apps/web/src/components/app/marketing-header.tsx", "apps/web/src/components/app/not-found.tsx"]},
-    {"id": "7f5752ef79f3c5fb", "files": ["apps/web/src/pages/__root.tsx", "apps/web/src/pages/app.index.tsx", "apps/web/src/pages/app.settings.billing.tsx", "apps/web/src/pages/app.settings.preferences.tsx", "apps/web/src/pages/app.settings.tsx", "apps/web/src/pages/app.test.tsx", "apps/web/src/pages/app.tsx", "apps/web/src/pages/forgot-password.tsx"]}
-  ]
+	"version": 2,
+	"processed_subsystems": [
+		{
+			"id": "004dd40b4ab2bea7",
+			"files": [
+				"apps/web/src/main.tsx",
+				"apps/web/src/routeTree.gen.ts",
+				"apps/web/src/router.tsx",
+				"apps/web/src/vite-env.d.ts"
+			]
+		},
+		{
+			"id": "03dc53413440c524",
+			"files": [
+				"apps/api/src/config.ts",
+				"apps/api/src/contract-rpc.ts",
+				"apps/api/src/contract.ts",
+				"apps/api/src/index.ts",
+				"apps/api/src/metrics.ts",
+				"apps/api/src/observability.ts",
+				"apps/api/src/runtime.ts",
+				"apps/api/src/server.ts",
+				"apps/api/src/telemetry-preload.ts"
+			]
+		},
+		{
+			"id": "065eae67a7ad0f19",
+			"files": [
+				"nix/config.nix",
+				"platform/hosts/alloy-agent.nix",
+				"platform/hosts/chevrotain-observability/alloy.nix",
+				"platform/hosts/chevrotain-observability/clickhouse.nix",
+				"platform/hosts/chevrotain-observability/disk-config.nix",
+				"platform/hosts/chevrotain-observability/grafana.nix",
+				"platform/hosts/chevrotain-observability/hardware-configuration.nix",
+				"platform/hosts/chevrotain-observability/loki.nix",
+				"platform/hosts/chevrotain-observability/prometheus.nix",
+				"platform/hosts/chevrotain-observability/secrets.nix",
+				"platform/hosts/chevrotain-observability/tempo.nix"
+			]
+		},
+		{
+			"id": "0dd1f3177e486d67",
+			"files": [
+				"apps/web/src/components/data-table-filter/active-filters.tsx",
+				"apps/web/src/components/data-table-filter/context.tsx",
+				"apps/web/src/components/data-table-filter/filter-actions.tsx",
+				"apps/web/src/components/data-table-filter/filter-fns.test.ts",
+				"apps/web/src/components/data-table-filter/filter-fns.ts",
+				"apps/web/src/components/data-table-filter/filter-operator.tsx",
+				"apps/web/src/components/data-table-filter/filter-selector.tsx",
+				"apps/web/src/components/data-table-filter/filter-subject.tsx"
+			]
+		},
+		{ "id": "149c0ec833551945", "files": ["apps/web/src/components/data-table-filter/types.ts"] },
+		{
+			"id": "1f9d96e56bfda3b5",
+			"files": [
+				"packages/zero/src/mutators.ts",
+				"packages/zero/src/mutators/shared.ts",
+				"packages/zero/src/mutators/user.ts",
+				"packages/zero/src/queries.ts",
+				"packages/zero/src/schema.ts"
+			]
+		},
+		{
+			"id": "2026cd458146efc0",
+			"files": [
+				"apps/web/src/components/command-bar.tsx",
+				"apps/web/src/components/data-table-filter.tsx",
+				"apps/web/src/components/data-table.tsx"
+			]
+		},
+		{
+			"id": "2f175f16d7e41495",
+			"files": [
+				"packages/email/src/config.ts",
+				"packages/email/src/index.ts",
+				"packages/email/src/password-reset.tsx",
+				"packages/email/src/tailwind.ts"
+			]
+		},
+		{
+			"id": "34246b54fcd136f5",
+			"files": [
+				"apps/web/src/components/ui/field.tsx",
+				"apps/web/src/components/ui/input.tsx",
+				"apps/web/src/components/ui/kbd.tsx",
+				"apps/web/src/components/ui/label.tsx",
+				"apps/web/src/components/ui/link.tsx",
+				"apps/web/src/components/ui/menu.tsx",
+				"apps/web/src/components/ui/popover.tsx",
+				"apps/web/src/components/ui/select.tsx"
+			]
+		},
+		{
+			"id": "35992c85d3987fcb",
+			"files": [
+				"packages/oxlint-plugins/src/index.ts",
+				"packages/oxlint-plugins/src/no-relative-imports.ts",
+				"packages/oxlint-plugins/src/types.ts"
+			]
+		},
+		{
+			"id": "4347ab786b2b706c",
+			"files": [
+				"platform/hosts/chevrotain-web/caddy.nix",
+				"platform/hosts/chevrotain-web/disk-config.nix",
+				"platform/hosts/chevrotain-web/hardware-configuration.nix",
+				"platform/hosts/chevrotain-web/secrets.nix"
+			]
+		},
+		{
+			"id": "556b6ed38539710b",
+			"files": [
+				"apps/web/src/components/ui/checkbox.tsx",
+				"apps/web/src/components/ui/collapsible.tsx",
+				"apps/web/src/components/ui/combobox.tsx",
+				"apps/web/src/components/ui/command.tsx",
+				"apps/web/src/components/ui/date-input.tsx",
+				"apps/web/src/components/ui/debounced-input.tsx",
+				"apps/web/src/components/ui/dialog.tsx",
+				"apps/web/src/components/ui/empty.tsx"
+			]
+		},
+		{
+			"id": "56f7e9c794fb85be",
+			"files": [
+				"apps/web/src/pages/index.test.tsx",
+				"apps/web/src/pages/index.tsx",
+				"apps/web/src/pages/login.tsx",
+				"apps/web/src/pages/privacy-policy.tsx",
+				"apps/web/src/pages/reset-password.tsx",
+				"apps/web/src/pages/signup.tsx",
+				"apps/web/src/pages/terms-of-service.tsx"
+			]
+		},
+		{
+			"id": "5df9db197106bb73",
+			"files": [
+				"apps/web/src/contexts/command-bar.test.tsx",
+				"apps/web/src/contexts/command-bar.tsx",
+				"apps/web/src/contexts/zero.tsx"
+			]
+		},
+		{
+			"id": "61a52c8d029bf4f5",
+			"files": [
+				"apps/web/src/components/app/layout.tsx",
+				"apps/web/src/components/app/loading.tsx",
+				"apps/web/src/components/app/marketing-header.test.tsx",
+				"apps/web/src/components/app/marketing-header.tsx",
+				"apps/web/src/components/app/not-found.tsx"
+			]
+		},
+		{
+			"id": "70499741dd67924b",
+			"files": [
+				"apps/web/src/clients/auth.ts",
+				"apps/web/src/clients/i18n.ts",
+				"apps/web/src/clients/rpc.ts"
+			]
+		},
+		{
+			"id": "7f5752ef79f3c5fb",
+			"files": [
+				"apps/web/src/pages/__root.tsx",
+				"apps/web/src/pages/app.index.tsx",
+				"apps/web/src/pages/app.settings.billing.tsx",
+				"apps/web/src/pages/app.settings.preferences.tsx",
+				"apps/web/src/pages/app.settings.tsx",
+				"apps/web/src/pages/app.test.tsx",
+				"apps/web/src/pages/app.tsx",
+				"apps/web/src/pages/forgot-password.tsx"
+			]
+		},
+		{
+			"id": "895790bfa21ca918",
+			"files": [
+				"apps/api/module.nix",
+				"apps/api/package.nix",
+				"apps/api/rolldown.config.ts",
+				"apps/web/package.nix",
+				"apps/web/vite.config.ts"
+			]
+		},
+		{
+			"id": "8ad99f150d2b4f01",
+			"files": [
+				"platform/hosts/chevrotain-zero/caddy.nix",
+				"platform/hosts/chevrotain-zero/disk-config.nix",
+				"platform/hosts/chevrotain-zero/hardware-configuration.nix",
+				"platform/hosts/chevrotain-zero/secrets.nix",
+				"platform/hosts/chevrotain-zero/zero.nix"
+			]
+		},
+		{
+			"id": "8d21066795eac2c6",
+			"files": [
+				"apps/api/src/handlers/analytics.test.ts",
+				"apps/api/src/handlers/auth.ts",
+				"apps/api/src/handlers/health.ts",
+				"apps/api/src/handlers/metrics.ts",
+				"apps/api/src/handlers/rpc.ts",
+				"apps/api/src/handlers/zero.ts",
+				"apps/api/src/middleware/auth-live.ts",
+				"apps/api/src/middleware/auth.ts"
+			]
+		},
+		{
+			"id": "97795fe20462e1bb",
+			"files": [
+				"apps/web/src/hooks/use-auth.test.tsx",
+				"apps/web/src/hooks/use-auth.ts",
+				"apps/web/src/hooks/use-command-bar.ts",
+				"apps/web/src/hooks/use-command-provider.ts",
+				"apps/web/src/hooks/use-data-table-filters.test.ts",
+				"apps/web/src/hooks/use-data-table-filters.ts",
+				"apps/web/src/hooks/use-local-storage.test.ts",
+				"apps/web/src/hooks/use-local-storage.ts",
+				"apps/web/src/hooks/use-mobile.test.ts",
+				"apps/web/src/hooks/use-mobile.ts",
+				"apps/web/src/hooks/use-search-filters.test.ts",
+				"apps/web/src/hooks/use-search-filters.ts"
+			]
+		},
+		{
+			"id": "9de9cf0f3212d852",
+			"files": [
+				"apps/web/src/components/ui/switch.tsx",
+				"apps/web/src/components/ui/table.tsx",
+				"apps/web/src/components/ui/tabs.tsx",
+				"apps/web/src/components/ui/textarea.tsx",
+				"apps/web/src/components/ui/tooltip.tsx"
+			]
+		},
+		{
+			"id": "a173d16cf80175be",
+			"files": [
+				"packages/core/drizzle.config.ts",
+				"packages/core/src/analytics/schema.ts",
+				"packages/core/src/analytics/service.ts",
+				"packages/core/src/auth/auth.sql.ts",
+				"packages/core/src/auth/index.ts",
+				"packages/core/src/auth/schema.test.ts",
+				"packages/core/src/auth/schema.ts",
+				"packages/core/src/email/service.ts",
+				"packages/core/src/rate-limit/service.ts"
+			]
+		},
+		{ "id": "a2b03b10bc5ac285", "files": ["devenv.nix", "flake.nix", "vite.config.ts"] },
+		{
+			"id": "a9d9ffc4f08da7e7",
+			"files": [
+				"apps/web/src/queries/billing.ts",
+				"apps/web/src/queries/session.test.ts",
+				"apps/web/src/queries/session.ts"
+			]
+		},
+		{
+			"id": "aecc75cf546101b3",
+			"files": [
+				"apps/web/src/lib/analytics.test.ts",
+				"apps/web/src/lib/analytics.ts",
+				"apps/web/src/lib/array.test.ts",
+				"apps/web/src/lib/array.ts",
+				"apps/web/src/lib/cn.ts",
+				"apps/web/src/lib/memo.test.ts",
+				"apps/web/src/lib/memo.ts",
+				"apps/web/src/lib/price.ts",
+				"apps/web/src/lib/query.ts",
+				"apps/web/src/lib/report-ui-error.ts",
+				"apps/web/src/lib/search-params.test.ts",
+				"apps/web/src/lib/search-params.ts"
+			]
+		},
+		{
+			"id": "b6bf44cc7e621ffb",
+			"files": [
+				"apps/web/src/components/ui/separator.tsx",
+				"apps/web/src/components/ui/sheet.tsx",
+				"apps/web/src/components/ui/sidebar.tsx",
+				"apps/web/src/components/ui/skeleton.tsx",
+				"apps/web/src/components/ui/slider.tsx",
+				"apps/web/src/components/ui/sonner.tsx",
+				"apps/web/src/components/ui/sparkline.tsx",
+				"apps/web/src/components/ui/star-rating.tsx"
+			]
+		},
+		{
+			"id": "bdea920aeb3deabd",
+			"files": [
+				"packages/core/src/assert.test.ts",
+				"packages/core/src/assert.ts",
+				"packages/core/src/config.ts",
+				"packages/core/src/errors.ts",
+				"packages/core/src/id.test.ts",
+				"packages/core/src/id.ts",
+				"packages/core/src/schema.ts"
+			]
+		},
+		{
+			"id": "cafe4a1237205c10",
+			"files": [
+				"apps/web/src/components/data-table-filter/filter-value.tsx",
+				"apps/web/src/components/data-table-filter/filters.test.ts",
+				"apps/web/src/components/data-table-filter/filters.ts",
+				"apps/web/src/components/data-table-filter/helpers.test.ts",
+				"apps/web/src/components/data-table-filter/helpers.ts",
+				"apps/web/src/components/data-table-filter/operators.test.ts",
+				"apps/web/src/components/data-table-filter/operators.ts",
+				"apps/web/src/components/data-table-filter/tanstack.tsx"
+			]
+		},
+		{
+			"id": "dccbb883c65e0d36",
+			"files": [
+				"packages/core/src/drizzle/index.ts",
+				"packages/core/src/drizzle/service.ts",
+				"packages/core/src/drizzle/types.ts"
+			]
+		},
+		{
+			"id": "dd330a54112ad6a7",
+			"files": [
+				"modules/_chevrotain-postgres/pgbackrest.nix",
+				"modules/_chevrotain-postgres/postgresql.nix",
+				"modules/chevrotain-observability.nix",
+				"modules/chevrotain-postgres.nix",
+				"modules/chevrotain-web.nix",
+				"modules/chevrotain-zero.nix",
+				"modules/defaults.nix",
+				"modules/dendritic.nix",
+				"modules/deploy.nix",
+				"modules/hosts.nix",
+				"modules/packages.nix"
+			]
+		},
+		{
+			"id": "ddcb480d82dae998",
+			"files": [
+				"packages/core/src/billing/billing.sql.ts",
+				"packages/core/src/billing/polar.ts",
+				"packages/core/src/billing/products.ts",
+				"packages/core/src/billing/webhooks.ts"
+			]
+		},
+		{
+			"id": "ea7387e679f9f634",
+			"files": [
+				"apps/web/src/pages/app.settings.preferences/-components/preferences-card.tsx",
+				"apps/web/src/pages/app.settings.preferences/-components/profile-card.tsx",
+				"apps/web/src/pages/forgot-password/-components/forgot-password-form.tsx",
+				"apps/web/src/pages/reset-password/-components/reset-password-form.tsx"
+			]
+		},
+		{
+			"id": "ec644db1f1aa503a",
+			"files": [
+				"platform/hosts/chevrotain-postgres/disk-config.nix",
+				"platform/hosts/chevrotain-postgres/hardware-configuration.nix",
+				"platform/hosts/chevrotain-postgres/pgbackrest.nix",
+				"platform/hosts/chevrotain-postgres/secrets.nix"
+			]
+		},
+		{
+			"id": "fb68c3b2d7a2f644",
+			"files": [
+				"apps/web/src/components/ui/accordion.tsx",
+				"apps/web/src/components/ui/alert-dialog.tsx",
+				"apps/web/src/components/ui/avatar.tsx",
+				"apps/web/src/components/ui/badge.tsx",
+				"apps/web/src/components/ui/button.tsx",
+				"apps/web/src/components/ui/calendar.tsx",
+				"apps/web/src/components/ui/card.tsx",
+				"apps/web/src/components/ui/chart.tsx"
+			]
+		}
+	]
 }

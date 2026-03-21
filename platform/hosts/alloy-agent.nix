@@ -23,8 +23,6 @@ in {
 		};
 
 		environment.etc."alloy/config.alloy".text = ''
-			// ── OTLP push pipeline (apps → gateway Alloy) ──
-
 			otelcol.receiver.otlp "default" {
 				http {
 					endpoint = "0.0.0.0:${toString cfg.ports.alloyOtlp}"
@@ -54,8 +52,6 @@ in {
 				}
 			}
 
-			// ── Prometheus scrape (local exporters → remote Prometheus) ──
-
 			prometheus.scrape "node" {
 				job_name        = "node"
 				targets         = [{"__address__" = "127.0.0.1:${toString cfg.ports.nodeExporter}", "instance" = "${instanceName}"}]
@@ -68,8 +64,6 @@ in {
 					url = "http://${cfg.hosts.observability}:${toString cfg.ports.prometheus}/api/v1/write"
 				}
 			}
-
-			// ── Journal logs → Loki ──
 
 			loki.source.journal "default" {
 				relabel_rules = loki.relabel.journal.rules
@@ -106,8 +100,6 @@ in {
 					url = "http://${cfg.hosts.observability}:${toString cfg.ports.loki}/loki/api/v1/push"
 				}
 			}
-
-			// ── Per-node extra config ──
 
 			${config.chevrotain.alloy.extraConfig}
 		'';

@@ -4,11 +4,12 @@ import { HttpApiBuilder } from "effect/unstable/httpapi";
 
 import { ChevrotainApi } from "@chevrotain/api/contract";
 import { routeLabelFromUrl } from "@chevrotain/api/metrics";
-import { auth } from "@chevrotain/core/auth/index";
+import { AuthService } from "@chevrotain/core/auth/index";
 import { UnauthorizedError } from "@chevrotain/core/errors";
 
 const passthrough = Effect.fn("auth.passthrough")(function* () {
 	const request = yield* HttpServerRequest.HttpServerRequest;
+	const auth = yield* AuthService;
 	const rawRequest = yield* HttpServerRequest.toWeb(request).pipe(Effect.orDie);
 	const route = routeLabelFromUrl(request.url);
 

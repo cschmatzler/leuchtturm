@@ -1,8 +1,3 @@
-import { Config, Effect, Redacted } from "effect";
+import { Config } from "effect";
 
-export const resendApiKey = Effect.runSync(
-	Effect.gen(function* () {
-		const apiKey = yield* Config.redacted("RESEND_API_KEY");
-		return Redacted.value(apiKey);
-	}),
-);
+export const ResendApiKeyConfig = Config.redacted("RESEND_API_KEY");
