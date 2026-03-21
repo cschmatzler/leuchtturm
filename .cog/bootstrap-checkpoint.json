@@ -1,0 +1,7 @@
+{
+  "version": 2,
+  "processed_subsystems": [
+    {"id": "61a52c8d029bf4f5", "files": ["apps/web/src/components/app/layout.tsx", "apps/web/src/components/app/loading.tsx", "apps/web/src/components/app/marketing-header.test.tsx", "apps/web/src/components/app/marketing-header.tsx", "apps/web/src/components/app/not-found.tsx"]},
+    {"id": "7f5752ef79f3c5fb", "files": ["apps/web/src/pages/__root.tsx", "apps/web/src/pages/app.index.tsx", "apps/web/src/pages/app.settings.billing.tsx", "apps/web/src/pages/app.settings.preferences.tsx", "apps/web/src/pages/app.settings.tsx", "apps/web/src/pages/app.test.tsx", "apps/web/src/pages/app.tsx", "apps/web/src/pages/forgot-password.tsx"]}
+  ]
+}
