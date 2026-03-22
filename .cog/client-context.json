@@ -1,6 +1,6 @@
 {
 	"version": "0.21.0",
-	"selected_agents": ["pi", "claude_code"],
+	"selected_agents": ["pi"],
 	"installed_assets": [
 		"AGENTS.md",
 		".pi/mcp.json",
@@ -8,15 +8,7 @@
 		".pi/skills/cog-code-query/SKILL.md",
 		".pi/skills/cog-debug/SKILL.md",
 		".pi/skills/cog-mem/SKILL.md",
-		".pi/skills/cog-mem-validate/SKILL.md",
-		"CLAUDE.md",
-		".mcp.json",
-		".claude/hooks/cog-pretooluse.sh",
-		".claude/hooks/cog-stop-memory.sh",
-		".claude/agents/cog-code-query.md",
-		".claude/agents/cog-debug.md",
-		".claude/agents/cog-mem.md",
-		".claude/agents/cog-mem-validate.md"
+		".pi/skills/cog-mem-validate/SKILL.md"
 	],
 	"features": {
 		"enhanced_memory_writes": true,
