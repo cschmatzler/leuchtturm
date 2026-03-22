@@ -3,11 +3,13 @@ import { HttpMiddleware, HttpServerRequest } from "effect/unstable/http";
 import { collectDefaultMetrics, Counter, Histogram, Registry } from "prom-client";
 
 type HttpMetricLabels = "method" | "route" | "status" | "ok";
+type DroppedMetricLabels = "pipeline";
 
 type MetricsState = {
 	register: Registry;
 	httpRequestsTotal: Counter<HttpMetricLabels>;
 	httpRequestDurationSeconds: Histogram<HttpMetricLabels>;
+	droppedRecordsTotal: Counter<DroppedMetricLabels>;
 };
 
 declare global {
@@ -33,10 +35,18 @@ function createMetricsState(): MetricsState {
 		registers: [register],
 	});
 
+	const droppedRecordsTotal = new Counter({
+		name: "dropped_records_total",
+		help: "Records dropped due to backend failures (e.g. ClickHouse down)",
+		labelNames: ["pipeline"] as const,
+		registers: [register],
+	});
+
 	return {
 		register,
 		httpRequestsTotal,
 		httpRequestDurationSeconds,
+		droppedRecordsTotal,
 	};
 }
 
@@ -68,24 +78,6 @@ function statusFromError(error: unknown): number {
 		const httpApiStatus = (error as { httpApiStatus?: unknown }).httpApiStatus;
 		if (typeof httpApiStatus === "number") {
 			return httpApiStatus;
-		}
-
-		const tag = (error as { _tag?: unknown })._tag;
-		if (typeof tag === "string") {
-			switch (tag) {
-				case "ValidationError":
-					return 400;
-				case "UnauthorizedError":
-					return 401;
-				case "ForbiddenError":
-					return 403;
-				case "NotFoundError":
-					return 404;
-				case "RateLimitError":
-					return 429;
-				default:
-					return 500;
-			}
 		}
 	}
 
@@ -133,3 +125,7 @@ export const MetricsMiddleware = HttpMiddleware.make((app) =>
 );
 
 export const metricsText = Effect.promise(() => metricsState.register.metrics());
+
+export function recordDroppedRecords(pipeline: string, count: number): void {
+	metricsState.droppedRecordsTotal.inc({ pipeline }, count);
+}

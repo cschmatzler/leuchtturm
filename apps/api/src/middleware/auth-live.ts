@@ -22,7 +22,10 @@ export const AuthMiddlewareLive = Layer.effect(AuthMiddleware)(
 						auth.api.getSession({
 							headers: new globalThis.Headers(request.headers as Record<string, string>),
 						}),
-					catch: () => new UnauthorizedError({ message: "Auth check failed" }),
+					catch: (error) =>
+						new UnauthorizedError({
+							message: `Auth check failed: ${error instanceof Error ? error.message : String(error)}`,
+						}),
 				}).pipe(
 					Effect.withSpan("auth.session.lookup", {
 						attributes: { "auth.flow": "http" },
@@ -58,7 +61,10 @@ export const RpcAuthMiddlewareLive = Layer.effect(RpcAuthMiddleware)(
 						auth.api.getSession({
 							headers: new globalThis.Headers(request.headers as Record<string, string>),
 						}),
-					catch: () => new UnauthorizedError({ message: "Auth check failed" }),
+					catch: (error) =>
+						new UnauthorizedError({
+							message: `Auth check failed: ${error instanceof Error ? error.message : String(error)}`,
+						}),
 				}).pipe(
 					Effect.withSpan("auth.session.lookup", {
 						attributes: { "auth.flow": "rpc" },

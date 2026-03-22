@@ -73,7 +73,10 @@ export const ClickHouseServiceLive = Layer.effect(ClickHouseService)(
 						})),
 						format: "JSONEachRow",
 					}),
-				catch: () => new ClickHouseError({ message: "Failed to insert analytics events" }),
+				catch: (error) =>
+					new ClickHouseError({
+						message: `Failed to insert analytics events: ${error instanceof Error ? error.message : String(error)}`,
+					}),
 			});
 
 		const insertErrors = (errors: ErrorEventRow[]): Effect.Effect<void, ClickHouseError> =>
@@ -98,7 +101,10 @@ export const ClickHouseServiceLive = Layer.effect(ClickHouseService)(
 						})),
 						format: "JSONEachRow",
 					}),
-				catch: () => new ClickHouseError({ message: "Failed to insert error events" }),
+				catch: (error) =>
+					new ClickHouseError({
+						message: `Failed to insert error events: ${error instanceof Error ? error.message : String(error)}`,
+					}),
 			});
 
 		return { insertEvents, insertErrors };

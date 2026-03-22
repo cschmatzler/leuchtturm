@@ -17,6 +17,10 @@ const RpcProtocol = RpcClient.layerProtocolHttp({
 
 const runtime = ManagedRuntime.make(RpcProtocol);
 
+function logRpcError(method: string) {
+	return (error: unknown) => Effect.sync(() => console.error(`[RPC] ${method} failed`, error));
+}
+
 export function ingestEvents(payload: AnalyticsPayload): Promise<void> {
 	return runtime.runPromise(
 		Effect.scoped(
@@ -24,7 +28,7 @@ export function ingestEvents(payload: AnalyticsPayload): Promise<void> {
 				const client = yield* RpcClient.make(ChevrotainRpcs);
 				yield* client.IngestEvents(payload);
 			}),
-		).pipe(Effect.ignore),
+		).pipe(Effect.tapError(logRpcError("IngestEvents")), Effect.ignore),
 	);
 }
 
@@ -35,6 +39,6 @@ export function reportErrors(payload: ErrorPayload): Promise<void> {
 				const client = yield* RpcClient.make(ChevrotainRpcs);
 				yield* client.ReportErrors(payload);
 			}),
-		).pipe(Effect.ignore),
+		).pipe(Effect.tapError(logRpcError("ReportErrors")), Effect.ignore),
 	);
 }

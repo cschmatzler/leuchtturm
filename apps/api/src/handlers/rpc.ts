@@ -3,6 +3,7 @@ import { Headers, HttpServerRequest } from "effect/unstable/http";
 import { RpcSerialization, RpcServer } from "effect/unstable/rpc";
 
 import { ChevrotainRpcs } from "@chevrotain/api/contract-rpc";
+import { recordDroppedRecords } from "@chevrotain/api/metrics";
 import { CurrentUser, RpcAuthMiddlewareLive } from "@chevrotain/api/middleware/auth-live";
 import { ClickHouseService } from "@chevrotain/core/analytics/service";
 import { RateLimitService } from "@chevrotain/core/rate-limit/service";
@@ -30,16 +31,19 @@ const RpcHandlersLive = ChevrotainRpcs.toLayer(
 					});
 
 					// Best-effort — don't fail the client request if ClickHouse is down.
-					yield* analytics
-						.insertEvents([...payload.events], user.id, session.id)
-						.pipe(
-							Effect.catchTag("ClickHouseError", (e) =>
-								Effect.logError("Analytics insert failed, dropping events").pipe(
-									Effect.annotateLogs("error", e.message),
-									Effect.annotateLogs("eventCount", String(payload.events.length)),
+					yield* analytics.insertEvents([...payload.events], user.id, session.id).pipe(
+						Effect.catchTag("ClickHouseError", (e) =>
+							Effect.logError("Analytics insert failed, dropping events").pipe(
+								Effect.annotateLogs("error", e.message),
+								Effect.annotateLogs("eventCount", String(payload.events.length)),
+								Effect.tap(() =>
+									Effect.sync(() =>
+										recordDroppedRecords("analytics_events", payload.events.length),
+									),
 								),
 							),
-						);
+						),
+					);
 
 					return { success: true as const };
 				}),
@@ -89,6 +93,9 @@ const RpcHandlersLive = ChevrotainRpcs.toLayer(
 								Effect.logError("Error report insert failed, dropping errors").pipe(
 									Effect.annotateLogs("error", e.message),
 									Effect.annotateLogs("errorCount", String(payload.errors.length)),
+									Effect.tap(() =>
+										Effect.sync(() => recordDroppedRecords("error_events", payload.errors.length)),
+									),
 								),
 							),
 						);

@@ -55,7 +55,10 @@ function createAuthInstance(
 						html,
 						text,
 					}),
-				);
+				).catch((error) => {
+					console.error("Failed to send password reset email", error);
+					throw new Error("Failed to send password reset email");
+				});
 			},
 		},
 		user: {

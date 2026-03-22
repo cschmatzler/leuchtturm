@@ -36,7 +36,10 @@ export const ZeroHandlerLive = HttpApiBuilder.group(ChevrotainApi, "zero", (hand
 							schema,
 							rawRequest,
 						),
-					catch: () => new DatabaseError({ message: "Query execution failed" }),
+					catch: (error) =>
+						new DatabaseError({
+							message: `Query execution failed: ${error instanceof Error ? error.message : String(error)}`,
+						}),
 				}).pipe(
 					Effect.withSpan("zero.handleQueryRequest", {
 						attributes: { "zero.operation": "query" },
@@ -71,7 +74,10 @@ export const ZeroHandlerLive = HttpApiBuilder.group(ChevrotainApi, "zero", (hand
 								}),
 							rawRequest,
 						),
-					catch: () => new DatabaseError({ message: "Mutation execution failed" }),
+					catch: (error) =>
+						new DatabaseError({
+							message: `Mutation execution failed: ${error instanceof Error ? error.message : String(error)}`,
+						}),
 				}).pipe(
 					Effect.withSpan("zero.handleMutateRequest", {
 						attributes: { "zero.operation": "mutate" },

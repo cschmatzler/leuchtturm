@@ -140,7 +140,9 @@ async function flushErrors(): Promise<void> {
 
 	try {
 		await reportErrors({ errors });
-	} catch {}
+	} catch (error) {
+		console.error("Failed to flush error reports", error);
+	}
 }
 
 export function sendErrorReport(

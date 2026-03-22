@@ -15,7 +15,10 @@ const passthrough = Effect.fn("auth.passthrough")(function* () {
 
 	const response = yield* Effect.tryPromise({
 		try: () => auth.handler(rawRequest),
-		catch: () => new UnauthorizedError({ message: "Auth service error" }),
+		catch: (error) =>
+			new UnauthorizedError({
+				message: `Auth service error: ${error instanceof Error ? error.message : String(error)}`,
+			}),
 	}).pipe(
 		Effect.withSpan("auth.handler", {
 			attributes: { "http.route": route },
@@ -28,7 +31,10 @@ const passthrough = Effect.fn("auth.passthrough")(function* () {
 	// and construct the response with the correct content-type preserved.
 	const body = yield* Effect.tryPromise({
 		try: () => response.arrayBuffer(),
-		catch: () => new UnauthorizedError({ message: "Failed to read auth response body" }),
+		catch: (error) =>
+			new UnauthorizedError({
+				message: `Failed to read auth response body: ${error instanceof Error ? error.message : String(error)}`,
+			}),
 	}).pipe(
 		Effect.withSpan("auth.response.readBody", {
 			attributes: { "http.route": route },

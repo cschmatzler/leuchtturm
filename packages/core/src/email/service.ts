@@ -29,7 +29,10 @@ export const EmailServiceLive = Layer.effect(EmailService)(
 			send: (params) =>
 				Effect.tryPromise({
 					try: () => resend.emails.send(params),
-					catch: () => new EmailError({ message: "Resend API request failed" }),
+					catch: (error) =>
+						new EmailError({
+							message: `Resend API request failed: ${error instanceof Error ? error.message : String(error)}`,
+						}),
 				}).pipe(
 					Effect.flatMap((result) =>
 						result.error || !result.data
