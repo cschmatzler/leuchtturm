@@ -4,13 +4,14 @@ import { Schema } from "effect";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
+import { PASSWORD_VALIDATION_MESSAGE, Password } from "@chevrotain/core/auth/schema";
 import { authClient } from "@chevrotain/web/clients/auth";
 import { Button } from "@chevrotain/web/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@chevrotain/web/components/ui/field";
 import { Input } from "@chevrotain/web/components/ui/input";
 
 const resetPasswordShape = Schema.Struct({
-	password: Schema.String.check(Schema.isMinLength(13)),
+	password: Password,
 });
 
 export function ResetPasswordForm() {
@@ -76,7 +77,7 @@ export function ResetPasswordForm() {
 								required
 							/>
 							{field.state.meta.errors.length > 0 && (
-								<FieldError>{t("Password must be more than 12 characters")}</FieldError>
+								<FieldError>{t(PASSWORD_VALIDATION_MESSAGE)}</FieldError>
 							)}
 						</Field>
 					)}

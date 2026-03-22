@@ -10,14 +10,14 @@ import {
 	billingOrder,
 	billingSubscription,
 } from "@chevrotain/core/billing/billing.sql";
-import type { NodeDatabaseClient } from "@chevrotain/core/drizzle/index";
+import type { DatabaseClient } from "@chevrotain/core/drizzle/service";
 
 function serializeSnapshot(value: unknown) {
 	return JSON.stringify(value);
 }
 
 export function makePolarWebhookHandlers(
-	db: NodeDatabaseClient,
+	db: DatabaseClient,
 ): Pick<
 	WebhooksOptions,
 	| "onPayload"

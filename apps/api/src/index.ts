@@ -2,7 +2,7 @@ import { Effect, Layer } from "effect";
 import { HttpMiddleware, HttpRouter, HttpServer } from "effect/unstable/http";
 import { HttpApiBuilder } from "effect/unstable/httpapi";
 
-import { ApiBaseUrlConfig } from "@chevrotain/api/config";
+import { ApiConfig } from "@chevrotain/api/config";
 import { ChevrotainApi } from "@chevrotain/api/contract";
 import { AuthHandlerLive } from "@chevrotain/api/handlers/auth";
 import { HealthHandlerLive } from "@chevrotain/api/handlers/health";
@@ -40,7 +40,7 @@ const HttpTracingLive = Layer.mergeAll(
 
 export const ServerLive = Layer.unwrap(
 	Effect.gen(function* () {
-		const baseUrl = yield* ApiBaseUrlConfig;
+		const { baseUrl } = yield* ApiConfig;
 		const corsMiddleware = HttpMiddleware.cors({
 			allowedOrigins: [baseUrl],
 			exposedHeaders: ["Content-Length"],

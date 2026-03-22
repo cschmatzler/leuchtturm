@@ -12,6 +12,13 @@ const TrimmedLowercaseEmail = Schema.String.pipe(
 	}),
 );
 
+export const PASSWORD_MIN_LENGTH = 13;
+export const PASSWORD_VALIDATION_MESSAGE = "Password must be more than 12 characters";
+
+export const Password = Schema.String.check(Schema.isMinLength(PASSWORD_MIN_LENGTH)).annotate({
+	description: PASSWORD_VALIDATION_MESSAGE,
+});
+
 export const User = Schema.Struct({
 	id: Id,
 	name: TrimmedNonEmptyString.annotate({ description: "Name is required" }),
@@ -52,7 +59,7 @@ export const Account = Schema.Struct({
 	accessTokenExpiresAt: Schema.optional(Schema.NullOr(Schema.Date)),
 	refreshTokenExpiresAt: Schema.optional(Schema.NullOr(Schema.Date)),
 	scope: Schema.optional(Schema.NullOr(Schema.String)),
-	password: Schema.optional(Schema.NullOr(Schema.String.check(Schema.isMinLength(13)))),
+	password: Schema.optional(Schema.NullOr(Password)),
 	createdAt: Schema.Date,
 	updatedAt: Schema.Date,
 });

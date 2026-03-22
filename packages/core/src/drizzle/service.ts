@@ -1,40 +1,47 @@
-import { PgClient } from "@effect/sql-pg";
-import { drizzle, type EffectPgDatabase } from "drizzle-orm/effect-postgres";
-import { Config, Effect, Layer, ServiceMap } from "effect";
-import { types } from "pg";
+import { defineRelationsPart } from "drizzle-orm";
+import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
+import { Config, Effect, Layer, Redacted, ServiceMap } from "effect";
+import { Pool } from "pg";
 
-// Date/time type IDs that should be returned raw (let Drizzle handle parsing).
-// See https://orm.drizzle.team/docs/connect-effect-postgres
-const RAW_DATE_TYPE_IDS = [1184, 1114, 1082, 1186, 1231, 1115, 1185, 1187, 1182];
+import { account, session, user } from "@chevrotain/core/auth/auth.sql";
 
-/** PgClient layer — manages the connection pool lifecycle via acquireRelease. */
-export const PgClientLive = Layer.unwrap(
-	Effect.gen(function* () {
-		const databaseUrl = yield* Config.redacted("DATABASE_URL");
-		return PgClient.layer({
-			url: databaseUrl,
-			types: {
-				getTypeParser: (typeId, format) => {
-					if (RAW_DATE_TYPE_IDS.includes(typeId)) {
-						return (val: unknown) => val;
-					}
-					return types.getTypeParser(typeId, format);
-				},
-			},
-		});
-	}),
-);
+const authRelations = defineRelationsPart({ user, session, account }, (r) => ({
+	user: {
+		sessions: r.many.session({ from: r.user.id, to: r.session.userId }),
+		accounts: r.many.account({ from: r.user.id, to: r.account.userId }),
+	},
+	session: {
+		user: r.one.user({ from: r.session.userId, to: r.user.id }),
+	},
+	account: {
+		user: r.one.user({ from: r.account.userId, to: r.user.id }),
+	},
+}));
 
-/** Effect-managed Drizzle database instance backed by @effect/sql-pg connection pool. */
-export class DatabaseService extends ServiceMap.Service<DatabaseService, EffectPgDatabase>()(
+export type DatabaseClient = NodePgDatabase<Record<string, never>, typeof authRelations> & {
+	$client: Pool;
+};
+
+export class DatabaseService extends ServiceMap.Service<DatabaseService, DatabaseClient>()(
 	"DatabaseService",
 ) {}
 
-/** Layer that provides DatabaseService by creating a Drizzle instance from the PgClient. */
 export const DatabaseServiceLive = Layer.effect(DatabaseService)(
 	Effect.gen(function* () {
-		const client = yield* PgClient.PgClient;
-		yield* Effect.logInfo("DatabaseService initialized");
-		return drizzle(client);
+		const databaseUrl = yield* Config.redacted("DATABASE_URL");
+		const pool = yield* Effect.acquireRelease(
+			Effect.sync(
+				() =>
+					new Pool({
+						connectionString: Redacted.value(databaseUrl),
+					}),
+			),
+			(pool) => Effect.promise(() => pool.end()),
+		);
+
+		return drizzle({
+			client: pool,
+			relations: authRelations,
+		});
 	}),
-).pipe(Layer.provide(PgClientLive));
+);

@@ -17,6 +17,12 @@ const RpcProtocol = RpcClient.layerProtocolHttp({
 
 const runtime = ManagedRuntime.make(RpcProtocol);
 
+if (import.meta.hot) {
+	import.meta.hot.dispose(() => {
+		void runtime.dispose();
+	});
+}
+
 function logRpcError(method: string) {
 	return (error: unknown) => Effect.sync(() => console.error(`[RPC] ${method} failed`, error));
 }

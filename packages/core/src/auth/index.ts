@@ -6,10 +6,11 @@ import { multiSession } from "better-auth/plugins";
 import { Effect, Layer, ServiceMap } from "effect";
 
 import * as schema from "@chevrotain/core/auth/auth.sql";
+import { PASSWORD_MIN_LENGTH } from "@chevrotain/core/auth/schema";
 import { POLAR_PRO_PRODUCT_ID, POLAR_PRO_PRODUCT_SLUG } from "@chevrotain/core/billing/products";
 import { makePolarWebhookHandlers } from "@chevrotain/core/billing/webhooks";
 import { CoreAuthConfig, CoreBillingConfig } from "@chevrotain/core/config";
-import { NodeDatabase, type NodeDatabaseClient } from "@chevrotain/core/drizzle/index";
+import { DatabaseService, type DatabaseClient } from "@chevrotain/core/drizzle/service";
 import { EmailService, type EmailServiceShape } from "@chevrotain/core/email/service";
 import { PREFIXES, createId, type IdPrefix } from "@chevrotain/core/id";
 import { renderPasswordResetEmail } from "@chevrotain/email/password-reset";
@@ -22,7 +23,7 @@ function createAuthInstance(
 		githubClientSecret: string;
 	},
 	billingConfig: { accessToken: string; successUrl: string; webhookSecret: string },
-	db: NodeDatabaseClient,
+	db: DatabaseClient,
 	email: EmailServiceShape,
 ) {
 	const polarClient = new Polar({
@@ -40,7 +41,7 @@ function createAuthInstance(
 		}),
 		emailAndPassword: {
 			enabled: true,
-			minPasswordLength: 12,
+			minPasswordLength: PASSWORD_MIN_LENGTH,
 			sendResetPassword: async ({ user, url }, _request) => {
 				const { html, text } = await renderPasswordResetEmail({
 					resetUrl: url,
@@ -132,7 +133,7 @@ export const AuthServiceLive = Layer.effect(AuthService)(
 	Effect.gen(function* () {
 		const authConfig = yield* CoreAuthConfig;
 		const billingConfig = yield* CoreBillingConfig;
-		const db = yield* NodeDatabase;
+		const db = yield* DatabaseService;
 		const email = yield* EmailService;
 
 		return createAuthInstance(authConfig, billingConfig, db, email);

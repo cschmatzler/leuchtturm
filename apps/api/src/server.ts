@@ -3,13 +3,13 @@ import { NodeHttpServer, NodeRuntime } from "@effect/platform-node";
 import { Effect, Layer } from "effect";
 import { createServer } from "node:http";
 
-import { ApiPortConfig } from "@chevrotain/api/config";
+import { ApiConfig } from "@chevrotain/api/config";
 import { ServerLive } from "@chevrotain/api/index";
 import { ObservabilityLive } from "@chevrotain/api/observability";
 
 const AppLive = Layer.unwrap(
 	Effect.gen(function* () {
-		const port = yield* ApiPortConfig;
+		const { port } = yield* ApiConfig;
 
 		return Layer.mergeAll(
 			ServerLive.pipe(Layer.provide(NodeHttpServer.layer(() => createServer(), { port }))),

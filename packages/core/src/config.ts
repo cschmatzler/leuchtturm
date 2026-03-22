@@ -1,27 +1,27 @@
-import { Config, Effect, Redacted } from "effect";
+import { Config, Option, Redacted } from "effect";
 
-export const CoreAuthConfig = Effect.gen(function* () {
-	const baseUrl = yield* Config.string("BASE_URL");
-	const authBaseUrl = yield* Config.string("AUTH_BASE_URL").pipe(Config.withDefault(baseUrl));
-	const githubClientId = yield* Config.string("GITHUB_CLIENT_ID");
-	const githubClientSecret = yield* Config.redacted("GITHUB_CLIENT_SECRET");
-
-	return {
+export const CoreAuthConfig = Config.all({
+	baseUrl: Config.string("BASE_URL"),
+	authBaseUrl: Config.option(Config.string("AUTH_BASE_URL")),
+	githubClientId: Config.string("GITHUB_CLIENT_ID"),
+	githubClientSecret: Config.redacted("GITHUB_CLIENT_SECRET"),
+}).pipe(
+	Config.map(({ baseUrl, authBaseUrl, githubClientId, githubClientSecret }) => ({
 		baseUrl,
-		authBaseUrl,
+		authBaseUrl: Option.getOrElse(authBaseUrl, () => baseUrl),
 		githubClientId,
 		githubClientSecret: Redacted.value(githubClientSecret),
-	};
-});
+	})),
+);
 
-export const CoreBillingConfig = Effect.gen(function* () {
-	const accessToken = yield* Config.redacted("POLAR_ACCESS_TOKEN");
-	const successUrl = yield* Config.string("POLAR_SUCCESS_URL");
-	const webhookSecret = yield* Config.redacted("POLAR_WEBHOOK_SECRET");
-
-	return {
+export const CoreBillingConfig = Config.all({
+	accessToken: Config.redacted("POLAR_ACCESS_TOKEN"),
+	successUrl: Config.string("POLAR_SUCCESS_URL"),
+	webhookSecret: Config.redacted("POLAR_WEBHOOK_SECRET"),
+}).pipe(
+	Config.map(({ accessToken, successUrl, webhookSecret }) => ({
 		accessToken: Redacted.value(accessToken),
 		successUrl,
 		webhookSecret: Redacted.value(webhookSecret),
-	};
-});
+	})),
+);
