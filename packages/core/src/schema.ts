@@ -1,9 +1,17 @@
 import { Schema, SchemaGetter } from "effect";
 
-/** Non-empty string that trims whitespace during decoding. */
+export const Ulid = Schema.String.check(Schema.isPattern(/^[0-9A-Z]{26}$/));
+
 export const TrimmedNonEmptyString = Schema.String.pipe(
 	Schema.decodeTo(Schema.NonEmptyString, {
 		decode: SchemaGetter.transform((s: string) => s.trim()),
+		encode: SchemaGetter.transform((s: string) => s),
+	}),
+);
+
+export const Email = Schema.String.pipe(
+	Schema.decodeTo(Schema.String.check(Schema.isPattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)), {
+		decode: SchemaGetter.transform((s: string) => s.trim().toLowerCase()),
 		encode: SchemaGetter.transform((s: string) => s),
 	}),
 );

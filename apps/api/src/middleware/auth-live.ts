@@ -1,8 +1,9 @@
-import { Effect, Layer } from "effect";
+import { Effect, Layer, Schema } from "effect";
 import { HttpServerRequest } from "effect/unstable/http";
 
 import { AuthMiddleware, CurrentUser, RpcAuthMiddleware } from "@chevrotain/api/middleware/auth";
 import { AuthService } from "@chevrotain/core/auth/index";
+import { Session, User } from "@chevrotain/core/auth/schema";
 import { UnauthorizedError } from "@chevrotain/core/errors";
 
 export { AuthMiddleware, CurrentUser, RpcAuthMiddleware };
@@ -35,16 +36,22 @@ export const AuthMiddlewareLive = Layer.effect(AuthMiddleware)(
 					yield* Effect.logWarning("Auth middleware rejected unauthenticated request");
 					return yield* new UnauthorizedError({ message: "Unauthorized" });
 				}
+				const currentUser = yield* Effect.all({
+					user: Schema.decodeUnknownEffect(User)(session.user),
+					session: Schema.decodeUnknownEffect(Session)(session.session),
+				}).pipe(
+					Effect.mapError(
+						(error) =>
+							new UnauthorizedError({
+								message: `Invalid auth session payload: ${error.message}`,
+							}),
+					),
+				);
 				yield* Effect.annotateCurrentSpan({
 					"auth.authenticated": true,
-					"enduser.id": session.user.id,
+					"enduser.id": currentUser.user.id,
 				});
-				return yield* httpApp.pipe(
-					Effect.provideService(CurrentUser, {
-						user: session.user,
-						session: session.session,
-					}),
-				);
+				return yield* httpApp.pipe(Effect.provideService(CurrentUser, currentUser));
 			});
 	}),
 );
@@ -74,16 +81,22 @@ export const RpcAuthMiddlewareLive = Layer.effect(RpcAuthMiddleware)(
 					yield* Effect.logWarning("RPC auth middleware rejected unauthenticated request");
 					return yield* new UnauthorizedError({ message: "Unauthorized" });
 				}
+				const currentUser = yield* Effect.all({
+					user: Schema.decodeUnknownEffect(User)(session.user),
+					session: Schema.decodeUnknownEffect(Session)(session.session),
+				}).pipe(
+					Effect.mapError(
+						(error) =>
+							new UnauthorizedError({
+								message: `Invalid auth session payload: ${error.message}`,
+							}),
+					),
+				);
 				yield* Effect.annotateCurrentSpan({
 					"auth.authenticated": true,
-					"enduser.id": session.user.id,
+					"enduser.id": currentUser.user.id,
 				});
-				return yield* effect.pipe(
-					Effect.provideService(CurrentUser, {
-						user: session.user,
-						session: session.session,
-					}),
-				);
+				return yield* effect.pipe(Effect.provideService(CurrentUser, currentUser));
 			});
 	}),
 );

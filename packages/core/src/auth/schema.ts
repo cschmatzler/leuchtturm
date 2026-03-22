@@ -1,16 +1,6 @@
-import { Schema, SchemaGetter } from "effect";
+import { Schema } from "effect";
 
-import { Id } from "@chevrotain/core/id";
-import { TrimmedNonEmptyString } from "@chevrotain/core/schema";
-
-const EmailPattern = Schema.String.check(Schema.isPattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/));
-
-const TrimmedLowercaseEmail = Schema.String.pipe(
-	Schema.decodeTo(EmailPattern, {
-		decode: SchemaGetter.transform((s: string) => s.trim().toLowerCase()),
-		encode: SchemaGetter.transform((s: string) => s),
-	}),
-);
+import { Email, TrimmedNonEmptyString, Ulid } from "@chevrotain/core/schema";
 
 export const PASSWORD_MIN_LENGTH = 13;
 export const PASSWORD_VALIDATION_MESSAGE = "Password must be more than 12 characters";
@@ -19,10 +9,14 @@ export const Password = Schema.String.check(Schema.isMinLength(PASSWORD_MIN_LENG
 	description: PASSWORD_VALIDATION_MESSAGE,
 });
 
+export const UserId = Schema.TemplateLiteral(["usr_", Ulid]).pipe(Schema.brand("UserId"));
+
+export type UserId = typeof UserId.Type;
+
 export const User = Schema.Struct({
-	id: Id,
+	id: UserId,
 	name: TrimmedNonEmptyString.annotate({ description: "Name is required" }),
-	email: TrimmedLowercaseEmail,
+	email: Email,
 	image: Schema.optional(Schema.NullOr(Schema.String)),
 	language: Schema.optional(Schema.NullOr(Schema.String)),
 	emailVerified: Schema.Boolean.pipe(
@@ -35,24 +29,32 @@ export const User = Schema.Struct({
 
 export type User = typeof User.Type;
 
+export const SessionId = Schema.TemplateLiteral(["ses_", Ulid]).pipe(Schema.brand("SessionId"));
+
+export type SessionId = typeof SessionId.Type;
+
 export const Session = Schema.Struct({
-	id: Id,
+	id: SessionId,
 	token: Schema.String,
 	ipAddress: Schema.optional(Schema.NullOr(Schema.String)),
 	userAgent: Schema.optional(Schema.NullOr(Schema.String)),
 	expiresAt: Schema.Date,
-	userId: Id,
+	userId: UserId,
 	createdAt: Schema.Date,
 	updatedAt: Schema.Date,
 });
 
 export type Session = typeof Session.Type;
 
+export const AccountId = Schema.TemplateLiteral(["acc_", Ulid]).pipe(Schema.brand("AccountId"));
+
+export type AccountId = typeof AccountId.Type;
+
 export const Account = Schema.Struct({
-	id: Id,
+	id: AccountId,
 	accountId: Schema.String,
 	providerId: Schema.String,
-	userId: Id,
+	userId: UserId,
 	accessToken: Schema.optional(Schema.NullOr(Schema.String)),
 	refreshToken: Schema.optional(Schema.NullOr(Schema.String)),
 	idToken: Schema.optional(Schema.NullOr(Schema.String)),
@@ -66,8 +68,14 @@ export const Account = Schema.Struct({
 
 export type Account = typeof Account.Type;
 
+export const VerificationId = Schema.TemplateLiteral(["ver_", Ulid]).pipe(
+	Schema.brand("VerificationId"),
+);
+
+export type VerificationId = typeof VerificationId.Type;
+
 export const Verification = Schema.Struct({
-	id: Id,
+	id: VerificationId,
 	identifier: Schema.String,
 	value: Schema.String,
 	expiresAt: Schema.Date,
@@ -77,8 +85,12 @@ export const Verification = Schema.Struct({
 
 export type Verification = typeof Verification.Type;
 
+export const JWKSId = Schema.TemplateLiteral(["jwk_", Ulid]).pipe(Schema.brand("JWKSId"));
+
+export type JWKSId = typeof JWKSId.Type;
+
 export const JWKS = Schema.Struct({
-	id: Id,
+	id: JWKSId,
 	publicKey: Schema.String,
 	privateKey: Schema.String,
 	createdAt: Schema.Date,

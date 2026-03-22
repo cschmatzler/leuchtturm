@@ -4,15 +4,22 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { multiSession } from "better-auth/plugins";
 import { Effect, Layer, ServiceMap } from "effect";
+import { ulid } from "ulid";
 
 import * as schema from "@chevrotain/core/auth/auth.sql";
-import { PASSWORD_MIN_LENGTH } from "@chevrotain/core/auth/schema";
+import {
+	AccountId,
+	JWKSId,
+	PASSWORD_MIN_LENGTH,
+	SessionId,
+	UserId,
+	VerificationId,
+} from "@chevrotain/core/auth/schema";
 import { POLAR_PRO_PRODUCT_ID, POLAR_PRO_PRODUCT_SLUG } from "@chevrotain/core/billing/products";
 import { makePolarWebhookHandlers } from "@chevrotain/core/billing/webhooks";
 import { CoreAuthConfig, CoreBillingConfig } from "@chevrotain/core/config";
 import { DatabaseService, type DatabaseClient } from "@chevrotain/core/drizzle/service";
 import { EmailService, type EmailServiceShape } from "@chevrotain/core/email/service";
-import { PREFIXES, createId, type IdPrefix } from "@chevrotain/core/id";
 import { renderPasswordResetEmail } from "@chevrotain/email/password-reset";
 
 function createAuthInstance(
@@ -117,8 +124,20 @@ function createAuthInstance(
 			},
 			database: {
 				generateId: ({ model }) => {
-					if (!(model in PREFIXES)) throw new Error(`Unknown auth model: ${model}`);
-					return createId(model as IdPrefix);
+					switch (model) {
+						case "account":
+							return AccountId.makeUnsafe(`acc_${ulid()}`);
+						case "user":
+							return UserId.makeUnsafe(`usr_${ulid()}`);
+						case "session":
+							return SessionId.makeUnsafe(`ses_${ulid()}`);
+						case "verification":
+							return VerificationId.makeUnsafe(`ver_${ulid()}`);
+						case "jwks":
+							return JWKSId.makeUnsafe(`jwk_${ulid()}`);
+						default:
+							throw new Error(`Unknown auth model: ${model}`);
+					}
 				},
 			},
 		},
