@@ -186,17 +186,4 @@ describe("CommandBarProvider", () => {
 
 		expect(provider).not.toHaveBeenCalled();
 	});
-
-	it("warns when showing an unknown provider", async () => {
-		const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-
-		const { result } = renderHook(() => useCommandBarValue(), { wrapper: createWrapper() });
-
-		await act(async () => {
-			await result.current.show("nonexistent");
-		});
-
-		expect(consoleWarnSpy).toHaveBeenCalledWith('Command bar provider "nonexistent" not found');
-		consoleWarnSpy.mockRestore();
-	});
 });

@@ -1,78 +1,101 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+	createMemoryHistory,
+	createRootRoute,
+	createRoute,
+	createRouter,
+	Outlet,
+	RouterProvider,
+} from "@tanstack/react-router";
 import { cleanup, render, screen } from "@testing-library/react";
-import type { ReactNode } from "react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
-
-const { useReactQueryMock } = vi.hoisted(() => ({
-	useReactQueryMock: vi.fn(),
-}));
-
-vi.mock("@chevrotain/web/lib/query", () => ({
-	useReactQuery: useReactQueryMock,
-}));
-
-vi.mock("react-i18next", () => ({
-	useTranslation: () => ({ t: (value: string) => value }),
-}));
-
-vi.mock("@chevrotain/web/components/ui/button", () => ({
-	Button: ({ children }: { children: ReactNode }) => <button type="button">{children}</button>,
-}));
-
-vi.mock("@tanstack/react-router", async () => {
-	const actual =
-		await vi.importActual<typeof import("@tanstack/react-router")>("@tanstack/react-router");
-
-	return {
-		...actual,
-		Link: ({
-			children,
-			to,
-			className,
-		}: {
-			children?: ReactNode;
-			to: string;
-			className?: string;
-		}) => (
-			<a href={to} className={className}>
-				{children}
-			</a>
-		),
-	};
-});
+import { createInstance } from "i18next";
+import { I18nextProvider, initReactI18next } from "react-i18next";
+import { afterEach, describe, expect, it } from "vite-plus/test";
 
 import { MarketingHeader } from "@chevrotain/web/components/app/marketing-header";
 
-describe("MarketingHeader", () => {
-	beforeEach(() => {
-		vi.clearAllMocks();
+async function createTestI18n() {
+	const i18n = createInstance();
+	await i18n.use(initReactI18next).init({
+		lng: "en",
+		fallbackLng: "en",
+		resources: {},
+		keySeparator: false,
+		interpolation: {
+			escapeValue: false,
+		},
+	});
+	return i18n;
+}
+
+async function renderMarketingHeader(session: unknown) {
+	const i18n = await createTestI18n();
+	const queryClient = new QueryClient({
+		defaultOptions: {
+			queries: {
+				retry: false,
+				refetchOnMount: false,
+			},
+		},
+	});
+	queryClient.setQueryData(["session"], session);
+
+	const Empty = () => null;
+	const rootRoute = createRootRoute({
+		component: () => (
+			<I18nextProvider i18n={i18n}>
+				<Outlet />
+			</I18nextProvider>
+		),
+	});
+	const indexRoute = createRoute({
+		getParentRoute: () => rootRoute,
+		path: "/",
+		component: MarketingHeader,
+	});
+	const loginRoute = createRoute({
+		getParentRoute: () => rootRoute,
+		path: "/login",
+		component: Empty,
+	});
+	const signupRoute = createRoute({
+		getParentRoute: () => rootRoute,
+		path: "/signup",
+		component: Empty,
+	});
+	const appRoute = createRoute({ getParentRoute: () => rootRoute, path: "/app", component: Empty });
+	const router = createRouter({
+		routeTree: rootRoute.addChildren([indexRoute, loginRoute, signupRoute, appRoute]),
+		history: createMemoryHistory({ initialEntries: ["/"] }),
 	});
 
+	render(
+		<QueryClientProvider client={queryClient}>
+			<RouterProvider router={router as never} />
+		</QueryClientProvider>,
+	);
+}
+
+describe("MarketingHeader", () => {
 	afterEach(() => {
 		cleanup();
 	});
 
-	it("shows anonymous actions when there is no session", () => {
-		useReactQueryMock.mockReturnValue({
-			data: null,
-			isLoading: false,
-		});
+	it("shows anonymous actions when there is no session", async () => {
+		await renderMarketingHeader(null);
 
-		render(<MarketingHeader />);
-
+		await screen.findByText("Login");
+		await screen.findByText("Sign Up");
 		expect(screen.queryByText("Dashboard")).toBeNull();
-		expect(screen.queryByText("Login")).not.toBeNull();
-		expect(screen.queryByText("Sign Up")).not.toBeNull();
 	});
 
-	it("shows the dashboard action only when a user is present", () => {
-		useReactQueryMock.mockReturnValue({
-			data: { session: { token: "session-token" }, user: { id: "user-1" } },
-			isLoading: false,
+	it("shows the dashboard action only when a user is present", async () => {
+		await renderMarketingHeader({
+			session: { token: "session-token" },
+			user: { id: "user-1" },
 		});
 
-		render(<MarketingHeader />);
-
-		expect(screen.queryByText("Dashboard")).not.toBeNull();
+		await screen.findByText("Dashboard");
 		expect(screen.queryByText("Login")).toBeNull();
 	});
 });
