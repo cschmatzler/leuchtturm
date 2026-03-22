@@ -66,7 +66,8 @@ function normalizeToolPath(value: string): string {
 }
 
 function tokenizeShell(command: string): string[] {
-	const tokens = command.match(/"(?:\\.|[^"])*"|'(?:\\.|[^'])*'|`(?:\\.|[^`])*`|\S+/g) ?? [];
+	const tokens =
+		command.match(/&&|\|\||;|\||"(?:\\.|[^"])*"|'(?:\\.|[^'])*'|`(?:\\.|[^`])*`|\S+/g) ?? [];
 	return tokens.map((token) => {
 		if (
 			(token.startsWith('"') && token.endsWith('"')) ||
@@ -83,20 +84,176 @@ function tokenizeShell(command: string): string[] {
 	});
 }
 
-function getExplicitSearchTargets(command: string, cwd: string): string[] {
-	const commandWords = new Set(["git", "grep", "rg", "find"]);
+function resolveToolPath(value: string, cwd: string): string {
+	const normalized = normalizeToolPath(value);
+	return isAbsolute(normalized) ? normalized : resolve(cwd, normalized);
+}
+
+function normalizePaths(values: string[], cwd: string, existingOnly = false): string[] {
 	const targets = new Set<string>();
 
-	for (const token of tokenizeShell(command)) {
-		if (!token || token === "--" || token.startsWith("-")) continue;
-		if (commandWords.has(token)) continue;
-
-		for (const resolved of normalizeExistingPaths([token], cwd)) {
+	for (const value of values) {
+		const resolved = resolveToolPath(value, cwd);
+		if (!existingOnly || existsSync(resolved)) {
 			targets.add(resolved);
 		}
 	}
 
 	return [...targets];
+}
+
+function normalizeSearchPaths(values: string[], cwd: string): string[] {
+	const targets = new Set<string>();
+
+	for (const value of values) {
+		const resolved = resolveToolPath(value, cwd);
+		if (isAbsolute(normalizeToolPath(value)) || existsSync(resolved)) {
+			targets.add(resolved);
+		}
+	}
+
+	return [...targets];
+}
+
+function isShellSeparator(token: string): boolean {
+	return token === "&&" || token === "||" || token === ";" || token === "|";
+}
+
+function resolveDirectory(value: string, cwd: string): string | null {
+	const resolved = resolveToolPath(value, cwd);
+	return existsSync(resolved) ? resolved : null;
+}
+
+function splitShellCommands(
+	command: string,
+	cwd: string,
+): Array<{ cwd: string; tokens: string[] }> {
+	const segments: Array<{ cwd: string; tokens: string[] }> = [];
+	let currentCwd = cwd;
+	let segmentCwd = cwd;
+	let segmentTokens: string[] = [];
+
+	const flushSegment = () => {
+		if (segmentTokens.length === 0) return;
+		segments.push({ cwd: segmentCwd, tokens: [...segmentTokens] });
+		segmentTokens = [];
+	};
+
+	for (const token of tokenizeShell(command)) {
+		if (!isShellSeparator(token)) {
+			segmentTokens.push(token);
+			continue;
+		}
+
+		flushSegment();
+
+		if (
+			(token === "&&" || token === ";") &&
+			segments.at(-1)?.tokens[0] === "cd" &&
+			segments.at(-1)?.tokens[1]
+		) {
+			const nextCwd = resolveDirectory(segments.at(-1)!.tokens[1], segments.at(-1)!.cwd);
+			if (nextCwd) currentCwd = nextCwd;
+		}
+
+		segmentCwd = currentCwd;
+	}
+
+	flushSegment();
+	return segments;
+}
+
+function searchOptionConsumesNextToken(commandName: string, token: string): boolean {
+	if (token.includes("=")) return false;
+
+	const commonOptions = new Set([
+		"-A",
+		"-B",
+		"-C",
+		"-D",
+		"-e",
+		"-f",
+		"-m",
+		"--after-context",
+		"--before-context",
+		"--binary-files",
+		"--context",
+		"--directories",
+		"--exclude",
+		"--exclude-dir",
+		"--file",
+		"--include",
+		"--label",
+		"--max-count",
+	]);
+	if (commonOptions.has(token)) return true;
+
+	if (commandName === "rg") {
+		return new Set([
+			"-g",
+			"-j",
+			"-M",
+			"--glob",
+			"--iglob",
+			"--max-columns",
+			"--max-depth",
+			"--max-filesize",
+			"--path-separator",
+			"--pre",
+			"--pre-glob",
+			"--regex-size-limit",
+			"--sort",
+			"--sortr",
+		]).has(token);
+	}
+
+	return false;
+}
+
+function getSearchTargetsForTokens(tokens: string[], cwd: string): string[] | null {
+	if (tokens.length === 0) return null;
+
+	if (tokens[0] === "find") {
+		const roots: string[] = [];
+		for (const token of tokens.slice(1)) {
+			if (!token || token === "--") continue;
+			if (token.startsWith("-") || token === "!" || token === "(" || token === ")") break;
+			roots.push(token);
+		}
+		return roots.length > 0 ? normalizeSearchPaths(roots, cwd) : [cwd];
+	}
+
+	const commandOffset = tokens[0] === "git" && tokens[1] === "grep" ? 2 : 1;
+	const commandName = tokens[commandOffset - 1];
+	if (commandName !== "rg" && commandName !== "grep") return null;
+
+	let sawPattern = false;
+	let afterDoubleDash = false;
+	let skipNextToken = false;
+	const roots: string[] = [];
+
+	for (const token of tokens.slice(commandOffset)) {
+		if (!token) continue;
+		if (skipNextToken) {
+			skipNextToken = false;
+			continue;
+		}
+		if (token === "--") {
+			afterDoubleDash = true;
+			continue;
+		}
+		if (!afterDoubleDash && token.startsWith("-")) {
+			skipNextToken = searchOptionConsumesNextToken(commandName, token);
+			continue;
+		}
+		if (!sawPattern) {
+			sawPattern = true;
+			continue;
+		}
+		roots.push(token);
+	}
+
+	return roots.length > 0 ? normalizeSearchPaths(roots, cwd) : [cwd];
 }
 
 function collectStringValues(value: unknown): string[] {
@@ -105,18 +262,15 @@ function collectStringValues(value: unknown): string[] {
 	return [];
 }
 
-function normalizeExistingPaths(values: string[], cwd: string): string[] {
-	const targets = new Set<string>();
+function collectPathLikeValues(value: unknown, pathLikeKeys: RegExp): string[] {
+	if (Array.isArray(value))
+		return value.flatMap((item) => collectPathLikeValues(item, pathLikeKeys));
+	if (!value || typeof value !== "object") return [];
 
-	for (const value of values) {
-		const normalized = normalizeToolPath(value);
-		const resolved = isAbsolute(normalized) ? normalized : resolve(cwd, normalized);
-		if (existsSync(resolved)) {
-			targets.add(resolved);
-		}
-	}
-
-	return [...targets];
+	return Object.entries(value as Record<string, unknown>).flatMap(([key, nestedValue]) => {
+		if (pathLikeKeys.test(key)) return collectStringValues(nestedValue);
+		return collectPathLikeValues(nestedValue, pathLikeKeys);
+	});
 }
 
 function isWithinCwd(path: string, cwd: string): boolean {
@@ -142,20 +296,27 @@ function isGitIgnored(path: string, cwd: string): boolean {
 }
 
 function areSearchTargetsIndexed(command: string, cwd: string): boolean {
-	const targets = getExplicitSearchTargets(command, cwd);
-	if (targets.length === 0) return true;
+	let sawSearchCommand = false;
 
-	return targets.some((target) => isWithinCwd(target, cwd) && !isGitIgnored(target, cwd));
+	for (const segment of splitShellCommands(command, cwd)) {
+		const targets = getSearchTargetsForTokens(segment.tokens, segment.cwd);
+		if (!targets) continue;
+
+		sawSearchCommand = true;
+		if (targets.some((target) => isWithinCwd(target, cwd) && !isGitIgnored(target, cwd))) {
+			return true;
+		}
+	}
+
+	return !sawSearchCommand;
 }
 
 function getExplicitToolTargets(event: unknown, cwd: string): string[] {
 	const pathLikeKeys = /path|paths|file|files|dir|dirs|directory|directories|root|cwd/i;
 	const input = getToolInput(event);
-	const values = Object.entries(input)
-		.filter(([key]) => pathLikeKeys.test(key))
-		.flatMap(([, value]) => collectStringValues(value));
+	const values = collectPathLikeValues(input, pathLikeKeys);
 
-	return normalizeExistingPaths(values, cwd);
+	return normalizePaths(values, cwd);
 }
 
 function areToolTargetsIndexed(event: unknown, ctx: ExtensionContext): boolean {
