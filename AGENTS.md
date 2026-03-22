@@ -1,9 +1,3 @@
-# Rules
-
-- _NEVER_ attempt to use any historically destructive git commands
-- _ALWAYS_ make small and frequent commits
-- All tests must pass, do not ignore failing tests that you believe are unreleated to your work. Only fix those failing tests after you've completed and validated your work. The last step of any job you do should be to ensure all tests pass. This includes `vp check` and `vp test`.
-
 ## Vite+ Toolchain
 
 Unified toolchain (Vite + Rolldown + Vitest + Oxlint + Oxfmt):
