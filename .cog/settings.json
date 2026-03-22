@@ -1,6 +1,6 @@
 {
 	"code": {
-		"index": ["**/*.nix", "**/*.ts", "**/*.tsx"]
+		"index": ["**/*.nix", "**/*.ts", "**/*.tsx", "!devenv.nix", "!flake.nix"]
 	},
 	"memory": {
 		"brain": "https://trycog.ai/christoph/Chevrotain"

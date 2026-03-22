@@ -17,7 +17,7 @@ export default defineConfig({
 			typeCheck: true,
 		},
 		jsPlugins: ["./packages/oxlint-plugins/src/no-relative-imports.ts", "@effect/eslint-plugin"],
-		ignorePatterns: ["**/node_modules/**", "**/dist/**", "**/*.gen.ts"],
+		ignorePatterns: ["**/node_modules/**", "**/dist/**", "**/.pi/**", "**/*.gen.ts"],
 		rules: {
 			"no-relative-imports/no-relative-imports": "error",
 			"@typescript-eslint/no-floating-promises": "off",
