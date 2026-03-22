@@ -1,5 +1,5 @@
 {...}: let
-	cfg = import ../../../nix/config.nix;
+	cfg = import ../../nix/config.nix;
 in {
 	services.caddy = {
 		enable = true;

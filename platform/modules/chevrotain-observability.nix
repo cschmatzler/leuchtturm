@@ -23,15 +23,15 @@
 			inputs.sops-nix.nixosModules.sops
 			(modulesPath + "/installer/scan/not-detected.nix")
 			(modulesPath + "/profiles/qemu-guest.nix")
-			../platform/hosts/chevrotain-observability/clickhouse.nix
-			../platform/hosts/chevrotain-observability/grafana.nix
-			../platform/hosts/chevrotain-observability/prometheus.nix
-			../platform/hosts/chevrotain-observability/loki.nix
-			../platform/hosts/chevrotain-observability/tempo.nix
-			../platform/hosts/chevrotain-observability/alloy.nix
-			../platform/hosts/chevrotain-observability/disk-config.nix
-			../platform/hosts/chevrotain-observability/hardware-configuration.nix
-			../platform/hosts/chevrotain-observability/secrets.nix
+			../hosts/chevrotain-observability/clickhouse.nix
+			../hosts/chevrotain-observability/grafana.nix
+			../hosts/chevrotain-observability/prometheus.nix
+			../hosts/chevrotain-observability/loki.nix
+			../hosts/chevrotain-observability/tempo.nix
+			../hosts/chevrotain-observability/alloy.nix
+			../hosts/chevrotain-observability/disk-config.nix
+			../hosts/chevrotain-observability/hardware-configuration.nix
+			../hosts/chevrotain-observability/secrets.nix
 		];
 
 		networking.hostName = "chevrotain-observability";

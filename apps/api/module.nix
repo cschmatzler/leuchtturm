@@ -3,7 +3,7 @@
 	packages,
 	...
 }: let
-	cfg = import ../../nix/config.nix;
+	cfg = import ../../platform/nix/config.nix;
 in {
 	systemd.services.chevrotain-api = {
 		description = "Roasted API";

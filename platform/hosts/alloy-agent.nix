@@ -3,7 +3,7 @@
 	lib,
 	...
 }: let
-	cfg = import ../../nix/config.nix;
+	cfg = import ../nix/config.nix;
 	instanceName = builtins.replaceStrings ["chevrotain-"] [""] config.networking.hostName;
 in {
 	options.chevrotain.alloy.extraConfig =

@@ -28,12 +28,12 @@
 			inputs.sops-nix.nixosModules.sops
 			(modulesPath + "/installer/scan/not-detected.nix")
 			(modulesPath + "/profiles/qemu-guest.nix")
-			../platform/hosts/alloy-agent.nix
-			../platform/hosts/chevrotain-web/caddy.nix
-			../platform/hosts/chevrotain-web/disk-config.nix
-			../platform/hosts/chevrotain-web/hardware-configuration.nix
-			../platform/hosts/chevrotain-web/secrets.nix
-			../apps/api/module.nix
+			../hosts/alloy-agent.nix
+			../hosts/chevrotain-web/caddy.nix
+			../hosts/chevrotain-web/disk-config.nix
+			../hosts/chevrotain-web/hardware-configuration.nix
+			../hosts/chevrotain-web/secrets.nix
+			../../apps/api/module.nix
 		];
 
 		networking.hostName = "chevrotain-web";

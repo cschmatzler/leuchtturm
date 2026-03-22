@@ -7,7 +7,7 @@
 	stdenvNoCC,
 	...
 }: let
-	cfg = import ../../nix/config.nix;
+	cfg = import ../../platform/nix/config.nix;
 	pnpm = pnpm_10.override {nodejs = nodejs_25;};
 	rootPath = ../..;
 	src =

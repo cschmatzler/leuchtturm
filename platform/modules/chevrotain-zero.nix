@@ -27,12 +27,12 @@
 			inputs.sops-nix.nixosModules.sops
 			(modulesPath + "/installer/scan/not-detected.nix")
 			(modulesPath + "/profiles/qemu-guest.nix")
-			../platform/hosts/alloy-agent.nix
-			../platform/hosts/chevrotain-zero/caddy.nix
-			../platform/hosts/chevrotain-zero/zero.nix
-			../platform/hosts/chevrotain-zero/disk-config.nix
-			../platform/hosts/chevrotain-zero/hardware-configuration.nix
-			../platform/hosts/chevrotain-zero/secrets.nix
+			../hosts/alloy-agent.nix
+			../hosts/chevrotain-zero/caddy.nix
+			../hosts/chevrotain-zero/zero.nix
+			../hosts/chevrotain-zero/disk-config.nix
+			../hosts/chevrotain-zero/hardware-configuration.nix
+			../hosts/chevrotain-zero/secrets.nix
 		];
 
 		networking.hostName = "chevrotain-zero";

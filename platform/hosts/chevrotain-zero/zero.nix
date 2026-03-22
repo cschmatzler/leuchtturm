@@ -1,5 +1,5 @@
 {config, ...}: let
-	cfg = import ../../../nix/config.nix;
+	cfg = import ../../nix/config.nix;
 in {
 	virtualisation.oci-containers = {
 		backend = "docker";

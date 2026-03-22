@@ -1,5 +1,5 @@
 {pkgs, ...}: let
-	cfg = import ../../../nix/config.nix;
+	cfg = import ../../nix/config.nix;
 
 	schema =
 		pkgs.writeText "clickhouse-schema.sql" ''

@@ -13,6 +13,10 @@
 	];
 
 	# Use alejandra with tabs for flake.nix formatting (matches alejandra.toml)
+	flake-file.outputs = ''
+		inputs: inputs.flake-parts.lib.mkFlake {inherit inputs;} (inputs.import-tree ./platform/modules)
+	'';
+
 	flake-file.formatter = pkgs:
 		pkgs.writeShellApplication {
 			name = "alejandra-tabs";

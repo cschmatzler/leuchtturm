@@ -27,13 +27,13 @@
 			inputs.sops-nix.nixosModules.sops
 			(modulesPath + "/installer/scan/not-detected.nix")
 			(modulesPath + "/profiles/qemu-guest.nix")
-			../platform/hosts/alloy-agent.nix
+			../hosts/alloy-agent.nix
 			./_chevrotain-postgres/postgresql.nix
 			./_chevrotain-postgres/pgbackrest.nix
-			../platform/hosts/chevrotain-postgres/pgbackrest.nix
-			../platform/hosts/chevrotain-postgres/disk-config.nix
-			../platform/hosts/chevrotain-postgres/hardware-configuration.nix
-			../platform/hosts/chevrotain-postgres/secrets.nix
+			../hosts/chevrotain-postgres/pgbackrest.nix
+			../hosts/chevrotain-postgres/disk-config.nix
+			../hosts/chevrotain-postgres/hardware-configuration.nix
+			../hosts/chevrotain-postgres/secrets.nix
 		];
 
 		networking.hostName = "chevrotain-postgres";
