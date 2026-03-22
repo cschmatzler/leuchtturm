@@ -11,8 +11,6 @@ import { isAbsolute, relative, resolve } from "node:path";
 
 const weakRelationPattern = /"relation"\s*:\s*"related_to"/i;
 const shortDefinitionPattern = /"definition"\s*:\s*"[^"]{0,31}"/i;
-const shellSearchPattern = /(^|\W)(git\s+grep|rg|grep|find)(\W|$)/i;
-
 const memoryRecallTools = new Set(["cog_mem_recall"]);
 const memoryWriteTools = new Set([
 	"cog_mem_learn",
@@ -30,6 +28,14 @@ const sessionState = {
 	usedMemory: false,
 	pendingLearning: false,
 	pendingConsolidation: false,
+};
+
+type SearchCommandName = "find" | "grep" | "rg";
+
+type ParsedSearchCommand = {
+	commandName: SearchCommandName;
+	args: string[];
+	cwd: string;
 };
 
 function getToolName(event: unknown): string {
@@ -113,6 +119,10 @@ function normalizeSearchPaths(values: string[], cwd: string): string[] {
 	}
 
 	return [...targets];
+}
+
+function isShellAssignment(token: string): boolean {
+	return /^[A-Za-z_][A-Za-z0-9_]*=.*/.test(token);
 }
 
 function isShellSeparator(token: string): boolean {
@@ -210,29 +220,169 @@ function searchOptionConsumesNextToken(commandName: string, token: string): bool
 	return false;
 }
 
-function getSearchTargetsForTokens(tokens: string[], cwd: string): string[] | null {
-	if (tokens.length === 0) return null;
+function envOptionConsumesNextToken(token: string): boolean {
+	if (token.includes("=")) return false;
 
-	if (tokens[0] === "find") {
+	return new Set(["-C", "-S", "-u", "--chdir", "--split-string", "--unset"]).has(token);
+}
+
+function gitOptionConsumesNextToken(token: string): boolean {
+	if (token.includes("=")) return false;
+
+	return new Set([
+		"-C",
+		"-P",
+		"-c",
+		"--config-env",
+		"--exec-path",
+		"--git-dir",
+		"--namespace",
+		"--super-prefix",
+		"--work-tree",
+	]).has(token);
+}
+
+function unwrapShellCommand(
+	tokens: string[],
+	cwd: string,
+): { tokens: string[]; cwd: string } | null {
+	let index = 0;
+	let commandCwd = cwd;
+
+	while (index < tokens.length && isShellAssignment(tokens[index]!)) {
+		index += 1;
+	}
+
+	if (tokens[index] !== "env") {
+		return { tokens: tokens.slice(index), cwd: commandCwd };
+	}
+
+	index += 1;
+
+	while (index < tokens.length) {
+		const token = tokens[index]!;
+
+		if (token === "--") {
+			index += 1;
+			break;
+		}
+
+		if (isShellAssignment(token)) {
+			index += 1;
+			continue;
+		}
+
+		if (token.startsWith("--chdir=")) {
+			commandCwd = resolveToolPath(token.slice("--chdir=".length), commandCwd);
+			index += 1;
+			continue;
+		}
+
+		if (!token.startsWith("-")) break;
+
+		if (envOptionConsumesNextToken(token)) {
+			const optionValue = tokens[index + 1];
+			if (optionValue === undefined) return null;
+
+			if (token === "-C" || token === "--chdir") {
+				commandCwd = resolveToolPath(optionValue, commandCwd);
+			}
+
+			index += 2;
+			continue;
+		}
+
+		index += 1;
+	}
+
+	while (index < tokens.length && isShellAssignment(tokens[index]!)) {
+		index += 1;
+	}
+
+	return { tokens: tokens.slice(index), cwd: commandCwd };
+}
+
+function parseSearchCommand(tokens: string[], cwd: string): ParsedSearchCommand | null {
+	const unwrapped = unwrapShellCommand(tokens, cwd);
+	if (!unwrapped || unwrapped.tokens.length === 0) return null;
+
+	const [commandName, ...args] = unwrapped.tokens;
+	if (commandName === "find" || commandName === "grep" || commandName === "rg") {
+		return { commandName, args, cwd: unwrapped.cwd };
+	}
+
+	if (commandName !== "git") return null;
+
+	let commandCwd = unwrapped.cwd;
+	let index = 1;
+
+	while (index < unwrapped.tokens.length) {
+		const token = unwrapped.tokens[index]!;
+
+		if (token === "grep") {
+			return {
+				commandName: "grep",
+				args: unwrapped.tokens.slice(index + 1),
+				cwd: commandCwd,
+			};
+		}
+
+		if (token === "--") {
+			index += 1;
+			break;
+		}
+
+		if (token.startsWith("--work-tree=")) {
+			commandCwd = resolveToolPath(token.slice("--work-tree=".length), commandCwd);
+			index += 1;
+			continue;
+		}
+
+		if (token.startsWith("--git-dir=")) {
+			index += 1;
+			continue;
+		}
+
+		if (!token.startsWith("-")) return null;
+
+		if (gitOptionConsumesNextToken(token)) {
+			const optionValue = unwrapped.tokens[index + 1];
+			if (optionValue === undefined) return null;
+
+			if (token === "-C" || token === "--work-tree") {
+				commandCwd = resolveToolPath(optionValue, commandCwd);
+			}
+
+			index += 2;
+			continue;
+		}
+
+		index += 1;
+	}
+
+	return null;
+}
+
+export function getSearchTargetsForTokens(tokens: string[], cwd: string): string[] | null {
+	const parsedCommand = parseSearchCommand(tokens, cwd);
+	if (!parsedCommand) return null;
+
+	if (parsedCommand.commandName === "find") {
 		const roots: string[] = [];
-		for (const token of tokens.slice(1)) {
+		for (const token of parsedCommand.args) {
 			if (!token || token === "--") continue;
 			if (token.startsWith("-") || token === "!" || token === "(" || token === ")") break;
 			roots.push(token);
 		}
-		return roots.length > 0 ? normalizeSearchPaths(roots, cwd) : [cwd];
+		return roots.length > 0 ? normalizeSearchPaths(roots, parsedCommand.cwd) : [parsedCommand.cwd];
 	}
-
-	const commandOffset = tokens[0] === "git" && tokens[1] === "grep" ? 2 : 1;
-	const commandName = tokens[commandOffset - 1];
-	if (commandName !== "rg" && commandName !== "grep") return null;
 
 	let sawPattern = false;
 	let afterDoubleDash = false;
 	let skipNextToken = false;
 	const roots: string[] = [];
 
-	for (const token of tokens.slice(commandOffset)) {
+	for (const token of parsedCommand.args) {
 		if (!token) continue;
 		if (skipNextToken) {
 			skipNextToken = false;
@@ -243,7 +393,7 @@ function getSearchTargetsForTokens(tokens: string[], cwd: string): string[] | nu
 			continue;
 		}
 		if (!afterDoubleDash && token.startsWith("-")) {
-			skipNextToken = searchOptionConsumesNextToken(commandName, token);
+			skipNextToken = searchOptionConsumesNextToken(parsedCommand.commandName, token);
 			continue;
 		}
 		if (!sawPattern) {
@@ -253,7 +403,7 @@ function getSearchTargetsForTokens(tokens: string[], cwd: string): string[] | nu
 		roots.push(token);
 	}
 
-	return roots.length > 0 ? normalizeSearchPaths(roots, cwd) : [cwd];
+	return roots.length > 0 ? normalizeSearchPaths(roots, parsedCommand.cwd) : [parsedCommand.cwd];
 }
 
 function collectStringValues(value: unknown): string[] {
@@ -295,20 +445,17 @@ function isGitIgnored(path: string, cwd: string): boolean {
 	}
 }
 
-function areSearchTargetsIndexed(command: string, cwd: string): boolean {
-	let sawSearchCommand = false;
-
+export function areSearchTargetsIndexed(command: string, cwd: string): boolean {
 	for (const segment of splitShellCommands(command, cwd)) {
 		const targets = getSearchTargetsForTokens(segment.tokens, segment.cwd);
 		if (!targets) continue;
 
-		sawSearchCommand = true;
 		if (targets.some((target) => isWithinCwd(target, cwd) && !isGitIgnored(target, cwd))) {
 			return true;
 		}
 	}
 
-	return !sawSearchCommand;
+	return false;
 }
 
 function getExplicitToolTargets(event: unknown, cwd: string): string[] {
@@ -328,7 +475,7 @@ function areToolTargetsIndexed(event: unknown, ctx: ExtensionContext): boolean {
 
 function shouldApplySearchPolicy(event: unknown, ctx: ExtensionContext): boolean {
 	const command = getCommandInput(event);
-	if (!command || !shellSearchPattern.test(command)) return false;
+	if (!command) return false;
 	return areSearchTargetsIndexed(command, ctx.cwd);
 }
 
@@ -338,7 +485,7 @@ function shouldAdviseDeepExploration(event: unknown, ctx: ExtensionContext): boo
 
 	if (toolName === "bash") {
 		const command = getCommandInput(event);
-		if (!command || !shellSearchPattern.test(command)) return false;
+		if (!command) return false;
 		return areSearchTargetsIndexed(command, ctx.cwd);
 	}
 

@@ -32,6 +32,14 @@ export default defineConfig({
 			{
 				extends: true,
 				test: {
+					name: "pi",
+					root: ".",
+					include: [".pi/extensions/**/*.test.ts"],
+				},
+			},
+			{
+				extends: true,
+				test: {
 					name: "web",
 					root: "./apps/web",
 					environment: "happy-dom",
