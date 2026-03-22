@@ -13,6 +13,8 @@ vp add <pkg>    # Add dependency
 vp check        # Lint + type check
 ```
 
+`vp lint` and `vp check` include type checking. Never run `tsc` directly.
+
 All testing and build utilities import from `vite-plus`:
 
 ```typescript

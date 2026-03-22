@@ -5,13 +5,13 @@ import { RpcSerialization, RpcServer } from "effect/unstable/rpc";
 import { ChevrotainRpcs } from "@chevrotain/api/contract-rpc";
 import { recordDroppedRecords } from "@chevrotain/api/metrics";
 import { CurrentUser, RpcAuthMiddlewareLive } from "@chevrotain/api/middleware/auth-live";
-import { ClickHouseService } from "@chevrotain/core/analytics/service";
-import { RateLimitService } from "@chevrotain/core/rate-limit/service";
+import { Analytics } from "@chevrotain/core/analytics";
+import { RateLimit } from "@chevrotain/core/rate-limit";
 
 const RpcHandlersLive = ChevrotainRpcs.toLayer(
 	Effect.gen(function* () {
-		const analytics = yield* ClickHouseService;
-		const rateLimit = yield* RateLimitService;
+		const analytics = yield* Analytics.Service;
+		const rateLimit = yield* RateLimit.Service;
 
 		return ChevrotainRpcs.of({
 			IngestEvents: (payload) =>

@@ -7,7 +7,7 @@ import { HttpApiBuilder } from "effect/unstable/httpapi";
 
 import { ChevrotainApi } from "@chevrotain/api/contract";
 import { CurrentUser } from "@chevrotain/api/middleware/auth";
-import { DatabaseService } from "@chevrotain/core/drizzle/service";
+import { Database } from "@chevrotain/core/drizzle";
 import { DatabaseError } from "@chevrotain/core/errors";
 import { mutators } from "@chevrotain/zero/mutators";
 import { queries } from "@chevrotain/zero/queries";
@@ -53,7 +53,7 @@ export const ZeroHandlerLive = HttpApiBuilder.group(ChevrotainApi, "zero", (hand
 			"mutate",
 			Effect.fn("zero.mutate")(function* () {
 				const { user } = yield* CurrentUser;
-				const database = yield* DatabaseService;
+				const { db } = yield* Database.Service;
 				yield* Effect.annotateCurrentSpan({
 					"enduser.id": user.id,
 					"zero.operation": "mutate",
@@ -61,7 +61,7 @@ export const ZeroHandlerLive = HttpApiBuilder.group(ChevrotainApi, "zero", (hand
 				const ctx = { userId: user.id };
 				const request = yield* HttpServerRequest.HttpServerRequest;
 				const rawRequest = yield* HttpServerRequest.toWeb(request).pipe(Effect.orDie);
-				const dbProvider = zeroDrizzle(schema, database);
+				const dbProvider = zeroDrizzle(schema, db);
 
 				const result = yield* Effect.tryPromise({
 					try: () =>

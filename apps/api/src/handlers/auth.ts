@@ -4,22 +4,17 @@ import { HttpApiBuilder } from "effect/unstable/httpapi";
 
 import { ChevrotainApi } from "@chevrotain/api/contract";
 import { routeLabelFromUrl } from "@chevrotain/api/metrics";
-import { AuthService } from "@chevrotain/core/auth/index";
+import { Auth } from "@chevrotain/core/auth";
 import { UnauthorizedError } from "@chevrotain/core/errors";
 
 const passthrough = Effect.fn("auth.passthrough")(function* () {
 	const request = yield* HttpServerRequest.HttpServerRequest;
-	const auth = yield* AuthService;
+	const auth = yield* Auth.Service;
 	const rawRequest = yield* HttpServerRequest.toWeb(request).pipe(Effect.orDie);
 	const route = routeLabelFromUrl(request.url);
 
-	const response = yield* Effect.tryPromise({
-		try: () => auth.handler(rawRequest),
-		catch: (error) =>
-			new UnauthorizedError({
-				message: `Auth service error: ${error instanceof Error ? error.message : String(error)}`,
-			}),
-	}).pipe(
+	const response = yield* auth.handle(rawRequest).pipe(
+		Effect.mapError((error) => new UnauthorizedError({ message: error.message })),
 		Effect.withSpan("auth.handler", {
 			attributes: { "http.route": route },
 		}),

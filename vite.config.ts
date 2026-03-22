@@ -16,10 +16,21 @@ export default defineConfig({
 			typeAware: true,
 			typeCheck: true,
 		},
-		jsPlugins: ["./packages/oxlint-plugins/src/no-relative-imports.ts", "@effect/eslint-plugin"],
-		ignorePatterns: ["**/node_modules/**", "**/dist/**", "**/.pi/**", "**/*.gen.ts"],
+		jsPlugins: [
+			"./packages/oxlint-plugins/src/no-relative-imports.ts",
+			"./packages/oxlint-plugins/src/no-vi-mock.ts",
+			"@effect/eslint-plugin",
+		],
+		ignorePatterns: [
+			"**/node_modules/**",
+			"**/dist/**",
+			"**/.pi/**",
+			"**/*.gen.ts",
+			"packages/oxlint-plugins/**",
+		],
 		rules: {
 			"no-relative-imports/no-relative-imports": "error",
+			"no-vi-mock/no-vi-mock": "error",
 			"@typescript-eslint/no-floating-promises": "off",
 			"@typescript-eslint/unbound-method": "off",
 			"eslint/no-unused-vars": "off",

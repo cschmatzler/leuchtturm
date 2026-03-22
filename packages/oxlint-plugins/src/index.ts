@@ -1,5 +1,12 @@
-import plugin from "@chevrotain/oxlint-plugins/no-relative-imports";
+import noRelativeImports from "@chevrotain/oxlint-plugins/no-relative-imports";
+import noViMock from "@chevrotain/oxlint-plugins/no-vi-mock";
 
-export default plugin;
-export { plugin as noRelativeImports };
-export * from "@chevrotain/oxlint-plugins/types";
+const plugin = {
+	meta: {
+		name: "@chevrotain/oxlint-plugins",
+	},
+	rules: {
+		...noRelativeImports.rules,
+		...noViMock.rules,
+	},
+};

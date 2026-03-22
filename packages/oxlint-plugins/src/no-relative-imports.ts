@@ -1,6 +1,4 @@
-import type { ImportDeclaration, Plugin, RuleModule } from "@chevrotain/oxlint-plugins/types";
-
-const rule: RuleModule = {
+const rule = {
 	meta: {
 		docs: {
 			description: "Disallow relative imports. Use @chevrotain/* imports instead.",
@@ -10,7 +8,7 @@ const rule: RuleModule = {
 	create(context) {
 		return {
 			ImportDeclaration(node) {
-				const source = (node as ImportDeclaration).source;
+				const source = node.source;
 				if (source && source.type === "Literal" && typeof source.value === "string") {
 					const importPath = source.value;
 					if (importPath.startsWith(".")) {
@@ -26,7 +24,7 @@ const rule: RuleModule = {
 	},
 };
 
-const plugin: Plugin = {
+const plugin = {
 	meta: {
 		name: "no-relative-imports",
 	},

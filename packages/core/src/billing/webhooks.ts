@@ -10,7 +10,7 @@ import {
 	billingOrder,
 	billingSubscription,
 } from "@chevrotain/core/billing/billing.sql";
-import type { DatabaseClient } from "@chevrotain/core/drizzle/service";
+import type { DatabaseClient } from "@chevrotain/core/drizzle";
 
 function serializeSnapshot(value: unknown) {
 	return JSON.stringify(value);
