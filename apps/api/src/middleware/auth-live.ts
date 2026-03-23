@@ -2,7 +2,7 @@ import { Effect, Layer } from "effect";
 import { HttpServerRequest } from "effect/unstable/http";
 
 import { AuthMiddleware, CurrentUser, RpcAuthMiddleware } from "@chevrotain/api/middleware/auth";
-import { Auth } from "@chevrotain/core/auth";
+import { Auth } from "@chevrotain/core/auth/index";
 import { UnauthorizedError } from "@chevrotain/core/errors";
 
 export { AuthMiddleware, CurrentUser, RpcAuthMiddleware };

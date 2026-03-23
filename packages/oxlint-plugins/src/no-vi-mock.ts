@@ -6,7 +6,7 @@ const rule = {
 		},
 		messages: {
 			banned:
-				"vi.{{method}}() is banned. Use constructor or parameter dependency injection instead.",
+				"vi.{{method}}() is banned. Prefer real providers/state and tests-only rewrites. Do not patch globals or imports; delete the test if it cannot be expressed cleanly.",
 		},
 	},
 	create(context) {

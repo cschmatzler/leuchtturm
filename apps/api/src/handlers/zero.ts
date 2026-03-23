@@ -7,7 +7,7 @@ import { HttpApiBuilder } from "effect/unstable/httpapi";
 
 import { ChevrotainApi } from "@chevrotain/api/contract";
 import { CurrentUser } from "@chevrotain/api/middleware/auth";
-import { Database } from "@chevrotain/core/drizzle";
+import { Database } from "@chevrotain/core/drizzle/index";
 import { DatabaseError } from "@chevrotain/core/errors";
 import { mutators } from "@chevrotain/zero/mutators";
 import { queries } from "@chevrotain/zero/queries";

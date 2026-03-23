@@ -1,7 +1,7 @@
 import { Effect, Layer } from "effect";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
-import { Analytics, type ErrorEventRow } from "@chevrotain/core/analytics";
+import { Analytics, type ErrorEventRow } from "@chevrotain/core/analytics/index";
 import type { AnalyticsEvent } from "@chevrotain/core/analytics/schema";
 
 const mockInsertEvents =

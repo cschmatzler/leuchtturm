@@ -20,8 +20,8 @@ import {
 import { POLAR_PRO_PRODUCT_ID, POLAR_PRO_PRODUCT_SLUG } from "@chevrotain/core/billing/products";
 import { makePolarWebhookHandlers } from "@chevrotain/core/billing/webhooks";
 import { CoreAuthConfig, CoreBillingConfig } from "@chevrotain/core/config";
-import { Database, type DatabaseClient } from "@chevrotain/core/drizzle";
-import { Email } from "@chevrotain/core/email";
+import { Database, type DatabaseClient } from "@chevrotain/core/drizzle/index";
+import { Email } from "@chevrotain/core/email/index";
 import { renderPasswordResetEmail } from "@chevrotain/email/password-reset";
 
 type AuthHeaders = globalThis.Headers | Record<string, string>;

@@ -4,7 +4,7 @@ import { HttpApiBuilder } from "effect/unstable/httpapi";
 
 import { ChevrotainApi } from "@chevrotain/api/contract";
 import { routeLabelFromUrl } from "@chevrotain/api/metrics";
-import { Auth } from "@chevrotain/core/auth";
+import { Auth } from "@chevrotain/core/auth/index";
 import { UnauthorizedError } from "@chevrotain/core/errors";
 
 const passthrough = Effect.fn("auth.passthrough")(function* () {
