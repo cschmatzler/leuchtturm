@@ -32,9 +32,7 @@ export namespace Analytics {
 
 	export const layer = Layer.effect(Service)(
 		Effect.gen(function* () {
-			const clickhouseUrl = yield* Config.string("CLICKHOUSE_URL").pipe(
-				Config.withDefault("http://localhost:8123"),
-			);
+			const clickhouseUrl = yield* Config.string("CLICKHOUSE_URL");
 
 			yield* Effect.logInfo("Analytics initializing").pipe(
 				Effect.annotateLogs("url", clickhouseUrl),

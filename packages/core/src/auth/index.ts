@@ -24,6 +24,46 @@ import { Database } from "@chevrotain/core/drizzle/index";
 import { Email } from "@chevrotain/core/email";
 import { sendPasswordResetEmail } from "@chevrotain/email/password-reset";
 
+function isIpAddress(hostname: string) {
+	return /^\d{1,3}(?:\.\d{1,3}){3}$/.test(hostname) || hostname.includes(":");
+}
+
+function getParentDomain(hostname: string) {
+	const labels = hostname.split(".").filter(Boolean);
+
+	if (hostname === "localhost" || isIpAddress(hostname) || labels.length < 3) {
+		return null;
+	}
+
+	return labels.slice(1).join(".");
+}
+
+export function deriveCrossSubDomainCookieDomain(baseUrl: string, authBaseUrl: string) {
+	const baseHost = new URL(baseUrl).hostname;
+	const authHost = new URL(authBaseUrl).hostname;
+
+	if (baseHost === authHost) {
+		return null;
+	}
+
+	const baseParentDomain = getParentDomain(baseHost);
+	const authParentDomain = getParentDomain(authHost);
+
+	if (baseParentDomain && baseParentDomain === authParentDomain) {
+		return baseParentDomain;
+	}
+
+	if (baseParentDomain && authHost === baseParentDomain) {
+		return baseParentDomain;
+	}
+
+	if (authParentDomain && baseHost === authParentDomain) {
+		return authParentDomain;
+	}
+
+	return null;
+}
+
 export namespace Auth {
 	export interface SessionData {
 		readonly user: User;
@@ -45,9 +85,13 @@ export namespace Auth {
 		Effect.gen(function* () {
 			const config = yield* CoreConfig;
 			const { db } = yield* Database.Service;
+			const crossSubDomainCookieDomain = deriveCrossSubDomainCookieDomain(
+				config.baseUrl,
+				config.auth.authBaseUrl,
+			);
 			const polarClient = new Polar({
 				accessToken: Redacted.value(config.billing.accessToken),
-				server: "sandbox",
+				server: config.billing.server,
 			});
 			const polarWebhookHandlers = makePolarWebhookHandlers(db);
 			const auth = betterAuth({
@@ -117,10 +161,14 @@ export namespace Auth {
 					},
 				},
 				advanced: {
-					crossSubDomainCookies: {
-						enabled: true,
-						domain: ".chevrotain.schmatzler.com",
-					},
+					...(crossSubDomainCookieDomain
+						? {
+								crossSubDomainCookies: {
+									enabled: true,
+									domain: crossSubDomainCookieDomain,
+								},
+							}
+						: {}),
 					database: {
 						generateId: ({ model }) => {
 							switch (model) {

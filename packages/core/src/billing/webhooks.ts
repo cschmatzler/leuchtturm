@@ -11,9 +11,30 @@ import {
 	billingSubscription,
 } from "@chevrotain/core/billing/billing.sql";
 import type { DatabaseClient } from "@chevrotain/core/drizzle/index";
+import { BillingError } from "@chevrotain/core/errors";
 
 function serializeSnapshot(value: unknown) {
 	return JSON.stringify(value);
+}
+
+export function assertPolarCustomer(
+	resource: string,
+	externalId: string | null | undefined,
+	userId: string | null,
+) {
+	if (userId) {
+		return userId;
+	}
+
+	if (!externalId) {
+		throw new BillingError({
+			message: `Polar ${resource} webhook payload is missing an external user id`,
+		});
+	}
+
+	throw new BillingError({
+		message: `Polar ${resource} webhook references unknown local user: ${externalId}`,
+	});
 }
 
 export function makePolarWebhookHandlers(
@@ -48,11 +69,11 @@ export function makePolarWebhookHandlers(
 	}
 
 	async function upsertCustomerState(state: CustomerState) {
-		const userId = await getKnownUserId(state.externalId);
-
-		if (!userId) {
-			return;
-		}
+		const userId = assertPolarCustomer(
+			"customer state",
+			state.externalId,
+			await getKnownUserId(state.externalId),
+		);
 
 		const nextValues = {
 			userId,
@@ -75,11 +96,11 @@ export function makePolarWebhookHandlers(
 	}
 
 	async function upsertSubscription(subscription: Subscription) {
-		const userId = await getKnownUserId(subscription.customer.externalId);
-
-		if (!userId) {
-			return;
-		}
+		const userId = assertPolarCustomer(
+			"subscription",
+			subscription.customer.externalId,
+			await getKnownUserId(subscription.customer.externalId),
+		);
 
 		const nextValues = {
 			id: subscription.id,

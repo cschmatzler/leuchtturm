@@ -1,4 +1,9 @@
-import { Config, Option } from "effect";
+import { Config, Option, Schema } from "effect";
+
+const PolarServerConfig = Config.schema(
+	Schema.Literals(["sandbox", "production"]),
+	"POLAR_SERVER",
+).pipe(Config.withDefault("sandbox"));
 
 export const CoreConfig = Config.all({
 	baseUrl: Config.string("BASE_URL"),
@@ -9,6 +14,7 @@ export const CoreConfig = Config.all({
 	}),
 	billing: Config.all({
 		accessToken: Config.redacted("POLAR_ACCESS_TOKEN"),
+		server: PolarServerConfig,
 		successUrl: Config.string("POLAR_SUCCESS_URL"),
 		webhookSecret: Config.redacted("POLAR_WEBHOOK_SECRET"),
 	}),
