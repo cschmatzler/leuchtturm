@@ -54,9 +54,7 @@ export namespace Auth {
 
 	export interface Interface {
 		readonly handle: (request: Request) => Effect.Effect<Response, AuthError>;
-		readonly getSession: (
-			headers: globalThis.Headers,
-		) => Effect.Effect<SessionData | null, AuthError>;
+		readonly getSession: (headers: Headers) => Effect.Effect<SessionData | null, AuthError>;
 	}
 
 	export class Service extends ServiceMap.Service<Service, Interface>()("@chevrotain/Auth") {}
@@ -180,7 +178,7 @@ export namespace Auth {
 				});
 			});
 
-			const getSession = Effect.fn("Auth.getSession")(function* (headers: globalThis.Headers) {
+			const getSession = Effect.fn("Auth.getSession")(function* (headers: Headers) {
 				const session = yield* Effect.tryPromise({
 					try: () => auth.api.getSession({ headers }),
 					catch: (error) =>

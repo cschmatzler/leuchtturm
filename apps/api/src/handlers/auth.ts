@@ -36,7 +36,7 @@ const passthrough = Effect.fn("auth.passthrough")(function* () {
 		}),
 	);
 
-	const headers = new globalThis.Headers(response.headers);
+	const headers = new Headers(response.headers);
 	const setCookieHeaders = headers.getSetCookie();
 	headers.delete("set-cookie");
 

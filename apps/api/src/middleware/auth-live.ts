@@ -18,7 +18,7 @@ export const AuthMiddlewareLive = Layer.effect(AuthMiddleware)(
 				// ReadableStream from the request body and prevent downstream handlers
 				// (e.g. Zero) from reading it.
 				const currentUser = yield* auth
-					.getSession(new globalThis.Headers(request.headers as Record<string, string>))
+					.getSession(new Headers(request.headers as Record<string, string>))
 					.pipe(
 						Effect.mapError((error) => new UnauthorizedError({ message: error.message })),
 						Effect.withSpan("auth.session.lookup", {
@@ -46,7 +46,7 @@ export const RpcAuthMiddlewareLive = Layer.effect(RpcAuthMiddleware)(
 			Effect.gen(function* () {
 				const request = yield* HttpServerRequest.HttpServerRequest;
 				const currentUser = yield* auth
-					.getSession(new globalThis.Headers(request.headers as Record<string, string>))
+					.getSession(new Headers(request.headers as Record<string, string>))
 					.pipe(
 						Effect.mapError((error) => new UnauthorizedError({ message: error.message })),
 						Effect.withSpan("auth.session.lookup", {
