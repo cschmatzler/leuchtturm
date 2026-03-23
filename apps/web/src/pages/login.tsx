@@ -1,11 +1,13 @@
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Schema } from "effect";
+import { MailIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { PASSWORD_VALIDATION_MESSAGE, Password, User } from "@chevrotain/core/auth/schema";
 import { authClient } from "@chevrotain/web/clients/auth";
+import { AuthSidePanel } from "@chevrotain/web/components/app/auth-side-panel";
 import { Button } from "@chevrotain/web/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@chevrotain/web/components/ui/field";
 import { Input } from "@chevrotain/web/components/ui/input";
@@ -59,8 +61,14 @@ function Page() {
 		<div className="grid min-h-svh w-full lg:grid-cols-2">
 			<div className="flex flex-col gap-4 p-6 md:p-10">
 				<div className="flex justify-center gap-2 md:justify-start">
-					<Link to="/" className="flex items-center gap-2 font-medium">
-						Chevrotain
+					<Link
+						to="/"
+						className="flex items-center gap-2.5 font-medium transition-colors hover:text-primary"
+					>
+						<div className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+							<MailIcon className="size-4" />
+						</div>
+						<span className="font-display text-lg font-semibold">Chevrotain</span>
 					</Link>
 				</div>
 				<div className="flex flex-1 items-center justify-center">
@@ -74,8 +82,8 @@ function Page() {
 							className="flex flex-col gap-6"
 						>
 							<div className="flex flex-col gap-2 text-center">
-								<h1 className="text-3xl font-bold">{t("Welcome back")}</h1>
-								<p className="text-muted-foreground text-balance">
+								<h1 className="font-display text-3xl font-bold">{t("Welcome back")}</h1>
+								<p className="text-balance text-muted-foreground">
 									{t("Enter your email below to login to your account")}
 								</p>
 							</div>
@@ -155,13 +163,7 @@ function Page() {
 					</div>
 				</div>
 			</div>
-			<div className="bg-muted relative hidden lg:block">
-				<img
-					src="https://images.unsplash.com/photo-1561986810-4f3ba2f46ceb?q=80&w=4608&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-					alt={t("Coffee")}
-					className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
-				/>
-			</div>
+			<AuthSidePanel />
 		</div>
 	);
 }

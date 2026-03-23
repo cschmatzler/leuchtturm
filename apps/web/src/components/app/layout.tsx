@@ -21,14 +21,14 @@ export function Header({ children, className }: HeaderProps) {
 	return (
 		<header
 			className={cn(
-				"bg-background sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b px-4",
+				"bg-background/80 sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b border-border px-4 backdrop-blur-sm",
 				className,
 			)}
 		>
 			<SidebarTrigger className="-ml-1" />
 			<Separator orientation="vertical" className="mr-2 self-stretch" />
 			<div className="flex min-w-0 flex-1 items-center justify-between gap-2">
-				<div className="text-foreground min-w-0 font-extrabold truncate text-xl font-display italic text-primary">
+				<div className="min-w-0 truncate font-display text-xl font-bold italic text-primary">
 					{titleChild}
 				</div>
 				{actionChildren.length > 0 && (

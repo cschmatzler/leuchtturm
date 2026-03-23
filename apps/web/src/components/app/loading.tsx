@@ -1,4 +1,4 @@
-import { Skeleton } from "@chevrotain/web/components/ui/skeleton";
+import { MailIcon } from "lucide-react";
 
 export function Loading() {
 	return (
@@ -8,9 +8,13 @@ export function Loading() {
 			className="flex min-h-svh w-full flex-col items-center justify-center gap-4"
 		>
 			<span className="sr-only">Loading</span>
-			<Skeleton className="h-4 w-64" />
-			<Skeleton className="h-4 w-32" />
-			<Skeleton className="h-4 w-64" />
+			<div className="flex size-12 animate-pulse items-center justify-center rounded-xl bg-primary/10 text-primary">
+				<MailIcon className="size-6" />
+			</div>
+			<div className="flex flex-col items-center gap-2">
+				<div className="h-2 w-48 animate-pulse rounded-full bg-muted" />
+				<div className="h-2 w-24 animate-pulse rounded-full bg-muted" />
+			</div>
 		</div>
 	);
 }

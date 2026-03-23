@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { MailIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@chevrotain/web/components/ui/button";
@@ -27,31 +28,23 @@ export function MarketingHeader({ variant = "default" }: MarketingHeaderProps) {
 			>
 				<Link
 					to="/"
-					className={cn("flex items-center gap-2 font-semibold", variant === "hero" && "text-base")}
+					className={cn(
+						"flex items-center gap-2.5 font-semibold transition-colors hover:text-primary",
+						variant === "hero" && "text-base",
+					)}
 				>
 					<div
 						className={cn(
-							"bg-primary text-primary-foreground flex items-center justify-center",
-							variant === "default" && "size-7 rounded-md",
-							variant === "hero" && "size-9 rounded-lg",
+							"flex items-center justify-center rounded-lg bg-primary text-primary-foreground",
+							variant === "default" && "size-7",
+							variant === "hero" && "size-9",
 						)}
 					>
-						<svg
-							aria-hidden="true"
+						<MailIcon
 							className={cn(variant === "default" && "size-4", variant === "hero" && "size-5")}
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								strokeWidth={2}
-								d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8zM6 1v3M10 1v3M14 1v3"
-							/>
-						</svg>
+						/>
 					</div>
-					<span>Chevrotain</span>
+					<span className="font-display text-lg font-semibold">Chevrotain</span>
 				</Link>
 				{!isLoading && (
 					<div className="flex items-center gap-2">

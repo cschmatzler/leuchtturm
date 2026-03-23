@@ -103,7 +103,7 @@ describe("home page auth CTAs", () => {
 	it("keeps anonymous CTAs when there is no session", async () => {
 		await renderHomePage(null);
 
-		await screen.findByText("Start Logging");
+		await screen.findByText("Get Started");
 		await screen.findAllByText("Sign Up");
 		expect(screen.queryByText("Go to Dashboard")).toBeNull();
 		expect(screen.queryAllByText("Login")).toHaveLength(3);
@@ -118,6 +118,6 @@ describe("home page auth CTAs", () => {
 
 		await screen.findAllByText("Go to Dashboard");
 		expect(screen.queryAllByText("Go to Dashboard")).toHaveLength(2);
-		expect(screen.queryByText("Start Logging")).toBeNull();
+		expect(screen.queryByText("Get Started")).toBeNull();
 	});
 });
