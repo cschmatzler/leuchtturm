@@ -25,10 +25,10 @@ function RootErrorComponent({ error }: ErrorComponentProps) {
 
 	return (
 		<div role="alert" className="flex min-h-svh w-full flex-col items-center justify-center gap-4">
-			<div className="flex size-16 items-center justify-center rounded-full bg-destructive/10">
-				<AlertCircleIcon className="text-destructive size-7" />
+			<div className="flex size-14 items-center justify-center rounded-full bg-destructive/10">
+				<AlertCircleIcon className="text-destructive size-6" />
 			</div>
-			<h1 className="font-display text-2xl font-bold">{t("Something went wrong")}</h1>
+			<h1 className="text-xl font-semibold">{t("Something went wrong")}</h1>
 			<p className="text-muted-foreground max-w-md text-center text-sm">{error.message}</p>
 			<Button variant="outline" onClick={() => router.invalidate()}>
 				{t("Try again")}

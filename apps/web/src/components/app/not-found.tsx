@@ -8,16 +8,14 @@ export function NotFound({ backTo, backLabel }: { backTo: LinkOptions; backLabel
 	const { t } = useTranslation();
 
 	return (
-		<div className="flex size-full flex-col items-center justify-center gap-5 px-6">
-			<div className="flex size-16 items-center justify-center rounded-full bg-muted">
-				<SearchXIcon className="size-7 text-muted-foreground" />
+		<div className="flex size-full flex-col items-center justify-center gap-4 px-6">
+			<div className="flex size-14 items-center justify-center rounded-full bg-muted">
+				<SearchXIcon className="size-6 text-muted-foreground" />
 			</div>
-			<div className="flex flex-col items-center gap-1.5">
-				<h1 className="font-display text-2xl font-bold">{t("Not found")}</h1>
-				<p className="text-muted-foreground text-sm">
-					{t("The page you're looking for doesn't exist.")}
-				</p>
-			</div>
+			<h1 className="text-xl font-semibold">{t("Not found")}</h1>
+			<p className="text-sm text-muted-foreground">
+				{t("The page you're looking for doesn't exist.")}
+			</p>
 			<Button variant="outline" render={<Link {...backTo} />}>
 				{backLabel}
 			</Button>

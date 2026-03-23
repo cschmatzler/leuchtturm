@@ -8,10 +8,10 @@
 	"type": "module",
 	"devDependencies": {
 		"@effect/eslint-plugin": "^0.3.2",
-		"@effect/language-service": "^0.81.0",
+		"@effect/language-service": "^0.83.0",
 		"@types/node": "25.5.0",
-		"@typescript-eslint/utils": "^8.57.1",
-		"typescript": "5.9.3",
+		"@typescript-eslint/utils": "^8.57.2",
+		"typescript": "6.0.2",
 		"vite-plus": "0.1.13"
 	},
 	"engines": {

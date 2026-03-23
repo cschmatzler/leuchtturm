@@ -9,6 +9,6 @@
 		"./types": "./src/types.ts"
 	},
 	"devDependencies": {
-		"typescript": "5.9.3"
+		"typescript": "6.0.2"
 	}
 }

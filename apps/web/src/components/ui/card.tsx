@@ -12,7 +12,7 @@ function Card({
 			data-slot="card"
 			data-size={size}
 			className={cn(
-				"bg-card text-card-foreground group/card flex flex-col gap-4 rounded border-2 border-border py-4 shadow-sm",
+				"bg-card text-card-foreground group/card flex flex-col gap-6 rounded-xl border border-border px-1 py-6 shadow-sm",
 				className,
 			)}
 			{...props}
@@ -25,7 +25,7 @@ function CardHeader({ className, ...props }: ComponentProps<"div">) {
 		<div
 			data-slot="card-header"
 			className={cn(
-				"@container/card-header group/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1 px-4 has-data-[slot=card-action]:grid-cols-[1fr_auto] has-data-[slot=card-description]:grid-rows-[auto_auto] [.border-b]:pb-4",
+				"@container/card-header group/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-5 has-data-[slot=card-action]:grid-cols-[1fr_auto] has-data-[slot=card-description]:grid-rows-[auto_auto] [.border-b]:pb-4",
 				className,
 			)}
 			{...props}
@@ -37,10 +37,7 @@ function CardTitle({ className, ...props }: ComponentProps<"div">) {
 	return (
 		<div
 			data-slot="card-title"
-			className={cn(
-				"text-xl leading-none font-heading uppercase tracking-tight font-medium",
-				className,
-			)}
+			className={cn("text-lg leading-none font-semibold tracking-tight", className)}
 			{...props}
 		/>
 	);
@@ -67,14 +64,14 @@ function CardAction({ className, ...props }: ComponentProps<"div">) {
 }
 
 function CardContent({ className, ...props }: ComponentProps<"div">) {
-	return <div data-slot="card-content" className={cn("px-4", className)} {...props} />;
+	return <div data-slot="card-content" className={cn("px-5", className)} {...props} />;
 }
 
 function CardFooter({ className, ...props }: ComponentProps<"div">) {
 	return (
 		<div
 			data-slot="card-footer"
-			className={cn("flex items-center px-4 [.border-t]:pt-4", className)}
+			className={cn("flex items-center px-5 [.border-t]:pt-4", className)}
 			{...props}
 		/>
 	);

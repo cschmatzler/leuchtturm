@@ -68,7 +68,7 @@ function Page() {
 						<div className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
 							<MailIcon className="size-4" />
 						</div>
-						<span className="font-display text-lg font-semibold">Chevrotain</span>
+						<span className="text-base font-semibold">Chevrotain</span>
 					</Link>
 				</div>
 				<div className="flex flex-1 items-center justify-center">
@@ -82,7 +82,7 @@ function Page() {
 							className="flex flex-col gap-6"
 						>
 							<div className="flex flex-col gap-2 text-center">
-								<h1 className="font-display text-3xl font-bold">{t("Welcome back")}</h1>
+								<h1 className="text-2xl font-semibold tracking-tight">{t("Welcome back")}</h1>
 								<p className="text-balance text-muted-foreground">
 									{t("Enter your email below to login to your account")}
 								</p>

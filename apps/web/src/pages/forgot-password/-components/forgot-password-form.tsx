@@ -46,7 +46,7 @@ export function ForgotPasswordForm() {
 			className="flex flex-col gap-6"
 		>
 			<div className="flex flex-col gap-2 text-center">
-				<h1 className="font-display text-3xl font-bold">{t("Reset your password")}</h1>
+				<h1 className="text-2xl font-semibold tracking-tight">{t("Reset your password")}</h1>
 				<p className="text-muted-foreground text-balance">
 					{t("Enter your email and we'll send you a reset link.")}
 				</p>

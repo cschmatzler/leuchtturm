@@ -106,8 +106,8 @@ describe("home page auth CTAs", () => {
 		await screen.findByText("Get Started");
 		await screen.findAllByText("Sign Up");
 		expect(screen.queryByText("Go to Dashboard")).toBeNull();
-		expect(screen.queryAllByText("Login")).toHaveLength(3);
-		expect(screen.queryAllByText("Sign Up")).toHaveLength(2);
+		expect(screen.queryAllByText("Login")).toHaveLength(4);
+		expect(screen.queryAllByText("Sign Up")).toHaveLength(3);
 	});
 
 	it("shows dashboard CTAs when a user is present", async () => {

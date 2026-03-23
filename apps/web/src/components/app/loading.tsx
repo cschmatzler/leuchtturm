@@ -8,8 +8,8 @@ export function Loading() {
 			className="flex min-h-svh w-full flex-col items-center justify-center gap-4"
 		>
 			<span className="sr-only">Loading</span>
-			<div className="flex size-12 animate-pulse items-center justify-center rounded-xl bg-primary/10 text-primary">
-				<MailIcon className="size-6" />
+			<div className="flex size-10 animate-pulse items-center justify-center rounded-xl bg-primary/10 text-primary">
+				<MailIcon className="size-5" />
 			</div>
 			<div className="flex flex-col items-center gap-2">
 				<div className="h-2 w-48 animate-pulse rounded-full bg-muted" />

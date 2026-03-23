@@ -16,8 +16,14 @@ function Page() {
 		<>
 			<Header>{t("Preferences")}</Header>
 			<Content>
-				<div className="flex w-full flex-col items-center">
-					<div className="flex w-full max-w-3xl flex-col gap-7">
+				<div className="mx-auto w-full max-w-3xl">
+					<div className="mb-8">
+						<h1 className="text-2xl font-semibold tracking-tight">{t("Preferences")}</h1>
+						<p className="mt-1 text-sm text-muted-foreground">
+							{t("Manage your profile and application preferences.")}
+						</p>
+					</div>
+					<div className="flex flex-col gap-8">
 						<ProfileCard />
 						<PreferencesCard />
 					</div>

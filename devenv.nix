@@ -13,7 +13,6 @@
 		pkgs.sops
 		pkgs.tea
 		pkgs.treefmt
-		pkgs.wrangler
 	];
 
 	# Languages

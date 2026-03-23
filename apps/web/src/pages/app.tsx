@@ -7,6 +7,7 @@ import {
 	CogIcon,
 	CreditCardIcon,
 	LogOutIcon,
+	MailIcon,
 	PlusIcon,
 } from "lucide-react";
 import { useEffect } from "react";
@@ -30,6 +31,7 @@ import {
 	SidebarGroup,
 	SidebarGroupContent,
 	SidebarGroupLabel,
+	SidebarHeader,
 	SidebarInset,
 	SidebarMenu,
 	SidebarMenuButton,
@@ -173,7 +175,15 @@ function Shell({ session }: { session: SessionData }) {
 
 	return (
 		<SidebarProvider>
-			<Sidebar>
+			<Sidebar variant="inset">
+				<SidebarHeader>
+					<div className="flex items-center gap-2.5 px-2 py-1">
+						<div className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+							<MailIcon className="size-4" />
+						</div>
+						<span className="text-sm font-semibold">Chevrotain</span>
+					</div>
+				</SidebarHeader>
 				<SidebarContent className="gap-0">
 					<SidebarGroup>
 						<SidebarGroupLabel>{t("Settings")}</SidebarGroupLabel>

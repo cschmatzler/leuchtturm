@@ -17,34 +17,32 @@ export function MarketingHeader({ variant = "default" }: MarketingHeaderProps) {
 
 	return (
 		<header
-			className={cn("w-full", variant === "default" && "border-b", variant === "hero" && "mx-auto")}
+			className={cn(
+				"sticky top-0 z-30 w-full",
+				variant === "default" && "border-b border-border bg-background/80 backdrop-blur-md",
+				variant === "hero" && "bg-transparent",
+			)}
 		>
 			<div
 				className={cn(
 					"mx-auto flex w-full items-center justify-between",
 					variant === "default" && "max-w-5xl px-6 py-4",
-					variant === "hero" && "max-w-7xl px-6 py-6",
+					variant === "hero" && "max-w-7xl px-6 py-5",
 				)}
 			>
-				<Link
-					to="/"
-					className={cn(
-						"flex items-center gap-2.5 font-semibold transition-colors hover:text-primary",
-						variant === "hero" && "text-base",
-					)}
-				>
+				<Link to="/" className="flex items-center gap-2.5 transition-opacity hover:opacity-80">
 					<div
 						className={cn(
 							"flex items-center justify-center rounded-lg bg-primary text-primary-foreground",
 							variant === "default" && "size-7",
-							variant === "hero" && "size-9",
+							variant === "hero" && "size-8",
 						)}
 					>
 						<MailIcon
-							className={cn(variant === "default" && "size-4", variant === "hero" && "size-5")}
+							className={cn(variant === "default" && "size-4", variant === "hero" && "size-4")}
 						/>
 					</div>
-					<span className="font-display text-lg font-semibold">Chevrotain</span>
+					<span className="text-base font-semibold">Chevrotain</span>
 				</Link>
 				{!isLoading && (
 					<div className="flex items-center gap-2">

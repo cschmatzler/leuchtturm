@@ -52,28 +52,35 @@ function Page() {
 		<>
 			<Header>{t("Billing")}</Header>
 			<Content>
-				<div className="flex w-full flex-col items-center">
-					<div className="flex w-full max-w-3xl flex-col gap-7">
-						<Card>
-							<CardHeader>
-								<CardTitle>{t("Billing details")}</CardTitle>
+				<div className="mx-auto w-full max-w-3xl">
+					<div className="mb-8">
+						<h1 className="text-2xl font-semibold tracking-tight">{t("Billing")}</h1>
+						<p className="mt-1 text-sm text-muted-foreground">
+							{t("Manage your subscription and payment details.")}
+						</p>
+					</div>
+					<div className="flex flex-col gap-8">
+						<Card className="gap-0 overflow-hidden p-0">
+							<CardHeader className="px-6 py-5">
+								<CardTitle className="text-base">{t("Billing details")}</CardTitle>
 								<CardDescription>
 									{t("Payment information and invoices are securely managed through Polar.")}
 								</CardDescription>
 							</CardHeader>
-							<CardContent>
+							<CardContent className="border-t border-border px-6 py-5">
 								<Button variant="outline" onClick={() => void openPortal()}>
 									{t("Manage billing")}
 									<ExternalLinkIcon className="ml-2 size-4" />
 								</Button>
 							</CardContent>
 						</Card>
-						<Card>
-							<CardHeader>
-								<CardTitle>{t("Chevrotain Pro")}</CardTitle>
+
+						<Card className="gap-0 overflow-hidden p-0">
+							<CardHeader className="px-6 py-5">
+								<CardTitle className="text-base">{t("Chevrotain Pro")}</CardTitle>
 								<CardDescription>{accessMessage}</CardDescription>
 							</CardHeader>
-							<CardContent>
+							<CardContent className="border-t border-border px-6 py-5">
 								{activeSubscription ? (
 									<Button variant="outline" onClick={() => void openPortal()}>
 										{t("Manage subscription in Polar")}

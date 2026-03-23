@@ -26,7 +26,7 @@ function Page() {
 						<div className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
 							<MailIcon className="size-4" />
 						</div>
-						<span className="font-display text-lg font-semibold">Chevrotain</span>
+						<span className="text-base font-semibold">Chevrotain</span>
 					</Link>
 				</div>
 				<div className="flex flex-1 items-center justify-center">
