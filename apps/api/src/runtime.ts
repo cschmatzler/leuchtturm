@@ -4,7 +4,7 @@ import { Analytics } from "@chevrotain/core/analytics/index";
 import { Auth } from "@chevrotain/core/auth/index";
 import { Database } from "@chevrotain/core/drizzle/index";
 import { Email } from "@chevrotain/core/email/index";
-import { RateLimit } from "@chevrotain/core/rate-limit";
+import { RateLimit } from "@chevrotain/core/rate-limit/index";
 
 export const AppLayer = Layer.mergeAll(
 	Database.defaultLayer,

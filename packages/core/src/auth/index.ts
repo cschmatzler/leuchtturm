@@ -20,11 +20,9 @@ import {
 import { POLAR_PRO_PRODUCT_ID, POLAR_PRO_PRODUCT_SLUG } from "@chevrotain/core/billing/products";
 import { makePolarWebhookHandlers } from "@chevrotain/core/billing/webhooks";
 import { CoreAuthConfig, CoreBillingConfig } from "@chevrotain/core/config";
-import { Database, type DatabaseClient } from "@chevrotain/core/drizzle/index";
+import { Database } from "@chevrotain/core/drizzle/index";
 import { Email } from "@chevrotain/core/email/index";
 import { renderPasswordResetEmail } from "@chevrotain/email/password-reset";
-
-type AuthHeaders = globalThis.Headers | Record<string, string>;
 
 async function sendResetPasswordEmail(user: { name: string; email: string }, url: string) {
 	const { html, text } = await renderPasswordResetEmail({
@@ -44,109 +42,6 @@ async function sendResetPasswordEmail(user: { name: string; email: string }, url
 	});
 }
 
-function createAuthInstance(
-	authConfig: {
-		baseUrl: string;
-		authBaseUrl: string;
-		githubClientId: string;
-		githubClientSecret: string;
-	},
-	billingConfig: { accessToken: string; successUrl: string; webhookSecret: string },
-	db: DatabaseClient,
-) {
-	const polarClient = new Polar({
-		accessToken: billingConfig.accessToken,
-		server: "sandbox",
-	});
-	const polarWebhookHandlers = makePolarWebhookHandlers(db);
-
-	return betterAuth({
-		baseURL: `${authConfig.authBaseUrl}/api/auth`,
-		trustedOrigins: [authConfig.baseUrl, authConfig.authBaseUrl],
-		database: drizzleAdapter(db, {
-			provider: "pg",
-			schema,
-		}),
-		emailAndPassword: {
-			enabled: true,
-			minPasswordLength: PASSWORD_MIN_LENGTH,
-			sendResetPassword: async ({ user, url }, _request) => sendResetPasswordEmail(user, url),
-		},
-		user: {
-			additionalFields: {
-				language: {
-					type: "string",
-					required: false,
-					default: "en",
-				},
-			},
-		},
-		socialProviders: {
-			github: {
-				clientId: authConfig.githubClientId,
-				clientSecret: authConfig.githubClientSecret,
-			},
-		},
-		plugins: [
-			multiSession(),
-			polar({
-				client: polarClient,
-				createCustomerOnSignUp: true,
-				use: [
-					checkout({
-						products: [
-							{
-								productId: POLAR_PRO_PRODUCT_ID,
-								slug: POLAR_PRO_PRODUCT_SLUG,
-							},
-						],
-						successUrl: billingConfig.successUrl,
-						returnUrl: `${authConfig.baseUrl}/app/settings/billing`,
-						authenticatedUsersOnly: true,
-					}),
-					portal({
-						returnUrl: `${authConfig.baseUrl}/app/settings/billing`,
-					}),
-					webhooks({
-						secret: billingConfig.webhookSecret,
-						...polarWebhookHandlers,
-					}),
-				],
-			}),
-		],
-		session: {
-			cookieCache: {
-				enabled: true,
-				maxAge: 5 * 60,
-			},
-		},
-		advanced: {
-			crossSubDomainCookies: {
-				enabled: true,
-				domain: ".chevrotain.schmatzler.com",
-			},
-			database: {
-				generateId: ({ model }) => {
-					switch (model) {
-						case "account":
-							return AccountId.makeUnsafe(`acc_${ulid()}`);
-						case "user":
-							return UserId.makeUnsafe(`usr_${ulid()}`);
-						case "session":
-							return SessionId.makeUnsafe(`ses_${ulid()}`);
-						case "verification":
-							return VerificationId.makeUnsafe(`ver_${ulid()}`);
-						case "jwks":
-							return JWKSId.makeUnsafe(`jwk_${ulid()}`);
-						default:
-							throw new Error(`Unknown auth model: ${model}`);
-					}
-				},
-			},
-		},
-	});
-}
-
 export namespace Auth {
 	export interface SessionData {
 		readonly user: User;
@@ -159,7 +54,9 @@ export namespace Auth {
 
 	export interface Interface {
 		readonly handle: (request: Request) => Effect.Effect<Response, AuthError>;
-		readonly getSession: (headers: AuthHeaders) => Effect.Effect<SessionData | null, AuthError>;
+		readonly getSession: (
+			headers: globalThis.Headers,
+		) => Effect.Effect<SessionData | null, AuthError>;
 	}
 
 	export class Service extends ServiceMap.Service<Service, Interface>()("@chevrotain/Auth") {}
@@ -169,7 +66,96 @@ export namespace Auth {
 			const authConfig = yield* CoreAuthConfig;
 			const billingConfig = yield* CoreBillingConfig;
 			const { db } = yield* Database.Service;
-			const auth = createAuthInstance(authConfig, billingConfig, db);
+			const polarClient = new Polar({
+				accessToken: billingConfig.accessToken,
+				server: "sandbox",
+			});
+			const polarWebhookHandlers = makePolarWebhookHandlers(db);
+			const auth = betterAuth({
+				baseURL: `${authConfig.authBaseUrl}/api/auth`,
+				trustedOrigins: [authConfig.baseUrl, authConfig.authBaseUrl],
+				database: drizzleAdapter(db, {
+					provider: "pg",
+					schema,
+				}),
+				emailAndPassword: {
+					enabled: true,
+					minPasswordLength: PASSWORD_MIN_LENGTH,
+					sendResetPassword: async ({ user, url }, _request) => sendResetPasswordEmail(user, url),
+				},
+				user: {
+					additionalFields: {
+						language: {
+							type: "string",
+							required: false,
+							default: "en",
+						},
+					},
+				},
+				socialProviders: {
+					github: {
+						clientId: authConfig.githubClientId,
+						clientSecret: authConfig.githubClientSecret,
+					},
+				},
+				plugins: [
+					multiSession(),
+					polar({
+						client: polarClient,
+						createCustomerOnSignUp: true,
+						use: [
+							checkout({
+								products: [
+									{
+										productId: POLAR_PRO_PRODUCT_ID,
+										slug: POLAR_PRO_PRODUCT_SLUG,
+									},
+								],
+								successUrl: billingConfig.successUrl,
+								returnUrl: `${authConfig.baseUrl}/app/settings/billing`,
+								authenticatedUsersOnly: true,
+							}),
+							portal({
+								returnUrl: `${authConfig.baseUrl}/app/settings/billing`,
+							}),
+							webhooks({
+								secret: billingConfig.webhookSecret,
+								...polarWebhookHandlers,
+							}),
+						],
+					}),
+				],
+				session: {
+					cookieCache: {
+						enabled: true,
+						maxAge: 5 * 60,
+					},
+				},
+				advanced: {
+					crossSubDomainCookies: {
+						enabled: true,
+						domain: ".chevrotain.schmatzler.com",
+					},
+					database: {
+						generateId: ({ model }) => {
+							switch (model) {
+								case "account":
+									return AccountId.makeUnsafe(`acc_${ulid()}`);
+								case "user":
+									return UserId.makeUnsafe(`usr_${ulid()}`);
+								case "session":
+									return SessionId.makeUnsafe(`ses_${ulid()}`);
+								case "verification":
+									return VerificationId.makeUnsafe(`ver_${ulid()}`);
+								case "jwks":
+									return JWKSId.makeUnsafe(`jwk_${ulid()}`);
+								default:
+									throw new Error(`Unknown auth model: ${model}`);
+							}
+						},
+					},
+				},
+			});
 
 			const decodeSessionData = (sessionData: { user: unknown; session: unknown }) =>
 				Effect.all({
@@ -194,9 +180,9 @@ export namespace Auth {
 				});
 			});
 
-			const getSession = Effect.fn("Auth.getSession")(function* (headers: AuthHeaders) {
+			const getSession = Effect.fn("Auth.getSession")(function* (headers: globalThis.Headers) {
 				const session = yield* Effect.tryPromise({
-					try: () => auth.api.getSession({ headers: new globalThis.Headers(headers) }),
+					try: () => auth.api.getSession({ headers }),
 					catch: (error) =>
 						new AuthError({
 							message: `Auth getSession failed: ${error instanceof Error ? error.message : String(error)}`,
