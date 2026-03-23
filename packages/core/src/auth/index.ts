@@ -21,7 +21,7 @@ import { POLAR_PRO_PRODUCT_ID, POLAR_PRO_PRODUCT_SLUG } from "@chevrotain/core/b
 import { makePolarWebhookHandlers } from "@chevrotain/core/billing/webhooks";
 import { CoreConfig } from "@chevrotain/core/config";
 import { Database } from "@chevrotain/core/drizzle/index";
-import { Email } from "@chevrotain/core/email/index";
+import { Email } from "@chevrotain/core/email";
 import { sendPasswordResetEmail } from "@chevrotain/email/password-reset";
 
 export namespace Auth {

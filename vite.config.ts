@@ -39,6 +39,7 @@ export default defineConfig({
 		},
 	},
 	test: {
+		silent: "passed-only",
 		projects: [
 			{
 				extends: true,
