@@ -16,8 +16,23 @@ import { Tailwind } from "@react-email/tailwind";
 import { tailwindConfig } from "@chevrotain/email/tailwind";
 
 const preheaderText = "Reset your Chevrotain password.";
+const defaultFrom = "Chevrotain <no-reply@chevrotain.schmatzler.com>";
+const defaultSubject = "Reset your Chevrotain password";
 
-const PasswordResetEmail = ({ resetUrl, userName }: { resetUrl: string; userName: string }) => {
+export interface PasswordResetEmailParams {
+	readonly resetUrl: string;
+	readonly userName: string;
+}
+
+export interface PasswordResetEmailSendParams {
+	readonly from: string;
+	readonly to: string;
+	readonly subject: string;
+	readonly html: string;
+	readonly text: string;
+}
+
+const PasswordResetEmail = ({ resetUrl, userName }: PasswordResetEmailParams) => {
 	return (
 		<Html lang="en">
 			<Tailwind config={tailwindConfig}>
@@ -72,13 +87,7 @@ const PasswordResetEmail = ({ resetUrl, userName }: { resetUrl: string; userName
 	);
 };
 
-export async function renderPasswordResetEmail({
-	resetUrl,
-	userName,
-}: {
-	resetUrl: string;
-	userName: string;
-}) {
+export async function renderPasswordResetEmail({ resetUrl, userName }: PasswordResetEmailParams) {
 	const html = await render(<PasswordResetEmail resetUrl={resetUrl} userName={userName} />, {
 		pretty: false,
 	});
@@ -93,4 +102,31 @@ export async function renderPasswordResetEmail({
 	].join("\n");
 
 	return { html, text };
+}
+
+export async function sendPasswordResetEmail({
+	email,
+	from = defaultFrom,
+	resetUrl,
+	send,
+	subject = defaultSubject,
+	userName,
+}: PasswordResetEmailParams & {
+	readonly email: string;
+	readonly from?: string;
+	readonly send: (params: PasswordResetEmailSendParams) => Promise<unknown>;
+	readonly subject?: string;
+}) {
+	const { html, text } = await renderPasswordResetEmail({ resetUrl, userName });
+
+	await send({
+		from,
+		to: email,
+		subject,
+		html,
+		text,
+	}).catch((error) => {
+		console.error("Failed to send password reset email", error);
+		throw new Error("Failed to send password reset email");
+	});
 }

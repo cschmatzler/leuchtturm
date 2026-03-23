@@ -2,8 +2,9 @@ import { Effect, Layer, ServiceMap } from "effect";
 
 import { RateLimitError } from "@chevrotain/core/errors";
 
-const RATE_LIMIT_WINDOW_MS = 60_000;
-const RATE_LIMIT_MAX_REQUESTS = 30;
+export const RATE_LIMIT_WINDOW_MS = 60_000;
+export const RATE_LIMIT_MAX_REQUESTS = 30;
+export const RATE_LIMIT_MAX_KEYS = 10_000;
 
 export namespace RateLimit {
 	export interface Interface {
@@ -19,13 +20,16 @@ export namespace RateLimit {
 		Effect.gen(function* () {
 			const requestCounts = new Map<string, { count: number; resetAt: number }>();
 
-			const cleanupInterval = setInterval(() => {
-				const now = Date.now();
-				for (const [ip, entry] of requestCounts) {
+			const pruneExpiredEntries = (now: number) => {
+				for (const [key, entry] of requestCounts) {
 					if (now >= entry.resetAt) {
-						requestCounts.delete(ip);
+						requestCounts.delete(key);
 					}
 				}
+			};
+
+			const cleanupInterval = setInterval(() => {
+				pruneExpiredEntries(Date.now());
 			}, RATE_LIMIT_WINDOW_MS);
 
 			yield* Effect.addFinalizer(() => Effect.sync(() => clearInterval(cleanupInterval)));
@@ -34,7 +38,22 @@ export namespace RateLimit {
 				const now = Date.now();
 				const entry = requestCounts.get(key);
 
-				if (!entry || now >= entry.resetAt) {
+				if (!entry) {
+					pruneExpiredEntries(now);
+
+					if (requestCounts.size >= RATE_LIMIT_MAX_KEYS) {
+						yield* Effect.logWarning("Rate limit key capacity exceeded").pipe(
+							Effect.annotateLogs("key", key),
+							Effect.annotateLogs("maxKeys", String(RATE_LIMIT_MAX_KEYS)),
+						);
+						return yield* new RateLimitError({ message: message ?? "Too many requests" });
+					}
+
+					requestCounts.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+					return;
+				}
+
+				if (now >= entry.resetAt) {
 					requestCounts.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
 					return;
 				}

@@ -3,7 +3,7 @@ import { Polar } from "@polar-sh/sdk";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { multiSession } from "better-auth/plugins";
-import { Effect, Layer, Schema, ServiceMap } from "effect";
+import { Effect, Layer, Redacted, Schema, ServiceMap } from "effect";
 import { ulid } from "ulid";
 
 import * as schema from "@chevrotain/core/auth/auth.sql";
@@ -19,28 +19,10 @@ import {
 } from "@chevrotain/core/auth/schema";
 import { POLAR_PRO_PRODUCT_ID, POLAR_PRO_PRODUCT_SLUG } from "@chevrotain/core/billing/products";
 import { makePolarWebhookHandlers } from "@chevrotain/core/billing/webhooks";
-import { CoreAuthConfig, CoreBillingConfig } from "@chevrotain/core/config";
+import { CoreConfig } from "@chevrotain/core/config";
 import { Database } from "@chevrotain/core/drizzle/index";
 import { Email } from "@chevrotain/core/email/index";
-import { renderPasswordResetEmail } from "@chevrotain/email/password-reset";
-
-async function sendResetPasswordEmail(user: { name: string; email: string }, url: string) {
-	const { html, text } = await renderPasswordResetEmail({
-		resetUrl: url,
-		userName: user.name,
-	});
-
-	await Email.send({
-		from: "Chevrotain <no-reply@chevrotain.schmatzler.com>",
-		to: user.email,
-		subject: "Reset your Chevrotain password",
-		html,
-		text,
-	}).catch((error) => {
-		console.error("Failed to send password reset email", error);
-		throw new Error("Failed to send password reset email");
-	});
-}
+import { sendPasswordResetEmail } from "@chevrotain/email/password-reset";
 
 export namespace Auth {
 	export interface SessionData {
@@ -61,17 +43,16 @@ export namespace Auth {
 
 	export const layer = Layer.effect(Service)(
 		Effect.gen(function* () {
-			const authConfig = yield* CoreAuthConfig;
-			const billingConfig = yield* CoreBillingConfig;
+			const config = yield* CoreConfig;
 			const { db } = yield* Database.Service;
 			const polarClient = new Polar({
-				accessToken: billingConfig.accessToken,
+				accessToken: Redacted.value(config.billing.accessToken),
 				server: "sandbox",
 			});
 			const polarWebhookHandlers = makePolarWebhookHandlers(db);
 			const auth = betterAuth({
-				baseURL: `${authConfig.authBaseUrl}/api/auth`,
-				trustedOrigins: [authConfig.baseUrl, authConfig.authBaseUrl],
+				baseURL: `${config.auth.authBaseUrl}/api/auth`,
+				trustedOrigins: [config.baseUrl, config.auth.authBaseUrl],
 				database: drizzleAdapter(db, {
 					provider: "pg",
 					schema,
@@ -79,7 +60,13 @@ export namespace Auth {
 				emailAndPassword: {
 					enabled: true,
 					minPasswordLength: PASSWORD_MIN_LENGTH,
-					sendResetPassword: async ({ user, url }, _request) => sendResetPasswordEmail(user, url),
+					sendResetPassword: async ({ user, url }, _request) =>
+						sendPasswordResetEmail({
+							email: user.email,
+							resetUrl: url,
+							send: Email.send,
+							userName: user.name,
+						}),
 				},
 				user: {
 					additionalFields: {
@@ -92,8 +79,8 @@ export namespace Auth {
 				},
 				socialProviders: {
 					github: {
-						clientId: authConfig.githubClientId,
-						clientSecret: authConfig.githubClientSecret,
+						clientId: config.auth.githubClientId,
+						clientSecret: Redacted.value(config.auth.githubClientSecret),
 					},
 				},
 				plugins: [
@@ -109,15 +96,15 @@ export namespace Auth {
 										slug: POLAR_PRO_PRODUCT_SLUG,
 									},
 								],
-								successUrl: billingConfig.successUrl,
-								returnUrl: `${authConfig.baseUrl}/app/settings/billing`,
+								successUrl: config.billing.successUrl,
+								returnUrl: `${config.baseUrl}/app/settings/billing`,
 								authenticatedUsersOnly: true,
 							}),
 							portal({
-								returnUrl: `${authConfig.baseUrl}/app/settings/billing`,
+								returnUrl: `${config.baseUrl}/app/settings/billing`,
 							}),
 							webhooks({
-								secret: billingConfig.webhookSecret,
+								secret: Redacted.value(config.billing.webhookSecret),
 								...polarWebhookHandlers,
 							}),
 						],
