@@ -113,6 +113,13 @@ in {
 	config =
 		mkIf cfg.enable (
 			let
+				pgbackrestWrapper =
+					pkgs.writeShellScriptBin "pgbackrest-wrapper" ''
+						set -a
+						source ${cfg.secretFile}
+						set +a
+						exec ${pkgs.pgbackrest}/bin/pgbackrest "$@"
+					'';
 				archivePushScript =
 					pkgs.writeShellScript "pgbackrest-archive-push" ''
 						set -a
@@ -123,12 +130,7 @@ in {
 			in {
 				environment.systemPackages = [
 					pkgs.pgbackrest
-					(pkgs.writeShellScriptBin "pgbackrest-wrapper" ''
-							set -a
-							source ${cfg.secretFile}
-							set +a
-							exec ${pkgs.pgbackrest}/bin/pgbackrest "$@"
-						'')
+					pgbackrestWrapper
 				];
 
 				services.postgresql.settings = {
@@ -163,15 +165,14 @@ in {
 					description = "pgBackRest Stanza Create";
 					after = ["postgresql.service"];
 					requires = ["postgresql.service"];
-					path = [pkgs.pgbackrest];
+					path = [pgbackrestWrapper];
 					serviceConfig = {
 						Type = "oneshot";
 						User = "postgres";
-						EnvironmentFile = cfg.secretFile;
 						RemainAfterExit = true;
 					};
 					script = ''
-						pgbackrest --stanza=${cfg.stanza} stanza-create || true
+						pgbackrest-wrapper --stanza=${cfg.stanza} stanza-create
 					'';
 				};
 
@@ -180,14 +181,13 @@ in {
 					after = ["postgresql.service" "pgbackrest-stanza-create.service"];
 					requires = ["postgresql.service"];
 					wants = ["pgbackrest-stanza-create.service"];
-					path = [pkgs.pgbackrest];
+					path = [pgbackrestWrapper];
 					serviceConfig = {
 						Type = "oneshot";
 						User = "postgres";
-						EnvironmentFile = cfg.secretFile;
 					};
 					script = ''
-						pgbackrest --stanza=${cfg.stanza} backup --type=full
+						pgbackrest-wrapper --stanza=${cfg.stanza} backup --type=full
 					'';
 				};
 
@@ -205,14 +205,13 @@ in {
 					after = ["postgresql.service" "pgbackrest-stanza-create.service"];
 					requires = ["postgresql.service"];
 					wants = ["pgbackrest-stanza-create.service"];
-					path = [pkgs.pgbackrest];
+					path = [pgbackrestWrapper];
 					serviceConfig = {
 						Type = "oneshot";
 						User = "postgres";
-						EnvironmentFile = cfg.secretFile;
 					};
 					script = ''
-						pgbackrest --stanza=${cfg.stanza} backup --type=diff
+						pgbackrest-wrapper --stanza=${cfg.stanza} backup --type=diff
 					'';
 				};
 
