@@ -1,4 +1,5 @@
 import { useForm } from "@tanstack/react-form";
+import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Schema } from "effect";
 import { MailIcon } from "lucide-react";
@@ -11,6 +12,7 @@ import { AuthSidePanel } from "@chevrotain/web/components/app/auth-side-panel";
 import { Button } from "@chevrotain/web/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@chevrotain/web/components/ui/field";
 import { Input } from "@chevrotain/web/components/ui/input";
+import { sessionQuery } from "@chevrotain/web/queries/session";
 
 const signupShape = Schema.Struct({
 	name: User.fields.name,
@@ -25,6 +27,7 @@ export const Route = createFileRoute("/signup")({
 function Page() {
 	const navigate = useNavigate();
 	const { t } = useTranslation();
+	const queryClient = useQueryClient();
 
 	const onSubmit = async (value: typeof signupShape.Type) => {
 		await authClient.signUp.email(
@@ -38,7 +41,9 @@ function Page() {
 				onRequest: () => {
 					toast.loading(t("Creating account..."));
 				},
-				onSuccess: () => {
+				onSuccess: async () => {
+					await queryClient.invalidateQueries({ queryKey: sessionQuery().queryKey });
+					await queryClient.fetchQuery(sessionQuery());
 					toast.dismiss();
 					toast.success(t("Account created!"));
 					navigate({ to: "/app" });

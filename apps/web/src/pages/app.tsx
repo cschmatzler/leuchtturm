@@ -67,7 +67,7 @@ function LogOutShortcut() {
 
 export const Route = createFileRoute("/app")({
 	beforeLoad: async ({ context: { queryClient } }) => {
-		const session = await queryClient.fetchQuery(sessionQuery());
+		const session = await queryClient.ensureQueryData(sessionQuery());
 		if (!session) throw redirect({ to: "/login" });
 		return { session };
 	},

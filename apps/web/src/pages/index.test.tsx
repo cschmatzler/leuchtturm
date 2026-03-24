@@ -119,5 +119,9 @@ describe("home page auth CTAs", () => {
 		await screen.findAllByText("Go to Dashboard");
 		expect(screen.queryAllByText("Go to Dashboard")).toHaveLength(2);
 		expect(screen.queryByText("Get Started")).toBeNull();
+
+		const dashboardLinks = screen.getAllByRole("link", { name: /dashboard/i });
+		expect(dashboardLinks).toHaveLength(4);
+		expect(dashboardLinks.every((link) => link.getAttribute("href") === "/app")).toBe(true);
 	});
 });

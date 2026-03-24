@@ -1,4 +1,5 @@
 import { useForm } from "@tanstack/react-form";
+import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Schema } from "effect";
 import { MailIcon } from "lucide-react";
@@ -11,6 +12,7 @@ import { AuthSidePanel } from "@chevrotain/web/components/app/auth-side-panel";
 import { Button } from "@chevrotain/web/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@chevrotain/web/components/ui/field";
 import { Input } from "@chevrotain/web/components/ui/input";
+import { sessionQuery } from "@chevrotain/web/queries/session";
 
 const loginShape = Schema.Struct({
 	email: User.fields.email,
@@ -24,6 +26,7 @@ export const Route = createFileRoute("/login")({
 function Page() {
 	const { t } = useTranslation();
 	const navigate = useNavigate();
+	const queryClient = useQueryClient();
 
 	const onSubmit = async (value: typeof loginShape.Type) => {
 		await authClient.signIn.email(
@@ -36,7 +39,9 @@ function Page() {
 				onRequest: () => {
 					toast.loading(t("Signing in..."));
 				},
-				onSuccess: () => {
+				onSuccess: async () => {
+					await queryClient.invalidateQueries({ queryKey: sessionQuery().queryKey });
+					await queryClient.fetchQuery(sessionQuery());
 					toast.dismiss();
 					toast.success(t("Welcome back!"));
 					navigate({ to: "/app" });
