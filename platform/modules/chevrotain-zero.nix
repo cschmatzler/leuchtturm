@@ -39,6 +39,7 @@
 
 		networking.firewall.interfaces."docker0".allowedTCPPorts = [
 			cfg.ports.alloyOtlp
+			cfg.ports.zeroReplicationManager
 		];
 
 		virtualisation.docker = {
