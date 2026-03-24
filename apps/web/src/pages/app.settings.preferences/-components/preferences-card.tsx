@@ -3,6 +3,12 @@ import { Loader2Icon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
+import {
+	DEFAULT_LANGUAGE,
+	resolveLanguage,
+	SUPPORTED_LANGUAGES,
+	type SupportedLanguage,
+} from "@chevrotain/core/i18n";
 import { Button } from "@chevrotain/web/components/ui/button";
 import {
 	Card,
@@ -25,19 +31,34 @@ import { useZero, useZeroQuery } from "@chevrotain/web/lib/query";
 import { mutators } from "@chevrotain/zero/mutators";
 import { queries } from "@chevrotain/zero/queries";
 
+const LANGUAGE_LABELS = {
+	en: "English",
+	de: "Deutsch",
+	es: "Español",
+	fr: "Français",
+	it: "Italiano",
+	sq: "Shqip",
+} satisfies Record<SupportedLanguage, string>;
+
+const LANGUAGE_ITEMS = SUPPORTED_LANGUAGES.map((value) => ({
+	value,
+	label: LANGUAGE_LABELS[value],
+}));
+
 export function PreferencesCard() {
 	const zero = useZero();
 	const { i18n, t } = useTranslation();
 
 	const [currentUser] = useZeroQuery(queries.currentUser());
+	const currentLanguage = resolveLanguage(currentUser?.language, DEFAULT_LANGUAGE);
 
 	const form = useForm({
 		defaultValues: {
-			language: currentUser?.language || "en",
+			language: currentLanguage,
 		},
 		onSubmit: async ({ value }) => {
 			if (!currentUser) return;
-			if (value.language !== currentUser.language) {
+			if (value.language !== currentLanguage) {
 				await i18n.changeLanguage(value.language);
 			}
 			zero.mutate(
@@ -49,15 +70,6 @@ export function PreferencesCard() {
 			toast.success(t("Preferences updated"));
 		},
 	});
-
-	const items = [
-		{ value: "en", label: "English" },
-		{ value: "de", label: "Deutsch" },
-		{ value: "es", label: "Español" },
-		{ value: "fr", label: "Français" },
-		{ value: "it", label: "Italiano" },
-		{ value: "sq", label: "Shqip" },
-	];
 
 	return (
 		<Card className="gap-0 overflow-hidden p-0">
@@ -90,14 +102,14 @@ export function PreferencesCard() {
 												if (value !== null) field.handleChange(value);
 											}}
 											value={field.state.value}
-											items={items}
+											items={LANGUAGE_ITEMS}
 										>
 											<SelectTrigger className="w-[200px]">
 												<SelectValue />
 											</SelectTrigger>
 											<SelectContent>
 												<SelectGroup>
-													{items.map((item) => (
+													{LANGUAGE_ITEMS.map((item) => (
 														<SelectItem key={item.value} value={item.value}>
 															{item.label}
 														</SelectItem>

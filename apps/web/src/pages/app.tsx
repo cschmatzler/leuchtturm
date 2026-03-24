@@ -13,6 +13,7 @@ import {
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
+import { resolveLanguage } from "@chevrotain/core/i18n";
 import { Avatar, AvatarFallback } from "@chevrotain/web/components/ui/avatar";
 import { renderOptionShiftShortcut } from "@chevrotain/web/components/ui/kbd";
 import { Link } from "@chevrotain/web/components/ui/link";
@@ -166,7 +167,7 @@ function Shell({ session }: { session: SessionData }) {
 	useEffect(() => {
 		if (!currentUser) return;
 
-		i18n.changeLanguage(currentUser.language);
+		void i18n.changeLanguage(resolveLanguage(currentUser.language));
 	}, [currentUser, i18n]);
 
 	const handleSwitchSession = async (sessionToken: string) => {

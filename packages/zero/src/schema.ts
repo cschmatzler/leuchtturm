@@ -1,6 +1,7 @@
 import {
 	createBuilder,
 	createSchema,
+	enumeration,
 	number,
 	string,
 	table,
@@ -8,12 +9,14 @@ import {
 	type Zero,
 } from "@rocicorp/zero";
 
+import { type SupportedLanguage } from "@chevrotain/core/i18n";
+
 const user = table("user")
 	.columns({
 		id: string(),
 		name: string(),
 		email: string(),
-		language: string(),
+		language: enumeration<SupportedLanguage>().optional(),
 		createdAt: number().from("created_at"),
 		updatedAt: number().from("updated_at"),
 	})

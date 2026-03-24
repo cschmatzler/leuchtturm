@@ -3,6 +3,7 @@ import { Schema } from "effect";
 
 import { User } from "@chevrotain/core/auth/schema";
 import { ForbiddenError } from "@chevrotain/core/errors";
+import { SupportedLanguageSchema } from "@chevrotain/core/i18n";
 import { assertLoggedIn } from "@chevrotain/zero/mutators/shared";
 
 export const userMutators = {
@@ -10,9 +11,8 @@ export const userMutators = {
 		Schema.toStandardSchemaV1(
 			Schema.Struct({
 				id: Schema.String,
-				email: Schema.optional(User.fields.email),
 				name: Schema.optional(User.fields.name),
-				language: Schema.optional(Schema.String),
+				language: Schema.optional(SupportedLanguageSchema),
 			}),
 		),
 		async ({ tx, ctx, args }) => {
