@@ -1,9 +1,9 @@
-import { Config, Effect, Layer, Redacted, ServiceMap } from "effect";
+import { Effect, Layer, Redacted, Schema, ServiceMap } from "effect";
 import type { CreateEmailResponseSuccess } from "resend";
 import { Resend } from "resend";
 
+import { CoreConfig } from "@chevrotain/core/config";
 import { makeRunPromise } from "@chevrotain/core/effect/run-service";
-import { EmailError } from "@chevrotain/core/errors";
 
 export interface SendParams {
 	readonly from: string;
@@ -14,16 +14,22 @@ export interface SendParams {
 }
 
 export namespace Email {
+	export class Error extends Schema.TaggedErrorClass<Error>()(
+		"EmailError",
+		{ message: Schema.String },
+		{ httpApiStatus: 500 },
+	) {}
+
 	export interface Interface {
-		readonly send: (params: SendParams) => Effect.Effect<CreateEmailResponseSuccess, EmailError>;
+		readonly send: (params: SendParams) => Effect.Effect<CreateEmailResponseSuccess, Error>;
 	}
 
 	export class Service extends ServiceMap.Service<Service, Interface>()("@chevrotain/Email") {}
 
 	export const layer = Layer.effect(Service)(
 		Effect.gen(function* () {
-			const resendApiKey = yield* Config.redacted("RESEND_API_KEY");
-			const resend = new Resend(Redacted.value(resendApiKey));
+			const config = yield* CoreConfig;
+			const resend = new Resend(Redacted.value(config.email.resendApiKey));
 
 			yield* Effect.logInfo("Email initialized");
 
@@ -31,13 +37,13 @@ export namespace Email {
 				const result = yield* Effect.tryPromise({
 					try: () => resend.emails.send(params),
 					catch: (error) =>
-						new EmailError({
-							message: `Resend API request failed: ${error instanceof Error ? error.message : String(error)}`,
+						new Error({
+							message: `Resend API request failed: ${error instanceof globalThis.Error ? error.message : String(error)}`,
 						}),
 				});
 
 				if (result.error || !result.data) {
-					return yield* new EmailError({
+					return yield* new Error({
 						message: result.error?.message ?? "Email sent but received no response data",
 					});
 				}

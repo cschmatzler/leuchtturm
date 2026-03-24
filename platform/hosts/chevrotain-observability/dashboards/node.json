@@ -1,7 +1,7 @@
 {
 	"id": null,
 	"uid": "node",
-	"title": "Node",
+	"title": "Hosts",
 	"description": "Host metrics from node_exporter — CPU, memory, disk, network, system",
 	"tags": ["node-exporter"],
 	"editable": true,

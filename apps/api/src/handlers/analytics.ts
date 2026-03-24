@@ -94,7 +94,7 @@ const handleIngestEvents = Effect.fn("analytics.ingestEvents")(function* ({
 
 	// Best-effort — don't fail the client request if ClickHouse is down.
 	yield* analytics.insertEvents([...payload.events], user.id, session.id).pipe(
-		Effect.catchTag("ClickHouseError", (error) =>
+		Effect.catchTag("AnalyticsError", (error) =>
 			Effect.logError("Analytics insert failed, dropping events").pipe(
 				Effect.annotateLogs("error", error.message),
 				Effect.annotateLogs("eventCount", String(payload.events.length)),
@@ -140,18 +140,14 @@ const handleReportErrors = Effect.fn("analytics.reportErrors")(function* ({
 	yield* analytics
 		.insertErrors(
 			payload.errors.map((error) => ({
+				...error,
 				source: "web" as const,
-				errorType: error.errorType,
-				message: error.message,
-				stackTrace: error.stackTrace,
-				url: error.url,
 				userAgent,
-				properties: error.properties,
 			})),
 		)
 		.pipe(
-			Effect.catchTag("ClickHouseError", (error) =>
-				Effect.logError("Error report insert failed, dropping errors").pipe(
+			Effect.catchTag("AnalyticsError", (error) =>
+				Effect.logError("Error event insert failed, dropping errors").pipe(
 					Effect.annotateLogs("error", error.message),
 					Effect.annotateLogs("errorCount", String(payload.errors.length)),
 					Effect.tap(() =>

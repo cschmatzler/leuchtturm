@@ -5,33 +5,33 @@
 		pkgs.writeText "clickhouse-schema.sql" ''
 			CREATE TABLE IF NOT EXISTS analytics_events (
 				timestamp DateTime64(3, 'UTC'),
-				event_id UUID,
-				session_id String,
-				user_id String,
-				event_type LowCardinality(String),
+				eventId String,
+				sessionId String,
+				userId String,
+				eventType LowCardinality(String),
 				url String,
 				referrer String,
 				properties String DEFAULT '{}',
-				ingested_at DateTime64(3) DEFAULT now64(3)
+				ingestedAt DateTime64(3) DEFAULT now64(3)
 			) ENGINE = MergeTree()
 			PARTITION BY toDate(timestamp)
-			ORDER BY (event_type, user_id, timestamp)
+			ORDER BY (eventType, userId, timestamp)
 			TTL toDate(timestamp) + INTERVAL 90 DAY DELETE
 			SETTINGS index_granularity = 8192;
 
 			CREATE TABLE IF NOT EXISTS error_events (
 				timestamp DateTime64(3, 'UTC'),
-				error_id UUID,
+				errorId String,
 				source LowCardinality(String),
-				user_id String DEFAULT ${"''"},
-				session_id String DEFAULT ${"''"},
-				error_type String,
+				userId String DEFAULT ${"''"},
+				sessionId String DEFAULT ${"''"},
+				errorType String,
 				message String,
-				stack_trace String DEFAULT ${"''"},
+				stackTrace String DEFAULT ${"''"},
 				url String DEFAULT ${"''"},
 				method LowCardinality(String) DEFAULT ${"''"},
-				status_code UInt16 DEFAULT 0,
-				user_agent String DEFAULT ${"''"},
+				statusCode UInt16 DEFAULT 0,
+				userAgent String DEFAULT ${"''"},
 				properties String DEFAULT '{}'
 			) ENGINE = MergeTree()
 			PARTITION BY toDate(timestamp)

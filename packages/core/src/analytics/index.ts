@@ -1,38 +1,32 @@
 import { createClient } from "@clickhouse/client";
-import { Config, Effect, Layer, ServiceMap } from "effect";
+import { Effect, Layer, Schema, ServiceMap } from "effect";
+import { ulid } from "ulid";
 
-import type { AnalyticsEvent } from "@chevrotain/core/analytics/schema";
-import { ClickHouseError } from "@chevrotain/core/errors";
-
-export type ErrorEventRow = {
-	source: "api" | "web";
-	errorType: string;
-	message: string;
-	userId?: string;
-	sessionId?: string;
-	stackTrace?: string;
-	url?: string;
-	method?: string;
-	statusCode?: number;
-	userAgent?: string;
-	properties?: Record<string, unknown>;
-};
+import type { AnalyticsEvent, ErrorEvent } from "@chevrotain/core/analytics/schema";
+import { CoreConfig } from "@chevrotain/core/config";
 
 export namespace Analytics {
+	export class Error extends Schema.TaggedErrorClass<Error>()(
+		"AnalyticsError",
+		{ message: Schema.String },
+		{ httpApiStatus: 500 },
+	) {}
+
 	export interface Interface {
 		readonly insertEvents: (
 			events: AnalyticsEvent[],
 			userId: string,
 			sessionId: string,
-		) => Effect.Effect<void, ClickHouseError>;
-		readonly insertErrors: (errors: ErrorEventRow[]) => Effect.Effect<void, ClickHouseError>;
+		) => Effect.Effect<void, Error>;
+		readonly insertErrors: (errors: ErrorEvent[]) => Effect.Effect<void, Error>;
 	}
 
 	export class Service extends ServiceMap.Service<Service, Interface>()("@chevrotain/Analytics") {}
 
 	export const layer = Layer.effect(Service)(
 		Effect.gen(function* () {
-			const clickhouseUrl = yield* Config.string("CLICKHOUSE_URL");
+			const config = yield* CoreConfig;
+			const clickhouseUrl = config.analytics.clickhouseUrl;
 
 			yield* Effect.logInfo("Analytics initializing").pipe(
 				Effect.annotateLogs("url", clickhouseUrl),
@@ -58,11 +52,11 @@ export namespace Analytics {
 						client.insert({
 							table: "analytics_events",
 							values: events.map((event) => ({
-								timestamp: new Date().toISOString().replace("T", " ").replace("Z", ""),
-								event_id: crypto.randomUUID(),
-								session_id: sessionId,
-								user_id: userId,
-								event_type: event.eventType,
+								timestamp: new Date(),
+								eventId: ulid(),
+								sessionId,
+								userId,
+								eventType: event.eventType,
 								url: event.url,
 								referrer: event.referrer,
 								properties: JSON.stringify(event.properties ?? {}),
@@ -70,37 +64,37 @@ export namespace Analytics {
 							format: "JSONEachRow",
 						}),
 					catch: (error) =>
-						new ClickHouseError({
-							message: `Failed to insert analytics events: ${error instanceof Error ? error.message : String(error)}`,
+						new Error({
+							message: `Failed to insert analytics events: ${error instanceof globalThis.Error ? error.message : String(error)}`,
 						}),
 				});
 			});
 
-			const insertErrors = Effect.fn("Analytics.insertErrors")(function* (errors: ErrorEventRow[]) {
+			const insertErrors = Effect.fn("Analytics.insertErrors")(function* (errors: ErrorEvent[]) {
 				yield* Effect.tryPromise({
 					try: () =>
 						client.insert({
 							table: "error_events",
 							values: errors.map((error) => ({
-								timestamp: new Date().toISOString().replace("T", " ").replace("Z", ""),
-								error_id: crypto.randomUUID(),
-								source: error.source,
-								user_id: error.userId ?? "",
-								session_id: error.sessionId ?? "",
-								error_type: error.errorType,
+								timestamp: new Date(),
+								errorId: ulid(),
+								source: error.source ?? "api",
+								userId: error.userId ?? "",
+								sessionId: error.sessionId ?? "",
+								errorType: error.errorType,
 								message: error.message,
-								stack_trace: error.stackTrace ?? "",
+								stackTrace: error.stackTrace ?? "",
 								url: error.url ?? "",
 								method: error.method ?? "",
-								status_code: error.statusCode ?? 0,
-								user_agent: error.userAgent ?? "",
+								statusCode: error.statusCode ?? 0,
+								userAgent: error.userAgent ?? "",
 								properties: JSON.stringify(error.properties ?? {}),
 							})),
 							format: "JSONEachRow",
 						}),
 					catch: (error) =>
-						new ClickHouseError({
-							message: `Failed to insert error events: ${error instanceof Error ? error.message : String(error)}`,
+						new Error({
+							message: `Failed to insert error events: ${error instanceof globalThis.Error ? error.message : String(error)}`,
 						}),
 				});
 			});

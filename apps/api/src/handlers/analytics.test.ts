@@ -3,13 +3,13 @@ import { HttpServerRequest } from "effect/unstable/http";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { getReportErrorsRateLimitKey } from "@chevrotain/api/handlers/analytics";
-import { Analytics, type ErrorEventRow } from "@chevrotain/core/analytics/index";
-import type { AnalyticsEvent } from "@chevrotain/core/analytics/schema";
+import { Analytics } from "@chevrotain/core/analytics/index";
+import type { AnalyticsEvent, ErrorEvent } from "@chevrotain/core/analytics/schema";
 import { RATE_LIMIT_MAX_REQUESTS, RateLimit } from "@chevrotain/core/rate-limit";
 
 const mockInsertEvents =
 	vi.fn<(events: AnalyticsEvent[], userId: string, sessionId: string) => void>();
-const mockInsertErrors = vi.fn<(errors: ErrorEventRow[]) => void>();
+const mockInsertErrors = vi.fn<(errors: ErrorEvent[]) => void>();
 
 const AnalyticsMock = Layer.succeed(Analytics.Service, {
 	insertEvents: (events, userId, sessionId) => {

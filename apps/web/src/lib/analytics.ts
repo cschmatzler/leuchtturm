@@ -1,25 +1,11 @@
 import { Effect } from "effect";
 
+import type { AnalyticsEvent, ErrorEvent } from "@chevrotain/core/analytics/schema";
 import { apiClientPromise } from "@chevrotain/web/clients/api";
-
-type AnalyticsEvent = {
-	eventType: string;
-	url: string;
-	referrer: string;
-	properties?: Record<string, unknown>;
-};
 
 type AnalyticsLocation = {
 	url: string;
 	referrer: string;
-};
-
-type ErrorReport = {
-	errorType: string;
-	message: string;
-	stackTrace?: string;
-	url?: string;
-	properties?: Record<string, unknown>;
 };
 
 const FLUSH_INTERVAL_MS = 5000;
@@ -29,7 +15,7 @@ const ERROR_FLUSH_DELAY_MS = 1000;
 const ERROR_DEDUP_WINDOW_MS = 60_000;
 
 let buffer: AnalyticsEvent[] = [];
-let errorBuffer: ErrorReport[] = [];
+let errorBuffer: ErrorEvent[] = [];
 let errorFlushTimer: ReturnType<typeof setTimeout> | null = null;
 const reportedErrors = new Map<string, number>();
 let isInitialized = false;
@@ -149,11 +135,11 @@ async function flushErrors(): Promise<void> {
 		const client = await apiClientPromise;
 		await Effect.runPromise(client.analytics.reportErrors({ payload: { errors } }));
 	} catch (error) {
-		console.error("Failed to flush error reports", error);
+		console.error("Failed to flush error events", error);
 	}
 }
 
-export function sendErrorReport(
+export function sendErrorEvent(
 	errorType: string,
 	message: string,
 	stackTrace?: string,
@@ -206,7 +192,7 @@ function initializeAnalytics(): void {
 	});
 
 	window.addEventListener("error", (event) => {
-		sendErrorReport(
+		sendErrorEvent(
 			event.error?.name ?? "Error",
 			event.message || "Unknown error",
 			event.error?.stack,
@@ -219,7 +205,7 @@ function initializeAnalytics(): void {
 		const message = reason instanceof Error ? reason.message : String(reason);
 		const stackTrace = reason instanceof Error ? reason.stack : undefined;
 
-		sendErrorReport(errorType, message, stackTrace);
+		sendErrorEvent(errorType, message, stackTrace);
 	});
 }
 

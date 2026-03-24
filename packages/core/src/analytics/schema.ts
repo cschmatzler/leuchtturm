@@ -15,16 +15,25 @@ export const AnalyticsPayload = Schema.Struct({
 });
 export type AnalyticsPayload = typeof AnalyticsPayload.Type;
 
-export const ErrorReport = Schema.Struct({
+export const ErrorSource = Schema.Literals(["api", "web"]);
+export type ErrorSource = typeof ErrorSource.Type;
+
+export const ErrorEvent = Schema.Struct({
+	source: Schema.optional(ErrorSource),
 	errorType: Schema.String,
 	message: TrimmedNonEmptyString,
+	userId: Schema.optional(Schema.String),
+	sessionId: Schema.optional(Schema.String),
 	stackTrace: Schema.optional(Schema.String),
 	url: Schema.optional(Schema.String),
+	method: Schema.optional(Schema.String),
+	statusCode: Schema.optional(Schema.Number),
+	userAgent: Schema.optional(Schema.String),
 	properties: Schema.optional(Schema.Record(Schema.String, Schema.Unknown)),
 });
-export type ErrorReport = typeof ErrorReport.Type;
+export type ErrorEvent = typeof ErrorEvent.Type;
 
 export const ErrorPayload = Schema.Struct({
-	errors: Schema.Array(ErrorReport),
+	errors: Schema.Array(ErrorEvent),
 });
 export type ErrorPayload = typeof ErrorPayload.Type;

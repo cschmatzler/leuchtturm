@@ -1,6 +1,6 @@
 import { toast } from "sonner";
 
-import { sendErrorReport } from "@chevrotain/web/lib/analytics";
+import { sendErrorEvent } from "@chevrotain/web/lib/analytics";
 
 export function reportUiError({ error, message }: { error: unknown; message: string }) {
 	if (import.meta.env.DEV) {
@@ -13,5 +13,5 @@ export function reportUiError({ error, message }: { error: unknown; message: str
 	const errorMessage = error instanceof Error ? error.message : String(error);
 	const stackTrace = error instanceof Error ? error.stack : undefined;
 
-	sendErrorReport(errorType, errorMessage, stackTrace, { userMessage: message });
+	sendErrorEvent(errorType, errorMessage, stackTrace, { userMessage: message });
 }
