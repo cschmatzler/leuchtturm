@@ -4,10 +4,10 @@ import { HttpApiBuilder } from "effect/unstable/httpapi";
 
 import { ApiConfig } from "@chevrotain/api/config";
 import { ChevrotainApi } from "@chevrotain/api/contract";
+import { AnalyticsHandlerLive } from "@chevrotain/api/handlers/analytics";
 import { AuthHandlerLive } from "@chevrotain/api/handlers/auth";
 import { HealthHandlerLive } from "@chevrotain/api/handlers/health";
 import { MetricsHandlerLive } from "@chevrotain/api/handlers/metrics";
-import { RpcLive } from "@chevrotain/api/handlers/rpc";
 import { ZeroHandlerLive } from "@chevrotain/api/handlers/zero";
 import { MetricsMiddleware, routeLabelFromUrl } from "@chevrotain/api/metrics";
 import { AuthMiddlewareLive } from "@chevrotain/api/middleware/auth-live";
@@ -16,6 +16,7 @@ import { AppLayer } from "@chevrotain/api/runtime";
 const HandlersLive = Layer.mergeAll(
 	HealthHandlerLive,
 	MetricsHandlerLive,
+	AnalyticsHandlerLive,
 	ZeroHandlerLive,
 	AuthHandlerLive,
 );
@@ -25,9 +26,7 @@ const ApiLive = HttpApiBuilder.layer(ChevrotainApi).pipe(
 	Layer.provide(AuthMiddlewareLive),
 );
 
-const RoutesLive = Layer.mergeAll(ApiLive, RpcLive);
-
-const httpApp = HttpRouter.toHttpEffect(RoutesLive).pipe(Effect.flatten);
+const httpApp = HttpRouter.toHttpEffect(ApiLive).pipe(Effect.flatten);
 
 const HttpTracingLive = Layer.mergeAll(
 	HttpMiddleware.layerTracerDisabledForUrls(["/api/metrics"]),

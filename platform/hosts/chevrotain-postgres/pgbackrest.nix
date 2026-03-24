@@ -3,7 +3,7 @@
 		enable = true;
 		secretFile = "/run/secrets/chevrotain-pgbackrest";
 		s3 = {
-			endpoint = "fsn1.your-objectstorage.com";
+			endpoint = "nbg1.your-objectstorage.com";
 			bucket = "chevrotain-pgbackrest";
 		};
 	};

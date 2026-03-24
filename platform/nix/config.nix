@@ -9,6 +9,8 @@
 	ports = {
 		api = 3080;
 		zeroCache = 3081;
+		zeroReplicationManager = 3082;
+		zeroViewSyncerB = 3083;
 		clickhouse = 8123;
 		clickhouseNative = 9000;
 		grafana = 3000;

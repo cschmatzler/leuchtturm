@@ -1,4 +1,6 @@
-import { ingestEvents, reportErrors } from "@chevrotain/web/clients/rpc";
+import { Effect } from "effect";
+
+import { apiClientPromise } from "@chevrotain/web/clients/api";
 
 type AnalyticsEvent = {
 	eventType: string;
@@ -51,7 +53,12 @@ function pushEvent(
 }
 
 async function sendBatch(events: AnalyticsEvent[]): Promise<void> {
-	await ingestEvents({ events });
+	try {
+		const client = await apiClientPromise;
+		await Effect.runPromise(client.analytics.ingestEvents({ payload: { events } }));
+	} catch (error) {
+		console.error("[API] ingestEvents failed", error);
+	}
 }
 
 async function splitAndSend(events: AnalyticsEvent[]): Promise<void> {
@@ -139,7 +146,8 @@ async function flushErrors(): Promise<void> {
 	errorBuffer = [];
 
 	try {
-		await reportErrors({ errors });
+		const client = await apiClientPromise;
+		await Effect.runPromise(client.analytics.reportErrors({ payload: { errors } }));
 	} catch (error) {
 		console.error("Failed to flush error reports", error);
 	}

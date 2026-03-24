@@ -4,8 +4,8 @@ import { Effect, Option } from "effect";
 import { HttpServerRequest, HttpServerResponse } from "effect/unstable/http";
 import { describe, expect, it } from "vite-plus/test";
 
+import { getReportErrorsRateLimitKey } from "@chevrotain/api/handlers/analytics";
 import { handleAuthPassthrough } from "@chevrotain/api/handlers/auth";
-import { getReportErrorsRateLimitKey } from "@chevrotain/api/handlers/rpc";
 import { applyHttpAuth } from "@chevrotain/api/middleware/auth-live";
 import { Auth } from "@chevrotain/core/auth/index";
 import { RATE_LIMIT_MAX_REQUESTS, RateLimit } from "@chevrotain/core/rate-limit";
@@ -154,7 +154,7 @@ describe("review findings", () => {
 		it("ignores spoofed forwarding headers and keys limits off the peer address", async () => {
 			const requests = Array.from({ length: RATE_LIMIT_MAX_REQUESTS + 1 }, (_, index) =>
 				HttpServerRequest.fromWeb(
-					new Request("http://example.com/api/rpc", {
+					new Request("http://example.com/api/analytics/errors", {
 						headers: {
 							"x-forwarded-for": `198.51.100.${index}`,
 							"x-real-ip": `203.0.113.${index}`,
