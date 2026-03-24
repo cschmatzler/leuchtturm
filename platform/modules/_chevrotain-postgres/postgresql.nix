@@ -8,6 +8,7 @@
 		package = pkgs.postgresql_18;
 		settings = {
 			listen_addresses = lib.mkForce "*";
+			search_path = "public";
 			wal_level = "logical";
 			log_connections = true;
 			log_disconnections = true;
