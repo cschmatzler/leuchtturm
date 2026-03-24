@@ -113,81 +113,101 @@ in {
 	config =
 		mkIf cfg.enable (
 			let
-				pgbackrestWrapper =
-					pkgs.writeShellScriptBin "pgbackrest-wrapper" ''
-						set -a
-						source ${cfg.secretFile}
-						set +a
-						exec ${pkgs.pgbackrest}/bin/pgbackrest "$@"
-					'';
-				archivePushScript =
-					pkgs.writeShellScript "pgbackrest-archive-push" ''
-						set -a
-						source ${cfg.secretFile}
-						set +a
-						exec ${pkgs.pgbackrest}/bin/pgbackrest --stanza=${cfg.stanza} archive-push "$1"
-					'';
+				pgbackrestConfigPath = "/run/pgbackrest/pgbackrest.conf";
+				pgbackrestBin = "${pkgs.pgbackrest}/bin/pgbackrest";
 			in {
 				environment.systemPackages = [
 					pkgs.pgbackrest
-					pgbackrestWrapper
 				];
+
+				systemd.services.pgbackrest-config = {
+					description = "pgBackRest runtime config";
+					before = [
+						"postgresql.service"
+						"pgbackrest-stanza-create.service"
+						"pgbackrest-backup.service"
+						"pgbackrest-backup-diff.service"
+					];
+					serviceConfig = {
+						Type = "oneshot";
+						User = "postgres";
+						Group = "postgres";
+						RemainAfterExit = true;
+						RuntimeDirectory = "pgbackrest";
+						RuntimeDirectoryMode = "0750";
+					};
+					script = ''
+						set -eu
+						umask 0077
+						set -a
+						source ${cfg.secretFile}
+						set +a
+
+						cat > ${pgbackrestConfigPath}.tmp <<EOF
+						[global]
+						repo1-type=s3
+						repo1-s3-endpoint=${cfg.s3.endpoint}
+						repo1-s3-bucket=${cfg.s3.bucket}
+						repo1-s3-region=${cfg.s3.region}
+						repo1-path=${cfg.s3.path}
+						repo1-s3-key=$PGBACKREST_REPO1_S3_KEY
+						repo1-s3-key-secret=$PGBACKREST_REPO1_S3_KEY_SECRET
+						repo1-retention-full=${toString cfg.retention.full}
+						repo1-retention-diff=${toString cfg.retention.diff}
+						repo1-cipher-pass=$PGBACKREST_REPO1_CIPHER_PASS
+						repo1-cipher-type=aes-256-cbc
+						compress-type=${cfg.compression.type}
+						compress-level=${toString cfg.compression.level}
+						process-max=${toString cfg.processMax}
+						log-level-console=info
+						log-level-file=detail
+						log-path=/var/log/pgbackrest
+						spool-path=/var/spool/pgbackrest
+
+						[${cfg.stanza}]
+						pg1-path=/var/lib/postgresql/${config.services.postgresql.package.psqlSchema}
+						pg1-user=postgres
+						EOF
+
+						mv ${pgbackrestConfigPath}.tmp ${pgbackrestConfigPath}
+					'';
+				};
+
+				systemd.services.postgresql = {
+					requires = ["pgbackrest-config.service"];
+					after = ["pgbackrest-config.service"];
+				};
 
 				services.postgresql.settings = {
 					archive_mode = "on";
-					archive_command = "${archivePushScript} %p";
+					archive_command = "${pgbackrestBin} --config=${pgbackrestConfigPath} --stanza=${cfg.stanza} archive-push %p";
 				};
-
-				environment.etc."pgbackrest/pgbackrest.conf".text = ''
-					[global]
-					repo1-type=s3
-					repo1-s3-endpoint=${cfg.s3.endpoint}
-					repo1-s3-bucket=${cfg.s3.bucket}
-					repo1-s3-region=${cfg.s3.region}
-					repo1-path=${cfg.s3.path}
-					repo1-retention-full=${toString cfg.retention.full}
-					repo1-retention-diff=${toString cfg.retention.diff}
-					repo1-cipher-type=aes-256-cbc
-					compress-type=${cfg.compression.type}
-					compress-level=${toString cfg.compression.level}
-					process-max=${toString cfg.processMax}
-					log-level-console=info
-					log-level-file=detail
-					log-path=/var/log/pgbackrest
-					spool-path=/var/spool/pgbackrest
-
-					[${cfg.stanza}]
-					pg1-path=/var/lib/postgresql/${config.services.postgresql.package.psqlSchema}
-					pg1-user=postgres
-				'';
 
 				systemd.services.pgbackrest-stanza-create = {
 					description = "pgBackRest Stanza Create";
-					after = ["postgresql.service"];
-					requires = ["postgresql.service"];
-					path = [pgbackrestWrapper];
+					after = ["pgbackrest-config.service" "postgresql.service"];
+					requires = ["pgbackrest-config.service" "postgresql.service"];
 					serviceConfig = {
 						Type = "oneshot";
 						User = "postgres";
 						RemainAfterExit = true;
 					};
 					script = ''
-						pgbackrest-wrapper --stanza=${cfg.stanza} stanza-create
+						${pgbackrestBin} --config=${pgbackrestConfigPath} --stanza=${cfg.stanza} stanza-create
 					'';
 				};
 
 				systemd.services.pgbackrest-backup = {
 					description = "pgBackRest Full Backup";
-					after = ["postgresql.service" "pgbackrest-stanza-create.service"];
-					requires = ["postgresql.service"];
+					after = ["pgbackrest-config.service" "postgresql.service" "pgbackrest-stanza-create.service"];
+					requires = ["pgbackrest-config.service" "postgresql.service"];
 					wants = ["pgbackrest-stanza-create.service"];
-					path = [pgbackrestWrapper];
 					serviceConfig = {
 						Type = "oneshot";
 						User = "postgres";
 					};
 					script = ''
-						pgbackrest-wrapper --stanza=${cfg.stanza} backup --type=full
+						${pgbackrestBin} --config=${pgbackrestConfigPath} --stanza=${cfg.stanza} backup --type=full
 					'';
 				};
 
@@ -202,16 +222,15 @@ in {
 
 				systemd.services.pgbackrest-backup-diff = {
 					description = "pgBackRest Differential Backup";
-					after = ["postgresql.service" "pgbackrest-stanza-create.service"];
-					requires = ["postgresql.service"];
+					after = ["pgbackrest-config.service" "postgresql.service" "pgbackrest-stanza-create.service"];
+					requires = ["pgbackrest-config.service" "postgresql.service"];
 					wants = ["pgbackrest-stanza-create.service"];
-					path = [pgbackrestWrapper];
 					serviceConfig = {
 						Type = "oneshot";
 						User = "postgres";
 					};
 					script = ''
-						pgbackrest-wrapper --stanza=${cfg.stanza} backup --type=diff
+						${pgbackrestBin} --config=${pgbackrestConfigPath} --stanza=${cfg.stanza} backup --type=diff
 					'';
 				};
 
