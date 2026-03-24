@@ -38,7 +38,7 @@
 		{
 			"id": 2,
 			"type": "stat",
-			"title": "Uptime",
+			"title": "View Syncers Up",
 			"gridPos": {
 				"h": 4,
 				"w": 4,
@@ -51,7 +51,7 @@
 			},
 			"fieldConfig": {
 				"defaults": {
-					"unit": "dtdurations",
+					"unit": "short",
 					"color": {
 						"mode": "fixed",
 						"fixedColor": "text"
@@ -78,7 +78,7 @@
 			},
 			"targets": [
 				{
-					"expr": "min(zero_server_uptime_seconds{job=~\"chevrotain/zero-(cache|replication-manager|view-syncer-.*)\"})",
+					"expr": "count(max_over_time(zero_server_uptime_seconds{job=~\"chevrotain/zero-view-syncer-.*\"}[5m]) > 0)",
 					"legendFormat": "",
 					"refId": "A"
 				}
@@ -87,7 +87,7 @@
 		{
 			"id": 3,
 			"type": "stat",
-			"title": "Active Clients",
+			"title": "Repl Manager Up",
 			"gridPos": {
 				"h": 4,
 				"w": 4,
@@ -127,7 +127,7 @@
 			},
 			"targets": [
 				{
-					"expr": "sum(zero_sync_active_clients{job=~\"chevrotain/zero-(cache|view-syncer-.*)\"})",
+					"expr": "count(max_over_time(zero_server_uptime_seconds{job=\"chevrotain/zero-replication-manager\"}[5m]) > 0)",
 					"legendFormat": "",
 					"refId": "A"
 				}
@@ -136,7 +136,7 @@
 		{
 			"id": 4,
 			"type": "stat",
-			"title": "Protocol Version",
+			"title": "Active Clients",
 			"gridPos": {
 				"h": 4,
 				"w": 4,
@@ -176,7 +176,7 @@
 			},
 			"targets": [
 				{
-					"expr": "max(zero_sync_max_protocol_version{job=~\"chevrotain/zero-(cache|view-syncer-.*)\"})",
+					"expr": "sum(zero_sync_active_clients{job=~\"chevrotain/zero-(cache|view-syncer-.*)\"})",
 					"legendFormat": "",
 					"refId": "A"
 				}
@@ -333,7 +333,7 @@
 		{
 			"id": 8,
 			"type": "row",
-			"title": "Clients & Hydration",
+			"title": "Load Distribution",
 			"gridPos": {
 				"h": 1,
 				"w": 24,
@@ -346,8 +346,8 @@
 		{
 			"id": 9,
 			"type": "timeseries",
-			"title": "Active Clients",
-			"description": "Connected sync clients by protocol version",
+			"title": "Active Clients by Syncer",
+			"description": "Connected clients split by syncer so load imbalance is visible.",
 			"gridPos": {
 				"h": 8,
 				"w": 12,
@@ -393,8 +393,8 @@
 			},
 			"targets": [
 				{
-					"expr": "sum by (protocol_version) (zero_sync_active_clients{job=~\"chevrotain/zero-(cache|view-syncer-.*)\"})",
-					"legendFormat": "v{{protocol_version}}",
+					"expr": "sum by (job) (zero_sync_active_clients{job=~\"chevrotain/zero-(cache|view-syncer-.*)\"})",
+					"legendFormat": "{{job}}",
 					"refId": "A"
 				}
 			]
@@ -402,8 +402,8 @@
 		{
 			"id": 10,
 			"type": "timeseries",
-			"title": "Hydration Rate",
-			"description": "Client hydrations per second — initial data loads for new or reconnecting clients",
+			"title": "Hydration Rate by Syncer",
+			"description": "Hydrations per second split by syncer to show which syncers are serving reconnects and cold starts.",
 			"gridPos": {
 				"h": 8,
 				"w": 12,
@@ -449,8 +449,8 @@
 			},
 			"targets": [
 				{
-					"expr": "sum(rate(zero_sync_hydration_total{job=~\"chevrotain/zero-(cache|view-syncer-.*)\"}[5m]))",
-					"legendFormat": "Hydrations",
+					"expr": "sum by (job) (rate(zero_sync_hydration_total{job=~\"chevrotain/zero-(cache|view-syncer-.*)\"}[5m]))",
+					"legendFormat": "{{job}}",
 					"refId": "A"
 				}
 			]
@@ -458,7 +458,7 @@
 		{
 			"id": 11,
 			"type": "row",
-			"title": "Sync",
+			"title": "Sync Work Distribution",
 			"gridPos": {
 				"h": 1,
 				"w": 24,
@@ -471,8 +471,8 @@
 		{
 			"id": 12,
 			"type": "timeseries",
-			"title": "Poke Activity",
-			"description": "Rows and transactions pushed to connected clients",
+			"title": "Poke Rows by Syncer",
+			"description": "Rows pushed to clients by each syncer.",
 			"gridPos": {
 				"h": 8,
 				"w": 12,
@@ -518,22 +518,17 @@
 			},
 			"targets": [
 				{
-					"expr": "sum(rate(zero_sync_poke_rows_total{job=~\"chevrotain/zero-(cache|view-syncer-.*)\"}[5m]))",
-					"legendFormat": "Rows / s",
+					"expr": "sum by (job) (rate(zero_sync_poke_rows_total{job=~\"chevrotain/zero-(cache|view-syncer-.*)\"}[5m]))",
+					"legendFormat": "{{job}}",
 					"refId": "A"
-				},
-				{
-					"expr": "sum(rate(zero_sync_poke_transactions_total{job=~\"chevrotain/zero-(cache|view-syncer-.*)\"}[5m]))",
-					"legendFormat": "Transactions / s",
-					"refId": "B"
 				}
 			]
 		},
 		{
 			"id": 13,
 			"type": "timeseries",
-			"title": "CVR Flush Activity",
-			"description": "Client View Record rows flushed to storage",
+			"title": "CVR Flush Rows by Syncer",
+			"description": "Client View Record rows flushed by each syncer.",
 			"gridPos": {
 				"h": 8,
 				"w": 12,
@@ -579,8 +574,8 @@
 			},
 			"targets": [
 				{
-					"expr": "sum(rate(zero_sync_cvr_rows_flushed_total{job=~\"chevrotain/zero-(cache|view-syncer-.*)\"}[5m]))",
-					"legendFormat": "Rows Flushed / s",
+					"expr": "sum by (job) (rate(zero_sync_cvr_rows_flushed_total{job=~\"chevrotain/zero-(cache|view-syncer-.*)\"}[5m]))",
+					"legendFormat": "{{job}}",
 					"refId": "A"
 				}
 			]
@@ -1081,8 +1076,8 @@
 		{
 			"id": 23,
 			"type": "timeseries",
-			"title": "Mutations",
-			"description": "Mutation pushes and custom mutations processed",
+			"title": "Mutations by Syncer",
+			"description": "Mutation throughput split by syncer to show where writes are being processed.",
 			"gridPos": {
 				"h": 8,
 				"w": 12,
@@ -1128,13 +1123,13 @@
 			},
 			"targets": [
 				{
-					"expr": "sum(rate(zero_mutation_pushes_total{job=~\"chevrotain/zero-(cache|view-syncer-.*)\"}[5m]))",
-					"legendFormat": "Pushes / s",
+					"expr": "sum by (job) (rate(zero_mutation_pushes_total{job=~\"chevrotain/zero-(cache|view-syncer-.*)\"}[5m]))",
+					"legendFormat": "{{job}} pushes",
 					"refId": "A"
 				},
 				{
-					"expr": "sum(rate(zero_mutation_custom_total{job=~\"chevrotain/zero-(cache|view-syncer-.*)\"}[5m]))",
-					"legendFormat": "Custom / s",
+					"expr": "sum by (job) (rate(zero_mutation_custom_total{job=~\"chevrotain/zero-(cache|view-syncer-.*)\"}[5m]))",
+					"legendFormat": "{{job}} custom",
 					"refId": "B"
 				}
 			]
@@ -1286,8 +1281,8 @@
 		{
 			"id": 28,
 			"type": "logs",
-			"title": "Zero Cache Logs",
-			"description": "Live journal logs from the zero-cache container",
+			"title": "Zero Components Logs",
+			"description": "Live journal logs from the replication manager and all view syncers over the last 24 hours (the services log sparsely when idle).",
 			"gridPos": {
 				"h": 14,
 				"w": 24,
@@ -1317,7 +1312,8 @@
 					"expr": "{job=~\"chevrotain/zero-(cache|replication-manager|view-syncer-.*)\"} | json",
 					"refId": "A"
 				}
-			]
+			],
+			"timeFrom": "24h"
 		}
 	]
 }
