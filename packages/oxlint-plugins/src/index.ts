@@ -10,3 +10,7 @@ const plugin = {
 		...noViMock.rules,
 	},
 };
+
+export { plugin };
+
+export default plugin;

@@ -1,3 +1,17 @@
+function reportRelativeSource(context, node) {
+	const source = node.source;
+	if (source && source.type === "Literal" && typeof source.value === "string") {
+		const importPath = source.value;
+		if (importPath.startsWith(".")) {
+			context.report({
+				node,
+				message:
+					"Relative imports are not allowed. Use package imports with @chevrotain/* instead.",
+			});
+		}
+	}
+}
+
 const rule = {
 	meta: {
 		docs: {
@@ -8,17 +22,13 @@ const rule = {
 	create(context) {
 		return {
 			ImportDeclaration(node) {
-				const source = node.source;
-				if (source && source.type === "Literal" && typeof source.value === "string") {
-					const importPath = source.value;
-					if (importPath.startsWith(".")) {
-						context.report({
-							node,
-							message:
-								"Relative imports are not allowed. Use package imports with @chevrotain/* instead.",
-						});
-					}
-				}
+				reportRelativeSource(context, node);
+			},
+			ExportAllDeclaration(node) {
+				reportRelativeSource(context, node);
+			},
+			ExportNamedDeclaration(node) {
+				reportRelativeSource(context, node);
 			},
 		};
 	},
