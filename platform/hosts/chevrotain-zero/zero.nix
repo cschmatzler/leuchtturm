@@ -8,8 +8,6 @@
 		healthPath ? "/keepalive",
 		healthInterval ? "30s",
 	}: [
-		"--network=zero"
-		"--dns-opt=ndots:1"
 		"--add-host=host.docker.internal:host-gateway"
 		"--security-opt=no-new-privileges:true"
 		"--cap-drop=ALL"
@@ -55,7 +53,7 @@
 					ZERO_MUTATE_FORWARD_COOKIES = "true";
 					ZERO_QUERY_URL = "https://api.${cfg.domain}/api/query";
 					ZERO_MUTATE_URL = "https://api.${cfg.domain}/api/mutate";
-					ZERO_CHANGE_STREAMER_URI = "http://zero-replication-manager:4849";
+					ZERO_CHANGE_STREAMER_URI = "http://host.docker.internal:${toString cfg.ports.zeroReplicationManager}";
 				};
 			environmentFiles = [config.sops.secrets.zero-env.path];
 		};
@@ -111,13 +109,7 @@ in {
 			// viewSyncerContainers;
 	};
 
-	systemd.services =
-		{
-			"docker-zero-replication-manager" = {
-				preStart = "docker network inspect zero >/dev/null 2>&1 || docker network create zero";
-			};
-		}
-		// viewSyncerServices;
+	systemd.services = viewSyncerServices;
 
 	systemd.tmpfiles.rules =
 		["d /data/zero-replication-manager 0755 root root -"]

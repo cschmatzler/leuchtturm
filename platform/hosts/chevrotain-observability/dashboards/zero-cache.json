@@ -1282,7 +1282,7 @@
 			"id": 28,
 			"type": "logs",
 			"title": "Zero Components Logs",
-			"description": "Live journal logs from the replication manager and all view syncers over the last 24 hours (the services log sparsely when idle).",
+			"description": "Live journal logs from the replication manager and all view syncers.",
 			"gridPos": {
 				"h": 14,
 				"w": 24,

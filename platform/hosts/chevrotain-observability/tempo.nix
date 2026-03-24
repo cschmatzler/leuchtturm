@@ -9,7 +9,6 @@ in {
 				http_listen_address = "0.0.0.0";
 			};
 			distributor.receivers.otlp.protocols.http.endpoint = "0.0.0.0:${toString cfg.ports.tempoOtlp}";
-			querier.query_live_store = true;
 			metrics_generator = {
 				registry.external_labels = {
 					source = "tempo";
