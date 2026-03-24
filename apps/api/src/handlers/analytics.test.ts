@@ -45,7 +45,7 @@ describe("Analytics integration", () => {
 	it("ignores spoofed forwarding headers from untrusted peers", async () => {
 		const requests = Array.from({ length: RATE_LIMIT_MAX_REQUESTS + 1 }, (_, index) =>
 			HttpServerRequest.fromWeb(
-				new Request("http://example.com/api/analytics/errors", {
+				new Request("http://example.com/api/t/r", {
 					headers: {
 						"x-forwarded-for": `198.51.100.${index}`,
 						"x-real-ip": `203.0.113.${index}`,
@@ -78,14 +78,14 @@ describe("Analytics integration", () => {
 	it("uses forwarded client IPs when requests come from the trusted local proxy", async () => {
 		const proxiedRequests = [
 			HttpServerRequest.fromWeb(
-				new Request("http://example.com/api/analytics/errors", {
+				new Request("http://example.com/api/t/r", {
 					headers: {
 						"x-forwarded-for": "198.51.100.10, 127.0.0.1",
 					},
 				}),
 			).modify({ remoteAddress: Option.some("127.0.0.1") }),
 			HttpServerRequest.fromWeb(
-				new Request("http://example.com/api/analytics/errors", {
+				new Request("http://example.com/api/t/r", {
 					headers: {
 						"x-forwarded-for": "198.51.100.11, 127.0.0.1",
 					},

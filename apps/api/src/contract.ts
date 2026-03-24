@@ -24,13 +24,13 @@ const metricsGroup = HttpApiGroup.make("metrics").add(HttpApiEndpoint.get("metri
 
 const analyticsGroup = HttpApiGroup.make("analytics")
 	.add(
-		HttpApiEndpoint.post("ingestEvents", "/analytics/events", {
+		HttpApiEndpoint.post("ingestEvents", "/t/e", {
 			payload: AnalyticsPayload,
 			success: SuccessResponse,
 		}).middleware(AuthMiddleware),
 	)
 	.add(
-		HttpApiEndpoint.post("reportErrors", "/analytics/errors", {
+		HttpApiEndpoint.post("reportErrors", "/t/r", {
 			payload: ErrorPayload,
 			success: SuccessResponse,
 			error: RateLimitError,
