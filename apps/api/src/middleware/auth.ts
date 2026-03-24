@@ -1,10 +1,10 @@
-import { ServiceMap } from "effect";
+import { Schema, ServiceMap } from "effect";
 import type { HttpServerRequest } from "effect/unstable/http";
 import { HttpApiMiddleware } from "effect/unstable/httpapi";
 import { RpcMiddleware } from "effect/unstable/rpc";
 
 import type { Session, User } from "@chevrotain/core/auth/schema";
-import { UnauthorizedError } from "@chevrotain/core/errors";
+import { AuthServiceError, UnauthorizedError } from "@chevrotain/core/errors";
 
 export interface CurrentUserShape {
 	readonly user: User;
@@ -15,15 +15,17 @@ export class CurrentUser extends ServiceMap.Service<CurrentUser, CurrentUserShap
 	"CurrentUser",
 ) {}
 
+const AuthMiddlewareError = Schema.Union([UnauthorizedError, AuthServiceError]);
+
 export class AuthMiddleware extends HttpApiMiddleware.Service<
 	AuthMiddleware,
 	{ provides: CurrentUser }
->()("AuthMiddleware", { error: UnauthorizedError }) {}
+>()("AuthMiddleware", { error: AuthMiddlewareError }) {}
 
 export class RpcAuthMiddleware extends RpcMiddleware.Service<
 	RpcAuthMiddleware,
 	{ provides: CurrentUser; requires: HttpServerRequest.HttpServerRequest }
 >()("RpcAuthMiddleware", {
-	error: UnauthorizedError,
+	error: AuthMiddlewareError,
 	requiredForClient: false,
 }) {}

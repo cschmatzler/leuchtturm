@@ -51,6 +51,12 @@ export class RateLimitError extends Schema.TaggedErrorClass<RateLimitError>()(
 	{ httpApiStatus: 429 },
 ) {}
 
+export class AuthServiceError extends Schema.TaggedErrorClass<AuthServiceError>()(
+	"AuthServiceError",
+	{ message: Schema.String },
+	{ httpApiStatus: 500 },
+) {}
+
 export class DatabaseError extends Schema.TaggedErrorClass<DatabaseError>()(
 	"DatabaseError",
 	{ message: Schema.String },

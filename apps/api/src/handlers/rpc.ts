@@ -8,6 +8,9 @@ import { CurrentUser, RpcAuthMiddlewareLive } from "@chevrotain/api/middleware/a
 import { Analytics } from "@chevrotain/core/analytics/index";
 import { RateLimit } from "@chevrotain/core/rate-limit";
 
+export const getReportErrorsRateLimitKey = (request: HttpServerRequest.HttpServerRequest) =>
+	Option.getOrElse(request.remoteAddress, () => "unknown");
+
 const RpcHandlersLive = ChevrotainRpcs.toLayer(
 	Effect.gen(function* () {
 		const analytics = yield* Analytics.Service;
@@ -55,13 +58,9 @@ const RpcHandlersLive = ChevrotainRpcs.toLayer(
 						"rpc.error_count": payload.errors.length,
 					});
 
-					// Rate limit by IP — extract from forwarded headers.
+					// Rate limit by the trusted peer address reported by the HTTP server.
 					const request = yield* HttpServerRequest.HttpServerRequest;
-					const forwarded = Headers.get(request.headers, "x-forwarded-for").pipe(
-						Option.map((v) => v.split(",")[0]?.trim() ?? "unknown"),
-					);
-					const realIp = Headers.get(request.headers, "x-real-ip");
-					const ip = Option.getOrElse(forwarded, () => Option.getOrElse(realIp, () => "unknown"));
+					const ip = getReportErrorsRateLimitKey(request);
 					yield* Effect.annotateCurrentSpan("client.address", ip);
 
 					yield* rateLimit.check(ip, "Too many error reports");
