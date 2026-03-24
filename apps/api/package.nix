@@ -50,7 +50,7 @@ in
 					inherit src;
 					pnpm = pnpm;
 					fetcherVersion = 3;
-					hash = "sha256-in59yF4JcF9UKYU3KKP2QPfb7vmyUmmXRNvb07Oyq6k=";
+					hash = "sha256-oOoURl7fO5TJZSOVLFMg7VRHKr3ZVW+hKGiyT5AqQCE=";
 				};
 
 			nativeBuildInputs = [

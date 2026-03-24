@@ -22,7 +22,7 @@
 		postgresExporter = 9187;
 	};
 	zero = {
-		image = "rocicorp/zero:0.26.1";
+		image = "rocicorp/zero:1.0.0";
 		appId = "chevrotain";
 	};
 }
