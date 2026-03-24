@@ -2,6 +2,9 @@ import { Cause, Effect, Exit } from "effect";
 import { HttpMiddleware, HttpServerRequest } from "effect/unstable/http";
 import { collectDefaultMetrics, Counter, Histogram, Registry } from "prom-client";
 
+import { reportApiError } from "@chevrotain/api/analytics/report-error";
+import { Analytics } from "@chevrotain/core/analytics/index";
+
 type HttpMetricLabels = "method" | "route" | "status" | "ok";
 type DroppedMetricLabels = "pipeline";
 
@@ -119,7 +122,20 @@ export const MetricsMiddleware = HttpMiddleware.make((app) =>
 			return exit.value;
 		}
 
-		recordRequestMetric(request.method, pathname, statusFromCause(exit.cause), durationSeconds);
+		const status = statusFromCause(exit.cause);
+		recordRequestMetric(request.method, pathname, status, durationSeconds);
+
+		if (status >= 500) {
+			const analytics = yield* Analytics.Service;
+			const firstFailure = exit.cause.reasons.find(Cause.isFailReason);
+			yield* reportApiError(analytics, {
+				request,
+				statusCode: status,
+				error: firstFailure?.error,
+				fallbackMessage: Cause.pretty(exit.cause),
+			});
+		}
+
 		return yield* Effect.failCause(exit.cause);
 	}),
 );

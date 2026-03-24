@@ -2,8 +2,10 @@ import { Effect } from "effect";
 import { Cookies, HttpServerRequest, HttpServerResponse } from "effect/unstable/http";
 import { HttpApiBuilder } from "effect/unstable/httpapi";
 
+import { reportApiError } from "@chevrotain/api/analytics/report-error";
 import { ChevrotainApi } from "@chevrotain/api/contract";
 import { routeLabelFromUrl } from "@chevrotain/api/metrics";
+import { Analytics } from "@chevrotain/core/analytics/index";
 import { Auth } from "@chevrotain/core/auth/index";
 import { AuthServiceError } from "@chevrotain/core/errors";
 
@@ -13,6 +15,7 @@ const authPassthroughErrorResponse = (message: string) =>
 export const handleAuthPassthrough = Effect.fn("auth.passthrough.handle")(function* (
 	auth: Auth.Interface,
 	request: HttpServerRequest.HttpServerRequest,
+	analytics: Analytics.Interface | null = null,
 ) {
 	const rawRequest = yield* HttpServerRequest.toWeb(request).pipe(Effect.orDie);
 	const route = routeLabelFromUrl(request.url);
@@ -37,6 +40,12 @@ export const handleAuthPassthrough = Effect.fn("auth.passthrough.handle")(functi
 	);
 
 	if (responseResult._tag === "error") {
+		yield* reportApiError(analytics, {
+			request,
+			statusCode: 500,
+			error: responseResult.error,
+		});
+
 		return authPassthroughErrorResponse(responseResult.error.message);
 	}
 
@@ -62,6 +71,12 @@ export const handleAuthPassthrough = Effect.fn("auth.passthrough.handle")(functi
 	);
 
 	if (bodyResult._tag === "error") {
+		yield* reportApiError(analytics, {
+			request,
+			statusCode: 500,
+			error: bodyResult.error,
+		});
+
 		return authPassthroughErrorResponse(bodyResult.error.message);
 	}
 
@@ -81,9 +96,10 @@ export const handleAuthPassthrough = Effect.fn("auth.passthrough.handle")(functi
 
 const passthrough = Effect.fn("auth.passthrough")(function* () {
 	const request = yield* HttpServerRequest.HttpServerRequest;
+	const analytics = yield* Analytics.Service;
 	const auth = yield* Auth.Service;
 
-	return yield* handleAuthPassthrough(auth, request);
+	return yield* handleAuthPassthrough(auth, request, analytics);
 });
 
 export const AuthHandlerLive = HttpApiBuilder.group(ChevrotainApi, "auth", (handlers) =>

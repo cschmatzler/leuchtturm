@@ -1,7 +1,9 @@
 import { Effect, Layer } from "effect";
 import { HttpServerRequest, HttpServerResponse } from "effect/unstable/http";
 
+import { reportApiError } from "@chevrotain/api/analytics/report-error";
 import { AuthMiddleware, CurrentUser } from "@chevrotain/api/middleware/auth";
+import { Analytics } from "@chevrotain/core/analytics/index";
 import { Auth } from "@chevrotain/core/auth/index";
 import { AuthServiceError } from "@chevrotain/core/errors";
 
@@ -14,6 +16,7 @@ export const applyHttpAuth = Effect.fn("auth.middleware.http")(function* <E, R>(
 	auth: Auth.Interface,
 	request: HttpServerRequest.HttpServerRequest,
 	httpApp: Effect.Effect<HttpServerResponse.HttpServerResponse, E, R>,
+	analytics: Analytics.Interface | null = null,
 ) {
 	// Pass headers directly instead of calling toWeb(), which would create a
 	// ReadableStream from the request body and prevent downstream handlers
@@ -37,6 +40,12 @@ export const applyHttpAuth = Effect.fn("auth.middleware.http")(function* <E, R>(
 		);
 
 	if (currentUserResult._tag === "error") {
+		yield* reportApiError(analytics, {
+			request,
+			statusCode: 500,
+			error: currentUserResult.error,
+		});
+
 		return authHttpErrorResponse(
 			500,
 			currentUserResult.error._tag,
@@ -61,11 +70,12 @@ export const applyHttpAuth = Effect.fn("auth.middleware.http")(function* <E, R>(
 export const AuthMiddlewareLive = Layer.effect(AuthMiddleware)(
 	Effect.gen(function* () {
 		const auth = yield* Auth.Service;
+		const analytics = yield* Analytics.Service;
 
 		return (httpApp, _options) =>
 			Effect.gen(function* () {
 				const request = yield* HttpServerRequest.HttpServerRequest;
-				return yield* applyHttpAuth(auth, request, httpApp);
+				return yield* applyHttpAuth(auth, request, httpApp, analytics);
 			});
 	}),
 );
