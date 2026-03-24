@@ -14,10 +14,6 @@ in {
 				type = types.str;
 				default = "main";
 			};
-		secretFile =
-			mkOption {
-				type = types.path;
-			};
 		s3 =
 			mkOption {
 				type =
@@ -113,48 +109,29 @@ in {
 	config =
 		mkIf cfg.enable (
 			let
-				pgbackrestConfigPath = "/run/pgbackrest/pgbackrest.conf";
+				pgbackrestConfigPath = config.sops.templates."pgbackrest.conf".path;
 				pgbackrestBin = "${pkgs.pgbackrest}/bin/pgbackrest";
 			in {
 				environment.systemPackages = [
 					pkgs.pgbackrest
 				];
 
-				systemd.services.pgbackrest-config = {
-					description = "pgBackRest runtime config";
-					before = [
-						"postgresql.service"
-						"pgbackrest-stanza-create.service"
-						"pgbackrest-backup.service"
-						"pgbackrest-backup-diff.service"
-					];
-					serviceConfig = {
-						Type = "oneshot";
-						User = "postgres";
-						Group = "postgres";
-						RemainAfterExit = true;
-						RuntimeDirectory = "pgbackrest";
-						RuntimeDirectoryMode = "0750";
-					};
-					script = ''
-						set -eu
-						umask 0077
-						set -a
-						source ${cfg.secretFile}
-						set +a
-
-						cat > ${pgbackrestConfigPath}.tmp <<EOF
+				sops.templates."pgbackrest.conf" = {
+					owner = "postgres";
+					group = "postgres";
+					mode = "0400";
+					content = ''
 						[global]
 						repo1-type=s3
 						repo1-s3-endpoint=${cfg.s3.endpoint}
 						repo1-s3-bucket=${cfg.s3.bucket}
 						repo1-s3-region=${cfg.s3.region}
 						repo1-path=${cfg.s3.path}
-						repo1-s3-key=$PGBACKREST_REPO1_S3_KEY
-						repo1-s3-key-secret=$PGBACKREST_REPO1_S3_KEY_SECRET
+						repo1-s3-key=${config.sops.placeholder.PGBACKREST_REPO1_S3_KEY}
+						repo1-s3-key-secret=${config.sops.placeholder.PGBACKREST_REPO1_S3_KEY_SECRET}
 						repo1-retention-full=${toString cfg.retention.full}
 						repo1-retention-diff=${toString cfg.retention.diff}
-						repo1-cipher-pass=$PGBACKREST_REPO1_CIPHER_PASS
+						repo1-cipher-pass=${config.sops.placeholder.PGBACKREST_REPO1_CIPHER_PASS}
 						repo1-cipher-type=aes-256-cbc
 						compress-type=${cfg.compression.type}
 						compress-level=${toString cfg.compression.level}
@@ -167,15 +144,7 @@ in {
 						[${cfg.stanza}]
 						pg1-path=/var/lib/postgresql/${config.services.postgresql.package.psqlSchema}
 						pg1-user=postgres
-						EOF
-
-						mv ${pgbackrestConfigPath}.tmp ${pgbackrestConfigPath}
 					'';
-				};
-
-				systemd.services.postgresql = {
-					requires = ["pgbackrest-config.service"];
-					after = ["pgbackrest-config.service"];
 				};
 
 				services.postgresql.settings = {
@@ -185,8 +154,8 @@ in {
 
 				systemd.services.pgbackrest-stanza-create = {
 					description = "pgBackRest Stanza Create";
-					after = ["pgbackrest-config.service" "postgresql.service"];
-					requires = ["pgbackrest-config.service" "postgresql.service"];
+					after = ["postgresql.service"];
+					requires = ["postgresql.service"];
 					serviceConfig = {
 						Type = "oneshot";
 						User = "postgres";
@@ -199,8 +168,8 @@ in {
 
 				systemd.services.pgbackrest-backup = {
 					description = "pgBackRest Full Backup";
-					after = ["pgbackrest-config.service" "postgresql.service" "pgbackrest-stanza-create.service"];
-					requires = ["pgbackrest-config.service" "postgresql.service"];
+					after = ["postgresql.service" "pgbackrest-stanza-create.service"];
+					requires = ["postgresql.service"];
 					wants = ["pgbackrest-stanza-create.service"];
 					serviceConfig = {
 						Type = "oneshot";
@@ -222,8 +191,8 @@ in {
 
 				systemd.services.pgbackrest-backup-diff = {
 					description = "pgBackRest Differential Backup";
-					after = ["pgbackrest-config.service" "postgresql.service" "pgbackrest-stanza-create.service"];
-					requires = ["pgbackrest-config.service" "postgresql.service"];
+					after = ["postgresql.service" "pgbackrest-stanza-create.service"];
+					requires = ["postgresql.service"];
 					wants = ["pgbackrest-stanza-create.service"];
 					serviceConfig = {
 						Type = "oneshot";
