@@ -35,16 +35,12 @@ export function ForgotPasswordForm() {
 		defaultValues: { email: "" },
 		onSubmit: ({ value }) => onSubmit(value),
 	});
+	const submitForm = async () => {
+		await form.handleSubmit();
+	};
 
 	return (
-		<form
-			onSubmit={(e) => {
-				e.preventDefault();
-				e.stopPropagation();
-				form.handleSubmit();
-			}}
-			className="flex flex-col gap-6"
-		>
+		<form action={submitForm} className="flex flex-col gap-6">
 			<div className="flex flex-col gap-2 text-center">
 				<h1 className="text-2xl font-semibold tracking-tight">{t("Reset your password")}</h1>
 				<p className="text-muted-foreground text-balance">

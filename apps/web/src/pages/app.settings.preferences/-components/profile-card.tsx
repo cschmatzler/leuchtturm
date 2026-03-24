@@ -47,6 +47,9 @@ export function ProfileCard() {
 		},
 		onSubmit: ({ value }) => onSubmit(value),
 	});
+	const submitForm = async () => {
+		await form.handleSubmit();
+	};
 
 	return (
 		<Card className="gap-0 overflow-hidden p-0">
@@ -54,13 +57,7 @@ export function ProfileCard() {
 				<CardTitle className="text-base">{t("Profile")}</CardTitle>
 				<CardDescription>{t("Your personal information.")}</CardDescription>
 			</CardHeader>
-			<form
-				onSubmit={(e) => {
-					e.preventDefault();
-					e.stopPropagation();
-					form.handleSubmit();
-				}}
-			>
+			<form action={submitForm}>
 				<FieldGroup>
 					<CardContent className="border-t border-border px-6 py-5">
 						<form.Field

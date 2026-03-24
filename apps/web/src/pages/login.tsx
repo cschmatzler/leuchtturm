@@ -56,6 +56,9 @@ function Page() {
 		},
 		onSubmit: ({ value }) => onSubmit(value),
 	});
+	const submitForm = async () => {
+		await form.handleSubmit();
+	};
 
 	return (
 		<div className="grid min-h-svh w-full lg:grid-cols-2">
@@ -73,14 +76,7 @@ function Page() {
 				</div>
 				<div className="flex flex-1 items-center justify-center">
 					<div className="w-full max-w-md">
-						<form
-							onSubmit={(e) => {
-								e.preventDefault();
-								e.stopPropagation();
-								form.handleSubmit();
-							}}
-							className="flex flex-col gap-6"
-						>
+						<form action={submitForm} className="flex flex-col gap-6">
 							<div className="flex flex-col gap-2 text-center">
 								<h1 className="text-2xl font-semibold tracking-tight">{t("Welcome back")}</h1>
 								<p className="text-balance text-muted-foreground">

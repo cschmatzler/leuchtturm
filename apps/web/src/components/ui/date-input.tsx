@@ -170,7 +170,6 @@ export function DateInput({
 						onSelect={handleDayPickerSelect}
 						month={visibleMonth}
 						onMonthChange={setVisibleMonth}
-						autoFocus
 					/>
 					{includeTime && (
 						<div className="border-border flex items-center justify-center gap-2 border-t px-3 py-2">

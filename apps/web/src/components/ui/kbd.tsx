@@ -36,16 +36,20 @@ function getPlatformOptionKey(): ReactNode {
 	);
 }
 
-function renderOptionShiftShortcut(key: string) {
+function OptionShiftShortcut({ keyLabel }: { keyLabel: string }) {
 	return (
 		<KbdGroup>
 			<Kbd>{getPlatformOptionKey()}</Kbd>
 			<Kbd>
 				<ArrowBigUpIcon className="size-3" />
 			</Kbd>
-			<Kbd>{key}</Kbd>
+			<Kbd>{keyLabel}</Kbd>
 		</KbdGroup>
 	);
 }
 
-export { Kbd, KbdGroup, renderOptionShiftShortcut };
+function renderOptionShiftShortcut(key: string) {
+	return <OptionShiftShortcut keyLabel={key} />;
+}
+
+export { Kbd, KbdGroup, OptionShiftShortcut, renderOptionShiftShortcut };

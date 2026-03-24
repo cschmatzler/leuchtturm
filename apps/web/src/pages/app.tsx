@@ -15,7 +15,7 @@ import { useTranslation } from "react-i18next";
 
 import { resolveLanguage } from "@chevrotain/core/i18n";
 import { Avatar, AvatarFallback } from "@chevrotain/web/components/ui/avatar";
-import { renderOptionShiftShortcut } from "@chevrotain/web/components/ui/kbd";
+import { OptionShiftShortcut } from "@chevrotain/web/components/ui/kbd";
 import { Link } from "@chevrotain/web/components/ui/link";
 import {
 	Menu,
@@ -60,6 +60,10 @@ const SETTINGS_NAVIGATION = [
 		labelKey: "Billing",
 	},
 ] as const;
+
+function LogOutShortcut() {
+	return <OptionShiftShortcut keyLabel="Q" />;
+}
 
 export const Route = createFileRoute("/app")({
 	beforeLoad: async ({ context: { queryClient } }) => {
@@ -114,7 +118,7 @@ function Shell({ session }: { session: SessionData }) {
 					category: t("Account"),
 					global: true,
 					icon: LogOutIcon,
-					shortcut: () => renderOptionShiftShortcut("Q"),
+					shortcut: LogOutShortcut,
 					async run() {
 						await signOut();
 					},
@@ -264,7 +268,9 @@ function Shell({ session }: { session: SessionData }) {
 							<MenuItem onClick={signOut}>
 								<LogOutIcon />
 								<span>{t("Log out")}</span>
-								<MenuShortcut>{renderOptionShiftShortcut("Q")}</MenuShortcut>
+								<MenuShortcut>
+									<LogOutShortcut />
+								</MenuShortcut>
 							</MenuItem>
 							{deviceSessions && deviceSessions.length > 1 && (
 								<MenuItem onClick={signOutAll}>

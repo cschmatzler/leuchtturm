@@ -1,6 +1,5 @@
-import { Line, LineChart } from "recharts";
-
 import { ChartContainer, type ChartConfig } from "@chevrotain/web/components/ui/chart";
+import { RechartsBoundary, useRechartsModule } from "@chevrotain/web/components/ui/recharts";
 import { cn } from "@chevrotain/web/lib/cn";
 
 type SparklineProps = {
@@ -13,7 +12,15 @@ type SparklineProps = {
 	className?: string;
 };
 
-export function Sparkline({
+export function Sparkline(props: SparklineProps) {
+	return (
+		<RechartsBoundary fallback={null}>
+			<SparklineContent {...props} />
+		</RechartsBoundary>
+	);
+}
+
+function SparklineContent({
 	data,
 	label,
 	color = "var(--color-chart-1)",
@@ -22,6 +29,7 @@ export function Sparkline({
 	showDots,
 	className,
 }: SparklineProps) {
+	const { Line, LineChart } = useRechartsModule();
 	const lastValue = data.findLast((d) => d.value !== null)?.value;
 	const shouldShowDots = showDots ?? data.length <= 10;
 

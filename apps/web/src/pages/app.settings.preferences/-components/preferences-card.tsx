@@ -70,6 +70,9 @@ export function PreferencesCard() {
 			toast.success(t("Preferences updated"));
 		},
 	});
+	const submitForm = async () => {
+		await form.handleSubmit();
+	};
 
 	return (
 		<Card className="gap-0 overflow-hidden p-0">
@@ -77,13 +80,7 @@ export function PreferencesCard() {
 				<CardTitle className="text-base">{t("Preferences")}</CardTitle>
 				<CardDescription>{t("Customize your experience.")}</CardDescription>
 			</CardHeader>
-			<form
-				onSubmit={(e) => {
-					e.preventDefault();
-					e.stopPropagation();
-					form.handleSubmit();
-				}}
-			>
+			<form action={submitForm}>
 				<FieldGroup>
 					<CardContent className="border-t border-border px-6 py-5">
 						<form.Field name="language">
@@ -104,7 +101,7 @@ export function PreferencesCard() {
 											value={field.state.value}
 											items={LANGUAGE_ITEMS}
 										>
-											<SelectTrigger className="w-[200px]">
+											<SelectTrigger id={field.name} className="w-[200px]">
 												<SelectValue />
 											</SelectTrigger>
 											<SelectContent>

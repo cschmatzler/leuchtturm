@@ -1,4 +1,5 @@
 import { Slider as BaseSlider } from "@base-ui/react/slider";
+import { useMemo } from "react";
 
 import { cn } from "@chevrotain/web/lib/cn";
 
@@ -15,6 +16,10 @@ function Slider({
 		: Array.isArray(defaultValue)
 			? defaultValue
 			: [min, max];
+	const thumbKeys = useMemo(
+		() => Array.from({ length: _values.length }, () => crypto.randomUUID()),
+		[_values.length],
+	);
 
 	return (
 		<BaseSlider.Root
@@ -42,10 +47,10 @@ function Slider({
 						className="bg-primary absolute select-none data-[orientation=horizontal]:h-full data-[orientation=vertical]:w-full"
 					/>
 				</BaseSlider.Track>
-				{Array.from({ length: _values.length }, (_, index) => (
+				{thumbKeys.map((thumbKey) => (
 					<BaseSlider.Thumb
 						data-slot="slider-thumb"
-						key={index}
+						key={thumbKey}
 						className="border-primary bg-background ring-ring/50 block size-4 shrink-0 rounded-full border shadow-sm select-none transition-[color,box-shadow] hover:ring-4 focus-visible:ring-4 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50"
 					/>
 				))}

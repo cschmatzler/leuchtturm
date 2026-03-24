@@ -1,6 +1,7 @@
 import { Effect, Option } from "effect";
 import { Headers, HttpServerRequest } from "effect/unstable/http";
 import { HttpApiBuilder } from "effect/unstable/httpapi";
+import { isIP } from "node:net";
 
 import { ChevrotainApi } from "@chevrotain/api/contract";
 import { recordDroppedRecords } from "@chevrotain/api/metrics";
@@ -9,8 +10,66 @@ import { Analytics } from "@chevrotain/core/analytics/index";
 import type { AnalyticsPayload, ErrorPayload } from "@chevrotain/core/analytics/schema";
 import { RateLimit } from "@chevrotain/core/rate-limit";
 
-export const getReportErrorsRateLimitKey = (request: HttpServerRequest.HttpServerRequest) =>
-	Option.getOrElse(request.remoteAddress, () => "unknown");
+const TRUSTED_PROXY_PEERS = new Set(["127.0.0.1", "::1", "::ffff:127.0.0.1"]);
+
+function normalizeIpAddress(value: string): string | null {
+	const trimmed = value.trim();
+
+	if (trimmed.length === 0) {
+		return null;
+	}
+
+	if (isIP(trimmed)) {
+		return trimmed;
+	}
+
+	if (trimmed.startsWith("[") && trimmed.includes("]")) {
+		const host = trimmed.slice(1, trimmed.indexOf("]"));
+		return isIP(host) ? host : null;
+	}
+
+	const lastColonIndex = trimmed.lastIndexOf(":");
+	if (lastColonIndex !== -1 && trimmed.indexOf(":") === lastColonIndex) {
+		const host = trimmed.slice(0, lastColonIndex);
+		return isIP(host) ? host : null;
+	}
+
+	return null;
+}
+
+function getHeaderValue(request: HttpServerRequest.HttpServerRequest, name: string): string | null {
+	return Headers.get(request.headers, name).pipe(
+		Option.match({
+			onNone: () => null,
+			onSome: (value) => value,
+		}),
+	);
+}
+
+function getForwardedClientIp(request: HttpServerRequest.HttpServerRequest): string | null {
+	const forwardedFor = getHeaderValue(request, "x-forwarded-for");
+	if (forwardedFor) {
+		for (const part of forwardedFor.split(",")) {
+			const ip = normalizeIpAddress(part);
+			if (ip) {
+				return ip;
+			}
+		}
+	}
+
+	const realIp = getHeaderValue(request, "x-real-ip");
+	return realIp ? normalizeIpAddress(realIp) : null;
+}
+
+export const getReportErrorsRateLimitKey = (request: HttpServerRequest.HttpServerRequest) => {
+	const peerAddress = Option.getOrElse(request.remoteAddress, () => "unknown");
+
+	if (!TRUSTED_PROXY_PEERS.has(peerAddress)) {
+		return peerAddress;
+	}
+
+	return getForwardedClientIp(request) ?? peerAddress;
+};
 
 const handleIngestEvents = Effect.fn("analytics.ingestEvents")(function* ({
 	payload,
@@ -62,7 +121,8 @@ const handleReportErrors = Effect.fn("analytics.reportErrors")(function* ({
 		"analytics.error_count": payload.errors.length,
 	});
 
-	// Rate limit by the trusted peer address reported by the HTTP server.
+	// Rate limit by the browser client address when the request came through the
+	// trusted local reverse proxy, otherwise fall back to the direct peer address.
 	const request = yield* HttpServerRequest.HttpServerRequest;
 	const ip = getReportErrorsRateLimitKey(request);
 	yield* Effect.annotateCurrentSpan("client.address", ip);

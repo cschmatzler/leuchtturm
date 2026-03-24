@@ -574,9 +574,7 @@ function SidebarMenuSkeleton({
 }: ComponentProps<"div"> & {
 	showIcon?: boolean;
 }) {
-	const width = useMemo(() => {
-		return `${Math.floor(Math.random() * 40) + 50}%`;
-	}, []);
+	const [width] = useState(() => `${Math.floor(Math.random() * 40) + 50}%`);
 
 	return (
 		<div

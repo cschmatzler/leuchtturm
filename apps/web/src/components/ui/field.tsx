@@ -186,9 +186,21 @@ function FieldError({
 	} else if (errors?.length === 1 && errors[0]?.message) {
 		content = errors[0].message;
 	} else if (errors) {
+		const errorCounts = new Map<string, number>();
+
 		content = (
 			<ul className="ml-4 flex list-disc flex-col gap-1">
-				{errors.map((error, index) => error?.message && <li key={index}>{error.message}</li>)}
+				{errors.map((error) => {
+					if (!error?.message) {
+						return null;
+					}
+
+					const occurrence = errorCounts.get(error.message) ?? 0;
+					errorCounts.set(error.message, occurrence + 1);
+					const key = occurrence === 0 ? error.message : `${error.message}-${occurrence}`;
+
+					return <li key={key}>{error.message}</li>;
+				})}
 			</ul>
 		);
 	}

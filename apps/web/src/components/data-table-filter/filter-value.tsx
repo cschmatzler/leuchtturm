@@ -372,7 +372,7 @@ function FilterValueOptionController<TData>({
 
 	return (
 		<Command loop>
-			<CommandInput autoFocus placeholder={t("Search")} />
+			<CommandInput placeholder={t("Search")} />
 			<CommandEmpty>{t("No results")}</CommandEmpty>
 			<CommandList className="max-h-fit">
 				<CommandGroup className={cn(selectedOptions.length === 0 && "hidden")}>
@@ -513,7 +513,6 @@ function FilterValueDateController<TData>({
 							</TabsList>
 							<TabsContent value="single">
 								<Calendar
-									autoFocus
 									mode="single"
 									captionLayout="dropdown"
 									defaultMonth={single ?? new Date()}
@@ -524,7 +523,6 @@ function FilterValueDateController<TData>({
 							</TabsContent>
 							<TabsContent value="range">
 								<Calendar
-									autoFocus
 									mode="range"
 									captionLayout="dropdown"
 									defaultMonth={range?.from ?? single ?? new Date()}
@@ -559,7 +557,6 @@ function FilterValueTextController<TData>({
 					<CommandItem>
 						<DebouncedInput
 							placeholder={t("Search")}
-							autoFocus
 							value={filter?.values[0] ?? ""}
 							onChange={changeText}
 						/>
