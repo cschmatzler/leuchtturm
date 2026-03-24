@@ -1,7 +1,15 @@
 {
 	"version": "0.22.1",
 	"selected_agents": ["pi"],
-	"installed_assets": ["AGENTS.md", ".pi/mcp.json"],
+	"installed_assets": [
+		"AGENTS.md",
+		".pi/mcp.json",
+		".pi/extensions/cog.ts",
+		".pi/skills/cog-code-query/SKILL.md",
+		".pi/skills/cog-debug/SKILL.md",
+		".pi/skills/cog-mem/SKILL.md",
+		".pi/skills/cog-mem-validate/SKILL.md"
+	],
 	"features": {
 		"enhanced_memory_writes": true,
 		"rationale_capture_prompts": true,
