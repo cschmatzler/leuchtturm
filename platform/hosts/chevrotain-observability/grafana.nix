@@ -30,6 +30,7 @@ in {
 				options.path = ./dashboards;
 			}
 		];
+		provision.alerting.rules.settings = import ./alerting/rules.nix;
 		provision.datasources.settings.datasources = [
 			{
 				name = "Prometheus";

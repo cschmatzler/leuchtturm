@@ -1,0 +1,827 @@
+{
+	"id": null,
+	"uid": "service-health",
+	"title": "Service Health",
+	"description": "10,000-foot health board for the core Chevrotain services and hosts.",
+	"tags": ["health", "overview"],
+	"editable": true,
+	"graphTooltip": 2,
+	"schemaVersion": 39,
+	"time": {
+		"from": "now-30m",
+		"to": "now"
+	},
+	"refresh": "30s",
+	"timezone": "browser",
+	"fiscalYearStartMonth": 0,
+	"templating": {
+		"list": []
+	},
+	"annotations": {
+		"list": []
+	},
+	"links": [],
+	"panels": [
+		{
+			"id": 1,
+			"type": "row",
+			"title": "Service status",
+			"gridPos": {
+				"h": 1,
+				"w": 24,
+				"x": 0,
+				"y": 0
+			},
+			"collapsed": false,
+			"panels": []
+		},
+		{
+			"id": 2,
+			"type": "stat",
+			"title": "API",
+			"description": "Healthy when the API target is up and the runtime is not obviously backing up. Degrades on event-loop lag >250ms, heap >512MB, or any DB pool waiters.",
+			"gridPos": {
+				"h": 6,
+				"w": 5,
+				"x": 0,
+				"y": 1
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"unit": "short",
+					"decimals": 0,
+					"mappings": [
+						{
+							"type": "value",
+							"options": {
+								"0": {
+									"text": "Down",
+									"index": 0
+								},
+								"1": {
+									"text": "Degraded",
+									"index": 1
+								},
+								"2": {
+									"text": "Healthy",
+									"index": 2
+								}
+							}
+						}
+					],
+					"color": {
+						"mode": "thresholds"
+					},
+					"thresholds": {
+						"mode": "absolute",
+						"steps": [
+							{
+								"color": "red",
+								"value": null
+							},
+							{
+								"color": "yellow",
+								"value": 0.5
+							},
+							{
+								"color": "green",
+								"value": 1.5
+							}
+						]
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"reduceOptions": {
+					"calcs": ["lastNotNull"]
+				},
+				"orientation": "auto",
+				"colorMode": "background",
+				"graphMode": "none",
+				"justifyMode": "center",
+				"textMode": "value"
+			},
+			"targets": [
+				{
+					"expr": "(2 * scalar(max(up{job=\"chevrotain/api\"}))) - (scalar(max(up{job=\"chevrotain/api\"})) * scalar(max((((max(nodejs_eventloop_lag_p99_seconds{job=\"chevrotain/api\"}) > bool 0.25) or on() vector(0)) or ((max(nodejs_heap_size_used_bytes{job=\"chevrotain/api\"}) > bool 536870912) or on() vector(0)) or ((max(chevrotain_api_db_pool_clients{state=\"waiting\"}) > bool 0) or on() vector(0))))))",
+					"legendFormat": "",
+					"instant": true,
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 3,
+			"type": "stat",
+			"title": "Zero",
+			"description": "Healthy when the cache, replication manager, and both view syncers are all scrapeable. Degrades when one component is missing and goes red when two or more are gone.",
+			"gridPos": {
+				"h": 6,
+				"w": 5,
+				"x": 5,
+				"y": 1
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"unit": "short",
+					"decimals": 0,
+					"mappings": [
+						{
+							"type": "value",
+							"options": {
+								"0": {
+									"text": "Down",
+									"index": 0
+								},
+								"1": {
+									"text": "Degraded",
+									"index": 1
+								},
+								"2": {
+									"text": "Healthy",
+									"index": 2
+								}
+							}
+						}
+					],
+					"color": {
+						"mode": "thresholds"
+					},
+					"thresholds": {
+						"mode": "absolute",
+						"steps": [
+							{
+								"color": "red",
+								"value": null
+							},
+							{
+								"color": "yellow",
+								"value": 0.5
+							},
+							{
+								"color": "green",
+								"value": 1.5
+							}
+						]
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"reduceOptions": {
+					"calcs": ["lastNotNull"]
+				},
+				"orientation": "auto",
+				"colorMode": "background",
+				"graphMode": "none",
+				"justifyMode": "center",
+				"textMode": "value"
+			},
+			"targets": [
+				{
+					"expr": "(2 * scalar(count(up{job=~\"chevrotain/zero-(cache|replication-manager|view-syncer-.*)\"} == 1) >= bool 4)) + (scalar(count(up{job=~\"chevrotain/zero-(cache|replication-manager|view-syncer-.*)\"} == 1) >= bool 3) * scalar(count(up{job=~\"chevrotain/zero-(cache|replication-manager|view-syncer-.*)\"} == 1) < bool 4))",
+					"legendFormat": "",
+					"instant": true,
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 4,
+			"type": "stat",
+			"title": "Postgres",
+			"description": "Healthy when PostgreSQL is up and has plenty of headroom. Degrades on connection usage above 70% or if conflicts/deadlocks showed up in the last 15 minutes.",
+			"gridPos": {
+				"h": 6,
+				"w": 5,
+				"x": 10,
+				"y": 1
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"unit": "short",
+					"decimals": 0,
+					"mappings": [
+						{
+							"type": "value",
+							"options": {
+								"0": {
+									"text": "Down",
+									"index": 0
+								},
+								"1": {
+									"text": "Degraded",
+									"index": 1
+								},
+								"2": {
+									"text": "Healthy",
+									"index": 2
+								}
+							}
+						}
+					],
+					"color": {
+						"mode": "thresholds"
+					},
+					"thresholds": {
+						"mode": "absolute",
+						"steps": [
+							{
+								"color": "red",
+								"value": null
+							},
+							{
+								"color": "yellow",
+								"value": 0.5
+							},
+							{
+								"color": "green",
+								"value": 1.5
+							}
+						]
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"reduceOptions": {
+					"calcs": ["lastNotNull"]
+				},
+				"orientation": "auto",
+				"colorMode": "background",
+				"graphMode": "none",
+				"justifyMode": "center",
+				"textMode": "value"
+			},
+			"targets": [
+				{
+					"expr": "(2 * scalar(max(up{job=\"postgres\"}))) - (scalar(max(up{job=\"postgres\"})) * scalar(max(((((sum(pg_stat_database_numbackends{job=\"postgres\"}) / scalar(pg_settings_max_connections{job=\"postgres\"})) * 100) > bool 70) or on() vector(0)) or ((((sum(rate(pg_stat_database_deadlocks{job=\"postgres\", datname=\"chevrotain\"}[15m])) * 3600)) > bool 0) or on() vector(0)) or ((((sum(rate(pg_stat_database_conflicts{job=\"postgres\", datname=\"chevrotain\"}[15m])) * 3600)) > bool 0) or on() vector(0)))))",
+					"legendFormat": "",
+					"instant": true,
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 5,
+			"type": "stat",
+			"title": "Observability",
+			"description": "Healthy when Grafana, Prometheus, Loki, and Tempo are all up. Degrades when one of the four is missing.",
+			"gridPos": {
+				"h": 6,
+				"w": 5,
+				"x": 15,
+				"y": 1
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"unit": "short",
+					"decimals": 0,
+					"mappings": [
+						{
+							"type": "value",
+							"options": {
+								"0": {
+									"text": "Down",
+									"index": 0
+								},
+								"1": {
+									"text": "Degraded",
+									"index": 1
+								},
+								"2": {
+									"text": "Healthy",
+									"index": 2
+								}
+							}
+						}
+					],
+					"color": {
+						"mode": "thresholds"
+					},
+					"thresholds": {
+						"mode": "absolute",
+						"steps": [
+							{
+								"color": "red",
+								"value": null
+							},
+							{
+								"color": "yellow",
+								"value": 0.5
+							},
+							{
+								"color": "green",
+								"value": 1.5
+							}
+						]
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"reduceOptions": {
+					"calcs": ["lastNotNull"]
+				},
+				"orientation": "auto",
+				"colorMode": "background",
+				"graphMode": "none",
+				"justifyMode": "center",
+				"textMode": "value"
+			},
+			"targets": [
+				{
+					"expr": "(2 * scalar(count(up{job=~\"grafana|prometheus|loki|tempo\"} == 1) >= bool 4)) + (scalar(count(up{job=~\"grafana|prometheus|loki|tempo\"} == 1) >= bool 3) * scalar(count(up{job=~\"grafana|prometheus|loki|tempo\"} == 1) < bool 4))",
+					"legendFormat": "",
+					"instant": true,
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 6,
+			"type": "stat",
+			"title": "Hosts",
+			"description": "Healthy when all four node exporters are up and none of the hosts are near CPU, RAM, or root-disk saturation. Degrades when one host is missing or the fleet is running hot.",
+			"gridPos": {
+				"h": 6,
+				"w": 4,
+				"x": 20,
+				"y": 1
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"unit": "short",
+					"decimals": 0,
+					"mappings": [
+						{
+							"type": "value",
+							"options": {
+								"0": {
+									"text": "Down",
+									"index": 0
+								},
+								"1": {
+									"text": "Degraded",
+									"index": 1
+								},
+								"2": {
+									"text": "Healthy",
+									"index": 2
+								}
+							}
+						}
+					],
+					"color": {
+						"mode": "thresholds"
+					},
+					"thresholds": {
+						"mode": "absolute",
+						"steps": [
+							{
+								"color": "red",
+								"value": null
+							},
+							{
+								"color": "yellow",
+								"value": 0.5
+							},
+							{
+								"color": "green",
+								"value": 1.5
+							}
+						]
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"reduceOptions": {
+					"calcs": ["lastNotNull"]
+				},
+				"orientation": "auto",
+				"colorMode": "background",
+				"graphMode": "none",
+				"justifyMode": "center",
+				"textMode": "value"
+			},
+			"targets": [
+				{
+					"expr": "((2 * scalar(count(up{job=\"node\"} == 1) >= bool 4)) + (scalar(count(up{job=\"node\"} == 1) >= bool 3) * scalar(count(up{job=\"node\"} == 1) < bool 4))) - (scalar(count(up{job=\"node\"} == 1) >= bool 4) * scalar(max((((max(100 * (1 - avg by (instance) (rate(node_cpu_seconds_total{job=\"node\", mode=\"idle\"}[5m])))) > bool 85) or on() vector(0)) or ((max((1 - node_memory_MemAvailable_bytes{job=\"node\"} / node_memory_MemTotal_bytes{job=\"node\"}) * 100) > bool 90) or on() vector(0)) or ((max((1 - node_filesystem_avail_bytes{job=\"node\", mountpoint=\"/\", fstype!=\"rootfs\"} / node_filesystem_size_bytes{job=\"node\", mountpoint=\"/\", fstype!=\"rootfs\"}) * 100) > bool 90) or on() vector(0))))))",
+					"legendFormat": "",
+					"instant": true,
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 7,
+			"type": "row",
+			"title": "Fleet overview",
+			"gridPos": {
+				"h": 1,
+				"w": 24,
+				"x": 0,
+				"y": 7
+			},
+			"collapsed": false,
+			"panels": []
+		},
+		{
+			"id": 8,
+			"type": "table",
+			"title": "Host Overview",
+			"description": "Fast scan of the four hosts so you can see whether a yellow Hosts tile is CPU, RAM, swap, or disk pressure.",
+			"gridPos": {
+				"h": 8,
+				"w": 24,
+				"x": 0,
+				"y": 8
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
+			"fieldConfig": {
+				"defaults": {},
+				"overrides": [
+					{
+						"matcher": {
+							"id": "byName",
+							"options": "instance"
+						},
+						"properties": [
+							{
+								"id": "displayName",
+								"value": "Host"
+							},
+							{
+								"id": "custom.width",
+								"value": 120
+							}
+						]
+					},
+					{
+						"matcher": {
+							"id": "byName",
+							"options": "Value #A"
+						},
+						"properties": [
+							{
+								"id": "displayName",
+								"value": "Uptime"
+							},
+							{
+								"id": "unit",
+								"value": "dtdurations"
+							}
+						]
+					},
+					{
+						"matcher": {
+							"id": "byName",
+							"options": "Value #B"
+						},
+						"properties": [
+							{
+								"id": "displayName",
+								"value": "CPU"
+							},
+							{
+								"id": "unit",
+								"value": "percent"
+							},
+							{
+								"id": "decimals",
+								"value": 1
+							},
+							{
+								"id": "thresholds",
+								"value": {
+									"mode": "absolute",
+									"steps": [
+										{
+											"color": "green",
+											"value": null
+										},
+										{
+											"color": "orange",
+											"value": 70
+										},
+										{
+											"color": "red",
+											"value": 90
+										}
+									]
+								}
+							},
+							{
+								"id": "custom.cellOptions",
+								"value": {
+									"type": "color-text"
+								}
+							}
+						]
+					},
+					{
+						"matcher": {
+							"id": "byName",
+							"options": "Value #C"
+						},
+						"properties": [
+							{
+								"id": "displayName",
+								"value": "Load/Core"
+							},
+							{
+								"id": "unit",
+								"value": "short"
+							},
+							{
+								"id": "decimals",
+								"value": 2
+							},
+							{
+								"id": "thresholds",
+								"value": {
+									"mode": "absolute",
+									"steps": [
+										{
+											"color": "green",
+											"value": null
+										},
+										{
+											"color": "orange",
+											"value": 0.7
+										},
+										{
+											"color": "red",
+											"value": 1.0
+										}
+									]
+								}
+							},
+							{
+								"id": "custom.cellOptions",
+								"value": {
+									"type": "color-text"
+								}
+							}
+						]
+					},
+					{
+						"matcher": {
+							"id": "byName",
+							"options": "Value #D"
+						},
+						"properties": [
+							{
+								"id": "displayName",
+								"value": "RAM"
+							},
+							{
+								"id": "unit",
+								"value": "percent"
+							},
+							{
+								"id": "decimals",
+								"value": 1
+							},
+							{
+								"id": "thresholds",
+								"value": {
+									"mode": "absolute",
+									"steps": [
+										{
+											"color": "green",
+											"value": null
+										},
+										{
+											"color": "orange",
+											"value": 70
+										},
+										{
+											"color": "red",
+											"value": 90
+										}
+									]
+								}
+							},
+							{
+								"id": "custom.cellOptions",
+								"value": {
+									"type": "gauge",
+									"mode": "basic"
+								}
+							},
+							{
+								"id": "min",
+								"value": 0
+							},
+							{
+								"id": "max",
+								"value": 100
+							}
+						]
+					},
+					{
+						"matcher": {
+							"id": "byName",
+							"options": "Value #E"
+						},
+						"properties": [
+							{
+								"id": "displayName",
+								"value": "Swap"
+							},
+							{
+								"id": "unit",
+								"value": "percent"
+							},
+							{
+								"id": "decimals",
+								"value": 1
+							},
+							{
+								"id": "thresholds",
+								"value": {
+									"mode": "absolute",
+									"steps": [
+										{
+											"color": "green",
+											"value": null
+										},
+										{
+											"color": "orange",
+											"value": 25
+										},
+										{
+											"color": "red",
+											"value": 50
+										}
+									]
+								}
+							},
+							{
+								"id": "custom.cellOptions",
+								"value": {
+									"type": "gauge",
+									"mode": "basic"
+								}
+							},
+							{
+								"id": "min",
+								"value": 0
+							},
+							{
+								"id": "max",
+								"value": 100
+							}
+						]
+					},
+					{
+						"matcher": {
+							"id": "byName",
+							"options": "Value #F"
+						},
+						"properties": [
+							{
+								"id": "displayName",
+								"value": "Disk"
+							},
+							{
+								"id": "unit",
+								"value": "percent"
+							},
+							{
+								"id": "decimals",
+								"value": 1
+							},
+							{
+								"id": "thresholds",
+								"value": {
+									"mode": "absolute",
+									"steps": [
+										{
+											"color": "green",
+											"value": null
+										},
+										{
+											"color": "orange",
+											"value": 70
+										},
+										{
+											"color": "red",
+											"value": 90
+										}
+									]
+								}
+							},
+							{
+								"id": "custom.cellOptions",
+								"value": {
+									"type": "gauge",
+									"mode": "basic"
+								}
+							},
+							{
+								"id": "min",
+								"value": 0
+							},
+							{
+								"id": "max",
+								"value": 100
+							}
+						]
+					},
+					{
+						"matcher": {
+							"id": "byName",
+							"options": "Time"
+						},
+						"properties": [
+							{
+								"id": "custom.hidden",
+								"value": true
+							}
+						]
+					}
+				]
+			},
+			"options": {
+				"showHeader": true,
+				"sortBy": [
+					{
+						"displayName": "Host",
+						"desc": false
+					}
+				]
+			},
+			"transformations": [
+				{
+					"id": "merge",
+					"options": {}
+				}
+			],
+			"targets": [
+				{
+					"expr": "time() - node_boot_time_seconds{job=\"node\"}",
+					"format": "table",
+					"instant": true,
+					"refId": "A"
+				},
+				{
+					"expr": "100 * (1 - avg by (instance) (rate(node_cpu_seconds_total{job=\"node\", mode=\"idle\"}[5m])))",
+					"format": "table",
+					"instant": true,
+					"refId": "B"
+				},
+				{
+					"expr": "node_load5{job=\"node\"} / count by (instance) (node_cpu_seconds_total{job=\"node\", mode=\"idle\"})",
+					"format": "table",
+					"instant": true,
+					"refId": "C"
+				},
+				{
+					"expr": "(1 - node_memory_MemAvailable_bytes{job=\"node\"} / node_memory_MemTotal_bytes{job=\"node\"}) * 100",
+					"format": "table",
+					"instant": true,
+					"refId": "D"
+				},
+				{
+					"expr": "((node_memory_SwapTotal_bytes{job=\"node\"} - node_memory_SwapFree_bytes{job=\"node\"}) / node_memory_SwapTotal_bytes{job=\"node\"}) * 100",
+					"format": "table",
+					"instant": true,
+					"refId": "E"
+				},
+				{
+					"expr": "(1 - node_filesystem_avail_bytes{job=\"node\", mountpoint=\"/\", fstype!=\"rootfs\"} / node_filesystem_size_bytes{job=\"node\", mountpoint=\"/\", fstype!=\"rootfs\"}) * 100",
+					"format": "table",
+					"instant": true,
+					"refId": "F"
+				}
+			]
+		}
+	]
+}
