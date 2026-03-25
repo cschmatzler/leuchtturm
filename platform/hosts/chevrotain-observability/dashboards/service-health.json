@@ -119,7 +119,7 @@
 			"id": 3,
 			"type": "stat",
 			"title": "Zero",
-			"description": "Healthy when the cache, replication manager, and both view syncers are all scrapeable. Degrades when one component is missing and goes red when two or more are gone.",
+			"description": "Healthy when the replication manager and both view syncers have emitted uptime metrics in the last 5 minutes. Degrades when one component is missing and goes red when two or more are gone.",
 			"gridPos": {
 				"h": 6,
 				"w": 5,
@@ -188,7 +188,7 @@
 			},
 			"targets": [
 				{
-					"expr": "(2 * scalar(count(up{job=~\"chevrotain/zero-(cache|replication-manager|view-syncer-.*)\"} == 1) >= bool 4)) + (scalar(count(up{job=~\"chevrotain/zero-(cache|replication-manager|view-syncer-.*)\"} == 1) >= bool 3) * scalar(count(up{job=~\"chevrotain/zero-(cache|replication-manager|view-syncer-.*)\"} == 1) < bool 4))",
+					"expr": "(2 * scalar(count(max_over_time(zero_server_uptime_seconds{job=~\"chevrotain/zero-(replication-manager|view-syncer-.*)\"}[5m]) > 0) >= bool 3)) + scalar(count(max_over_time(zero_server_uptime_seconds{job=~\"chevrotain/zero-(replication-manager|view-syncer-.*)\"}[5m]) > 0) == bool 2)",
 					"legendFormat": "",
 					"instant": true,
 					"refId": "A"
