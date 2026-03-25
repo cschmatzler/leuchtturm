@@ -105,7 +105,11 @@
 				min_wal_size = "256MB";
 				wal_compression = "lz4";
 
-				max_connections = 50;
+				# The deployment runs the API, observability exporters, and multiple
+				# Zero processes against the same Postgres instance. This host is
+				# large enough to carry a more generous connection ceiling while still
+				# leaving headroom above the explicitly capped Zero connection budgets.
+				max_connections = 128;
 				max_wal_senders = lib.mkForce 5;
 				idle_in_transaction_session_timeout = "5min";
 

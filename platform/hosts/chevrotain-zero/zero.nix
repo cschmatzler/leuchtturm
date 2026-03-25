@@ -33,6 +33,14 @@
 
 	# --- View syncer generation ---
 
+	# Zero defaults to 30 CVR connections and 5 change-db connections per
+	# view syncer. With two syncers, those defaults can still consume a large
+	# chunk of the Postgres connection budget before the API gets a client.
+	viewSyncerSyncWorkers = 2;
+	viewSyncerCvrMaxConns = 8;
+	viewSyncerChangeMaxConns = 2;
+	replicationManagerInitialSyncTableCopyWorkers = 2;
+
 	viewSyncerIndices = builtins.genList (i: i) cfg.zero.viewSyncerCount;
 	viewSyncerName = index: "zero-view-syncer-${toString index}";
 
@@ -49,6 +57,9 @@
 			environment =
 				mkCommonEnvironment name 4848
 				// {
+					ZERO_NUM_SYNC_WORKERS = toString viewSyncerSyncWorkers;
+					ZERO_CVR_MAX_CONNS = toString viewSyncerCvrMaxConns;
+					ZERO_CHANGE_MAX_CONNS = toString viewSyncerChangeMaxConns;
 					ZERO_QUERY_FORWARD_COOKIES = "true";
 					ZERO_MUTATE_FORWARD_COOKIES = "true";
 					ZERO_QUERY_URL = "https://api.${cfg.domain}/api/query";
@@ -101,6 +112,8 @@ in {
 					environment =
 						mkCommonEnvironment "zero-replication-manager" 4849
 						// {
+							ZERO_INITIAL_SYNC_TABLE_COPY_WORKERS =
+								toString replicationManagerInitialSyncTableCopyWorkers;
 							ZERO_NUM_SYNC_WORKERS = "0";
 						};
 					environmentFiles = [config.sops.secrets.zero-env.path];
