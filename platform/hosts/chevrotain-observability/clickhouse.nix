@@ -32,12 +32,27 @@
 				method LowCardinality(String) DEFAULT ${"''"},
 				statusCode UInt16 DEFAULT 0,
 				userAgent String DEFAULT ${"''"},
+				requestId String DEFAULT ${"''"},
+				traceId String DEFAULT ${"''"},
+				spanId String DEFAULT ${"''"},
+				route String DEFAULT ${"''"},
+				serviceNamespace LowCardinality(String) DEFAULT ${"''"},
+				serviceName LowCardinality(String) DEFAULT ${"''"},
+				deploymentEnvironment LowCardinality(String) DEFAULT ${"''"},
 				properties String DEFAULT '{}'
 			) ENGINE = MergeTree()
 			PARTITION BY toDate(timestamp)
 			ORDER BY (source, timestamp)
 			TTL toDate(timestamp) + INTERVAL 90 DAY DELETE
 			SETTINGS index_granularity = 8192;
+
+			ALTER TABLE error_events ADD COLUMN IF NOT EXISTS requestId String DEFAULT ${"''"};
+			ALTER TABLE error_events ADD COLUMN IF NOT EXISTS traceId String DEFAULT ${"''"};
+			ALTER TABLE error_events ADD COLUMN IF NOT EXISTS spanId String DEFAULT ${"''"};
+			ALTER TABLE error_events ADD COLUMN IF NOT EXISTS route String DEFAULT ${"''"};
+			ALTER TABLE error_events ADD COLUMN IF NOT EXISTS serviceNamespace LowCardinality(String) DEFAULT ${"''"};
+			ALTER TABLE error_events ADD COLUMN IF NOT EXISTS serviceName LowCardinality(String) DEFAULT ${"''"};
+			ALTER TABLE error_events ADD COLUMN IF NOT EXISTS deploymentEnvironment LowCardinality(String) DEFAULT ${"''"};
 		'';
 in {
 	services.clickhouse = {

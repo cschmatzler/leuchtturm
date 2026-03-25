@@ -1,10 +1,15 @@
-import { Effect, Option } from "effect";
+import { Cause, Effect, Exit, Option } from "effect";
 import { Headers, HttpServerRequest } from "effect/unstable/http";
 import { HttpApiBuilder } from "effect/unstable/httpapi";
 import { isIP } from "node:net";
 
 import { ChevrotainApi } from "@chevrotain/api/contract";
-import { recordDroppedRecords } from "@chevrotain/api/metrics";
+import {
+	recordAnalyticsBatch,
+	recordAnalyticsInsert,
+	recordDroppedRecords,
+	recordRateLimitCheck,
+} from "@chevrotain/api/metrics";
 import { CurrentUser } from "@chevrotain/api/middleware/auth";
 import { Analytics } from "@chevrotain/core/analytics/index";
 import type { AnalyticsPayload, ErrorPayload } from "@chevrotain/core/analytics/schema";
@@ -92,16 +97,31 @@ const handleIngestEvents = Effect.fn("analytics.ingestEvents")(function* ({
 		"enduser.id": user.id,
 	});
 
-	// Best-effort — don't fail the client request if ClickHouse is down.
-	yield* analytics.insertEvents([...payload.events], user.id, session.id).pipe(
-		Effect.catchTag("AnalyticsError", (error) =>
-			Effect.logError("Analytics insert failed, dropping events").pipe(
-				Effect.annotateLogs("error", error.message),
-				Effect.annotateLogs("eventCount", String(payload.events.length)),
-				Effect.tap(() =>
-					Effect.sync(() => recordDroppedRecords("analytics_events", payload.events.length)),
-				),
-			),
+	const startedAt = performance.now();
+	const insertExit = yield* Effect.exit(
+		analytics.insertEvents([...payload.events], user.id, session.id),
+	);
+	const durationSeconds = (performance.now() - startedAt) / 1000;
+
+	if (Exit.isSuccess(insertExit)) {
+		recordAnalyticsBatch("events", "ok", payload.events.length);
+		recordAnalyticsInsert("analytics_events", "ok", durationSeconds);
+		return { success: true as const };
+	}
+
+	recordAnalyticsBatch("events", "dropped", payload.events.length);
+	recordAnalyticsInsert("analytics_events", "error", durationSeconds);
+	const failure = insertExit.cause.reasons.find(Cause.isFailReason);
+	yield* Effect.logError("Analytics insert failed, dropping events").pipe(
+		Effect.annotateLogs(
+			"error",
+			failure?.error instanceof Analytics.Error
+				? failure.error.message
+				: Cause.pretty(insertExit.cause),
+		),
+		Effect.annotateLogs("eventCount", String(payload.events.length)),
+		Effect.tap(() =>
+			Effect.sync(() => recordDroppedRecords("analytics_events", payload.events.length)),
 		),
 	);
 
@@ -127,7 +147,16 @@ const handleReportErrors = Effect.fn("analytics.reportErrors")(function* ({
 	const ip = getReportErrorsRateLimitKey(request);
 	yield* Effect.annotateCurrentSpan("client.address", ip);
 
-	yield* rateLimit.check(ip, "Too many error reports");
+	const rateLimitExit = yield* Effect.exit(rateLimit.check(ip, "Too many error reports"));
+	if (Exit.isFailure(rateLimitExit)) {
+		recordRateLimitCheck("report_errors", "blocked");
+		if (payload.errors.length > 0) {
+			recordAnalyticsBatch("errors", "rate_limited", payload.errors.length);
+		}
+		return yield* Effect.failCause(rateLimitExit.cause);
+	}
+
+	recordRateLimitCheck("report_errors", "allowed");
 
 	if (payload.errors.length === 0) {
 		return { success: true as const };
@@ -135,27 +164,39 @@ const handleReportErrors = Effect.fn("analytics.reportErrors")(function* ({
 
 	const userAgent = Headers.get(request.headers, "user-agent").pipe(Option.getOrElse(() => ""));
 	yield* Effect.annotateCurrentSpan("user_agent.original", userAgent);
-
-	// Best-effort — don't fail the client request if ClickHouse is down.
-	yield* analytics
-		.insertErrors(
+	const startedAt = performance.now();
+	const insertExit = yield* Effect.exit(
+		analytics.insertErrors(
 			payload.errors.map((error) => ({
 				...error,
 				source: "web" as const,
 				userAgent,
 			})),
-		)
-		.pipe(
-			Effect.catchTag("AnalyticsError", (error) =>
-				Effect.logError("Error event insert failed, dropping errors").pipe(
-					Effect.annotateLogs("error", error.message),
-					Effect.annotateLogs("errorCount", String(payload.errors.length)),
-					Effect.tap(() =>
-						Effect.sync(() => recordDroppedRecords("error_events", payload.errors.length)),
-					),
-				),
-			),
-		);
+		),
+	);
+	const durationSeconds = (performance.now() - startedAt) / 1000;
+
+	if (Exit.isSuccess(insertExit)) {
+		recordAnalyticsBatch("errors", "ok", payload.errors.length);
+		recordAnalyticsInsert("error_events", "ok", durationSeconds);
+		return { success: true as const };
+	}
+
+	recordAnalyticsBatch("errors", "dropped", payload.errors.length);
+	recordAnalyticsInsert("error_events", "error", durationSeconds);
+	const failure = insertExit.cause.reasons.find(Cause.isFailReason);
+	yield* Effect.logError("Error event insert failed, dropping errors").pipe(
+		Effect.annotateLogs(
+			"error",
+			failure?.error instanceof Analytics.Error
+				? failure.error.message
+				: Cause.pretty(insertExit.cause),
+		),
+		Effect.annotateLogs("errorCount", String(payload.errors.length)),
+		Effect.tap(() =>
+			Effect.sync(() => recordDroppedRecords("error_events", payload.errors.length)),
+		),
+	);
 
 	return { success: true as const };
 });

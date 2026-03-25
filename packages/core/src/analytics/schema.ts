@@ -29,6 +29,13 @@ export const ErrorEvent = Schema.Struct({
 	method: Schema.optional(Schema.String),
 	statusCode: Schema.optional(Schema.Number),
 	userAgent: Schema.optional(Schema.String),
+	requestId: Schema.optional(Schema.String),
+	traceId: Schema.optional(Schema.String),
+	spanId: Schema.optional(Schema.String),
+	route: Schema.optional(Schema.String),
+	serviceNamespace: Schema.optional(Schema.String),
+	serviceName: Schema.optional(Schema.String),
+	deploymentEnvironment: Schema.optional(Schema.String),
 	properties: Schema.optional(Schema.Record(Schema.String, Schema.Unknown)),
 });
 export type ErrorEvent = typeof ErrorEvent.Type;

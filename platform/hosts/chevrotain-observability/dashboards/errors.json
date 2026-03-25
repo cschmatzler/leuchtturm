@@ -527,6 +527,72 @@
 								"value": true
 							}
 						]
+					},
+					{
+						"matcher": {
+							"id": "byName",
+							"options": "route"
+						},
+						"properties": [
+							{
+								"id": "custom.width",
+								"value": 140
+							}
+						]
+					},
+					{
+						"matcher": {
+							"id": "byName",
+							"options": "requestId"
+						},
+						"properties": [
+							{
+								"id": "custom.width",
+								"value": 180
+							},
+							{
+								"id": "links",
+								"value": [
+									{
+										"title": "Open logs",
+										"url": "/d/api/api?orgId=1&var-requestId=${__value.raw}"
+									}
+								]
+							}
+						]
+					},
+					{
+						"matcher": {
+							"id": "byName",
+							"options": "traceId"
+						},
+						"properties": [
+							{
+								"id": "custom.width",
+								"value": 200
+							},
+							{
+								"id": "links",
+								"value": [
+									{
+										"title": "Open trace",
+										"url": "/d/api-traces/api-traces?orgId=1&var-traceId=${__value.raw}"
+									}
+								]
+							}
+						]
+					},
+					{
+						"matcher": {
+							"id": "byName",
+							"options": "spanId"
+						},
+						"properties": [
+							{
+								"id": "custom.width",
+								"value": 160
+							}
+						]
 					}
 				]
 			},
@@ -548,7 +614,7 @@
 						"type": "grafana-clickhouse-datasource",
 						"uid": "clickhouse"
 					},
-					"rawSql": "SELECT timestamp, source, errorType, message, url, method, statusCode, stackTrace, userAgent FROM error_events WHERE timestamp >= $__fromTime AND timestamp <= $__toTime AND ('${source}' = 'all' OR source = '${source}') ORDER BY timestamp DESC LIMIT 100",
+					"rawSql": "SELECT timestamp, source, route, requestId, traceId, spanId, errorType, message, url, method, statusCode, stackTrace, userAgent FROM error_events WHERE timestamp >= $__fromTime AND timestamp <= $__toTime AND ('${source}' = 'all' OR source = '${source}') ORDER BY timestamp DESC LIMIT 100",
 					"format": 1,
 					"refId": "A"
 				}

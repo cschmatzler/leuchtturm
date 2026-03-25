@@ -3,7 +3,7 @@
 	"uid": "api",
 	"title": "API",
 	"description": "Roasted API — HTTP traffic, latency, Node.js runtime",
-	"tags": ["chevrotain-api"],
+	"tags": ["chevrotain/api"],
 	"editable": true,
 	"graphTooltip": 2,
 	"schemaVersion": 39,
@@ -15,7 +15,26 @@
 	"timezone": "browser",
 	"fiscalYearStartMonth": 0,
 	"templating": {
-		"list": []
+		"list": [
+			{
+				"current": {
+					"selected": false,
+					"text": "",
+					"value": ""
+				},
+				"description": "Filter API logs by request ID",
+				"hide": 0,
+				"includeAll": false,
+				"label": "Request ID",
+				"multi": false,
+				"name": "requestId",
+				"options": [],
+				"query": "",
+				"queryValue": "",
+				"skipUrlSync": false,
+				"type": "textbox"
+			}
+		]
 	},
 	"annotations": {
 		"list": []
@@ -998,7 +1017,7 @@
 			"id": 22,
 			"type": "logs",
 			"title": "API Logs",
-			"description": "Live journal logs from the chevrotain-api service",
+			"description": "Live logs for chevrotain/api. Leave Request ID empty for all logs or use an Errors dashboard link to prefilter by requestId.",
 			"gridPos": {
 				"h": 14,
 				"w": 24,
@@ -1025,7 +1044,576 @@
 						"type": "loki",
 						"uid": "loki"
 					},
-					"expr": "{job=\"chevrotain/api\"} | json",
+					"expr": "{job=\"chevrotain/api\"} | json |= \"$requestId\"",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 23,
+			"type": "row",
+			"title": "Operations Overview",
+			"gridPos": {
+				"h": 1,
+				"w": 24,
+				"x": 0,
+				"y": 63
+			},
+			"collapsed": false,
+			"panels": []
+		},
+		{
+			"id": 24,
+			"type": "stat",
+			"title": "Auth Req/s",
+			"gridPos": {
+				"h": 4,
+				"w": 6,
+				"x": 0,
+				"y": 64
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"unit": "reqps"
+				},
+				"overrides": []
+			},
+			"options": {
+				"reduceOptions": {
+					"calcs": ["lastNotNull"]
+				},
+				"colorMode": "value",
+				"graphMode": "area",
+				"textMode": "value"
+			},
+			"targets": [
+				{
+					"expr": "sum(rate(chevrotain_api_auth_requests_total[$__rate_interval]))",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 25,
+			"type": "stat",
+			"title": "Zero Ops/s",
+			"gridPos": {
+				"h": 4,
+				"w": 6,
+				"x": 6,
+				"y": 64
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"unit": "ops"
+				},
+				"overrides": []
+			},
+			"options": {
+				"reduceOptions": {
+					"calcs": ["lastNotNull"]
+				},
+				"colorMode": "value",
+				"graphMode": "area",
+				"textMode": "value"
+			},
+			"targets": [
+				{
+					"expr": "sum(rate(chevrotain_api_zero_operations_total[$__rate_interval]))",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 26,
+			"type": "stat",
+			"title": "Dropped Records/min",
+			"gridPos": {
+				"h": 4,
+				"w": 6,
+				"x": 12,
+				"y": 64
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"unit": "cpm"
+				},
+				"overrides": []
+			},
+			"options": {
+				"reduceOptions": {
+					"calcs": ["lastNotNull"]
+				},
+				"colorMode": "value",
+				"graphMode": "area",
+				"textMode": "value"
+			},
+			"targets": [
+				{
+					"expr": "sum(rate(dropped_records_total[$__rate_interval])) * 60",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 27,
+			"type": "stat",
+			"title": "DB Pool Waiting",
+			"gridPos": {
+				"h": 4,
+				"w": 6,
+				"x": 18,
+				"y": 64
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"color": {
+						"mode": "thresholds"
+					},
+					"thresholds": {
+						"mode": "absolute",
+						"steps": [
+							{
+								"color": "green",
+								"value": null
+							},
+							{
+								"color": "yellow",
+								"value": 1
+							},
+							{
+								"color": "red",
+								"value": 5
+							}
+						]
+					}
+				},
+				"overrides": []
+			},
+			"options": {
+				"reduceOptions": {
+					"calcs": ["lastNotNull"]
+				},
+				"colorMode": "value",
+				"graphMode": "area",
+				"textMode": "value"
+			},
+			"targets": [
+				{
+					"expr": "chevrotain_api_db_pool_clients{state=\"waiting\"}",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 28,
+			"type": "row",
+			"title": "Auth & Zero",
+			"gridPos": {
+				"h": 1,
+				"w": 24,
+				"x": 0,
+				"y": 68
+			},
+			"collapsed": false,
+			"panels": []
+		},
+		{
+			"id": 29,
+			"type": "timeseries",
+			"title": "Auth Requests by Outcome",
+			"gridPos": {
+				"h": 8,
+				"w": 12,
+				"x": 0,
+				"y": 69
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
+			"fieldConfig": {
+				"defaults": {},
+				"overrides": []
+			},
+			"options": {
+				"legend": {
+					"displayMode": "list",
+					"placement": "bottom"
+				}
+			},
+			"targets": [
+				{
+					"expr": "sum by (outcome) (rate(chevrotain_api_auth_requests_total[$__rate_interval]))",
+					"legendFormat": "{{outcome}}",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 30,
+			"type": "timeseries",
+			"title": "Auth p95 Latency by Operation",
+			"gridPos": {
+				"h": 8,
+				"w": 12,
+				"x": 12,
+				"y": 69
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"unit": "s"
+				},
+				"overrides": []
+			},
+			"options": {
+				"legend": {
+					"displayMode": "list",
+					"placement": "bottom"
+				}
+			},
+			"targets": [
+				{
+					"expr": "histogram_quantile(0.95, sum by (le, operation) (rate(chevrotain_api_auth_request_duration_seconds_bucket[$__rate_interval])))",
+					"legendFormat": "{{operation}}",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 31,
+			"type": "timeseries",
+			"title": "Zero Operations by Outcome",
+			"gridPos": {
+				"h": 8,
+				"w": 12,
+				"x": 0,
+				"y": 77
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
+			"fieldConfig": {
+				"defaults": {},
+				"overrides": []
+			},
+			"options": {
+				"legend": {
+					"displayMode": "list",
+					"placement": "bottom"
+				}
+			},
+			"targets": [
+				{
+					"expr": "sum by (operation, outcome) (rate(chevrotain_api_zero_operations_total[$__rate_interval]))",
+					"legendFormat": "{{operation}} · {{outcome}}",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 32,
+			"type": "timeseries",
+			"title": "Zero Error Rate by Name",
+			"gridPos": {
+				"h": 8,
+				"w": 12,
+				"x": 12,
+				"y": 77
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
+			"fieldConfig": {
+				"defaults": {},
+				"overrides": []
+			},
+			"options": {
+				"legend": {
+					"displayMode": "table",
+					"placement": "right"
+				}
+			},
+			"targets": [
+				{
+					"expr": "sum by (name) (rate(chevrotain_api_zero_operations_total{outcome=\"error\"}[$__rate_interval]))",
+					"legendFormat": "{{name}}",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 33,
+			"type": "timeseries",
+			"title": "Zero p95 Latency by Name",
+			"gridPos": {
+				"h": 8,
+				"w": 24,
+				"x": 0,
+				"y": 85
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"unit": "s"
+				},
+				"overrides": []
+			},
+			"options": {
+				"legend": {
+					"displayMode": "table",
+					"placement": "right"
+				}
+			},
+			"targets": [
+				{
+					"expr": "histogram_quantile(0.95, sum by (le, name) (rate(chevrotain_api_zero_operation_duration_seconds_bucket{name!=\"__request__\"}[$__rate_interval])))",
+					"legendFormat": "{{name}}",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 34,
+			"type": "row",
+			"title": "Analytics",
+			"gridPos": {
+				"h": 1,
+				"w": 24,
+				"x": 0,
+				"y": 93
+			},
+			"collapsed": false,
+			"panels": []
+		},
+		{
+			"id": 35,
+			"type": "timeseries",
+			"title": "Analytics Batches by Outcome",
+			"gridPos": {
+				"h": 8,
+				"w": 12,
+				"x": 0,
+				"y": 94
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
+			"fieldConfig": {
+				"defaults": {},
+				"overrides": []
+			},
+			"options": {
+				"legend": {
+					"displayMode": "list",
+					"placement": "bottom"
+				}
+			},
+			"targets": [
+				{
+					"expr": "sum by (pipeline, outcome) (rate(chevrotain_api_analytics_batches_total[$__rate_interval]))",
+					"legendFormat": "{{pipeline}} · {{outcome}}",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 36,
+			"type": "timeseries",
+			"title": "Analytics Records by Outcome",
+			"gridPos": {
+				"h": 8,
+				"w": 12,
+				"x": 12,
+				"y": 94
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
+			"fieldConfig": {
+				"defaults": {},
+				"overrides": []
+			},
+			"options": {
+				"legend": {
+					"displayMode": "list",
+					"placement": "bottom"
+				}
+			},
+			"targets": [
+				{
+					"expr": "sum by (pipeline, outcome) (rate(chevrotain_api_analytics_records_total[$__rate_interval]))",
+					"legendFormat": "{{pipeline}} · {{outcome}}",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 37,
+			"type": "timeseries",
+			"title": "Analytics Insert p95 by Table",
+			"gridPos": {
+				"h": 8,
+				"w": 12,
+				"x": 0,
+				"y": 102
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
+			"fieldConfig": {
+				"defaults": {
+					"unit": "s"
+				},
+				"overrides": []
+			},
+			"options": {
+				"legend": {
+					"displayMode": "list",
+					"placement": "bottom"
+				}
+			},
+			"targets": [
+				{
+					"expr": "histogram_quantile(0.95, sum by (le, table) (rate(chevrotain_api_analytics_insert_duration_seconds_bucket[$__rate_interval])))",
+					"legendFormat": "{{table}}",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 38,
+			"type": "timeseries",
+			"title": "Dropped Records by Pipeline",
+			"gridPos": {
+				"h": 8,
+				"w": 12,
+				"x": 12,
+				"y": 102
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
+			"fieldConfig": {
+				"defaults": {},
+				"overrides": []
+			},
+			"options": {
+				"legend": {
+					"displayMode": "list",
+					"placement": "bottom"
+				}
+			},
+			"targets": [
+				{
+					"expr": "sum by (pipeline) (rate(dropped_records_total[$__rate_interval]))",
+					"legendFormat": "{{pipeline}}",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 39,
+			"type": "row",
+			"title": "Pool & Rate Limiting",
+			"gridPos": {
+				"h": 1,
+				"w": 24,
+				"x": 0,
+				"y": 110
+			},
+			"collapsed": false,
+			"panels": []
+		},
+		{
+			"id": 40,
+			"type": "timeseries",
+			"title": "DB Pool Clients",
+			"gridPos": {
+				"h": 8,
+				"w": 12,
+				"x": 0,
+				"y": 111
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
+			"fieldConfig": {
+				"defaults": {},
+				"overrides": []
+			},
+			"options": {
+				"legend": {
+					"displayMode": "list",
+					"placement": "bottom"
+				}
+			},
+			"targets": [
+				{
+					"expr": "chevrotain_api_db_pool_clients",
+					"legendFormat": "{{state}}",
+					"refId": "A"
+				}
+			]
+		},
+		{
+			"id": 41,
+			"type": "timeseries",
+			"title": "Rate Limit Checks",
+			"gridPos": {
+				"h": 8,
+				"w": 12,
+				"x": 12,
+				"y": 111
+			},
+			"datasource": {
+				"type": "prometheus",
+				"uid": "prometheus"
+			},
+			"fieldConfig": {
+				"defaults": {},
+				"overrides": []
+			},
+			"options": {
+				"legend": {
+					"displayMode": "list",
+					"placement": "bottom"
+				}
+			},
+			"targets": [
+				{
+					"expr": "sum by (outcome) (rate(chevrotain_api_rate_limit_checks_total[$__rate_interval]))",
+					"legendFormat": "{{outcome}}",
 					"refId": "A"
 				}
 			]

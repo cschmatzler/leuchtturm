@@ -11,6 +11,8 @@ import { MetricsHandlerLive } from "@chevrotain/api/handlers/metrics";
 import { ZeroHandlerLive } from "@chevrotain/api/handlers/zero";
 import { MetricsMiddleware, routeLabelFromUrl } from "@chevrotain/api/metrics";
 import { AuthMiddlewareLive } from "@chevrotain/api/middleware/auth-live";
+import { ApiErrorReportingMiddleware } from "@chevrotain/api/middleware/error-reporting";
+import { RequestContextMiddleware } from "@chevrotain/api/middleware/request-context";
 import { AppLayer } from "@chevrotain/api/runtime";
 
 const HandlersLive = Layer.mergeAll(
@@ -42,11 +44,13 @@ export const ServerLive = Layer.unwrap(
 		const { baseUrl } = yield* ApiConfig;
 		const corsMiddleware = HttpMiddleware.cors({
 			allowedOrigins: [baseUrl],
-			exposedHeaders: ["Content-Length"],
+			exposedHeaders: ["Content-Length", "X-Request-Id"],
 			credentials: true,
 			maxAge: 600,
 		});
-		const appMiddleware = HttpMiddleware.make((app) => corsMiddleware(MetricsMiddleware(app)));
+		const appMiddleware = HttpMiddleware.make((app) =>
+			corsMiddleware(RequestContextMiddleware(ApiErrorReportingMiddleware(MetricsMiddleware(app)))),
+		);
 		return HttpServer.serve(httpApp, appMiddleware).pipe(
 			Layer.provide(HttpServer.layerServices),
 			Layer.provide(HttpTracingLive),

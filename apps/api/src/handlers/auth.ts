@@ -4,7 +4,7 @@ import { HttpApiBuilder } from "effect/unstable/httpapi";
 
 import { reportApiError } from "@chevrotain/api/analytics/report-error";
 import { ChevrotainApi } from "@chevrotain/api/contract";
-import { routeLabelFromUrl } from "@chevrotain/api/metrics";
+import { recordAuthRequest, routeLabelFromUrl } from "@chevrotain/api/metrics";
 import { Analytics } from "@chevrotain/core/analytics/index";
 import { Auth } from "@chevrotain/core/auth/index";
 import { AuthServiceError } from "@chevrotain/core/errors";
@@ -12,11 +12,16 @@ import { AuthServiceError } from "@chevrotain/core/errors";
 const authPassthroughErrorResponse = (message: string) =>
 	HttpServerResponse.jsonUnsafe({ _tag: "AuthServiceError", message }, { status: 500 });
 
+function recordAuthPassthroughOutcome(outcome: "ok" | "error", startedAt: number): void {
+	recordAuthRequest("passthrough", outcome, (performance.now() - startedAt) / 1000);
+}
+
 export const handleAuthPassthrough = Effect.fn("auth.passthrough.handle")(function* (
 	auth: Auth.Interface,
 	request: HttpServerRequest.HttpServerRequest,
 	analytics: Analytics.Interface | null = null,
 ) {
+	const startedAt = performance.now();
 	const rawRequest = yield* HttpServerRequest.toWeb(request).pipe(Effect.orDie);
 	const route = routeLabelFromUrl(request.url);
 
@@ -40,6 +45,7 @@ export const handleAuthPassthrough = Effect.fn("auth.passthrough.handle")(functi
 	);
 
 	if (responseResult._tag === "error") {
+		recordAuthPassthroughOutcome("error", startedAt);
 		yield* reportApiError(analytics, {
 			request,
 			statusCode: 500,
@@ -71,6 +77,7 @@ export const handleAuthPassthrough = Effect.fn("auth.passthrough.handle")(functi
 	);
 
 	if (bodyResult._tag === "error") {
+		recordAuthPassthroughOutcome("error", startedAt);
 		yield* reportApiError(analytics, {
 			request,
 			statusCode: 500,
@@ -81,10 +88,10 @@ export const handleAuthPassthrough = Effect.fn("auth.passthrough.handle")(functi
 	}
 
 	const body = bodyResult.body;
-
 	const headers = new Headers(response.headers);
 	const setCookieHeaders = headers.getSetCookie();
 	headers.delete("set-cookie");
+	recordAuthPassthroughOutcome("ok", startedAt);
 
 	return HttpServerResponse.raw(new Uint8Array(body), {
 		status: response.status,

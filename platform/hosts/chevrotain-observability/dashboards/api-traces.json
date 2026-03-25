@@ -3,7 +3,7 @@
 	"uid": "api-traces",
 	"title": "API Traces",
 	"description": "Roasted API tracing - recent traces, slow requests, and errors",
-	"tags": ["chevrotain-api", "traces"],
+	"tags": ["chevrotain/api", "traces"],
 	"editable": true,
 	"graphTooltip": 0,
 	"schemaVersion": 39,
@@ -58,7 +58,7 @@
 			"id": 2,
 			"type": "table",
 			"title": "Recent API Traces",
-			"description": "Latest traces for service.name=api",
+			"description": "Latest traces for chevrotain/api (service.namespace=chevrotain, service.name=api)",
 			"gridPos": {
 				"h": 10,
 				"w": 12,
@@ -118,7 +118,7 @@
 						"uid": "tempo"
 					},
 					"limit": 20,
-					"query": "{ resource.service.name = \"api\" }",
+					"query": "{ resource.service.namespace = \"chevrotain\" && resource.service.name = \"api\" }",
 					"queryType": "traceql",
 					"refId": "A",
 					"tableType": "traces"
@@ -189,7 +189,7 @@
 						"uid": "tempo"
 					},
 					"limit": 20,
-					"query": "{ resource.service.name = \"api\" && duration > 250ms }",
+					"query": "{ resource.service.namespace = \"chevrotain\" && resource.service.name = \"api\" && duration > 250ms }",
 					"queryType": "traceql",
 					"refId": "A",
 					"tableType": "traces"
@@ -260,7 +260,7 @@
 						"uid": "tempo"
 					},
 					"limit": 20,
-					"query": "{ resource.service.name = \"api\" && span:status = error }",
+					"query": "{ resource.service.namespace = \"chevrotain\" && resource.service.name = \"api\" && span:status = error }",
 					"queryType": "traceql",
 					"refId": "A",
 					"tableType": "traces"
