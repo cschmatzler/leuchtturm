@@ -3,7 +3,7 @@
 	"uid": "postgres",
 	"title": "Postgres",
 	"description": "PostgreSQL metrics from postgres_exporter — connections, throughput, cache, locks, tables",
-	"tags": ["postgres"],
+	"tags": ["database", "postgres"],
 	"editable": true,
 	"graphTooltip": 2,
 	"schemaVersion": 39,

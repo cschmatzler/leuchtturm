@@ -3,7 +3,7 @@
 	"uid": "api",
 	"title": "API",
 	"description": "Roasted API — HTTP traffic, latency, Node.js runtime",
-	"tags": ["chevrotain/api"],
+	"tags": ["api", "metrics"],
 	"editable": true,
 	"graphTooltip": 2,
 	"schemaVersion": 39,

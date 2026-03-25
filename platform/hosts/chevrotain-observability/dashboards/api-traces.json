@@ -3,7 +3,7 @@
 	"uid": "api-traces",
 	"title": "API Traces",
 	"description": "Roasted API tracing - recent traces, slow requests, and errors",
-	"tags": ["chevrotain/api", "traces"],
+	"tags": ["api", "traces"],
 	"editable": true,
 	"graphTooltip": 0,
 	"schemaVersion": 39,
@@ -15,26 +15,7 @@
 	"timezone": "browser",
 	"fiscalYearStartMonth": 0,
 	"templating": {
-		"list": [
-			{
-				"current": {
-					"selected": false,
-					"text": "",
-					"value": ""
-				},
-				"description": "Selected trace ID",
-				"hide": 0,
-				"includeAll": false,
-				"label": "Trace ID",
-				"multi": false,
-				"name": "traceId",
-				"options": [],
-				"query": "",
-				"queryValue": "",
-				"skipUrlSync": false,
-				"type": "textbox"
-			}
-		]
+		"list": []
 	},
 	"annotations": {
 		"list": []
@@ -78,12 +59,6 @@
 						},
 						"inspect": false
 					},
-					"links": [
-						{
-							"title": "Open trace",
-							"url": "/d/api-traces/api-traces?orgId=1&var-traceId=${__data.fields[\"traceID\"]}"
-						}
-					],
 					"mappings": [],
 					"thresholds": {
 						"mode": "absolute",
@@ -149,12 +124,6 @@
 						},
 						"inspect": false
 					},
-					"links": [
-						{
-							"title": "Open trace",
-							"url": "/d/api-traces/api-traces?orgId=1&var-traceId=${__data.fields[\"traceID\"]}"
-						}
-					],
 					"mappings": [],
 					"thresholds": {
 						"mode": "absolute",
@@ -220,12 +189,6 @@
 						},
 						"inspect": false
 					},
-					"links": [
-						{
-							"title": "Open trace",
-							"url": "/d/api-traces/api-traces?orgId=1&var-traceId=${__data.fields[\"traceID\"]}"
-						}
-					],
 					"mappings": [],
 					"thresholds": {
 						"mode": "absolute",
@@ -264,46 +227,6 @@
 					"queryType": "traceql",
 					"refId": "A",
 					"tableType": "traces"
-				}
-			]
-		},
-		{
-			"id": 5,
-			"type": "row",
-			"title": "Trace Detail",
-			"gridPos": {
-				"h": 1,
-				"w": 24,
-				"x": 0,
-				"y": 21
-			},
-			"collapsed": false,
-			"panels": []
-		},
-		{
-			"id": 6,
-			"type": "traces",
-			"title": "Selected Trace",
-			"description": "Choose a trace from a table above or paste a trace ID into the dashboard variable",
-			"gridPos": {
-				"h": 18,
-				"w": 24,
-				"x": 0,
-				"y": 22
-			},
-			"datasource": {
-				"type": "tempo",
-				"uid": "tempo"
-			},
-			"targets": [
-				{
-					"datasource": {
-						"type": "tempo",
-						"uid": "tempo"
-					},
-					"query": "$traceId",
-					"queryType": "traceId",
-					"refId": "A"
 				}
 			]
 		}

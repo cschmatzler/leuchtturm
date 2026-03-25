@@ -3,7 +3,7 @@
 	"uid": "errors",
 	"title": "Errors",
 	"description": "Application error tracking — API and web client errors",
-	"tags": ["chevrotain-errors"],
+	"tags": ["application", "errors"],
 	"editable": true,
 	"graphTooltip": 2,
 	"schemaVersion": 39,

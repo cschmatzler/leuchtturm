@@ -3,7 +3,7 @@
 	"uid": "node",
 	"title": "Hosts",
 	"description": "Host metrics from node_exporter — CPU, memory, disk, network, system",
-	"tags": ["node-exporter"],
+	"tags": ["infrastructure", "hosts"],
 	"editable": true,
 	"graphTooltip": 2,
 	"schemaVersion": 39,

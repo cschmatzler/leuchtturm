@@ -1,9 +1,9 @@
 {
 	"id": null,
-	"uid": "zero-cache",
-	"title": "Zero Cache",
-	"description": "Rocicorp Zero Cache sync server — clients, hydration, pokes, CVR, replication, mutations",
-	"tags": ["zero-cache"],
+	"uid": "zero",
+	"title": "Zero",
+	"description": "Rocicorp Zero sync server — clients, hydration, pokes, CVR, replication, mutations",
+	"tags": ["zero", "metrics"],
 	"editable": true,
 	"graphTooltip": 2,
 	"schemaVersion": 39,
@@ -20,13 +20,7 @@
 	"annotations": {
 		"list": []
 	},
-	"links": [
-		{
-			"title": "Open Zero Traces",
-			"type": "link",
-			"url": "/d/zero-traces/zero-traces?orgId=1"
-		}
-	],
+	"links": [],
 	"panels": [
 		{
 			"id": 1,

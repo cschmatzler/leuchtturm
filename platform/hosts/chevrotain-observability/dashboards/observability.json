@@ -3,7 +3,7 @@
 	"uid": "observability",
 	"title": "Observability",
 	"description": "Observability stack health — Grafana, Prometheus, Loki, Tempo",
-	"tags": ["observability"],
+	"tags": ["observability", "stack"],
 	"editable": true,
 	"graphTooltip": 2,
 	"schemaVersion": 39,
