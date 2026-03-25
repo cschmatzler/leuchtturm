@@ -19,4 +19,11 @@
 		owner = "grafana";
 		group = "grafana";
 	};
+
+	sops.secrets.grafana-discord-webhook = {
+		sopsFile = ../../../secrets/grafana-alerting.env;
+		format = "dotenv";
+		owner = "grafana";
+		group = "grafana";
+	};
 }

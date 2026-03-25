@@ -31,6 +31,8 @@ in {
 			}
 		];
 		provision.alerting.rules.settings = import ./alerting/rules.nix;
+		provision.alerting.contactPoints.settings = import ./alerting/contact-points.nix;
+		provision.alerting.policies.settings = import ./alerting/policies.nix;
 		provision.datasources.settings.datasources = [
 			{
 				name = "Prometheus";
@@ -138,7 +140,10 @@ in {
 				GF_SERVER_ROOT_URL=https://$dns_name/
 				EOF
 			'';
-		serviceConfig.EnvironmentFile = "-/run/grafana/tailscale.env";
+		serviceConfig.EnvironmentFile = [
+			"-/run/grafana/tailscale.env"
+			config.sops.secrets.grafana-discord-webhook.path
+		];
 	};
 
 	systemd.services.tailscale-serve-grafana = {
