@@ -530,6 +530,68 @@ The practical architecture decision from that answer is:
 
 **Answer:** yes.
 
+### Q16. Which schema model should IMAP identity use?
+
+**Answer:** use a canonical `mail_message` row plus a separate mailbox-instance table.
+
+The mailbox-instance table is the honest source of IMAP sync identity. In v1, every imported IMAP mailbox item gets exactly one `mail_message` row and exactly one mailbox-instance row. Do **not** attempt cross-folder IMAP deduplication in v1.
+
+### Q17. What happens when a Gmail thread crosses the 30-day boundary?
+
+**Answer:** select by recent activity, then import the full thread.
+
+The practical rule is:
+
+- bootstrap only threads with at least one message in the last 30 days
+- once a thread qualifies, import the entire Gmail thread, including older messages
+
+### Q18. How should `mail_message_body` be queried through Zero?
+
+**Answer:** keep it in Zero, but do not include it in list queries by default.
+
+The practical rule is:
+
+- inbox / folder / conversation list queries should read `mail_message` without joining large body columns by default
+- message-detail queries should read `mail_message_body` explicitly
+
+### Q19. What do provider-driven deletions mean locally?
+
+**Answer:** match the provider.
+
+The practical rule is:
+
+- if the provider hard-deletes, hard-delete locally
+- if the provider moves to trash, mirror the move to trash locally
+- if the provider changes label or folder membership, mirror that membership change locally
+
+### Q20. For Gmail, are folders or labels the source of truth?
+
+**Answer:** Gmail labels are the upstream source of truth.
+
+The practical rule is:
+
+- system labels drive canonical folder navigation views
+- user-created labels remain labels, not folders
+- derived canonical folders are a UI/read-model convenience, not an independent truth source
+
+### Q21. Which IMAP folders are synced by default?
+
+**Answer:** all selectable mailboxes/folders.
+
+### Q22. How should the system recover when sync cursors break?
+
+**Answer:** do a bounded resync, not a full-history rebuild.
+
+The practical rule is:
+
+- if a Gmail history cursor expires or becomes invalid, re-bootstrap the account using the normal bounded bootstrap rule: last 30 days of activity, but full threads for qualifying Gmail threads
+- if IMAP `UIDVALIDITY` changes for a folder, reset sync state for that folder and re-bootstrap that folder for the last 30 days
+- if repeated recovery fails, mark the account as degraded until it can sync successfully again
+
+### Q23. Should raw MIME be retained after parsing?
+
+**Answer:** yes, but backend-only, not in Zero.
+
 ---
 
 ## 7. Final product and architecture contract
@@ -550,6 +612,7 @@ Combining all the answers above, the final contract for v1 is:
 ### Sync window
 
 - import last 30 days on first connect
+- for Gmail, if a thread has any message in that window, import the full thread
 - sync forward after that
 - never backfill older mail
 - never evict imported mail
@@ -557,7 +620,11 @@ Combining all the answers above, the final contract for v1 is:
 ### Storage and sync
 
 - all synced message bodies live in Zero-visible tables
+- `mail_message_body` stays out of list queries by default and is read explicitly for message detail
+- raw MIME stays out of Zero but is retained in backend-only storage
 - inline assets and attachment bytes can load later
+- provider-driven deletes and moves are mirrored locally
+- cursor invalidation triggers bounded resync of the affected account or folder, not a full-history rebuild
 - no fake threading for providers without native threading
 
 ### Search
@@ -753,7 +820,11 @@ Recommended fields:
 
 ### Gmail mapping
 
-For Gmail, system labels should map into canonical folder concepts where appropriate.
+For Gmail, labels are the upstream source of truth.
+
+Canonical folder rows are derived from Gmail system labels for navigation and counts.
+
+User-created Gmail labels remain labels, not folders.
 
 ### iCloud mapping
 
@@ -823,7 +894,7 @@ Recommended fields:
 - `user_id`
 - `account_id`
 - `conversation_id` nullable
-- `provider_message_ref`
+- `provider_message_ref` nullable
 - `internet_message_id` nullable
 - `subject`
 - `snippet`
@@ -851,11 +922,15 @@ Use provider-native Gmail message IDs.
 
 Do **not** use RFC `Message-ID` as the canonical database identity.
 
-Instead, treat provider identity as mailbox-scoped and provider-native, effectively based on:
+Instead, store mailbox-scoped provider identity on a separate mailbox-instance table.
+
+The provider-native IMAP sync identity is effectively based on:
 
 - mailbox / folder
 - `UIDVALIDITY`
 - `UID`
+
+In v1, every imported IMAP mailbox item gets exactly one `mail_message` row and exactly one mailbox-instance row. Do **not** attempt cross-folder IMAP deduplication in v1.
 
 The `internet_message_id` should still be stored, but as metadata, not as the canonical mailbox sync identity.
 
@@ -888,6 +963,15 @@ Separating them from `mail_message` helps keep:
 
 This table **is part of the Zero model** because all synced bodies must be available without click-time body fetch.
 
+### Query shape decision
+
+This does **not** mean every list query should join body content.
+
+The intended pattern is:
+
+- list queries read `mail_message`
+- detail queries explicitly read `mail_message_body`
+
 ---
 
 ### 11.8 `mail_message_label`
@@ -906,21 +990,39 @@ Primarily for Gmail.
 
 ---
 
-### 11.9 `mail_message_folder`
+### 11.9 `mail_message_mailbox`
 
-Join table for folder membership when needed.
+Mailbox-instance table for folder membership and provider-native mailbox identity.
 
 Recommended fields:
 
+- `id`
 - `message_id`
+- `account_id`
 - `folder_id`
+- `provider_folder_ref`
+- `uidvalidity` nullable
+- `uid` nullable
+- `modseq` nullable
 - timestamps
 
-### Why this can matter
+### Why it exists
 
-A message may need to be represented with provider-shaped location semantics rather than assuming a single folder field is always enough.
+This table keeps mailbox-shaped location and sync identity honest without forcing one fake universal location model.
 
-This is especially helpful when avoiding oversimplification across providers.
+### Provider notes
+
+#### Gmail
+
+Rows here represent derived canonical folder membership used for navigation.
+
+The upstream source of truth is still Gmail labels.
+
+#### IMAP/iCloud
+
+This table is the source of truth for mailbox-scoped sync identity.
+
+In v1, each imported IMAP message has exactly one `mail_message_mailbox` row and exactly one `mail_message` row.
 
 ---
 
@@ -1017,7 +1119,7 @@ This table allows storing provider-specific details without polluting the canoni
 - `mail_message`
 - `mail_message_body`
 - `mail_message_label`
-- `mail_message_folder`
+- `mail_message_mailbox`
 - `mail_attachment` metadata
 
 ### Keep out of Zero
@@ -1035,6 +1137,8 @@ Zero is the UI read model.
 Bodies are in-bounds because they are required for instant read UX.
 
 Binary attachments and secrets are not.
+
+Raw MIME is also out of Zero, but it should still be retained in backend-only storage for reparsing, debugging, and future processing.
 
 ---
 
@@ -1058,10 +1162,11 @@ Reasons:
 
 On first connect:
 
-- import only the last 30 days
-- fetch system folders / label mappings
+- select Gmail threads with at least one message in the last 30 days
+- import the full thread for every qualifying thread, even when older messages in that thread fall outside the 30-day window
+- derive canonical folders from Gmail system labels
 - fetch user labels
-- fetch native Gmail threads/messages within the 30-day window
+- fetch native Gmail threads/messages for the selected recent-activity threads
 - eagerly write:
   - messages
   - sanitized HTML
@@ -1081,9 +1186,15 @@ After bootstrap:
   - unread/read changes
   - moves/deletes within the mirrored set
 
+If the Gmail history cursor expires or becomes invalid:
+
+- mark the account as resyncing
+- re-run the bounded bootstrap rule for that account
+- resume forward sync from a fresh cursor
+
 ### Important behavior decision
 
-Older-than-30-day history that was never imported remains outside the local mirror forever.
+Older-than-30-day history that was never imported remains outside the local mirror forever, unless it is part of a Gmail thread that qualified for import because that thread had recent activity.
 
 ---
 
@@ -1107,9 +1218,10 @@ Recommended:
 
 On first connect:
 
-- select target mailboxes/folders
-- import only messages from the last 30 days
+- select all selectable mailboxes/folders
+- import only messages from the last 30 days from those folders
 - parse RFC822 messages into normalized message/body/attachment metadata
+- retain raw MIME in backend-only storage
 - do **not** create synthetic conversations
 
 ### Incremental sync contract
@@ -1119,6 +1231,12 @@ After bootstrap:
 - use IMAP IDLE where practical
 - run periodic reconciliation
 - track per-folder state using provider-native mailbox identity and sync cursors
+
+If `UIDVALIDITY` changes for a folder:
+
+- reset sync state for that folder
+- re-bootstrap that folder for the last 30 days
+- resume incremental sync from the new folder state
 
 ### Explicit no-go decision
 
@@ -1335,6 +1453,11 @@ Even though all bodies are in Zero, a separate `mail_message_body` table still h
 - folder queries lighter
 - conversation/message detail subscriptions explicit
 
+This means the intended query shape is still:
+
+- lightweight list queries without body columns
+- explicit detail queries with body content
+
 ---
 
 ## 21. Rejected alternatives
@@ -1361,9 +1484,21 @@ Rejected in favor of a 30-day bootstrap.
 
 Rejected explicitly.
 
+### Rejected: truncating recent Gmail threads to only the in-window messages
+
+Rejected. Recent Gmail threads import as full threads.
+
 ### Rejected: synthetic threading for IMAP/iCloud
 
 Rejected explicitly.
+
+### Rejected: discarding raw MIME immediately after parsing
+
+Rejected. Raw MIME should be retained backend-side.
+
+### Rejected: full-history rebuild when bounded cursor recovery is enough
+
+Rejected. Cursor failure should trigger bounded resync, not a full mailbox import.
 
 ### Rejected: letting Gmail semantics become the universal base abstraction
 
@@ -1417,6 +1552,8 @@ If all the research and decisions above are compressed into one statement, it is
 
 > Build a multi-user, per-account, read-only email app whose UI is powered by Zero and whose canonical source of truth is Drizzle/Postgres, using the Gmail API for Gmail and IMAP for iCloud, storing all synced message bodies in Zero, importing only the last 30 days at first connect, syncing forward forever after that, never backfilling older history, never evicting imported history, and never inventing provider features like threading when the provider does not natively expose them.
 
+For Gmail, bootstrap by recent activity but import full qualifying threads. For IMAP, sync all selectable folders, keep mailbox-scoped sync identity honest, and retain raw MIME backend-side while keeping it out of Zero.
+
 ---
 
 ## 24. Final list of decisions
@@ -1432,23 +1569,31 @@ For quick reference, the final decisions are:
 7. **body fetch:** not on-demand
 8. **Zero body policy:** all synced bodies in Zero
 9. **initial import window:** last 30 days
-10. **historical backfill after bootstrap:** no
-11. **aging out imported mail from Zero:** no
-12. **provider modeling strategy:** common denominator first, provider-specific features on top
-13. **non-Gmail threading:** do not synthesize
-14. **body storage:** both plain text and sanitized HTML
-15. **body rendering:** render HTML by default when present, text fallback
-16. **inline assets:** can load separately
-17. **full-body search:** later, not v1
-18. **Gmail timeline:** first
-19. **iCloud timeline:** second, acceptable
-20. **Gmail integration surface:** Gmail API
-21. **iCloud integration surface:** IMAP for sync, SMTP later for send
-22. **IMAP library recommendation:** `imapflow`
-23. **MIME parser recommendation:** `postal-mime`
-24. **EmailEngine:** benchmark/reference only, not default foundation
-25. **Mail0:** useful for adapter/read-model inspiration, not a drop-in architecture
-26. **Superhuman takeaway:** provider-API-first and provider-shaped semantics appear to be the right instincts
+10. **Gmail bootstrap rule:** last 30 days of activity, but full thread import for qualifying Gmail threads
+11. **historical backfill after bootstrap:** no
+12. **aging out imported mail from Zero:** no
+13. **provider modeling strategy:** common denominator first, provider-specific features on top
+14. **non-Gmail threading:** do not synthesize
+15. **body storage:** both plain text and sanitized HTML
+16. **body rendering:** render HTML by default when present, text fallback
+17. **body query shape:** keep bodies in Zero, but fetch them explicitly in detail queries rather than by default in list queries
+18. **inline assets:** can load separately
+19. **full-body search:** later, not v1
+20. **Gmail timeline:** first
+21. **iCloud timeline:** second, acceptable
+22. **Gmail integration surface:** Gmail API
+23. **Gmail source of truth:** labels are authoritative; canonical folders are derived from system labels for navigation
+24. **iCloud integration surface:** IMAP for sync, SMTP later for send
+25. **IMAP default folder policy:** sync all selectable folders
+26. **IMAP identity model:** canonical `mail_message` row plus mailbox-instance table; no cross-folder dedup in v1
+27. **delete semantics:** mirror the provider; hard delete means hard delete locally
+28. **cursor recovery:** bounded resync, not full-history rebuild
+29. **raw MIME retention:** keep backend-side, out of Zero
+30. **IMAP library recommendation:** `imapflow`
+31. **MIME parser recommendation:** `postal-mime`
+32. **EmailEngine:** benchmark/reference only, not default foundation
+33. **Mail0:** useful for adapter/read-model inspiration, not a drop-in architecture
+34. **Superhuman takeaway:** provider-API-first and provider-shaped semantics appear to be the right instincts
 
 ---
 
