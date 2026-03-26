@@ -36,6 +36,8 @@
 
 		networking.hostName = "chevrotain-observability";
 
+		environment.systemPackages = [pkgs.cloud-utils];
+
 		swapDevices = [
 			{
 				device = "/swapfile";
