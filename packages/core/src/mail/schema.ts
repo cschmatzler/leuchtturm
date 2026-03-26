@@ -1,4 +1,5 @@
 import { Schema } from "effect";
+import { ulid } from "ulid";
 
 import { Ulid } from "@chevrotain/core/schema";
 
@@ -53,6 +54,55 @@ export const MailProviderStateId = Schema.TemplateLiteral(["mps_", Ulid]).pipe(
 	Schema.brand("MailProviderStateId"),
 );
 export type MailProviderStateId = typeof MailProviderStateId.Type;
+
+export const MailOAuthStateId = Schema.TemplateLiteral(["mos_", Ulid]).pipe(
+	Schema.brand("MailOAuthStateId"),
+);
+export type MailOAuthStateId = typeof MailOAuthStateId.Type;
+
+export function createMailAccountId(): MailAccountId {
+	return MailAccountId.makeUnsafe(`mac_${ulid()}`);
+}
+
+export function createMailFolderId(): MailFolderId {
+	return MailFolderId.makeUnsafe(`mfl_${ulid()}`);
+}
+
+export function createMailLabelId(): MailLabelId {
+	return MailLabelId.makeUnsafe(`mlb_${ulid()}`);
+}
+
+export function createMailConversationId(): MailConversationId {
+	return MailConversationId.makeUnsafe(`mcv_${ulid()}`);
+}
+
+export function createMailMessageId(): MailMessageId {
+	return MailMessageId.makeUnsafe(`mmg_${ulid()}`);
+}
+
+export function createMailMessageBodyPartId(): MailMessageBodyPartId {
+	return MailMessageBodyPartId.makeUnsafe(`mbp_${ulid()}`);
+}
+
+export function createMailMessageMailboxId(): MailMessageMailboxId {
+	return MailMessageMailboxId.makeUnsafe(`mmb_${ulid()}`);
+}
+
+export function createMailAttachmentId(): MailAttachmentId {
+	return MailAttachmentId.makeUnsafe(`mat_${ulid()}`);
+}
+
+export function createMailSyncCursorId(): MailSyncCursorId {
+	return MailSyncCursorId.makeUnsafe(`msc_${ulid()}`);
+}
+
+export function createMailProviderStateId(): MailProviderStateId {
+	return MailProviderStateId.makeUnsafe(`mps_${ulid()}`);
+}
+
+export function createMailOAuthStateId(): MailOAuthStateId {
+	return MailOAuthStateId.makeUnsafe(`mos_${ulid()}`);
+}
 
 // ---------------------------------------------------------------------------
 // Enums

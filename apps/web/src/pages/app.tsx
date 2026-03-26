@@ -61,6 +61,14 @@ const SETTINGS_NAVIGATION = [
 	},
 ] as const;
 
+const MAIL_NAVIGATION = [
+	{
+		to: "/app/mail" as const,
+		icon: MailIcon,
+		labelKey: "Mail",
+	},
+] as const;
+
 function LogOutShortcut() {
 	return <OptionShiftShortcut keyLabel="Q" />;
 }
@@ -190,6 +198,20 @@ function Shell({ session }: { session: SessionData }) {
 					</div>
 				</SidebarHeader>
 				<SidebarContent className="gap-0">
+					<SidebarGroup>
+						<SidebarGroupContent>
+							<SidebarMenu>
+								{MAIL_NAVIGATION.map((item) => (
+									<SidebarMenuItem key={item.to}>
+										<SidebarMenuButton render={<Link to={item.to} />}>
+											<item.icon />
+											{t(item.labelKey)}
+										</SidebarMenuButton>
+									</SidebarMenuItem>
+								))}
+							</SidebarMenu>
+						</SidebarGroupContent>
+					</SidebarGroup>
 					<SidebarGroup>
 						<SidebarGroupLabel>{t("Settings")}</SidebarGroupLabel>
 						<SidebarGroupContent>

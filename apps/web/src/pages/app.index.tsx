@@ -2,6 +2,6 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/app/")({
 	beforeLoad: () => {
-		throw redirect({ to: "/app/settings/preferences" });
+		throw redirect({ to: "/app/mail" });
 	},
 });
