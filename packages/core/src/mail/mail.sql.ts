@@ -12,7 +12,7 @@ import {
 	unique,
 } from "drizzle-orm/pg-core";
 
-import { user } from "@chevrotain/core/auth/auth.sql";
+import { session, user } from "@chevrotain/core/auth/auth.sql";
 
 // ---------------------------------------------------------------------------
 // §11.1 mail_account
@@ -64,6 +64,29 @@ export const mailAccountSecret = pgTable("mail_account_secret", {
 		.$onUpdate(() => new Date())
 		.notNull(),
 });
+
+// ---------------------------------------------------------------------------
+// §11.2a mail_oauth_state (backend-only, NOT in Zero)
+// ---------------------------------------------------------------------------
+
+export const mailOAuthState = pgTable(
+	"mail_oauth_state",
+	{
+		id: char("id", { length: 30 }).primaryKey(),
+		userId: char("user_id", { length: 30 })
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		sessionId: char("session_id", { length: 30 })
+			.notNull()
+			.references(() => session.id, { onDelete: "cascade" }),
+		expiresAt: timestamp("expires_at").notNull(),
+		createdAt: timestamp("created_at").notNull(),
+	},
+	(table) => [
+		index("mail_oauth_state_user_id_idx").on(table.userId),
+		index("mail_oauth_state_session_id_idx").on(table.sessionId),
+	],
+);
 
 // ---------------------------------------------------------------------------
 // §11.3 mail_folder
@@ -370,6 +393,7 @@ export const mailSyncCursor = pgTable(
 	(table) => [
 		index("mail_sync_cursor_account_id_idx").on(table.accountId),
 		index("mail_sync_cursor_folder_id_idx").on(table.folderId),
+		unique("mail_sync_cursor_account_id_cursor_kind_uniq").on(table.accountId, table.cursorKind),
 	],
 );
 

@@ -25,8 +25,9 @@ export interface GoogleUserInfo {
 
 export namespace GmailOAuth {
 	export interface Interface {
-		readonly getAuthUrl: () => string;
+		readonly getAuthUrl: (state: string) => string;
 		readonly exchangeCode: (code: string) => Promise<OAuthTokens>;
+		readonly refreshAccessToken: (refreshToken: string) => Promise<OAuthTokens>;
 		readonly getUserInfo: (accessToken: string) => Promise<GoogleUserInfo>;
 	}
 
@@ -38,8 +39,32 @@ export namespace GmailOAuth {
 			const clientSecret = yield* Config.redacted("GMAIL_OAUTH_CLIENT_SECRET");
 			const redirectUri = yield* Config.string("GMAIL_OAUTH_REDIRECT_URI");
 
+			async function exchangeToken(body: URLSearchParams): Promise<OAuthTokens> {
+				const res = await fetch("https://oauth2.googleapis.com/token", {
+					method: "POST",
+					headers: { "Content-Type": "application/x-www-form-urlencoded" },
+					body,
+				});
+				if (!res.ok) {
+					const responseBody = await res.text();
+					throw new Error(`OAuth token exchange failed: ${responseBody}`);
+				}
+
+				const data = (await res.json()) as {
+					access_token: string;
+					refresh_token?: string;
+					expires_in: number;
+				};
+
+				return {
+					accessToken: data.access_token,
+					refreshToken: data.refresh_token,
+					expiresIn: data.expires_in,
+				};
+			}
+
 			return Service.of({
-				getAuthUrl() {
+				getAuthUrl(state) {
 					const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
 					url.searchParams.set("client_id", clientId);
 					url.searchParams.set("redirect_uri", redirectUri);
@@ -47,35 +72,31 @@ export namespace GmailOAuth {
 					url.searchParams.set("scope", GMAIL_SCOPES);
 					url.searchParams.set("access_type", "offline");
 					url.searchParams.set("prompt", "consent");
+					url.searchParams.set("state", state);
 					return url.toString();
 				},
 
 				async exchangeCode(code: string) {
-					const res = await fetch("https://oauth2.googleapis.com/token", {
-						method: "POST",
-						headers: { "Content-Type": "application/x-www-form-urlencoded" },
-						body: new URLSearchParams({
+					return exchangeToken(
+						new URLSearchParams({
 							code,
 							client_id: clientId,
 							client_secret: Redacted.value(clientSecret),
 							redirect_uri: redirectUri,
 							grant_type: "authorization_code",
 						}),
-					});
-					if (!res.ok) {
-						const body = await res.text();
-						throw new Error(`OAuth token exchange failed: ${body}`);
-					}
-					const data = (await res.json()) as {
-						access_token: string;
-						refresh_token?: string;
-						expires_in: number;
-					};
-					return {
-						accessToken: data.access_token,
-						refreshToken: data.refresh_token,
-						expiresIn: data.expires_in,
-					};
+					);
+				},
+
+				async refreshAccessToken(refreshToken: string) {
+					return exchangeToken(
+						new URLSearchParams({
+							client_id: clientId,
+							client_secret: Redacted.value(clientSecret),
+							refresh_token: refreshToken,
+							grant_type: "refresh_token",
+						}),
+					);
 				},
 
 				async getUserInfo(accessToken: string) {

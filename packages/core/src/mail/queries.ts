@@ -4,7 +4,7 @@
  * All direct Drizzle access lives here so that apps/api never imports drizzle-orm.
  */
 
-import { and, eq } from "drizzle-orm";
+import { and, eq, gt } from "drizzle-orm";
 
 import type { DatabaseClient } from "@chevrotain/core/drizzle/index";
 import {
@@ -14,6 +14,7 @@ import {
 	mailFolder,
 	mailLabel,
 	mailMessage,
+	mailOAuthState,
 	mailProviderState,
 	mailSyncCursor,
 } from "@chevrotain/core/mail/mail.sql";
@@ -59,6 +60,17 @@ export async function getMailAccountForUser(
 	return row;
 }
 
+export async function updateMailAccountStatus(
+	db: DatabaseClient,
+	accountId: string,
+	status: string,
+): Promise<void> {
+	await db
+		.update(mailAccount)
+		.set({ status, updatedAt: new Date() })
+		.where(eq(mailAccount.id, accountId));
+}
+
 // ---------------------------------------------------------------------------
 // mail_account_secret
 // ---------------------------------------------------------------------------
@@ -89,6 +101,67 @@ export async function getMailAccountSecret(
 		.from(mailAccountSecret)
 		.where(eq(mailAccountSecret.accountId, accountId))
 		.limit(1);
+	return row;
+}
+
+export async function updateMailAccountSecret(
+	db: DatabaseClient,
+	accountId: string,
+	values: {
+		encryptedPayload: string;
+		encryptedDek: string;
+	},
+): Promise<void> {
+	const now = new Date();
+	await db
+		.update(mailAccountSecret)
+		.set({
+			encryptedPayload: values.encryptedPayload,
+			encryptedDek: values.encryptedDek,
+			updatedAt: now,
+		})
+		.where(eq(mailAccountSecret.accountId, accountId));
+}
+
+// ---------------------------------------------------------------------------
+// mail_oauth_state
+// ---------------------------------------------------------------------------
+
+export async function createMailOAuthState(
+	db: DatabaseClient,
+	values: {
+		id: string;
+		userId: string;
+		sessionId: string;
+		expiresAt: Date;
+	},
+): Promise<void> {
+	await db.insert(mailOAuthState).values({
+		...values,
+		createdAt: new Date(),
+	});
+}
+
+export async function consumeMailOAuthState(
+	db: DatabaseClient,
+	values: {
+		id: string;
+		userId: string;
+		sessionId: string;
+	},
+): Promise<typeof mailOAuthState.$inferSelect | undefined> {
+	const now = new Date();
+	const [row] = await db
+		.delete(mailOAuthState)
+		.where(
+			and(
+				eq(mailOAuthState.id, values.id),
+				eq(mailOAuthState.userId, values.userId),
+				eq(mailOAuthState.sessionId, values.sessionId),
+				gt(mailOAuthState.expiresAt, now),
+			),
+		)
+		.returning();
 	return row;
 }
 

@@ -8,7 +8,9 @@ import {
 	DatabaseError,
 	RateLimitError,
 	UnauthorizedError,
+	ValidationError,
 } from "@chevrotain/core/errors";
+import { MailAccountId, MailOAuthStateId } from "@chevrotain/core/mail/schema";
 
 const SuccessResponse = Schema.Struct({ success: Schema.Literal(true) });
 const AuthRouteError = Schema.Union([UnauthorizedError, AuthServiceError]);
@@ -55,21 +57,21 @@ const mailGroup = HttpApiGroup.make("mail")
 	)
 	.add(
 		HttpApiEndpoint.post("mailOAuthCallback", "/mail/oauth/callback", {
-			payload: Schema.Struct({ code: Schema.String }),
-			success: Schema.Struct({ accountId: Schema.String }),
-			error: ProtectedRouteError,
+			payload: Schema.Struct({ code: Schema.String, state: MailOAuthStateId }),
+			success: Schema.Struct({ accountId: MailAccountId }),
+			error: Schema.Union([ProtectedRouteError, ValidationError]),
 		}),
 	)
 	.add(
 		HttpApiEndpoint.post("mailSync", "/mail/sync", {
-			payload: Schema.Struct({ accountId: Schema.String }),
+			payload: Schema.Struct({ accountId: MailAccountId }),
 			success: Schema.Struct({ success: Schema.Literal(true) }),
 			error: ProtectedRouteError,
 		}),
 	)
 	.add(
 		HttpApiEndpoint.post("mailDisconnect", "/mail/disconnect", {
-			payload: Schema.Struct({ accountId: Schema.String }),
+			payload: Schema.Struct({ accountId: MailAccountId }),
 			success: SuccessResponse,
 			error: ProtectedRouteError,
 		}),
