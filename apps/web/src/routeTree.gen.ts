@@ -8,489 +8,484 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from './pages/__root'
-import { Route as TermsOfServiceRouteImport } from './pages/terms-of-service'
-import { Route as SignupRouteImport } from './pages/signup'
-import { Route as ResetPasswordRouteImport } from './pages/reset-password'
-import { Route as PrivacyPolicyRouteImport } from './pages/privacy-policy'
-import { Route as LoginRouteImport } from './pages/login'
-import { Route as ForgotPasswordRouteImport } from './pages/forgot-password'
-import { Route as AppRouteImport } from './pages/app'
-import { Route as IndexRouteImport } from './pages/index'
-import { Route as AppIndexRouteImport } from './pages/app.index'
-import { Route as AppSettingsRouteImport } from './pages/app.settings'
-import { Route as AppMailRouteImport } from './pages/app.mail'
-import { Route as AppMailIndexRouteImport } from './pages/app.mail.index'
-import { Route as AppSettingsPreferencesRouteImport } from './pages/app.settings.preferences'
-import { Route as AppSettingsBillingRouteImport } from './pages/app.settings.billing'
-import { Route as AppMailCallbackRouteImport } from './pages/app.mail.callback'
-import { Route as AppMailAccountIdRouteImport } from './pages/app.mail.$accountId'
-import { Route as AppMailAccountIdIndexRouteImport } from './pages/app.mail.$accountId.index'
-import { Route as AppMailAccountIdMessageMessageIdRouteImport } from './pages/app.mail.$accountId.message.$messageId'
-import { Route as AppMailAccountIdFolderFolderIdRouteImport } from './pages/app.mail.$accountId.folder.$folderId'
-import { Route as AppMailAccountIdConversationConversationIdRouteImport } from './pages/app.mail.$accountId.conversation.$conversationId'
+import { Route as rootRouteImport } from "./pages/__root";
+import { Route as AppRouteImport } from "./pages/app";
+import { Route as AppIndexRouteImport } from "./pages/app.index";
+import { Route as AppMailRouteImport } from "./pages/app.mail";
+import { Route as AppMailAccountIdRouteImport } from "./pages/app.mail.$accountId";
+import { Route as AppMailAccountIdConversationConversationIdRouteImport } from "./pages/app.mail.$accountId.conversation.$conversationId";
+import { Route as AppMailAccountIdFolderFolderIdRouteImport } from "./pages/app.mail.$accountId.folder.$folderId";
+import { Route as AppMailAccountIdIndexRouteImport } from "./pages/app.mail.$accountId.index";
+import { Route as AppMailAccountIdMessageMessageIdRouteImport } from "./pages/app.mail.$accountId.message.$messageId";
+import { Route as AppMailCallbackRouteImport } from "./pages/app.mail.callback";
+import { Route as AppMailIndexRouteImport } from "./pages/app.mail.index";
+import { Route as AppSettingsRouteImport } from "./pages/app.settings";
+import { Route as AppSettingsBillingRouteImport } from "./pages/app.settings.billing";
+import { Route as AppSettingsPreferencesRouteImport } from "./pages/app.settings.preferences";
+import { Route as ForgotPasswordRouteImport } from "./pages/forgot-password";
+import { Route as IndexRouteImport } from "./pages/index";
+import { Route as LoginRouteImport } from "./pages/login";
+import { Route as PrivacyPolicyRouteImport } from "./pages/privacy-policy";
+import { Route as ResetPasswordRouteImport } from "./pages/reset-password";
+import { Route as SignupRouteImport } from "./pages/signup";
+import { Route as TermsOfServiceRouteImport } from "./pages/terms-of-service";
 
 const TermsOfServiceRoute = TermsOfServiceRouteImport.update({
-  id: '/terms-of-service',
-  path: '/terms-of-service',
-  getParentRoute: () => rootRouteImport,
-} as any)
+	id: "/terms-of-service",
+	path: "/terms-of-service",
+	getParentRoute: () => rootRouteImport,
+} as any);
 const SignupRoute = SignupRouteImport.update({
-  id: '/signup',
-  path: '/signup',
-  getParentRoute: () => rootRouteImport,
-} as any)
+	id: "/signup",
+	path: "/signup",
+	getParentRoute: () => rootRouteImport,
+} as any);
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
+	id: "/reset-password",
+	path: "/reset-password",
+	getParentRoute: () => rootRouteImport,
+} as any);
 const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
-  id: '/privacy-policy',
-  path: '/privacy-policy',
-  getParentRoute: () => rootRouteImport,
-} as any)
+	id: "/privacy-policy",
+	path: "/privacy-policy",
+	getParentRoute: () => rootRouteImport,
+} as any);
 const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
+	id: "/login",
+	path: "/login",
+	getParentRoute: () => rootRouteImport,
+} as any);
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
-  id: '/forgot-password',
-  path: '/forgot-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
+	id: "/forgot-password",
+	path: "/forgot-password",
+	getParentRoute: () => rootRouteImport,
+} as any);
 const AppRoute = AppRouteImport.update({
-  id: '/app',
-  path: '/app',
-  getParentRoute: () => rootRouteImport,
-} as any)
+	id: "/app",
+	path: "/app",
+	getParentRoute: () => rootRouteImport,
+} as any);
 const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
+	id: "/",
+	path: "/",
+	getParentRoute: () => rootRouteImport,
+} as any);
 const AppIndexRoute = AppIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppRoute,
-} as any)
+	id: "/",
+	path: "/",
+	getParentRoute: () => AppRoute,
+} as any);
 const AppSettingsRoute = AppSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AppRoute,
-} as any)
+	id: "/settings",
+	path: "/settings",
+	getParentRoute: () => AppRoute,
+} as any);
 const AppMailRoute = AppMailRouteImport.update({
-  id: '/mail',
-  path: '/mail',
-  getParentRoute: () => AppRoute,
-} as any)
+	id: "/mail",
+	path: "/mail",
+	getParentRoute: () => AppRoute,
+} as any);
 const AppMailIndexRoute = AppMailIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppMailRoute,
-} as any)
+	id: "/",
+	path: "/",
+	getParentRoute: () => AppMailRoute,
+} as any);
 const AppSettingsPreferencesRoute = AppSettingsPreferencesRouteImport.update({
-  id: '/preferences',
-  path: '/preferences',
-  getParentRoute: () => AppSettingsRoute,
-} as any)
+	id: "/preferences",
+	path: "/preferences",
+	getParentRoute: () => AppSettingsRoute,
+} as any);
 const AppSettingsBillingRoute = AppSettingsBillingRouteImport.update({
-  id: '/billing',
-  path: '/billing',
-  getParentRoute: () => AppSettingsRoute,
-} as any)
+	id: "/billing",
+	path: "/billing",
+	getParentRoute: () => AppSettingsRoute,
+} as any);
 const AppMailCallbackRoute = AppMailCallbackRouteImport.update({
-  id: '/callback',
-  path: '/callback',
-  getParentRoute: () => AppMailRoute,
-} as any)
+	id: "/callback",
+	path: "/callback",
+	getParentRoute: () => AppMailRoute,
+} as any);
 const AppMailAccountIdRoute = AppMailAccountIdRouteImport.update({
-  id: '/$accountId',
-  path: '/$accountId',
-  getParentRoute: () => AppMailRoute,
-} as any)
+	id: "/$accountId",
+	path: "/$accountId",
+	getParentRoute: () => AppMailRoute,
+} as any);
 const AppMailAccountIdIndexRoute = AppMailAccountIdIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppMailAccountIdRoute,
-} as any)
-const AppMailAccountIdMessageMessageIdRoute =
-  AppMailAccountIdMessageMessageIdRouteImport.update({
-    id: '/message/$messageId',
-    path: '/message/$messageId',
-    getParentRoute: () => AppMailAccountIdRoute,
-  } as any)
-const AppMailAccountIdFolderFolderIdRoute =
-  AppMailAccountIdFolderFolderIdRouteImport.update({
-    id: '/folder/$folderId',
-    path: '/folder/$folderId',
-    getParentRoute: () => AppMailAccountIdRoute,
-  } as any)
+	id: "/",
+	path: "/",
+	getParentRoute: () => AppMailAccountIdRoute,
+} as any);
+const AppMailAccountIdMessageMessageIdRoute = AppMailAccountIdMessageMessageIdRouteImport.update({
+	id: "/message/$messageId",
+	path: "/message/$messageId",
+	getParentRoute: () => AppMailAccountIdRoute,
+} as any);
+const AppMailAccountIdFolderFolderIdRoute = AppMailAccountIdFolderFolderIdRouteImport.update({
+	id: "/folder/$folderId",
+	path: "/folder/$folderId",
+	getParentRoute: () => AppMailAccountIdRoute,
+} as any);
 const AppMailAccountIdConversationConversationIdRoute =
-  AppMailAccountIdConversationConversationIdRouteImport.update({
-    id: '/conversation/$conversationId',
-    path: '/conversation/$conversationId',
-    getParentRoute: () => AppMailAccountIdRoute,
-  } as any)
+	AppMailAccountIdConversationConversationIdRouteImport.update({
+		id: "/conversation/$conversationId",
+		path: "/conversation/$conversationId",
+		getParentRoute: () => AppMailAccountIdRoute,
+	} as any);
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/app': typeof AppRouteWithChildren
-  '/forgot-password': typeof ForgotPasswordRoute
-  '/login': typeof LoginRoute
-  '/privacy-policy': typeof PrivacyPolicyRoute
-  '/reset-password': typeof ResetPasswordRoute
-  '/signup': typeof SignupRoute
-  '/terms-of-service': typeof TermsOfServiceRoute
-  '/app/mail': typeof AppMailRouteWithChildren
-  '/app/settings': typeof AppSettingsRouteWithChildren
-  '/app/': typeof AppIndexRoute
-  '/app/mail/$accountId': typeof AppMailAccountIdRouteWithChildren
-  '/app/mail/callback': typeof AppMailCallbackRoute
-  '/app/settings/billing': typeof AppSettingsBillingRoute
-  '/app/settings/preferences': typeof AppSettingsPreferencesRoute
-  '/app/mail/': typeof AppMailIndexRoute
-  '/app/mail/$accountId/': typeof AppMailAccountIdIndexRoute
-  '/app/mail/$accountId/conversation/$conversationId': typeof AppMailAccountIdConversationConversationIdRoute
-  '/app/mail/$accountId/folder/$folderId': typeof AppMailAccountIdFolderFolderIdRoute
-  '/app/mail/$accountId/message/$messageId': typeof AppMailAccountIdMessageMessageIdRoute
+	"/": typeof IndexRoute;
+	"/app": typeof AppRouteWithChildren;
+	"/forgot-password": typeof ForgotPasswordRoute;
+	"/login": typeof LoginRoute;
+	"/privacy-policy": typeof PrivacyPolicyRoute;
+	"/reset-password": typeof ResetPasswordRoute;
+	"/signup": typeof SignupRoute;
+	"/terms-of-service": typeof TermsOfServiceRoute;
+	"/app/mail": typeof AppMailRouteWithChildren;
+	"/app/settings": typeof AppSettingsRouteWithChildren;
+	"/app/": typeof AppIndexRoute;
+	"/app/mail/$accountId": typeof AppMailAccountIdRouteWithChildren;
+	"/app/mail/callback": typeof AppMailCallbackRoute;
+	"/app/settings/billing": typeof AppSettingsBillingRoute;
+	"/app/settings/preferences": typeof AppSettingsPreferencesRoute;
+	"/app/mail/": typeof AppMailIndexRoute;
+	"/app/mail/$accountId/": typeof AppMailAccountIdIndexRoute;
+	"/app/mail/$accountId/conversation/$conversationId": typeof AppMailAccountIdConversationConversationIdRoute;
+	"/app/mail/$accountId/folder/$folderId": typeof AppMailAccountIdFolderFolderIdRoute;
+	"/app/mail/$accountId/message/$messageId": typeof AppMailAccountIdMessageMessageIdRoute;
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/forgot-password': typeof ForgotPasswordRoute
-  '/login': typeof LoginRoute
-  '/privacy-policy': typeof PrivacyPolicyRoute
-  '/reset-password': typeof ResetPasswordRoute
-  '/signup': typeof SignupRoute
-  '/terms-of-service': typeof TermsOfServiceRoute
-  '/app/settings': typeof AppSettingsRouteWithChildren
-  '/app': typeof AppIndexRoute
-  '/app/mail/callback': typeof AppMailCallbackRoute
-  '/app/settings/billing': typeof AppSettingsBillingRoute
-  '/app/settings/preferences': typeof AppSettingsPreferencesRoute
-  '/app/mail': typeof AppMailIndexRoute
-  '/app/mail/$accountId': typeof AppMailAccountIdIndexRoute
-  '/app/mail/$accountId/conversation/$conversationId': typeof AppMailAccountIdConversationConversationIdRoute
-  '/app/mail/$accountId/folder/$folderId': typeof AppMailAccountIdFolderFolderIdRoute
-  '/app/mail/$accountId/message/$messageId': typeof AppMailAccountIdMessageMessageIdRoute
+	"/": typeof IndexRoute;
+	"/forgot-password": typeof ForgotPasswordRoute;
+	"/login": typeof LoginRoute;
+	"/privacy-policy": typeof PrivacyPolicyRoute;
+	"/reset-password": typeof ResetPasswordRoute;
+	"/signup": typeof SignupRoute;
+	"/terms-of-service": typeof TermsOfServiceRoute;
+	"/app/settings": typeof AppSettingsRouteWithChildren;
+	"/app": typeof AppIndexRoute;
+	"/app/mail/callback": typeof AppMailCallbackRoute;
+	"/app/settings/billing": typeof AppSettingsBillingRoute;
+	"/app/settings/preferences": typeof AppSettingsPreferencesRoute;
+	"/app/mail": typeof AppMailIndexRoute;
+	"/app/mail/$accountId": typeof AppMailAccountIdIndexRoute;
+	"/app/mail/$accountId/conversation/$conversationId": typeof AppMailAccountIdConversationConversationIdRoute;
+	"/app/mail/$accountId/folder/$folderId": typeof AppMailAccountIdFolderFolderIdRoute;
+	"/app/mail/$accountId/message/$messageId": typeof AppMailAccountIdMessageMessageIdRoute;
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/app': typeof AppRouteWithChildren
-  '/forgot-password': typeof ForgotPasswordRoute
-  '/login': typeof LoginRoute
-  '/privacy-policy': typeof PrivacyPolicyRoute
-  '/reset-password': typeof ResetPasswordRoute
-  '/signup': typeof SignupRoute
-  '/terms-of-service': typeof TermsOfServiceRoute
-  '/app/mail': typeof AppMailRouteWithChildren
-  '/app/settings': typeof AppSettingsRouteWithChildren
-  '/app/': typeof AppIndexRoute
-  '/app/mail/$accountId': typeof AppMailAccountIdRouteWithChildren
-  '/app/mail/callback': typeof AppMailCallbackRoute
-  '/app/settings/billing': typeof AppSettingsBillingRoute
-  '/app/settings/preferences': typeof AppSettingsPreferencesRoute
-  '/app/mail/': typeof AppMailIndexRoute
-  '/app/mail/$accountId/': typeof AppMailAccountIdIndexRoute
-  '/app/mail/$accountId/conversation/$conversationId': typeof AppMailAccountIdConversationConversationIdRoute
-  '/app/mail/$accountId/folder/$folderId': typeof AppMailAccountIdFolderFolderIdRoute
-  '/app/mail/$accountId/message/$messageId': typeof AppMailAccountIdMessageMessageIdRoute
+	__root__: typeof rootRouteImport;
+	"/": typeof IndexRoute;
+	"/app": typeof AppRouteWithChildren;
+	"/forgot-password": typeof ForgotPasswordRoute;
+	"/login": typeof LoginRoute;
+	"/privacy-policy": typeof PrivacyPolicyRoute;
+	"/reset-password": typeof ResetPasswordRoute;
+	"/signup": typeof SignupRoute;
+	"/terms-of-service": typeof TermsOfServiceRoute;
+	"/app/mail": typeof AppMailRouteWithChildren;
+	"/app/settings": typeof AppSettingsRouteWithChildren;
+	"/app/": typeof AppIndexRoute;
+	"/app/mail/$accountId": typeof AppMailAccountIdRouteWithChildren;
+	"/app/mail/callback": typeof AppMailCallbackRoute;
+	"/app/settings/billing": typeof AppSettingsBillingRoute;
+	"/app/settings/preferences": typeof AppSettingsPreferencesRoute;
+	"/app/mail/": typeof AppMailIndexRoute;
+	"/app/mail/$accountId/": typeof AppMailAccountIdIndexRoute;
+	"/app/mail/$accountId/conversation/$conversationId": typeof AppMailAccountIdConversationConversationIdRoute;
+	"/app/mail/$accountId/folder/$folderId": typeof AppMailAccountIdFolderFolderIdRoute;
+	"/app/mail/$accountId/message/$messageId": typeof AppMailAccountIdMessageMessageIdRoute;
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/app'
-    | '/forgot-password'
-    | '/login'
-    | '/privacy-policy'
-    | '/reset-password'
-    | '/signup'
-    | '/terms-of-service'
-    | '/app/mail'
-    | '/app/settings'
-    | '/app/'
-    | '/app/mail/$accountId'
-    | '/app/mail/callback'
-    | '/app/settings/billing'
-    | '/app/settings/preferences'
-    | '/app/mail/'
-    | '/app/mail/$accountId/'
-    | '/app/mail/$accountId/conversation/$conversationId'
-    | '/app/mail/$accountId/folder/$folderId'
-    | '/app/mail/$accountId/message/$messageId'
-  fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/forgot-password'
-    | '/login'
-    | '/privacy-policy'
-    | '/reset-password'
-    | '/signup'
-    | '/terms-of-service'
-    | '/app/settings'
-    | '/app'
-    | '/app/mail/callback'
-    | '/app/settings/billing'
-    | '/app/settings/preferences'
-    | '/app/mail'
-    | '/app/mail/$accountId'
-    | '/app/mail/$accountId/conversation/$conversationId'
-    | '/app/mail/$accountId/folder/$folderId'
-    | '/app/mail/$accountId/message/$messageId'
-  id:
-    | '__root__'
-    | '/'
-    | '/app'
-    | '/forgot-password'
-    | '/login'
-    | '/privacy-policy'
-    | '/reset-password'
-    | '/signup'
-    | '/terms-of-service'
-    | '/app/mail'
-    | '/app/settings'
-    | '/app/'
-    | '/app/mail/$accountId'
-    | '/app/mail/callback'
-    | '/app/settings/billing'
-    | '/app/settings/preferences'
-    | '/app/mail/'
-    | '/app/mail/$accountId/'
-    | '/app/mail/$accountId/conversation/$conversationId'
-    | '/app/mail/$accountId/folder/$folderId'
-    | '/app/mail/$accountId/message/$messageId'
-  fileRoutesById: FileRoutesById
+	fileRoutesByFullPath: FileRoutesByFullPath;
+	fullPaths:
+		| "/"
+		| "/app"
+		| "/forgot-password"
+		| "/login"
+		| "/privacy-policy"
+		| "/reset-password"
+		| "/signup"
+		| "/terms-of-service"
+		| "/app/mail"
+		| "/app/settings"
+		| "/app/"
+		| "/app/mail/$accountId"
+		| "/app/mail/callback"
+		| "/app/settings/billing"
+		| "/app/settings/preferences"
+		| "/app/mail/"
+		| "/app/mail/$accountId/"
+		| "/app/mail/$accountId/conversation/$conversationId"
+		| "/app/mail/$accountId/folder/$folderId"
+		| "/app/mail/$accountId/message/$messageId";
+	fileRoutesByTo: FileRoutesByTo;
+	to:
+		| "/"
+		| "/forgot-password"
+		| "/login"
+		| "/privacy-policy"
+		| "/reset-password"
+		| "/signup"
+		| "/terms-of-service"
+		| "/app/settings"
+		| "/app"
+		| "/app/mail/callback"
+		| "/app/settings/billing"
+		| "/app/settings/preferences"
+		| "/app/mail"
+		| "/app/mail/$accountId"
+		| "/app/mail/$accountId/conversation/$conversationId"
+		| "/app/mail/$accountId/folder/$folderId"
+		| "/app/mail/$accountId/message/$messageId";
+	id:
+		| "__root__"
+		| "/"
+		| "/app"
+		| "/forgot-password"
+		| "/login"
+		| "/privacy-policy"
+		| "/reset-password"
+		| "/signup"
+		| "/terms-of-service"
+		| "/app/mail"
+		| "/app/settings"
+		| "/app/"
+		| "/app/mail/$accountId"
+		| "/app/mail/callback"
+		| "/app/settings/billing"
+		| "/app/settings/preferences"
+		| "/app/mail/"
+		| "/app/mail/$accountId/"
+		| "/app/mail/$accountId/conversation/$conversationId"
+		| "/app/mail/$accountId/folder/$folderId"
+		| "/app/mail/$accountId/message/$messageId";
+	fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  AppRoute: typeof AppRouteWithChildren
-  ForgotPasswordRoute: typeof ForgotPasswordRoute
-  LoginRoute: typeof LoginRoute
-  PrivacyPolicyRoute: typeof PrivacyPolicyRoute
-  ResetPasswordRoute: typeof ResetPasswordRoute
-  SignupRoute: typeof SignupRoute
-  TermsOfServiceRoute: typeof TermsOfServiceRoute
+	IndexRoute: typeof IndexRoute;
+	AppRoute: typeof AppRouteWithChildren;
+	ForgotPasswordRoute: typeof ForgotPasswordRoute;
+	LoginRoute: typeof LoginRoute;
+	PrivacyPolicyRoute: typeof PrivacyPolicyRoute;
+	ResetPasswordRoute: typeof ResetPasswordRoute;
+	SignupRoute: typeof SignupRoute;
+	TermsOfServiceRoute: typeof TermsOfServiceRoute;
 }
 
-declare module '@tanstack/react-router' {
-  interface FileRoutesByPath {
-    '/terms-of-service': {
-      id: '/terms-of-service'
-      path: '/terms-of-service'
-      fullPath: '/terms-of-service'
-      preLoaderRoute: typeof TermsOfServiceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/signup': {
-      id: '/signup'
-      path: '/signup'
-      fullPath: '/signup'
-      preLoaderRoute: typeof SignupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacy-policy': {
-      id: '/privacy-policy'
-      path: '/privacy-policy'
-      fullPath: '/privacy-policy'
-      preLoaderRoute: typeof PrivacyPolicyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/forgot-password': {
-      id: '/forgot-password'
-      path: '/forgot-password'
-      fullPath: '/forgot-password'
-      preLoaderRoute: typeof ForgotPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/app': {
-      id: '/app'
-      path: '/app'
-      fullPath: '/app'
-      preLoaderRoute: typeof AppRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/app/': {
-      id: '/app/'
-      path: '/'
-      fullPath: '/app/'
-      preLoaderRoute: typeof AppIndexRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/settings': {
-      id: '/app/settings'
-      path: '/settings'
-      fullPath: '/app/settings'
-      preLoaderRoute: typeof AppSettingsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/mail': {
-      id: '/app/mail'
-      path: '/mail'
-      fullPath: '/app/mail'
-      preLoaderRoute: typeof AppMailRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/mail/': {
-      id: '/app/mail/'
-      path: '/'
-      fullPath: '/app/mail/'
-      preLoaderRoute: typeof AppMailIndexRouteImport
-      parentRoute: typeof AppMailRoute
-    }
-    '/app/settings/preferences': {
-      id: '/app/settings/preferences'
-      path: '/preferences'
-      fullPath: '/app/settings/preferences'
-      preLoaderRoute: typeof AppSettingsPreferencesRouteImport
-      parentRoute: typeof AppSettingsRoute
-    }
-    '/app/settings/billing': {
-      id: '/app/settings/billing'
-      path: '/billing'
-      fullPath: '/app/settings/billing'
-      preLoaderRoute: typeof AppSettingsBillingRouteImport
-      parentRoute: typeof AppSettingsRoute
-    }
-    '/app/mail/callback': {
-      id: '/app/mail/callback'
-      path: '/callback'
-      fullPath: '/app/mail/callback'
-      preLoaderRoute: typeof AppMailCallbackRouteImport
-      parentRoute: typeof AppMailRoute
-    }
-    '/app/mail/$accountId': {
-      id: '/app/mail/$accountId'
-      path: '/$accountId'
-      fullPath: '/app/mail/$accountId'
-      preLoaderRoute: typeof AppMailAccountIdRouteImport
-      parentRoute: typeof AppMailRoute
-    }
-    '/app/mail/$accountId/': {
-      id: '/app/mail/$accountId/'
-      path: '/'
-      fullPath: '/app/mail/$accountId/'
-      preLoaderRoute: typeof AppMailAccountIdIndexRouteImport
-      parentRoute: typeof AppMailAccountIdRoute
-    }
-    '/app/mail/$accountId/message/$messageId': {
-      id: '/app/mail/$accountId/message/$messageId'
-      path: '/message/$messageId'
-      fullPath: '/app/mail/$accountId/message/$messageId'
-      preLoaderRoute: typeof AppMailAccountIdMessageMessageIdRouteImport
-      parentRoute: typeof AppMailAccountIdRoute
-    }
-    '/app/mail/$accountId/folder/$folderId': {
-      id: '/app/mail/$accountId/folder/$folderId'
-      path: '/folder/$folderId'
-      fullPath: '/app/mail/$accountId/folder/$folderId'
-      preLoaderRoute: typeof AppMailAccountIdFolderFolderIdRouteImport
-      parentRoute: typeof AppMailAccountIdRoute
-    }
-    '/app/mail/$accountId/conversation/$conversationId': {
-      id: '/app/mail/$accountId/conversation/$conversationId'
-      path: '/conversation/$conversationId'
-      fullPath: '/app/mail/$accountId/conversation/$conversationId'
-      preLoaderRoute: typeof AppMailAccountIdConversationConversationIdRouteImport
-      parentRoute: typeof AppMailAccountIdRoute
-    }
-  }
+declare module "@tanstack/react-router" {
+	interface FileRoutesByPath {
+		"/terms-of-service": {
+			id: "/terms-of-service";
+			path: "/terms-of-service";
+			fullPath: "/terms-of-service";
+			preLoaderRoute: typeof TermsOfServiceRouteImport;
+			parentRoute: typeof rootRouteImport;
+		};
+		"/signup": {
+			id: "/signup";
+			path: "/signup";
+			fullPath: "/signup";
+			preLoaderRoute: typeof SignupRouteImport;
+			parentRoute: typeof rootRouteImport;
+		};
+		"/reset-password": {
+			id: "/reset-password";
+			path: "/reset-password";
+			fullPath: "/reset-password";
+			preLoaderRoute: typeof ResetPasswordRouteImport;
+			parentRoute: typeof rootRouteImport;
+		};
+		"/privacy-policy": {
+			id: "/privacy-policy";
+			path: "/privacy-policy";
+			fullPath: "/privacy-policy";
+			preLoaderRoute: typeof PrivacyPolicyRouteImport;
+			parentRoute: typeof rootRouteImport;
+		};
+		"/login": {
+			id: "/login";
+			path: "/login";
+			fullPath: "/login";
+			preLoaderRoute: typeof LoginRouteImport;
+			parentRoute: typeof rootRouteImport;
+		};
+		"/forgot-password": {
+			id: "/forgot-password";
+			path: "/forgot-password";
+			fullPath: "/forgot-password";
+			preLoaderRoute: typeof ForgotPasswordRouteImport;
+			parentRoute: typeof rootRouteImport;
+		};
+		"/app": {
+			id: "/app";
+			path: "/app";
+			fullPath: "/app";
+			preLoaderRoute: typeof AppRouteImport;
+			parentRoute: typeof rootRouteImport;
+		};
+		"/": {
+			id: "/";
+			path: "/";
+			fullPath: "/";
+			preLoaderRoute: typeof IndexRouteImport;
+			parentRoute: typeof rootRouteImport;
+		};
+		"/app/": {
+			id: "/app/";
+			path: "/";
+			fullPath: "/app/";
+			preLoaderRoute: typeof AppIndexRouteImport;
+			parentRoute: typeof AppRoute;
+		};
+		"/app/settings": {
+			id: "/app/settings";
+			path: "/settings";
+			fullPath: "/app/settings";
+			preLoaderRoute: typeof AppSettingsRouteImport;
+			parentRoute: typeof AppRoute;
+		};
+		"/app/mail": {
+			id: "/app/mail";
+			path: "/mail";
+			fullPath: "/app/mail";
+			preLoaderRoute: typeof AppMailRouteImport;
+			parentRoute: typeof AppRoute;
+		};
+		"/app/mail/": {
+			id: "/app/mail/";
+			path: "/";
+			fullPath: "/app/mail/";
+			preLoaderRoute: typeof AppMailIndexRouteImport;
+			parentRoute: typeof AppMailRoute;
+		};
+		"/app/settings/preferences": {
+			id: "/app/settings/preferences";
+			path: "/preferences";
+			fullPath: "/app/settings/preferences";
+			preLoaderRoute: typeof AppSettingsPreferencesRouteImport;
+			parentRoute: typeof AppSettingsRoute;
+		};
+		"/app/settings/billing": {
+			id: "/app/settings/billing";
+			path: "/billing";
+			fullPath: "/app/settings/billing";
+			preLoaderRoute: typeof AppSettingsBillingRouteImport;
+			parentRoute: typeof AppSettingsRoute;
+		};
+		"/app/mail/callback": {
+			id: "/app/mail/callback";
+			path: "/callback";
+			fullPath: "/app/mail/callback";
+			preLoaderRoute: typeof AppMailCallbackRouteImport;
+			parentRoute: typeof AppMailRoute;
+		};
+		"/app/mail/$accountId": {
+			id: "/app/mail/$accountId";
+			path: "/$accountId";
+			fullPath: "/app/mail/$accountId";
+			preLoaderRoute: typeof AppMailAccountIdRouteImport;
+			parentRoute: typeof AppMailRoute;
+		};
+		"/app/mail/$accountId/": {
+			id: "/app/mail/$accountId/";
+			path: "/";
+			fullPath: "/app/mail/$accountId/";
+			preLoaderRoute: typeof AppMailAccountIdIndexRouteImport;
+			parentRoute: typeof AppMailAccountIdRoute;
+		};
+		"/app/mail/$accountId/message/$messageId": {
+			id: "/app/mail/$accountId/message/$messageId";
+			path: "/message/$messageId";
+			fullPath: "/app/mail/$accountId/message/$messageId";
+			preLoaderRoute: typeof AppMailAccountIdMessageMessageIdRouteImport;
+			parentRoute: typeof AppMailAccountIdRoute;
+		};
+		"/app/mail/$accountId/folder/$folderId": {
+			id: "/app/mail/$accountId/folder/$folderId";
+			path: "/folder/$folderId";
+			fullPath: "/app/mail/$accountId/folder/$folderId";
+			preLoaderRoute: typeof AppMailAccountIdFolderFolderIdRouteImport;
+			parentRoute: typeof AppMailAccountIdRoute;
+		};
+		"/app/mail/$accountId/conversation/$conversationId": {
+			id: "/app/mail/$accountId/conversation/$conversationId";
+			path: "/conversation/$conversationId";
+			fullPath: "/app/mail/$accountId/conversation/$conversationId";
+			preLoaderRoute: typeof AppMailAccountIdConversationConversationIdRouteImport;
+			parentRoute: typeof AppMailAccountIdRoute;
+		};
+	}
 }
 
 interface AppMailAccountIdRouteChildren {
-  AppMailAccountIdIndexRoute: typeof AppMailAccountIdIndexRoute
-  AppMailAccountIdConversationConversationIdRoute: typeof AppMailAccountIdConversationConversationIdRoute
-  AppMailAccountIdFolderFolderIdRoute: typeof AppMailAccountIdFolderFolderIdRoute
-  AppMailAccountIdMessageMessageIdRoute: typeof AppMailAccountIdMessageMessageIdRoute
+	AppMailAccountIdIndexRoute: typeof AppMailAccountIdIndexRoute;
+	AppMailAccountIdConversationConversationIdRoute: typeof AppMailAccountIdConversationConversationIdRoute;
+	AppMailAccountIdFolderFolderIdRoute: typeof AppMailAccountIdFolderFolderIdRoute;
+	AppMailAccountIdMessageMessageIdRoute: typeof AppMailAccountIdMessageMessageIdRoute;
 }
 
 const AppMailAccountIdRouteChildren: AppMailAccountIdRouteChildren = {
-  AppMailAccountIdIndexRoute: AppMailAccountIdIndexRoute,
-  AppMailAccountIdConversationConversationIdRoute:
-    AppMailAccountIdConversationConversationIdRoute,
-  AppMailAccountIdFolderFolderIdRoute: AppMailAccountIdFolderFolderIdRoute,
-  AppMailAccountIdMessageMessageIdRoute: AppMailAccountIdMessageMessageIdRoute,
-}
+	AppMailAccountIdIndexRoute: AppMailAccountIdIndexRoute,
+	AppMailAccountIdConversationConversationIdRoute: AppMailAccountIdConversationConversationIdRoute,
+	AppMailAccountIdFolderFolderIdRoute: AppMailAccountIdFolderFolderIdRoute,
+	AppMailAccountIdMessageMessageIdRoute: AppMailAccountIdMessageMessageIdRoute,
+};
 
-const AppMailAccountIdRouteWithChildren =
-  AppMailAccountIdRoute._addFileChildren(AppMailAccountIdRouteChildren)
+const AppMailAccountIdRouteWithChildren = AppMailAccountIdRoute._addFileChildren(
+	AppMailAccountIdRouteChildren,
+);
 
 interface AppMailRouteChildren {
-  AppMailAccountIdRoute: typeof AppMailAccountIdRouteWithChildren
-  AppMailCallbackRoute: typeof AppMailCallbackRoute
-  AppMailIndexRoute: typeof AppMailIndexRoute
+	AppMailAccountIdRoute: typeof AppMailAccountIdRouteWithChildren;
+	AppMailCallbackRoute: typeof AppMailCallbackRoute;
+	AppMailIndexRoute: typeof AppMailIndexRoute;
 }
 
 const AppMailRouteChildren: AppMailRouteChildren = {
-  AppMailAccountIdRoute: AppMailAccountIdRouteWithChildren,
-  AppMailCallbackRoute: AppMailCallbackRoute,
-  AppMailIndexRoute: AppMailIndexRoute,
-}
+	AppMailAccountIdRoute: AppMailAccountIdRouteWithChildren,
+	AppMailCallbackRoute: AppMailCallbackRoute,
+	AppMailIndexRoute: AppMailIndexRoute,
+};
 
-const AppMailRouteWithChildren =
-  AppMailRoute._addFileChildren(AppMailRouteChildren)
+const AppMailRouteWithChildren = AppMailRoute._addFileChildren(AppMailRouteChildren);
 
 interface AppSettingsRouteChildren {
-  AppSettingsBillingRoute: typeof AppSettingsBillingRoute
-  AppSettingsPreferencesRoute: typeof AppSettingsPreferencesRoute
+	AppSettingsBillingRoute: typeof AppSettingsBillingRoute;
+	AppSettingsPreferencesRoute: typeof AppSettingsPreferencesRoute;
 }
 
 const AppSettingsRouteChildren: AppSettingsRouteChildren = {
-  AppSettingsBillingRoute: AppSettingsBillingRoute,
-  AppSettingsPreferencesRoute: AppSettingsPreferencesRoute,
-}
+	AppSettingsBillingRoute: AppSettingsBillingRoute,
+	AppSettingsPreferencesRoute: AppSettingsPreferencesRoute,
+};
 
-const AppSettingsRouteWithChildren = AppSettingsRoute._addFileChildren(
-  AppSettingsRouteChildren,
-)
+const AppSettingsRouteWithChildren = AppSettingsRoute._addFileChildren(AppSettingsRouteChildren);
 
 interface AppRouteChildren {
-  AppMailRoute: typeof AppMailRouteWithChildren
-  AppSettingsRoute: typeof AppSettingsRouteWithChildren
-  AppIndexRoute: typeof AppIndexRoute
+	AppMailRoute: typeof AppMailRouteWithChildren;
+	AppSettingsRoute: typeof AppSettingsRouteWithChildren;
+	AppIndexRoute: typeof AppIndexRoute;
 }
 
 const AppRouteChildren: AppRouteChildren = {
-  AppMailRoute: AppMailRouteWithChildren,
-  AppSettingsRoute: AppSettingsRouteWithChildren,
-  AppIndexRoute: AppIndexRoute,
-}
+	AppMailRoute: AppMailRouteWithChildren,
+	AppSettingsRoute: AppSettingsRouteWithChildren,
+	AppIndexRoute: AppIndexRoute,
+};
 
-const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren);
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  AppRoute: AppRouteWithChildren,
-  ForgotPasswordRoute: ForgotPasswordRoute,
-  LoginRoute: LoginRoute,
-  PrivacyPolicyRoute: PrivacyPolicyRoute,
-  ResetPasswordRoute: ResetPasswordRoute,
-  SignupRoute: SignupRoute,
-  TermsOfServiceRoute: TermsOfServiceRoute,
-}
+	IndexRoute: IndexRoute,
+	AppRoute: AppRouteWithChildren,
+	ForgotPasswordRoute: ForgotPasswordRoute,
+	LoginRoute: LoginRoute,
+	PrivacyPolicyRoute: PrivacyPolicyRoute,
+	ResetPasswordRoute: ResetPasswordRoute,
+	SignupRoute: SignupRoute,
+	TermsOfServiceRoute: TermsOfServiceRoute,
+};
 export const routeTree = rootRouteImport
-  ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+	._addFileChildren(rootRouteChildren)
+	._addFileTypes<FileRouteTypes>();

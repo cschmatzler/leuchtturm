@@ -1,7 +1,8 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { Schema } from "effect";
+import { Effect, Schema } from "effect";
 
 import { MailOAuthStateId } from "@chevrotain/core/mail/schema";
+import { apiClient } from "@chevrotain/web/clients/api";
 
 const searchSchema = Schema.Struct({
 	code: Schema.String,
@@ -11,18 +12,21 @@ const searchSchema = Schema.Struct({
 export const Route = createFileRoute("/app/mail/callback")({
 	validateSearch: Schema.toStandardSchemaV1(searchSchema),
 	beforeLoad: async ({ search }) => {
-		const res = await fetch(`${import.meta.env.VITE_API_URL}/api/mail/oauth/callback`, {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ code: search.code, state: search.state }),
-			credentials: "include",
-		});
+		const data = await (async () => {
+			try {
+				return await Effect.runPromise(
+					Effect.gen(function* () {
+						const api = yield* apiClient;
+						return yield* api.mail.mailOAuthCallback({
+							payload: { code: search.code, state: search.state },
+						});
+					}),
+				);
+			} catch {
+				throw redirect({ to: "/app/mail" });
+			}
+		})();
 
-		if (!res.ok) {
-			throw redirect({ to: "/app/mail" });
-		}
-
-		const data = (await res.json()) as { accountId: string };
 		throw redirect({
 			to: "/app/mail/$accountId",
 			params: { accountId: data.accountId },

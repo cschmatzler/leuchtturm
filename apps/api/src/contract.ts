@@ -80,6 +80,7 @@ const mailGroup = HttpApiGroup.make("mail")
 
 export class ChevrotainWebApi extends HttpApi.make("chevrotain-web")
 	.add(analyticsGroup)
+	.add(mailGroup)
 	.prefix("/api") {}
 
 export class ChevrotainApi extends HttpApi.make("chevrotain")

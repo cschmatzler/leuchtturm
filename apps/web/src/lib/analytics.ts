@@ -1,7 +1,7 @@
 import { Effect } from "effect";
 
 import type { AnalyticsEvent, ErrorEvent } from "@chevrotain/core/analytics/schema";
-import { apiClientPromise } from "@chevrotain/web/clients/api";
+import { apiClient } from "@chevrotain/web/clients/api";
 
 type AnalyticsLocation = {
 	url: string;
@@ -40,8 +40,12 @@ function pushEvent(
 
 async function sendBatch(events: AnalyticsEvent[]): Promise<void> {
 	try {
-		const client = await apiClientPromise;
-		await Effect.runPromise(client.analytics.ingestEvents({ payload: { events } }));
+		await Effect.runPromise(
+			Effect.gen(function* () {
+				const client = yield* apiClient;
+				yield* client.analytics.ingestEvents({ payload: { events } });
+			}),
+		);
 	} catch (error) {
 		console.error("[API] ingestEvents failed", error);
 	}
@@ -132,8 +136,12 @@ async function flushErrors(): Promise<void> {
 	errorBuffer = [];
 
 	try {
-		const client = await apiClientPromise;
-		await Effect.runPromise(client.analytics.reportErrors({ payload: { errors } }));
+		await Effect.runPromise(
+			Effect.gen(function* () {
+				const client = yield* apiClient;
+				yield* client.analytics.reportErrors({ payload: { errors } });
+			}),
+		);
 	} catch (error) {
 		console.error("Failed to flush error events", error);
 	}

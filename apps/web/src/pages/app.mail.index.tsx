@@ -1,7 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Effect } from "effect";
 import { InboxIcon, PlusIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { apiClient } from "@chevrotain/web/clients/api";
 import { Content, Header } from "@chevrotain/web/components/app/layout";
 import { Button } from "@chevrotain/web/components/ui/button";
 import { useZeroQuery } from "@chevrotain/web/lib/query";
@@ -20,10 +22,12 @@ function MailIndexPage() {
 	const [accounts] = useZeroQuery(queries.mailAccounts());
 
 	const handleConnectGmail = async () => {
-		const res = await fetch(`${import.meta.env.VITE_API_URL}/api/mail/oauth/url`, {
-			credentials: "include",
-		});
-		const data = (await res.json()) as { url: string };
+		const data = await Effect.runPromise(
+			Effect.gen(function* () {
+				const api = yield* apiClient;
+				return yield* api.mail.mailOAuthUrl();
+			}),
+		);
 		window.location.href = data.url;
 	};
 
