@@ -49,6 +49,8 @@
 			};
 		};
 
+		users.users.cschmatzler.extraGroups = ["docker"];
+
 		swapDevices = [
 			{
 				device = "/swapfile";
