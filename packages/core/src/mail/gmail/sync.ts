@@ -10,11 +10,13 @@
  * Postgres advisory locks.
  */
 
-import { eq, and, sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
+import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Effect } from "effect";
+import type { PoolClient } from "pg";
 
-import { Database, type DatabaseClient } from "@chevrotain/core/drizzle/index";
-import { createId } from "@chevrotain/core/id";
+import { Database } from "@chevrotain/core/drizzle/index";
+import { allRelations } from "@chevrotain/core/drizzle/relations";
 import { getGmailFolders, GmailAdapter } from "@chevrotain/core/mail/gmail/adapter";
 import {
 	mailAccount,
@@ -33,6 +35,22 @@ import type {
 	ProviderMessage,
 	ProviderThread,
 } from "@chevrotain/core/mail/provider";
+import {
+	createMailAttachmentId,
+	createMailConversationId,
+	createMailFolderId,
+	createMailLabelId,
+	createMailMessageBodyPartId,
+	createMailMessageId,
+	createMailMessageMailboxId,
+	createMailSyncCursorId,
+} from "@chevrotain/core/mail/schema";
+
+type SyncDatabaseClient = NodePgDatabase<Record<string, never>, typeof allRelations>;
+
+type SessionDatabaseClient = SyncDatabaseClient & {
+	$client: PoolClient;
+};
 
 // ---------------------------------------------------------------------------
 // Bootstrap (§13, §25.2)
@@ -42,64 +60,9 @@ import type {
  * Run the initial 30-day bootstrap for a Gmail account.
  */
 export function bootstrapGmailAccount(accountId: string, accessToken: string) {
-	return Effect.gen(function* () {
-		const { db } = yield* Database.Service;
-
-		// Fetch account
-		const [account] = yield* Effect.tryPromise(() =>
-			db.select().from(mailAccount).where(eq(mailAccount.id, accountId)).limit(1),
-		);
-		if (!account) return yield* Effect.fail(new Error(`Account ${accountId} not found`));
-
-		// Acquire advisory lock (§25.10)
-		const lockAcquired = yield* acquireAdvisoryLock(db, accountId);
-		if (!lockAcquired) {
-			return yield* Effect.fail(new Error(`Sync already running for account ${accountId}`));
-		}
-
-		try {
-			// Set status to bootstrapping
-			yield* Effect.tryPromise(() =>
-				db
-					.update(mailAccount)
-					.set({ status: "bootstrapping" })
-					.where(eq(mailAccount.id, accountId)),
-			);
-
-			const adapter = new GmailAdapter(accessToken);
-
-			// 1. Sync labels
-			const labels = yield* Effect.tryPromise(() => adapter.listLabels());
-			yield* syncLabels(db, account.userId, accountId, labels);
-
-			// 2. Derive folders from system labels (§25.1)
-			const folders = getGmailFolders(labels);
-			yield* syncFolders(db, account.userId, accountId, folders);
-
-			// 3. Fetch recent threads (30-day cutoff, full qualifying threads)
-			const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-			const threads = yield* Effect.tryPromise(() => adapter.listRecentThreads(cutoff));
-
-			// 4. Write threads, messages, body parts, attachments, label associations
-			yield* syncThreads(db, account.userId, accountId, threads);
-
-			// 5. Store cursor for incremental sync
-			const cursor = yield* Effect.tryPromise(() => adapter.getLatestCursor());
-			yield* upsertSyncCursor(db, accountId, cursor);
-
-			// 6. Set status to healthy
-			yield* Effect.tryPromise(() =>
-				db.update(mailAccount).set({ status: "healthy" }).where(eq(mailAccount.id, accountId)),
-			);
-		} catch (error) {
-			yield* Effect.tryPromise(() =>
-				db.update(mailAccount).set({ status: "degraded" }).where(eq(mailAccount.id, accountId)),
-			);
-			throw error;
-		} finally {
-			yield* releaseAdvisoryLock(db, accountId);
-		}
-	});
+	return withLockedAccountSession(accountId, (db) =>
+		bootstrapGmailAccountImpl(db, accountId, accessToken),
+	);
 }
 
 // ---------------------------------------------------------------------------
@@ -110,85 +73,111 @@ export function bootstrapGmailAccount(accountId: string, accessToken: string) {
  * Run an incremental sync for a Gmail account using the history API.
  */
 export function incrementalGmailSync(accountId: string, accessToken: string) {
-	return Effect.gen(function* () {
-		const { db } = yield* Database.Service;
+	return withLockedAccountSession(accountId, (db) =>
+		incrementalGmailSyncImpl(db, accountId, accessToken),
+	);
+}
 
+function bootstrapGmailAccountImpl(db: SyncDatabaseClient, accountId: string, accessToken: string) {
+	return Effect.gen(function* () {
 		const [account] = yield* Effect.tryPromise(() =>
 			db.select().from(mailAccount).where(eq(mailAccount.id, accountId)).limit(1),
 		);
 		if (!account) return yield* Effect.fail(new Error(`Account ${accountId} not found`));
 
-		const lockAcquired = yield* acquireAdvisoryLock(db, accountId);
-		if (!lockAcquired) return;
-
 		try {
-			const adapter = new GmailAdapter(accessToken);
-
-			// Get current cursor
-			const [cursorRow] = yield* Effect.tryPromise(() =>
+			yield* Effect.tryPromise(() =>
 				db
-					.select()
-					.from(mailSyncCursor)
-					.where(
-						and(
-							eq(mailSyncCursor.accountId, accountId),
-							eq(mailSyncCursor.cursorKind, "gmail_history"),
-						),
-					)
-					.limit(1),
+					.update(mailAccount)
+					.set({ status: "bootstrapping" })
+					.where(eq(mailAccount.id, accountId)),
 			);
 
-			if (!cursorRow) {
-				// No cursor → need bootstrap
-				yield* bootstrapGmailAccount(accountId, accessToken);
-				return;
-			}
-
-			const startHistoryId = (cursorRow.cursorPayload as { historyId: string }).historyId;
-
-			const { changes, newCursor, cursorExpired } = yield* Effect.tryPromise(() =>
-				adapter.getHistoryChanges(startHistoryId),
-			);
-
-			if (cursorExpired) {
-				// §22: Bounded resync
-				yield* Effect.tryPromise(() =>
-					db.update(mailAccount).set({ status: "resyncing" }).where(eq(mailAccount.id, accountId)),
-				);
-				yield* boundedResync(db, account.userId, accountId, adapter);
-				return;
-			}
-
-			// Process changes
-			// New messages
-			for (const message of changes.messagesAdded) {
-				yield* upsertMessage(db, account.userId, accountId, message);
-			}
-
-			// Deleted messages
-			for (const deletedRef of changes.messagesDeleted) {
-				yield* deleteMessageByProviderRef(db, accountId, deletedRef);
-			}
-
-			// Label additions
-			for (const { messageRef, labelRefs } of changes.labelsAdded) {
-				yield* addMessageLabels(db, account.userId, accountId, messageRef, labelRefs);
-			}
-
-			// Label removals
-			for (const { messageRef, labelRefs } of changes.labelsRemoved) {
-				yield* removeMessageLabels(db, accountId, messageRef, labelRefs);
-			}
-
-			// Update cursor
-			yield* upsertSyncCursor(db, accountId, newCursor);
-
-			// Re-sync labels in case any were added/removed
+			const adapter = new GmailAdapter(accessToken);
 			const labels = yield* Effect.tryPromise(() => adapter.listLabels());
 			yield* syncLabels(db, account.userId, accountId, labels);
-		} finally {
-			yield* releaseAdvisoryLock(db, accountId);
+
+			const folders = getGmailFolders(labels);
+			yield* syncFolders(db, account.userId, accountId, folders);
+
+			const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+			const threads = yield* Effect.tryPromise(() => adapter.listRecentThreads(cutoff));
+			yield* syncThreads(db, account.userId, accountId, threads);
+
+			const cursor = yield* Effect.tryPromise(() => adapter.getLatestCursor());
+			yield* upsertSyncCursor(db, accountId, cursor);
+
+			yield* Effect.tryPromise(() =>
+				db.update(mailAccount).set({ status: "healthy" }).where(eq(mailAccount.id, accountId)),
+			);
+		} catch (error) {
+			yield* Effect.tryPromise(() =>
+				db.update(mailAccount).set({ status: "degraded" }).where(eq(mailAccount.id, accountId)),
+			);
+			throw error;
 		}
+	});
+}
+
+function incrementalGmailSyncImpl(db: SyncDatabaseClient, accountId: string, accessToken: string) {
+	return Effect.gen(function* () {
+		const [account] = yield* Effect.tryPromise(() =>
+			db.select().from(mailAccount).where(eq(mailAccount.id, accountId)).limit(1),
+		);
+		if (!account) return yield* Effect.fail(new Error(`Account ${accountId} not found`));
+
+		const adapter = new GmailAdapter(accessToken);
+		const [cursorRow] = yield* Effect.tryPromise(() =>
+			db
+				.select()
+				.from(mailSyncCursor)
+				.where(
+					and(
+						eq(mailSyncCursor.accountId, accountId),
+						eq(mailSyncCursor.cursorKind, "gmail_history"),
+					),
+				)
+				.limit(1),
+		);
+
+		if (!cursorRow) {
+			yield* bootstrapGmailAccountImpl(db, accountId, accessToken);
+			return;
+		}
+
+		const startHistoryId = (cursorRow.cursorPayload as { historyId: string }).historyId;
+		const { changes, newCursor, cursorExpired } = yield* Effect.tryPromise(() =>
+			adapter.getHistoryChanges(startHistoryId),
+		);
+
+		if (cursorExpired) {
+			yield* Effect.tryPromise(() =>
+				db.update(mailAccount).set({ status: "resyncing" }).where(eq(mailAccount.id, accountId)),
+			);
+			yield* boundedResync(db, account.userId, accountId, adapter);
+			return;
+		}
+
+		for (const message of changes.messagesAdded) {
+			yield* upsertMessage(db, account.userId, accountId, message);
+		}
+
+		for (const deletedRef of changes.messagesDeleted) {
+			yield* deleteMessageByProviderRef(db, accountId, deletedRef);
+		}
+
+		for (const { messageRef, labelRefs } of changes.labelsAdded) {
+			yield* addMessageLabels(db, account.userId, accountId, messageRef, labelRefs);
+		}
+
+		for (const { messageRef, labelRefs } of changes.labelsRemoved) {
+			yield* removeMessageLabels(db, accountId, messageRef, labelRefs);
+		}
+
+		yield* upsertSyncCursor(db, accountId, newCursor);
+
+		const labels = yield* Effect.tryPromise(() => adapter.listLabels());
+		yield* syncLabels(db, account.userId, accountId, labels);
 	});
 }
 
@@ -197,7 +186,7 @@ export function incrementalGmailSync(accountId: string, accessToken: string) {
 // ---------------------------------------------------------------------------
 
 async function boundedResyncImpl(
-	db: DatabaseClient,
+	db: SyncDatabaseClient,
 	userId: string,
 	accountId: string,
 	adapter: GmailAdapter,
@@ -211,29 +200,13 @@ async function boundedResyncImpl(
 	}
 
 	const cursor = await adapter.getLatestCursor();
-	const now = new Date();
-	const cursorId = createId("msc_");
-	await db
-		.insert(mailSyncCursor)
-		.values({
-			id: cursorId,
-			accountId,
-			provider: "gmail",
-			cursorKind: "gmail_history",
-			cursorPayload: { historyId: cursor },
-			createdAt: now,
-			updatedAt: now,
-		})
-		.onConflictDoUpdate({
-			target: mailSyncCursor.id,
-			set: { cursorPayload: { historyId: cursor }, updatedAt: now },
-		});
+	await upsertSyncCursorImpl(db, accountId, cursor);
 
 	await db.update(mailAccount).set({ status: "healthy" }).where(eq(mailAccount.id, accountId));
 }
 
 function boundedResync(
-	db: DatabaseClient,
+	db: SyncDatabaseClient,
 	userId: string,
 	accountId: string,
 	adapter: GmailAdapter,
@@ -246,7 +219,7 @@ function boundedResync(
 // ---------------------------------------------------------------------------
 
 function syncLabels(
-	db: DatabaseClient,
+	db: SyncDatabaseClient,
 	userId: string,
 	accountId: string,
 	labels: ProviderLabel[],
@@ -257,7 +230,7 @@ function syncLabels(
 			await db
 				.insert(mailLabel)
 				.values({
-					id: createId("mlb_"),
+					id: createMailLabelId(),
 					userId,
 					accountId,
 					providerLabelRef: label.providerRef,
@@ -280,7 +253,7 @@ function syncLabels(
 }
 
 function syncFolders(
-	db: DatabaseClient,
+	db: SyncDatabaseClient,
 	userId: string,
 	accountId: string,
 	folders: Array<{ providerRef: string; kind: string; name: string }>,
@@ -291,7 +264,7 @@ function syncFolders(
 			await db
 				.insert(mailFolder)
 				.values({
-					id: createId("mfl_"),
+					id: createMailFolderId(),
 					userId,
 					accountId,
 					providerFolderRef: folder.providerRef,
@@ -314,7 +287,7 @@ function syncFolders(
 }
 
 function syncThreads(
-	db: DatabaseClient,
+	db: SyncDatabaseClient,
 	userId: string,
 	accountId: string,
 	threads: ProviderThread[],
@@ -327,7 +300,7 @@ function syncThreads(
 }
 
 async function syncThreadImpl(
-	db: DatabaseClient,
+	db: SyncDatabaseClient,
 	userId: string,
 	accountId: string,
 	thread: ProviderThread,
@@ -338,7 +311,7 @@ async function syncThreadImpl(
 
 	// Upsert conversation
 	const latestMessage = messages[messages.length - 1]!;
-	const conversationId = createId("mcv_");
+	const conversationId = createMailConversationId();
 	const subject = messages[0]?.subject ?? null;
 
 	const [conversation] = await db
@@ -382,7 +355,7 @@ async function syncThreadImpl(
 }
 
 function upsertMessage(
-	db: DatabaseClient,
+	db: SyncDatabaseClient,
 	userId: string,
 	accountId: string,
 	message: ProviderMessage,
@@ -390,15 +363,111 @@ function upsertMessage(
 	return Effect.tryPromise(() => upsertMessageImpl(db, userId, accountId, message));
 }
 
+async function ensureConversationForMessage(
+	db: SyncDatabaseClient,
+	userId: string,
+	accountId: string,
+	message: ProviderMessage,
+): Promise<string | undefined> {
+	if (!message.threadRef) {
+		return undefined;
+	}
+
+	const now = new Date();
+	const conversationId = createMailConversationId();
+	const [conversation] = await db
+		.insert(mailConversation)
+		.values({
+			id: conversationId,
+			userId,
+			accountId,
+			providerConversationRef: message.threadRef,
+			subject: message.subject ?? null,
+			snippet: message.snippet ?? null,
+			latestMessageAt: message.receivedAt ?? now,
+			messageCount: 0,
+			unreadCount: 0,
+			createdAt: now,
+			updatedAt: now,
+		})
+		.onConflictDoUpdate({
+			target: [mailConversation.accountId, mailConversation.providerConversationRef],
+			targetWhere: and(
+				eq(mailConversation.accountId, accountId),
+				eq(mailConversation.providerConversationRef, message.threadRef),
+			),
+			set: {
+				subject: message.subject ?? null,
+				snippet: message.snippet ?? null,
+				latestMessageAt: message.receivedAt ?? now,
+				updatedAt: now,
+			},
+		})
+		.returning({ id: mailConversation.id });
+
+	return conversation?.id ?? conversationId;
+}
+
+async function recomputeConversationStats(
+	db: SyncDatabaseClient,
+	conversationId: string,
+): Promise<void> {
+	const messages = await db
+		.select({
+			id: mailMessage.id,
+			isUnread: mailMessage.isUnread,
+			subject: mailMessage.subject,
+			snippet: mailMessage.snippet,
+			receivedAt: mailMessage.receivedAt,
+			createdAt: mailMessage.createdAt,
+		})
+		.from(mailMessage)
+		.where(eq(mailMessage.conversationId, conversationId))
+		.orderBy(desc(mailMessage.receivedAt), desc(mailMessage.createdAt));
+
+	if (messages.length === 0) {
+		await db.delete(mailConversation).where(eq(mailConversation.id, conversationId));
+		return;
+	}
+
+	const latestMessage = messages[0]!;
+	await db
+		.update(mailConversation)
+		.set({
+			subject: latestMessage.subject ?? null,
+			snippet: latestMessage.snippet ?? null,
+			latestMessageAt: latestMessage.receivedAt ?? latestMessage.createdAt,
+			messageCount: messages.length,
+			unreadCount: messages.filter((message) => message.isUnread).length,
+			updatedAt: new Date(),
+		})
+		.where(eq(mailConversation.id, conversationId));
+}
+
+async function getCurrentMessageLabelRefs(
+	db: SyncDatabaseClient,
+	messageId: string,
+): Promise<string[]> {
+	const rows = await db
+		.select({ providerLabelRef: mailLabel.providerLabelRef })
+		.from(mailMessageLabel)
+		.innerJoin(mailLabel, eq(mailMessageLabel.labelId, mailLabel.id))
+		.where(eq(mailMessageLabel.messageId, messageId));
+
+	return rows.map((row) => row.providerLabelRef);
+}
+
 async function upsertMessageImpl(
-	db: DatabaseClient,
+	db: SyncDatabaseClient,
 	userId: string,
 	accountId: string,
 	message: ProviderMessage,
 	conversationId?: string,
 ): Promise<void> {
 	const now = new Date();
-	const messageId = createId("mmg_");
+	const messageId = createMailMessageId();
+	const resolvedConversationId =
+		conversationId ?? (await ensureConversationForMessage(db, userId, accountId, message));
 
 	const bodyParts = message.bodyParts;
 	const hasHtml = bodyParts.some((p) => p.contentType === "text/html");
@@ -406,7 +475,7 @@ async function upsertMessageImpl(
 
 	// If message already exists, get its ID
 	const [existing] = await db
-		.select({ id: mailMessage.id })
+		.select({ id: mailMessage.id, conversationId: mailMessage.conversationId })
 		.from(mailMessage)
 		.where(
 			and(
@@ -423,10 +492,17 @@ async function upsertMessageImpl(
 		await db
 			.update(mailMessage)
 			.set({
+				conversationId: resolvedConversationId ?? existing.conversationId ?? null,
 				isUnread: message.isUnread,
 				isStarred: message.isStarred,
 				isDraft: message.isDraft,
+				subject: message.subject ?? null,
 				snippet: message.snippet ?? null,
+				sentAt: message.sentAt ?? null,
+				receivedAt: message.receivedAt ?? null,
+				hasAttachments: message.attachments.length > 0,
+				hasHtml,
+				hasPlainText,
 				updatedAt: now,
 			})
 			.where(eq(mailMessage.id, existing.id));
@@ -436,7 +512,7 @@ async function upsertMessageImpl(
 			id: msgId,
 			userId,
 			accountId,
-			conversationId: conversationId ?? null,
+			conversationId: resolvedConversationId ?? null,
 			providerMessageRef: message.providerRef,
 			internetMessageId: message.internetMessageId ?? null,
 			subject: message.subject ?? null,
@@ -465,7 +541,7 @@ async function upsertMessageImpl(
 				!preferredSet && (part.contentType === "text/html" || (i === 0 && !hasHtml));
 
 			await db.insert(mailMessageBodyPart).values({
-				id: createId("mbp_"),
+				id: createMailMessageBodyPartId(),
 				userId,
 				messageId: msgId,
 				partIndex: i,
@@ -482,7 +558,7 @@ async function upsertMessageImpl(
 		// Insert attachments (§11.10)
 		for (const attachment of message.attachments) {
 			await db.insert(mailAttachment).values({
-				id: createId("mat_"),
+				id: createMailAttachmentId(),
 				userId,
 				messageId: msgId,
 				providerAttachmentRef: attachment.providerRef ?? null,
@@ -506,10 +582,14 @@ async function upsertMessageImpl(
 	if (message.labelRefs) {
 		await syncMessageFolderMembershipImpl(db, userId, accountId, msgId, message.labelRefs);
 	}
+
+	if (resolvedConversationId) {
+		await recomputeConversationStats(db, resolvedConversationId);
+	}
 }
 
 async function syncMessageLabelsImpl(
-	db: DatabaseClient,
+	db: SyncDatabaseClient,
 	userId: string,
 	accountId: string,
 	messageId: string,
@@ -541,7 +621,7 @@ async function syncMessageLabelsImpl(
 }
 
 async function syncMessageFolderMembershipImpl(
-	db: DatabaseClient,
+	db: SyncDatabaseClient,
 	userId: string,
 	accountId: string,
 	messageId: string,
@@ -567,7 +647,7 @@ async function syncMessageFolderMembershipImpl(
 			await db
 				.insert(mailMessageMailbox)
 				.values({
-					id: createId("mmb_"),
+					id: createMailMessageMailboxId(),
 					userId,
 					messageId,
 					accountId,
@@ -581,10 +661,14 @@ async function syncMessageFolderMembershipImpl(
 	}
 }
 
-function deleteMessageByProviderRef(db: DatabaseClient, accountId: string, providerRef: string) {
+function deleteMessageByProviderRef(
+	db: SyncDatabaseClient,
+	accountId: string,
+	providerRef: string,
+) {
 	return Effect.tryPromise(async () => {
 		const [msg] = await db
-			.select({ id: mailMessage.id })
+			.select({ id: mailMessage.id, conversationId: mailMessage.conversationId })
 			.from(mailMessage)
 			.where(
 				and(eq(mailMessage.accountId, accountId), eq(mailMessage.providerMessageRef, providerRef)),
@@ -594,12 +678,16 @@ function deleteMessageByProviderRef(db: DatabaseClient, accountId: string, provi
 		if (msg) {
 			// Cascading deletes handle body parts, labels, mailbox entries, attachments
 			await db.delete(mailMessage).where(eq(mailMessage.id, msg.id));
+
+			if (msg.conversationId) {
+				await recomputeConversationStats(db, msg.conversationId);
+			}
 		}
 	});
 }
 
 function addMessageLabels(
-	db: DatabaseClient,
+	db: SyncDatabaseClient,
 	userId: string,
 	accountId: string,
 	messageRef: string,
@@ -607,7 +695,7 @@ function addMessageLabels(
 ) {
 	return Effect.tryPromise(async () => {
 		const [msg] = await db
-			.select({ id: mailMessage.id })
+			.select({ id: mailMessage.id, conversationId: mailMessage.conversationId })
 			.from(mailMessage)
 			.where(
 				and(eq(mailMessage.accountId, accountId), eq(mailMessage.providerMessageRef, messageRef)),
@@ -647,18 +735,29 @@ function addMessageLabels(
 				.set({ isStarred: true, updatedAt: now })
 				.where(eq(mailMessage.id, msg.id));
 		}
+
+		const currentLabelRefs = await getCurrentMessageLabelRefs(db, msg.id);
+		await syncMessageFolderMembershipImpl(db, userId, accountId, msg.id, currentLabelRefs);
+
+		if (msg.conversationId && labelRefs.includes("UNREAD")) {
+			await recomputeConversationStats(db, msg.conversationId);
+		}
 	});
 }
 
 function removeMessageLabels(
-	db: DatabaseClient,
+	db: SyncDatabaseClient,
 	accountId: string,
 	messageRef: string,
 	labelRefs: string[],
 ) {
 	return Effect.tryPromise(async () => {
 		const [msg] = await db
-			.select({ id: mailMessage.id })
+			.select({
+				id: mailMessage.id,
+				userId: mailMessage.userId,
+				conversationId: mailMessage.conversationId,
+			})
 			.from(mailMessage)
 			.where(
 				and(eq(mailMessage.accountId, accountId), eq(mailMessage.providerMessageRef, messageRef)),
@@ -699,6 +798,13 @@ function removeMessageLabels(
 				.set({ isStarred: false, updatedAt: now })
 				.where(eq(mailMessage.id, msg.id));
 		}
+
+		const currentLabelRefs = await getCurrentMessageLabelRefs(db, msg.id);
+		await syncMessageFolderMembershipImpl(db, msg.userId, accountId, msg.id, currentLabelRefs);
+
+		if (msg.conversationId && labelRefs.includes("UNREAD")) {
+			await recomputeConversationStats(db, msg.conversationId);
+		}
 	});
 }
 
@@ -706,37 +812,35 @@ function removeMessageLabels(
 // Sync cursor
 // ---------------------------------------------------------------------------
 
-function upsertSyncCursor(db: DatabaseClient, accountId: string, historyId: string) {
-	return Effect.tryPromise(async () => {
-		const now = new Date();
-		const [existing] = await db
-			.select({ id: mailSyncCursor.id })
-			.from(mailSyncCursor)
-			.where(
-				and(
-					eq(mailSyncCursor.accountId, accountId),
-					eq(mailSyncCursor.cursorKind, "gmail_history"),
-				),
-			)
-			.limit(1);
-
-		if (existing) {
-			await db
-				.update(mailSyncCursor)
-				.set({ cursorPayload: { historyId }, updatedAt: now })
-				.where(eq(mailSyncCursor.id, existing.id));
-		} else {
-			await db.insert(mailSyncCursor).values({
-				id: createId("msc_"),
-				accountId,
+async function upsertSyncCursorImpl(
+	db: SyncDatabaseClient,
+	accountId: string,
+	historyId: string,
+): Promise<void> {
+	const now = new Date();
+	await db
+		.insert(mailSyncCursor)
+		.values({
+			id: createMailSyncCursorId(),
+			accountId,
+			provider: "gmail",
+			cursorKind: "gmail_history",
+			cursorPayload: { historyId },
+			createdAt: now,
+			updatedAt: now,
+		})
+		.onConflictDoUpdate({
+			target: [mailSyncCursor.accountId, mailSyncCursor.cursorKind],
+			set: {
 				provider: "gmail",
-				cursorKind: "gmail_history",
 				cursorPayload: { historyId },
-				createdAt: now,
 				updatedAt: now,
-			});
-		}
-	});
+			},
+		});
+}
+
+function upsertSyncCursor(db: SyncDatabaseClient, accountId: string, historyId: string) {
+	return Effect.tryPromise(() => upsertSyncCursorImpl(db, accountId, historyId));
 }
 
 // ---------------------------------------------------------------------------
@@ -751,7 +855,7 @@ function accountIdToLockKey(accountId: string): number {
 	return hash;
 }
 
-function acquireAdvisoryLock(db: DatabaseClient, accountId: string) {
+function acquireAdvisoryLock(db: SyncDatabaseClient, accountId: string) {
 	return Effect.tryPromise(async () => {
 		const key = accountIdToLockKey(accountId);
 		const result = await db.execute(sql`SELECT pg_try_advisory_lock(${key}) as acquired`);
@@ -759,9 +863,38 @@ function acquireAdvisoryLock(db: DatabaseClient, accountId: string) {
 	});
 }
 
-function releaseAdvisoryLock(db: DatabaseClient, accountId: string) {
+function releaseAdvisoryLock(db: SyncDatabaseClient, accountId: string) {
 	return Effect.tryPromise(async () => {
 		const key = accountIdToLockKey(accountId);
-		await db.execute(sql`SELECT pg_advisory_unlock(${key})`);
+		const result = await db.execute(sql`SELECT pg_advisory_unlock(${key}) as released`);
+		if ((result.rows[0] as { released: boolean } | undefined)?.released !== true) {
+			throw new Error(`Failed to release advisory lock for account ${accountId}`);
+		}
+	});
+}
+
+function withLockedAccountSession<A, E>(
+	accountId: string,
+	use: (db: SessionDatabaseClient) => Effect.Effect<A, E>,
+) {
+	return Effect.gen(function* () {
+		const { db } = yield* Database.Service;
+		const client = yield* Effect.acquireRelease(
+			Effect.promise(() => db.$client.connect()),
+			(client) => Effect.sync(() => client.release()),
+		);
+
+		const sessionDb = drizzle({
+			client,
+			relations: allRelations,
+		}) as SessionDatabaseClient;
+
+		const lockAcquired = yield* acquireAdvisoryLock(sessionDb, accountId);
+		if (!lockAcquired) {
+			return yield* Effect.fail(new Error(`Sync already running for account ${accountId}`));
+		}
+
+		yield* Effect.addFinalizer(() => Effect.orDie(releaseAdvisoryLock(sessionDb, accountId)));
+		return yield* use(sessionDb);
 	});
 }
