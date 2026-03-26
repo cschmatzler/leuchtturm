@@ -17,6 +17,7 @@ export default defineConfig({
 			typeCheck: true,
 		},
 		jsPlugins: [
+			"./packages/oxlint-plugins/src/no-direct-fetch.ts",
 			"./packages/oxlint-plugins/src/no-relative-imports.ts",
 			"./packages/oxlint-plugins/src/no-vi-mock.ts",
 			"@effect/eslint-plugin",
@@ -37,6 +38,14 @@ export default defineConfig({
 			"react/exhaustive-deps": "error",
 			"react/rules-of-hooks": "error",
 		},
+		overrides: [
+			{
+				files: ["apps/web/**/*.{ts,tsx}"],
+				rules: {
+					"no-direct-fetch/no-direct-fetch": "error",
+				},
+			},
+		],
 	},
 	test: {
 		silent: "passed-only",

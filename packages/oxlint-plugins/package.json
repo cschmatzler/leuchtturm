@@ -4,6 +4,7 @@
 	"type": "module",
 	"exports": {
 		".": "./src/index.ts",
+		"./no-direct-fetch": "./src/no-direct-fetch.ts",
 		"./no-vi-mock": "./src/no-vi-mock.ts",
 		"./no-relative-imports": "./src/no-relative-imports.ts",
 		"./types": "./src/types.ts"
