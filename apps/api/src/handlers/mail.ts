@@ -1,10 +1,11 @@
 /**
  * Mail API handlers.
  *
- * Handles Gmail OAuth2 connection flow, sync triggers, and account disconnection.
+ * Handles Gmail OAuth2 connection flow and account disconnection.
+ * Sync orchestration is delegated to durable workflows.
  */
 
-import { Effect, Schema } from "effect";
+import { Effect } from "effect";
 import { HttpApiBuilder } from "effect/unstable/httpapi";
 
 import { ChevrotainApi } from "@chevrotain/api/contract";
@@ -13,7 +14,10 @@ import { Database } from "@chevrotain/core/drizzle/index";
 import { DatabaseError, ValidationError } from "@chevrotain/core/errors";
 import { MailEncryption } from "@chevrotain/core/mail/encryption";
 import { GmailOAuth } from "@chevrotain/core/mail/gmail/oauth";
-import { bootstrapGmailAccount, incrementalGmailSync } from "@chevrotain/core/mail/gmail/sync";
+import {
+	GmailBootstrapWorkflow,
+	GmailIncrementalSyncWorkflow,
+} from "@chevrotain/core/mail/gmail/workflows";
 import {
 	consumeMailOAuthState,
 	createMailAccount,
@@ -21,9 +25,6 @@ import {
 	createMailOAuthState,
 	disconnectMailAccount,
 	getMailAccountForUser,
-	getMailAccountSecret,
-	updateMailAccountSecret,
-	updateMailAccountStatus,
 } from "@chevrotain/core/mail/queries";
 import {
 	createMailAccountId,
@@ -31,164 +32,11 @@ import {
 	GMAIL_CAPABILITIES,
 } from "@chevrotain/core/mail/schema";
 
-const StoredMailOAuthSecret = Schema.Struct({
-	accessToken: Schema.String,
-	refreshToken: Schema.optional(Schema.String),
-	expiresAt: Schema.Number,
-});
-
-type StoredMailOAuthSecret = typeof StoredMailOAuthSecret.Type;
-
 const MAIL_OAUTH_STATE_TTL_MS = 10 * 60 * 1000;
-const ACCESS_TOKEN_REFRESH_SKEW_MS = 60 * 1000;
 
 function toDatabaseError(context: string, error: unknown) {
 	return new DatabaseError({
 		message: `${context}: ${error instanceof Error ? error.message : String(error)}`,
-	});
-}
-
-function encryptMailOAuthSecret(
-	encryption: MailEncryption.Interface,
-	secret: StoredMailOAuthSecret,
-) {
-	return encryption.encrypt(JSON.stringify(secret));
-}
-
-function decodeMailOAuthSecret(
-	encryption: MailEncryption.Interface,
-	secret: {
-		encryptedPayload: string;
-		encryptedDek: string;
-	},
-) {
-	return Effect.try({
-		try: () => {
-			const decrypted = encryption.decrypt({
-				encryptedPayload: secret.encryptedPayload,
-				encryptedDek: secret.encryptedDek,
-			});
-			return Schema.decodeUnknownSync(StoredMailOAuthSecret)(JSON.parse(decrypted));
-		},
-		catch: (error) => toDatabaseError("Failed to decode stored mail credentials", error),
-	});
-}
-
-function persistMailOAuthSecret(
-	db: Database.Interface["db"],
-	accountId: string,
-	encryption: MailEncryption.Interface,
-	secret: StoredMailOAuthSecret,
-) {
-	const encrypted = encryptMailOAuthSecret(encryption, secret);
-	return Effect.tryPromise({
-		try: () =>
-			updateMailAccountSecret(db, accountId, {
-				encryptedPayload: encrypted.encryptedPayload,
-				encryptedDek: encrypted.encryptedDek,
-			}),
-		catch: (error) => toDatabaseError("Failed to persist mail credentials", error),
-	});
-}
-
-function setMailAccountStatus(db: Database.Interface["db"], accountId: string, status: string) {
-	return Effect.tryPromise({
-		try: () => updateMailAccountStatus(db, accountId, status),
-		catch: (error) => toDatabaseError(`Failed to set account status to ${status}`, error),
-	});
-}
-
-function refreshMailAccessToken(
-	db: Database.Interface["db"],
-	oauth: GmailOAuth.Interface,
-	encryption: MailEncryption.Interface,
-	accountId: string,
-	secret: StoredMailOAuthSecret,
-) {
-	return Effect.gen(function* () {
-		if (!secret.refreshToken) {
-			yield* setMailAccountStatus(db, accountId, "requires_reauth");
-			return yield* Effect.fail(
-				new DatabaseError({ message: `Mail account ${accountId} requires reauthorization` }),
-			);
-		}
-
-		const refreshedTokens = yield* Effect.catch(
-			Effect.tryPromise({
-				try: () => oauth.refreshAccessToken(secret.refreshToken!),
-				catch: (error) => toDatabaseError("Failed to refresh Gmail access token", error),
-			}),
-			(error) =>
-				Effect.gen(function* () {
-					yield* setMailAccountStatus(db, accountId, "requires_reauth");
-					return yield* Effect.fail(error);
-				}),
-		);
-
-		const nextSecret: StoredMailOAuthSecret = {
-			accessToken: refreshedTokens.accessToken,
-			refreshToken: refreshedTokens.refreshToken ?? secret.refreshToken,
-			expiresAt: Date.now() + refreshedTokens.expiresIn * 1000,
-		};
-
-		yield* persistMailOAuthSecret(db, accountId, encryption, nextSecret);
-		yield* setMailAccountStatus(db, accountId, "healthy");
-		return nextSecret;
-	});
-}
-
-function ensureFreshMailAccessToken(
-	db: Database.Interface["db"],
-	oauth: GmailOAuth.Interface,
-	encryption: MailEncryption.Interface,
-	accountId: string,
-	secret: StoredMailOAuthSecret,
-) {
-	if (secret.expiresAt > Date.now() + ACCESS_TOKEN_REFRESH_SKEW_MS) {
-		return Effect.succeed(secret);
-	}
-
-	return refreshMailAccessToken(db, oauth, encryption, accountId, secret);
-}
-
-function isGmailUnauthorizedError(error: unknown) {
-	return error instanceof Error && error.message.includes("Gmail API error 401:");
-}
-
-function forkLoggedBackgroundTask<R, E>(effect: Effect.Effect<void, E, R>, message: string) {
-	return effect.pipe(
-		Effect.tapError((error) => Effect.logError(`${message}: ${String(error)}`)),
-		Effect.ignore,
-		Effect.forkDetach,
-	);
-}
-
-function runIncrementalSyncWithRefresh(
-	db: Database.Interface["db"],
-	oauth: GmailOAuth.Interface,
-	encryption: MailEncryption.Interface,
-	accountId: string,
-	secret: StoredMailOAuthSecret,
-) {
-	return Effect.gen(function* () {
-		const freshSecret = yield* ensureFreshMailAccessToken(db, oauth, encryption, accountId, secret);
-
-		yield* Effect.catch(incrementalGmailSync(accountId, freshSecret.accessToken), (error) =>
-			Effect.gen(function* () {
-				if (!isGmailUnauthorizedError(error)) {
-					return yield* Effect.fail(error);
-				}
-
-				const refreshedSecret = yield* refreshMailAccessToken(
-					db,
-					oauth,
-					encryption,
-					accountId,
-					freshSecret,
-				);
-				return yield* incrementalGmailSync(accountId, refreshedSecret.accessToken);
-			}),
-		);
 	});
 }
 
@@ -278,11 +126,13 @@ export const MailHandlerLive = HttpApiBuilder.group(ChevrotainApi, "mail", (hand
 					catch: (error) => toDatabaseError("Failed to create mail account", error),
 				});
 
-				const encrypted = encryptMailOAuthSecret(encryption, {
-					accessToken: tokens.accessToken,
-					refreshToken: tokens.refreshToken,
-					expiresAt: Date.now() + tokens.expiresIn * 1000,
-				});
+				const encrypted = encryption.encrypt(
+					JSON.stringify({
+						accessToken: tokens.accessToken,
+						refreshToken: tokens.refreshToken,
+						expiresAt: Date.now() + tokens.expiresIn * 1000,
+					}),
+				);
 
 				yield* Effect.tryPromise({
 					try: () =>
@@ -295,9 +145,9 @@ export const MailHandlerLive = HttpApiBuilder.group(ChevrotainApi, "mail", (hand
 					catch: (error) => toDatabaseError("Failed to store mail credentials", error),
 				});
 
-				yield* forkLoggedBackgroundTask(
-					bootstrapGmailAccount(accountId, tokens.accessToken),
-					`Bootstrap failed for ${accountId}`,
+				yield* GmailBootstrapWorkflow.execute(
+					{ accountId, accessToken: tokens.accessToken },
+					{ discard: true },
 				);
 
 				return { accountId };
@@ -312,8 +162,6 @@ export const MailHandlerLive = HttpApiBuilder.group(ChevrotainApi, "mail", (hand
 			Effect.fn("mail.sync")(function* ({ payload }) {
 				const { user } = yield* CurrentUser;
 				const { db } = yield* Database.Service;
-				const encryption = yield* MailEncryption.Service;
-				const oauth = yield* GmailOAuth.Service;
 
 				const account = yield* Effect.tryPromise({
 					try: () => getMailAccountForUser(db, payload.accountId, user.id),
@@ -324,21 +172,9 @@ export const MailHandlerLive = HttpApiBuilder.group(ChevrotainApi, "mail", (hand
 					return yield* Effect.fail(new DatabaseError({ message: "Account not found" }));
 				}
 
-				const secret = yield* Effect.tryPromise({
-					try: () => getMailAccountSecret(db, payload.accountId),
-					catch: (error) => toDatabaseError("Failed to fetch mail credentials", error),
-				});
-
-				if (!secret) {
-					return yield* Effect.fail(
-						new DatabaseError({ message: "Account credentials not found" }),
-					);
-				}
-
-				const decryptedSecret = yield* decodeMailOAuthSecret(encryption, secret);
-				yield* forkLoggedBackgroundTask(
-					runIncrementalSyncWithRefresh(db, oauth, encryption, payload.accountId, decryptedSecret),
-					`Sync failed for ${payload.accountId}`,
+				yield* GmailIncrementalSyncWorkflow.execute(
+					{ accountId: payload.accountId },
+					{ discard: true },
 				);
 
 				return { success: true as const };
@@ -346,7 +182,7 @@ export const MailHandlerLive = HttpApiBuilder.group(ChevrotainApi, "mail", (hand
 		)
 
 		// -------------------------------------------------------------------
-		// POST /api/mail/disconnect (§25.11)
+		// POST /api/mail/disconnect
 		// -------------------------------------------------------------------
 		.handle(
 			"mailDisconnect",

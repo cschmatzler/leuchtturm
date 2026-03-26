@@ -6,17 +6,15 @@
  * - Incremental sync via Gmail history API
  * - Bounded resync on cursor expiration
  *
- * Sync concurrency (§25.10): At most one sync job per account, enforced via
- * Postgres advisory locks.
+ * Sync concurrency is handled at the workflow layer via idempotency keys.
  */
 
-import { and, desc, eq, sql } from "drizzle-orm";
-import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
+import { and, desc, eq } from "drizzle-orm";
+import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Effect } from "effect";
-import type { PoolClient } from "pg";
 
 import { Database } from "@chevrotain/core/drizzle/index";
-import { allRelations } from "@chevrotain/core/drizzle/relations";
+import type { allRelations } from "@chevrotain/core/drizzle/relations";
 import { getGmailFolders, GmailAdapter } from "@chevrotain/core/mail/gmail/adapter";
 import {
 	mailAccount,
@@ -48,10 +46,6 @@ import {
 
 type SyncDatabaseClient = NodePgDatabase<Record<string, never>, typeof allRelations>;
 
-type SessionDatabaseClient = SyncDatabaseClient & {
-	$client: PoolClient;
-};
-
 // ---------------------------------------------------------------------------
 // Bootstrap (§13, §25.2)
 // ---------------------------------------------------------------------------
@@ -60,9 +54,10 @@ type SessionDatabaseClient = SyncDatabaseClient & {
  * Run the initial 30-day bootstrap for a Gmail account.
  */
 export function bootstrapGmailAccount(accountId: string, accessToken: string) {
-	return withLockedAccountSession(accountId, (db) =>
-		bootstrapGmailAccountImpl(db, accountId, accessToken),
-	);
+	return Effect.gen(function* () {
+		const { db } = yield* Database.Service;
+		yield* bootstrapGmailAccountImpl(db, accountId, accessToken);
+	});
 }
 
 // ---------------------------------------------------------------------------
@@ -73,9 +68,10 @@ export function bootstrapGmailAccount(accountId: string, accessToken: string) {
  * Run an incremental sync for a Gmail account using the history API.
  */
 export function incrementalGmailSync(accountId: string, accessToken: string) {
-	return withLockedAccountSession(accountId, (db) =>
-		incrementalGmailSyncImpl(db, accountId, accessToken),
-	);
+	return Effect.gen(function* () {
+		const { db } = yield* Database.Service;
+		yield* incrementalGmailSyncImpl(db, accountId, accessToken);
+	});
 }
 
 function bootstrapGmailAccountImpl(db: SyncDatabaseClient, accountId: string, accessToken: string) {
@@ -841,60 +837,4 @@ async function upsertSyncCursorImpl(
 
 function upsertSyncCursor(db: SyncDatabaseClient, accountId: string, historyId: string) {
 	return Effect.tryPromise(() => upsertSyncCursorImpl(db, accountId, historyId));
-}
-
-// ---------------------------------------------------------------------------
-// Advisory lock helpers (§25.10)
-// ---------------------------------------------------------------------------
-
-function accountIdToLockKey(accountId: string): number {
-	let hash = 0;
-	for (let i = 0; i < accountId.length; i++) {
-		hash = (hash * 31 + accountId.charCodeAt(i)) | 0;
-	}
-	return hash;
-}
-
-function acquireAdvisoryLock(db: SyncDatabaseClient, accountId: string) {
-	return Effect.tryPromise(async () => {
-		const key = accountIdToLockKey(accountId);
-		const result = await db.execute(sql`SELECT pg_try_advisory_lock(${key}) as acquired`);
-		return (result.rows[0] as { acquired: boolean })?.acquired === true;
-	});
-}
-
-function releaseAdvisoryLock(db: SyncDatabaseClient, accountId: string) {
-	return Effect.tryPromise(async () => {
-		const key = accountIdToLockKey(accountId);
-		const result = await db.execute(sql`SELECT pg_advisory_unlock(${key}) as released`);
-		if ((result.rows[0] as { released: boolean } | undefined)?.released !== true) {
-			throw new Error(`Failed to release advisory lock for account ${accountId}`);
-		}
-	});
-}
-
-function withLockedAccountSession<A, E>(
-	accountId: string,
-	use: (db: SessionDatabaseClient) => Effect.Effect<A, E>,
-) {
-	return Effect.gen(function* () {
-		const { db } = yield* Database.Service;
-		const client = yield* Effect.acquireRelease(
-			Effect.promise(() => db.$client.connect()),
-			(client) => Effect.sync(() => client.release()),
-		);
-
-		const sessionDb = drizzle({
-			client,
-			relations: allRelations,
-		}) as SessionDatabaseClient;
-
-		const lockAcquired = yield* acquireAdvisoryLock(sessionDb, accountId);
-		if (!lockAcquired) {
-			return yield* Effect.fail(new Error(`Sync already running for account ${accountId}`));
-		}
-
-		yield* Effect.addFinalizer(() => Effect.orDie(releaseAdvisoryLock(sessionDb, accountId)));
-		return yield* use(sessionDb);
-	});
 }

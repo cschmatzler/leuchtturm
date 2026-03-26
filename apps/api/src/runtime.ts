@@ -1,4 +1,5 @@
 import { Effect, Layer } from "effect";
+import { WorkflowEngine } from "effect/unstable/workflow";
 
 import { registerDatabasePoolMetrics } from "@chevrotain/api/metrics";
 import { Analytics } from "@chevrotain/core/analytics/index";
@@ -7,6 +8,7 @@ import { Database } from "@chevrotain/core/drizzle/index";
 import { Email } from "@chevrotain/core/email";
 import { MailEncryption } from "@chevrotain/core/mail/encryption";
 import { GmailOAuth } from "@chevrotain/core/mail/gmail/oauth";
+import { GmailWorkflowsLive } from "@chevrotain/core/mail/gmail/workflows";
 import { RateLimit } from "@chevrotain/core/rate-limit";
 
 const DatabasePoolMetricsLive = Layer.effectDiscard(
@@ -17,7 +19,7 @@ const DatabasePoolMetricsLive = Layer.effectDiscard(
 	}),
 ).pipe(Layer.provide(Database.defaultLayer));
 
-export const AppLayer = Layer.mergeAll(
+const BaseLive = Layer.mergeAll(
 	Database.defaultLayer,
 	Analytics.defaultLayer,
 	Email.defaultLayer,
@@ -26,4 +28,7 @@ export const AppLayer = Layer.mergeAll(
 	RateLimit.defaultLayer,
 	Auth.defaultLayer,
 	DatabasePoolMetricsLive,
+	WorkflowEngine.layerMemory,
 );
+
+export const AppLayer = GmailWorkflowsLive.pipe(Layer.provideMerge(BaseLive));

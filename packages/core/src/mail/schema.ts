@@ -105,6 +105,17 @@ export function createMailOAuthStateId(): MailOAuthStateId {
 }
 
 // ---------------------------------------------------------------------------
+// Stored secret shape (encrypted in mail_account_secret)
+// ---------------------------------------------------------------------------
+
+export const StoredMailOAuthSecret = Schema.Struct({
+	accessToken: Schema.String,
+	refreshToken: Schema.optional(Schema.String),
+	expiresAt: Schema.Number,
+});
+export type StoredMailOAuthSecret = typeof StoredMailOAuthSecret.Type;
+
+// ---------------------------------------------------------------------------
 // Enums
 // ---------------------------------------------------------------------------
 
