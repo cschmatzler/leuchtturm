@@ -43,7 +43,7 @@ function MessageBody({
 		return (
 			<div
 				className="prose prose-sm dark:prose-invert max-w-none overflow-x-auto"
-				// biome-ignore lint/security/noDangerouslySetInnerHtml: HTML is sanitized server-side on ingest via DOMPurify (§16)
+				// biome-ignore lint/security/noDangerouslySetInnerHtml: HTML is sanitized server-side on ingest (§16)
 				dangerouslySetInnerHTML={{ __html: preferred.content }}
 			/>
 		);

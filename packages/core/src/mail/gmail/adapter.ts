@@ -6,7 +6,7 @@
  * incremental sync.
  */
 
-import DOMPurify from "isomorphic-dompurify";
+import sanitizeMailHtml from "sanitize-html";
 
 import type {
 	MailProviderAdapter,
@@ -26,8 +26,8 @@ import type { MailFolderKind, MailLabelKind } from "@chevrotain/core/mail/schema
 
 const GMAIL_API_BASE = "https://gmail.googleapis.com/gmail/v1/users/me";
 
-const DOMPURIFY_CONFIG = {
-	ALLOWED_TAGS: [
+const HTML_SANITIZER_CONFIG = {
+	allowedTags: [
 		"a",
 		"abbr",
 		"b",
@@ -82,40 +82,38 @@ const DOMPURIFY_CONFIG = {
 		"ul",
 		"wbr",
 	],
-	ALLOWED_ATTR: [
-		"href",
-		"src",
-		"alt",
-		"title",
-		"class",
-		"style",
-		"width",
-		"height",
-		"dir",
-		"lang",
-		"colspan",
-		"rowspan",
-		"scope",
-		"align",
-		"valign",
-		"bgcolor",
-		"border",
-		"cellpadding",
-		"cellspacing",
-	],
-	FORBID_TAGS: ["script", "iframe", "form", "object", "embed", "applet"],
-	FORBID_ATTR: [
-		"onerror",
-		"onload",
-		"onclick",
-		"onmouseover",
-		"onfocus",
-		"onblur",
-		"onsubmit",
-		"onchange",
-		"oninput",
-	],
-	ALLOW_DATA_ATTR: false,
+	allowedAttributes: {
+		"*": [
+			"href",
+			"src",
+			"alt",
+			"title",
+			"class",
+			"width",
+			"height",
+			"dir",
+			"lang",
+			"colspan",
+			"rowspan",
+			"scope",
+			"align",
+			"valign",
+			"bgcolor",
+			"border",
+			"cellpadding",
+			"cellspacing",
+		],
+		a: ["href", "title"],
+		img: ["src", "alt", "title", "width", "height"],
+	},
+	allowedSchemes: ["http", "https", "mailto"],
+	allowedSchemesByTag: {
+		img: ["http", "https", "data"],
+	},
+	allowedSchemesAppliedToAttributes: ["href", "src"],
+	allowProtocolRelative: false,
+	disallowedTagsMode: "discard" as const,
+	enforceHtmlBoundary: true,
 };
 
 // ---------------------------------------------------------------------------
@@ -209,7 +207,7 @@ function decodeBase64Url(data: string): string {
 }
 
 function sanitizeHtml(html: string): string {
-	return DOMPurify.sanitize(html, DOMPURIFY_CONFIG) as string;
+	return sanitizeMailHtml(html, HTML_SANITIZER_CONFIG);
 }
 
 // ---------------------------------------------------------------------------

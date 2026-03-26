@@ -21,14 +21,14 @@
 		"drizzle-orm": "1.0.0-beta.12-a5629fb",
 		"effect": "4.0.0-beta.34",
 		"googleapis": "^171.4.0",
-		"isomorphic-dompurify": "^3.7.1",
 		"pg": "8.20.0",
 		"resend": "6.9.4",
+		"sanitize-html": "^2.17.2",
 		"ulid": "3.0.2"
 	},
 	"devDependencies": {
-		"@types/dompurify": "^3.2.0",
 		"@types/pg": "8.20.0",
+		"@types/sanitize-html": "^2.16.1",
 		"typescript": "6.0.2"
 	}
 }

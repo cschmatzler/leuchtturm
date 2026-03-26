@@ -44,7 +44,7 @@ in
 					inherit src;
 					pnpm = pnpm;
 					fetcherVersion = 3;
-					hash = "sha256-XsmSBhwAqPEKISDK7VKfalpzjDiUJBRxfw+l7EFYUHc=";
+					hash = "sha256-KcbI58LDLjO/CZ6nZISoNdQmjDU2GtDvywscuyZdN8w=";
 				};
 
 			nativeBuildInputs = [nodejs_25 pnpm pnpmConfigHook];
