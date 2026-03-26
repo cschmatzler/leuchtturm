@@ -17,7 +17,9 @@ function MailIndexPage() {
 	const [accounts] = useZeroQuery(queries.mailAccounts());
 
 	const handleConnectGmail = async () => {
-		const res = await fetch("/api/mail/oauth/url");
+		const res = await fetch(`${import.meta.env.VITE_API_URL}/api/mail/oauth/url`, {
+			credentials: "include",
+		});
 		const data = (await res.json()) as { url: string };
 		window.location.href = data.url;
 	};

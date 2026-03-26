@@ -34,7 +34,7 @@ const mailAccount = table("mail_account")
 		userId: string().from("user_id"),
 		provider: string(),
 		email: string(),
-		displayName: string().optional(),
+		displayName: string().from("display_name").optional(),
 		status: string(),
 		supportsThreads: boolean().from("supports_threads"),
 		supportsLabels: boolean().from("supports_labels"),

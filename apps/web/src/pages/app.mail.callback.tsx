@@ -11,7 +11,7 @@ const searchSchema = Schema.Struct({
 export const Route = createFileRoute("/app/mail/callback")({
 	validateSearch: Schema.toStandardSchemaV1(searchSchema),
 	beforeLoad: async ({ search }) => {
-		const res = await fetch("/api/mail/oauth/callback", {
+		const res = await fetch(`${import.meta.env.VITE_API_URL}/api/mail/oauth/callback`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ code: search.code, state: search.state }),
