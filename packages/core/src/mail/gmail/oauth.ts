@@ -30,9 +30,7 @@ export namespace GmailOAuth {
 		readonly getUserInfo: (accessToken: string) => Promise<GoogleUserInfo>;
 	}
 
-	export class Service extends ServiceMap.Service<Service, Interface>()(
-		"@chevrotain/GmailOAuth",
-	) {}
+	export class Service extends ServiceMap.Service<Service, Interface>()("@chevrotain/GmailOAuth") {}
 
 	export const layer = Layer.effect(Service)(
 		Effect.gen(function* () {

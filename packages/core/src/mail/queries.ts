@@ -98,10 +98,7 @@ export async function getMailAccountSecret(
 
 export async function disconnectMailAccount(db: DatabaseClient, accountId: string): Promise<void> {
 	// Set status to paused immediately
-	await db
-		.update(mailAccount)
-		.set({ status: "paused" })
-		.where(eq(mailAccount.id, accountId));
+	await db.update(mailAccount).set({ status: "paused" }).where(eq(mailAccount.id, accountId));
 
 	// Hard-delete in dependency order.
 	// Messages cascade to body_part, message_label, message_mailbox, attachment

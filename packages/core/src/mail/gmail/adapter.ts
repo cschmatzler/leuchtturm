@@ -367,9 +367,7 @@ export class GmailAdapter implements MailProviderAdapter {
 		for (let i = 0; i < threadIds.length; i += batchSize) {
 			const batch = threadIds.slice(i, i + batchSize);
 			const results = await Promise.all(
-				batch.map((id) =>
-					this.gmailFetch<GmailThread>(`/threads/${id}`, { format: "full" }),
-				),
+				batch.map((id) => this.gmailFetch<GmailThread>(`/threads/${id}`, { format: "full" })),
 			);
 
 			for (const thread of results) {

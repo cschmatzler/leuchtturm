@@ -146,9 +146,7 @@ export const MailHandlerLive = HttpApiBuilder.group(ChevrotainApi, "mail", (hand
 				});
 
 				if (!account) {
-					return yield* Effect.fail(
-						new DatabaseError({ message: "Account not found" }),
-					);
+					return yield* Effect.fail(new DatabaseError({ message: "Account not found" }));
 				}
 
 				// Decrypt secrets to get access token
@@ -205,9 +203,7 @@ export const MailHandlerLive = HttpApiBuilder.group(ChevrotainApi, "mail", (hand
 				});
 
 				if (!account) {
-					return yield* Effect.fail(
-						new DatabaseError({ message: "Account not found" }),
-					);
+					return yield* Effect.fail(new DatabaseError({ message: "Account not found" }));
 				}
 
 				yield* Effect.tryPromise({

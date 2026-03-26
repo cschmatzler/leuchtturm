@@ -28,7 +28,11 @@ import {
 	mailMessageMailbox,
 	mailSyncCursor,
 } from "@chevrotain/core/mail/mail.sql";
-import type { ProviderLabel, ProviderMessage, ProviderThread } from "@chevrotain/core/mail/provider";
+import type {
+	ProviderLabel,
+	ProviderMessage,
+	ProviderThread,
+} from "@chevrotain/core/mail/provider";
 
 // ---------------------------------------------------------------------------
 // Bootstrap (§13, §25.2)
@@ -85,17 +89,11 @@ export function bootstrapGmailAccount(accountId: string, accessToken: string) {
 
 			// 6. Set status to healthy
 			yield* Effect.tryPromise(() =>
-				db
-					.update(mailAccount)
-					.set({ status: "healthy" })
-					.where(eq(mailAccount.id, accountId)),
+				db.update(mailAccount).set({ status: "healthy" }).where(eq(mailAccount.id, accountId)),
 			);
 		} catch (error) {
 			yield* Effect.tryPromise(() =>
-				db
-					.update(mailAccount)
-					.set({ status: "degraded" })
-					.where(eq(mailAccount.id, accountId)),
+				db.update(mailAccount).set({ status: "degraded" }).where(eq(mailAccount.id, accountId)),
 			);
 			throw error;
 		} finally {
@@ -155,10 +153,7 @@ export function incrementalGmailSync(accountId: string, accessToken: string) {
 			if (cursorExpired) {
 				// §22: Bounded resync
 				yield* Effect.tryPromise(() =>
-					db
-						.update(mailAccount)
-						.set({ status: "resyncing" })
-						.where(eq(mailAccount.id, accountId)),
+					db.update(mailAccount).set({ status: "resyncing" }).where(eq(mailAccount.id, accountId)),
 				);
 				yield* boundedResync(db, account.userId, accountId, adapter);
 				return;
@@ -586,20 +581,13 @@ async function syncMessageFolderMembershipImpl(
 	}
 }
 
-function deleteMessageByProviderRef(
-	db: DatabaseClient,
-	accountId: string,
-	providerRef: string,
-) {
+function deleteMessageByProviderRef(db: DatabaseClient, accountId: string, providerRef: string) {
 	return Effect.tryPromise(async () => {
 		const [msg] = await db
 			.select({ id: mailMessage.id })
 			.from(mailMessage)
 			.where(
-				and(
-					eq(mailMessage.accountId, accountId),
-					eq(mailMessage.providerMessageRef, providerRef),
-				),
+				and(eq(mailMessage.accountId, accountId), eq(mailMessage.providerMessageRef, providerRef)),
 			)
 			.limit(1);
 
@@ -622,10 +610,7 @@ function addMessageLabels(
 			.select({ id: mailMessage.id })
 			.from(mailMessage)
 			.where(
-				and(
-					eq(mailMessage.accountId, accountId),
-					eq(mailMessage.providerMessageRef, messageRef),
-				),
+				and(eq(mailMessage.accountId, accountId), eq(mailMessage.providerMessageRef, messageRef)),
 			)
 			.limit(1);
 
@@ -676,10 +661,7 @@ function removeMessageLabels(
 			.select({ id: mailMessage.id })
 			.from(mailMessage)
 			.where(
-				and(
-					eq(mailMessage.accountId, accountId),
-					eq(mailMessage.providerMessageRef, messageRef),
-				),
+				and(eq(mailMessage.accountId, accountId), eq(mailMessage.providerMessageRef, messageRef)),
 			)
 			.limit(1);
 
@@ -699,10 +681,7 @@ function removeMessageLabels(
 				await db
 					.delete(mailMessageLabel)
 					.where(
-						and(
-							eq(mailMessageLabel.messageId, msg.id),
-							eq(mailMessageLabel.labelId, labelId),
-						),
+						and(eq(mailMessageLabel.messageId, msg.id), eq(mailMessageLabel.labelId, labelId)),
 					);
 			}
 		}

@@ -176,10 +176,9 @@ export const mailMessage = pgTable(
 		accountId: char("account_id", { length: 30 })
 			.notNull()
 			.references(() => mailAccount.id, { onDelete: "cascade" }),
-		conversationId: char("conversation_id", { length: 30 }).references(
-			() => mailConversation.id,
-			{ onDelete: "set null" },
-		),
+		conversationId: char("conversation_id", { length: 30 }).references(() => mailConversation.id, {
+			onDelete: "set null",
+		}),
 		providerMessageRef: text("provider_message_ref"),
 		internetMessageId: text("internet_message_id"),
 		subject: text("subject"),
@@ -403,5 +402,3 @@ export const mailProviderState = pgTable(
 		),
 	],
 );
-
-

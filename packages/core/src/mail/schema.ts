@@ -16,9 +16,7 @@ export const MailFolderId = Schema.TemplateLiteral(["mfl_", Ulid]).pipe(
 );
 export type MailFolderId = typeof MailFolderId.Type;
 
-export const MailLabelId = Schema.TemplateLiteral(["mlb_", Ulid]).pipe(
-	Schema.brand("MailLabelId"),
-);
+export const MailLabelId = Schema.TemplateLiteral(["mlb_", Ulid]).pipe(Schema.brand("MailLabelId"));
 export type MailLabelId = typeof MailLabelId.Type;
 
 export const MailConversationId = Schema.TemplateLiteral(["mcv_", Ulid]).pipe(
