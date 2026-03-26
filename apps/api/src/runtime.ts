@@ -8,7 +8,7 @@ import { Database } from "@chevrotain/core/drizzle/index";
 import { Email } from "@chevrotain/core/email";
 import { MailEncryption } from "@chevrotain/core/mail/encryption";
 import { GmailOAuth } from "@chevrotain/core/mail/gmail/oauth";
-import { GmailWorkflowsLive } from "@chevrotain/core/mail/gmail/workflows";
+import { Gmail } from "@chevrotain/core/mail/gmail/workflows";
 import { RateLimit } from "@chevrotain/core/rate-limit";
 
 const DatabasePoolMetricsLive = Layer.effectDiscard(
@@ -31,4 +31,4 @@ const BaseLive = Layer.mergeAll(
 	WorkflowEngine.layerMemory,
 );
 
-export const AppLayer = GmailWorkflowsLive.pipe(Layer.provideMerge(BaseLive));
+export const AppLayer = Gmail.SyncWorkflowLive.pipe(Layer.provideMerge(BaseLive));

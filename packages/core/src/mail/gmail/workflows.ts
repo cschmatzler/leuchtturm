@@ -36,7 +36,7 @@ function toErrorString(error: unknown): string {
 // Workflow definition
 // ---------------------------------------------------------------------------
 
-export const GmailSyncWorkflow = Workflow.make({
+const SyncWorkflow = Workflow.make({
 	name: "GmailSync",
 	payload: {
 		accountId: Schema.String,
@@ -50,7 +50,7 @@ export const GmailSyncWorkflow = Workflow.make({
 // Workflow implementation
 // ---------------------------------------------------------------------------
 
-export const GmailSyncWorkflowLive = GmailSyncWorkflow.toLayer(({ accountId, accessToken }) =>
+const SyncWorkflowLive = SyncWorkflow.toLayer(({ accountId, accessToken }) =>
 	Effect.gen(function* () {
 		const token = accessToken ?? (yield* resolveAccessToken(accountId));
 
@@ -66,7 +66,10 @@ export const GmailSyncWorkflowLive = GmailSyncWorkflow.toLayer(({ accountId, acc
 	}).pipe(Effect.mapError(toErrorString)),
 );
 
-export const GmailWorkflowsLive = GmailSyncWorkflowLive;
+export const Gmail = {
+	SyncWorkflow,
+	SyncWorkflowLive,
+} as const;
 
 // ---------------------------------------------------------------------------
 // Token resolution
