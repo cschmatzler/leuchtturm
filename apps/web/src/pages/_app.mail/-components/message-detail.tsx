@@ -1,7 +1,9 @@
 import { PaperclipIcon } from "lucide-react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useZeroQuery } from "@chevrotain/web/lib/query";
+import { sanitizeEmailHtml } from "@chevrotain/web/lib/sanitize-html";
 import { queries } from "@chevrotain/zero/queries";
 import type { MailMessageRow } from "@chevrotain/zero/schema";
 
@@ -40,16 +42,22 @@ function MessageBody({
 	}
 
 	if (preferred.contentType === "text/html") {
-		return (
-			<div
-				className="prose prose-sm dark:prose-invert max-w-none overflow-x-auto"
-				// biome-ignore lint/security/noDangerouslySetInnerHtml: HTML is sanitized server-side on ingest (§16)
-				dangerouslySetInnerHTML={{ __html: preferred.content }}
-			/>
-		);
+		return <SanitizedHtml html={preferred.content} />;
 	}
 
 	return <pre className="whitespace-pre-wrap text-sm">{preferred.content}</pre>;
+}
+
+function SanitizedHtml({ html }: { html: string }) {
+	const sanitized = useMemo(() => sanitizeEmailHtml(html), [html]);
+
+	return (
+		<div
+			className="prose prose-sm dark:prose-invert max-w-none overflow-x-auto"
+			// biome-ignore lint/security/noDangerouslySetInnerHtml: HTML is sanitized client-side via DOMPurify
+			dangerouslySetInnerHTML={{ __html: sanitized }}
+		/>
+	);
 }
 
 export function MessageHeader({ message }: { message: MailMessageRow }) {

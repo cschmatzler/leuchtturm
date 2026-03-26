@@ -23,12 +23,10 @@
 		"googleapis": "^171.4.0",
 		"pg": "8.20.0",
 		"resend": "6.9.4",
-		"sanitize-html": "^2.17.2",
 		"ulid": "3.0.2"
 	},
 	"devDependencies": {
 		"@types/pg": "8.20.0",
-		"@types/sanitize-html": "^2.16.1",
 		"typescript": "6.0.2"
 	}
 }
