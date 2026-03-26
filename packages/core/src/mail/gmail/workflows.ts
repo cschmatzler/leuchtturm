@@ -1,18 +1,24 @@
 /**
- * Gmail durable workflows.
+ * Gmail durable workflow.
  *
- * Moves all sync orchestration and token lifecycle out of API handlers
- * and into workflow definitions backed by effect/unstable/workflow.
+ * Single GmailSyncWorkflow handles both bootstrap (first sync for a new
+ * account) and incremental sync. The sync.ts layer already falls back to
+ * bootstrap when no cursor exists, so the workflow just needs a valid
+ * access token.
+ *
+ * When `accessToken` is provided in the payload the workflow uses it
+ * directly (OAuth callback just exchanged a code). Otherwise it resolves
+ * credentials from the encrypted secret store and refreshes if needed.
  */
 
-import { Effect, Layer, Schema } from "effect";
+import { Effect, Schema } from "effect";
 import { Workflow } from "effect/unstable/workflow";
 
 import type { DatabaseClient } from "@chevrotain/core/drizzle/index";
 import { Database } from "@chevrotain/core/drizzle/index";
 import { MailEncryption } from "@chevrotain/core/mail/encryption";
 import { GmailOAuth } from "@chevrotain/core/mail/gmail/oauth";
-import { bootstrapGmailAccount, incrementalGmailSync } from "@chevrotain/core/mail/gmail/sync";
+import { incrementalGmailSync } from "@chevrotain/core/mail/gmail/sync";
 import {
 	getMailAccountSecret,
 	updateMailAccountSecret,
@@ -27,51 +33,46 @@ function toErrorString(error: unknown): string {
 }
 
 // ---------------------------------------------------------------------------
-// Workflow definitions
+// Workflow definition
 // ---------------------------------------------------------------------------
 
-export const GmailBootstrapWorkflow = Workflow.make({
-	name: "GmailBootstrap",
+export const GmailSyncWorkflow = Workflow.make({
+	name: "GmailSync",
 	payload: {
 		accountId: Schema.String,
-		accessToken: Schema.String,
-	},
-	idempotencyKey: ({ accountId }) => `gmail-bootstrap-${accountId}`,
-	error: Schema.String,
-});
-
-export const GmailIncrementalSyncWorkflow = Workflow.make({
-	name: "GmailIncrementalSync",
-	payload: {
-		accountId: Schema.String,
+		accessToken: Schema.optional(Schema.String),
 	},
 	idempotencyKey: ({ accountId }) => `gmail-sync-${accountId}`,
 	error: Schema.String,
 });
 
 // ---------------------------------------------------------------------------
-// Workflow implementations
+// Workflow implementation
 // ---------------------------------------------------------------------------
 
-export const GmailBootstrapWorkflowLive = GmailBootstrapWorkflow.toLayer(
-	({ accountId, accessToken }) =>
-		bootstrapGmailAccount(accountId, accessToken).pipe(Effect.mapError(toErrorString)),
+export const GmailSyncWorkflowLive = GmailSyncWorkflow.toLayer(({ accountId, accessToken }) =>
+	Effect.gen(function* () {
+		const token = accessToken ?? (yield* resolveAccessToken(accountId));
+
+		yield* Effect.catch(incrementalGmailSync(accountId, token), (error) =>
+			Effect.gen(function* () {
+				if (!(error instanceof Error && error.message.includes("Gmail API error 401:"))) {
+					return yield* Effect.fail(error);
+				}
+				const refreshed = yield* refreshStoredToken(accountId);
+				return yield* incrementalGmailSync(accountId, refreshed);
+			}),
+		);
+	}).pipe(Effect.mapError(toErrorString)),
 );
 
-export const GmailIncrementalSyncWorkflowLive = GmailIncrementalSyncWorkflow.toLayer(
-	({ accountId }) => resolveAccessTokenAndSync(accountId).pipe(Effect.mapError(toErrorString)),
-);
-
-export const GmailWorkflowsLive = Layer.mergeAll(
-	GmailBootstrapWorkflowLive,
-	GmailIncrementalSyncWorkflowLive,
-);
+export const GmailWorkflowsLive = GmailSyncWorkflowLive;
 
 // ---------------------------------------------------------------------------
-// Token lifecycle + sync orchestration
+// Token resolution
 // ---------------------------------------------------------------------------
 
-function resolveAccessTokenAndSync(accountId: string) {
+function resolveAccessToken(accountId: string) {
 	return Effect.gen(function* () {
 		const { db } = yield* Database.Service;
 		const encryption = yield* MailEncryption.Service;
@@ -86,32 +87,54 @@ function resolveAccessTokenAndSync(accountId: string) {
 			return yield* Effect.fail(new Error("Account credentials not found"));
 		}
 
-		const decrypted = yield* Effect.try({
-			try: () => {
-				const raw = encryption.decrypt({
-					encryptedPayload: secret.encryptedPayload,
-					encryptedDek: secret.encryptedDek,
-				});
-				return Schema.decodeUnknownSync(StoredMailOAuthSecret)(JSON.parse(raw));
-			},
-			catch: (error) => new Error(`Failed to decode credentials: ${toErrorString(error)}`),
-		});
-
-		const fresh = yield* ensureFreshAccessToken(db, oauth, encryption, accountId, decrypted);
-
-		yield* Effect.catch(incrementalGmailSync(accountId, fresh.accessToken), (error) =>
-			Effect.gen(function* () {
-				if (!(error instanceof Error && error.message.includes("Gmail API error 401:"))) {
-					return yield* Effect.fail(error);
-				}
-				const refreshed = yield* refreshAccessToken(db, oauth, encryption, accountId, fresh);
-				return yield* incrementalGmailSync(accountId, refreshed.accessToken);
-			}),
-		);
+		const decrypted = yield* decryptSecret(encryption, secret);
+		const fresh = yield* ensureFreshToken(db, oauth, encryption, accountId, decrypted);
+		return fresh.accessToken;
 	});
 }
 
-function ensureFreshAccessToken(
+function refreshStoredToken(accountId: string) {
+	return Effect.gen(function* () {
+		const { db } = yield* Database.Service;
+		const encryption = yield* MailEncryption.Service;
+		const oauth = yield* GmailOAuth.Service;
+
+		const secret = yield* Effect.tryPromise({
+			try: () => getMailAccountSecret(db, accountId),
+			catch: (error) => new Error(`Failed to fetch credentials: ${toErrorString(error)}`),
+		});
+
+		if (!secret) {
+			return yield* Effect.fail(new Error("Account credentials not found"));
+		}
+
+		const decrypted = yield* decryptSecret(encryption, secret);
+		const refreshed = yield* refreshAccessToken(db, oauth, encryption, accountId, decrypted);
+		return refreshed.accessToken;
+	});
+}
+
+// ---------------------------------------------------------------------------
+// Token helpers
+// ---------------------------------------------------------------------------
+
+function decryptSecret(
+	encryption: MailEncryption.Interface,
+	secret: { encryptedPayload: string; encryptedDek: string },
+) {
+	return Effect.try({
+		try: () => {
+			const raw = encryption.decrypt({
+				encryptedPayload: secret.encryptedPayload,
+				encryptedDek: secret.encryptedDek,
+			});
+			return Schema.decodeUnknownSync(StoredMailOAuthSecret)(JSON.parse(raw));
+		},
+		catch: (error) => new Error(`Failed to decode credentials: ${toErrorString(error)}`),
+	});
+}
+
+function ensureFreshToken(
 	db: DatabaseClient,
 	oauth: GmailOAuth.Interface,
 	encryption: MailEncryption.Interface,

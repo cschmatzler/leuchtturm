@@ -47,25 +47,12 @@ import {
 type SyncDatabaseClient = NodePgDatabase<Record<string, never>, typeof allRelations>;
 
 // ---------------------------------------------------------------------------
-// Bootstrap (§13, §25.2)
+// Sync entry point
 // ---------------------------------------------------------------------------
 
 /**
- * Run the initial 30-day bootstrap for a Gmail account.
- */
-export function bootstrapGmailAccount(accountId: string, accessToken: string) {
-	return Effect.gen(function* () {
-		const { db } = yield* Database.Service;
-		yield* bootstrapGmailAccountImpl(db, accountId, accessToken);
-	});
-}
-
-// ---------------------------------------------------------------------------
-// Incremental sync (§13)
-// ---------------------------------------------------------------------------
-
-/**
- * Run an incremental sync for a Gmail account using the history API.
+ * Run a sync for a Gmail account. Falls back to a full bootstrap when
+ * no history cursor exists yet.
  */
 export function incrementalGmailSync(accountId: string, accessToken: string) {
 	return Effect.gen(function* () {

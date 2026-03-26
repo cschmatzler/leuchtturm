@@ -14,10 +14,7 @@ import { Database } from "@chevrotain/core/drizzle/index";
 import { DatabaseError, ValidationError } from "@chevrotain/core/errors";
 import { MailEncryption } from "@chevrotain/core/mail/encryption";
 import { GmailOAuth } from "@chevrotain/core/mail/gmail/oauth";
-import {
-	GmailBootstrapWorkflow,
-	GmailIncrementalSyncWorkflow,
-} from "@chevrotain/core/mail/gmail/workflows";
+import { GmailSyncWorkflow } from "@chevrotain/core/mail/gmail/workflows";
 import {
 	consumeMailOAuthState,
 	createMailAccount,
@@ -145,7 +142,7 @@ export const MailHandlerLive = HttpApiBuilder.group(ChevrotainApi, "mail", (hand
 					catch: (error) => toDatabaseError("Failed to store mail credentials", error),
 				});
 
-				yield* GmailBootstrapWorkflow.execute(
+				yield* GmailSyncWorkflow.execute(
 					{ accountId, accessToken: tokens.accessToken },
 					{ discard: true },
 				);
@@ -172,10 +169,7 @@ export const MailHandlerLive = HttpApiBuilder.group(ChevrotainApi, "mail", (hand
 					return yield* Effect.fail(new DatabaseError({ message: "Account not found" }));
 				}
 
-				yield* GmailIncrementalSyncWorkflow.execute(
-					{ accountId: payload.accountId },
-					{ discard: true },
-				);
+				yield* GmailSyncWorkflow.execute({ accountId: payload.accountId }, { discard: true });
 
 				return { success: true as const };
 			}),
