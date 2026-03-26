@@ -9,6 +9,9 @@ import { MessageDetail } from "@chevrotain/web/pages/app.mail/-components/messag
 import { queries } from "@chevrotain/zero/queries";
 
 export const Route = createFileRoute("/app/mail/$accountId/conversation/$conversationId")({
+	loader: async ({ context: { zero }, params: { conversationId } }) => {
+		zero.preload(queries.mailConversationMessages({ conversationId }));
+	},
 	component: ConversationPage,
 });
 

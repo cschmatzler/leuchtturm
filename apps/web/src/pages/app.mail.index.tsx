@@ -9,6 +9,9 @@ import { queries } from "@chevrotain/zero/queries";
 import type { MailAccountRow } from "@chevrotain/zero/schema";
 
 export const Route = createFileRoute("/app/mail/")({
+	loader: async ({ context: { zero } }) => {
+		zero.preload(queries.mailAccounts());
+	},
 	component: MailIndexPage,
 });
 

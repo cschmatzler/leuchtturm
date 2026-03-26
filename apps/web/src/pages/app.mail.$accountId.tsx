@@ -24,6 +24,10 @@ import { useZeroQuery } from "@chevrotain/web/lib/query";
 import { queries } from "@chevrotain/zero/queries";
 
 export const Route = createFileRoute("/app/mail/$accountId")({
+	loader: async ({ context: { zero }, params: { accountId } }) => {
+		zero.preload(queries.mailFolders({ accountId }));
+		zero.preload(queries.mailLabels({ accountId }));
+	},
 	component: AccountLayout,
 });
 

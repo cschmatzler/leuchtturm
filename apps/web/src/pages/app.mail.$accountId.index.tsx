@@ -6,6 +6,11 @@ import { MessageList } from "@chevrotain/web/pages/app.mail/-components/message-
 import { queries } from "@chevrotain/zero/queries";
 
 export const Route = createFileRoute("/app/mail/$accountId/")({
+	loader: async ({ context: { zero }, params: { accountId } }) => {
+		zero.preload(queries.mailAccounts());
+		zero.preload(queries.mailConversations({ accountId }));
+		zero.preload(queries.mailMessages({ accountId }));
+	},
 	component: AccountInboxPage,
 });
 

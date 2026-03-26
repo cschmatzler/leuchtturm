@@ -5,6 +5,9 @@ import { MessageList } from "@chevrotain/web/pages/app.mail/-components/message-
 import { queries } from "@chevrotain/zero/queries";
 
 export const Route = createFileRoute("/app/mail/$accountId/folder/$folderId")({
+	loader: async ({ context: { zero }, params: { folderId } }) => {
+		zero.preload(queries.mailFolderMessages({ folderId }));
+	},
 	component: FolderPage,
 });
 
