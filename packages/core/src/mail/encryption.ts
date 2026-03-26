@@ -20,6 +20,19 @@ const NONCE_LENGTH = 12;
 const TAG_LENGTH = 16;
 const DEK_LENGTH = 32;
 
+function parseMailKek(raw: string): Buffer {
+	if (/^[0-9a-fA-F]{64}$/.test(raw)) {
+		return Buffer.from(raw, "hex");
+	}
+
+	const utf8 = Buffer.from(raw, "utf-8");
+	if (utf8.length === 32) {
+		return utf8;
+	}
+
+	throw new Error("MAIL_KEK must be either a 64-character hex string or a 32-byte raw string");
+}
+
 // ---------------------------------------------------------------------------
 // Low-level crypto helpers
 // ---------------------------------------------------------------------------
@@ -81,13 +94,10 @@ export namespace MailEncryption {
 	export const layer = Layer.effect(Service)(
 		Effect.gen(function* () {
 			const kekHex = yield* Config.redacted("MAIL_KEK");
-			const kek = Buffer.from(Redacted.value(kekHex), "hex");
-
-			if (kek.length !== 32) {
-				return yield* Effect.fail(
-					new Error("MAIL_KEK must be a 64-character hex string (32 bytes)"),
-				);
-			}
+			const kek = yield* Effect.try({
+				try: () => parseMailKek(Redacted.value(kekHex)),
+				catch: (error) => (error instanceof Error ? error : new Error(String(error))),
+			});
 
 			return Service.of({
 				encrypt: (payload) => envelopeEncrypt(kek, payload),
