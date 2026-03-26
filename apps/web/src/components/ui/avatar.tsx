@@ -15,7 +15,7 @@ function Avatar({
 			data-slot="avatar"
 			data-size={size}
 			className={cn(
-				"after:border-border group/avatar relative flex size-8 shrink-0 select-none overflow-hidden rounded after:absolute after:inset-0 after:border after:mix-blend-darken data-[size=lg]:size-12 data-[size=sm]:size-6 dark:after:mix-blend-lighten",
+				"after:border-border group/avatar relative flex size-8 shrink-0 select-none overflow-hidden rounded after:absolute after:inset-0 after:rounded-[inherit] after:border after:mix-blend-darken data-[size=lg]:size-12 data-[size=sm]:size-6 dark:after:mix-blend-lighten",
 				className,
 			)}
 			{...props}

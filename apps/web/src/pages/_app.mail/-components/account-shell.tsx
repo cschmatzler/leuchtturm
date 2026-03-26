@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, useNavigate, useParams } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import {
 	ArchiveIcon,
 	FileTextIcon,
@@ -8,7 +8,7 @@ import {
 	Trash2Icon,
 	AlertTriangleIcon,
 } from "lucide-react";
-import type { ComponentType } from "react";
+import type { ReactNode, ComponentType } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -23,14 +23,6 @@ import {
 import { useZeroQuery } from "@chevrotain/web/lib/query";
 import { queries } from "@chevrotain/zero/queries";
 
-export const Route = createFileRoute("/app/mail/$accountId")({
-	loader: async ({ context: { zero }, params: { accountId } }) => {
-		zero.preload(queries.mailFolders({ accountId }));
-		zero.preload(queries.mailLabels({ accountId }));
-	},
-	component: AccountLayout,
-});
-
 const FOLDER_ICONS: Record<string, ComponentType<{ className?: string }>> = {
 	inbox: InboxIcon,
 	sent: SendIcon,
@@ -42,27 +34,25 @@ const FOLDER_ICONS: Record<string, ComponentType<{ className?: string }>> = {
 	custom: FolderIcon,
 };
 
-function AccountLayout() {
+export function MailAccountShell({
+	accountId,
+	children,
+}: {
+	accountId: string;
+	children: ReactNode;
+}) {
 	const { t } = useTranslation();
-	const { accountId } = useParams({ from: "/app/mail/$accountId" });
 	const navigate = useNavigate();
 
 	const [folders] = useZeroQuery(queries.mailFolders({ accountId }));
 	const [labels] = useZeroQuery(queries.mailLabels({ accountId }));
 
-	const systemFolders = (folders ?? []).filter((f) => f.kind !== "custom");
-	const customFolders = (folders ?? []).filter((f) => f.kind === "custom");
-	const userLabels = (labels ?? []).filter((l) => l.kind === "user");
-
-	const navigateToFolder = (folderId: string) => {
-		navigate({
-			to: "/app/mail/$accountId/folder/$folderId",
-			params: { accountId, folderId },
-		});
-	};
+	const systemFolders = (folders ?? []).filter((folder) => folder.kind !== "custom");
+	const customFolders = (folders ?? []).filter((folder) => folder.kind === "custom");
+	const userLabels = (labels ?? []).filter((label) => label.kind === "user");
 
 	return (
-		<div className="flex h-full">
+		<div className="flex h-full min-w-0 w-full overflow-hidden">
 			<div className="w-56 shrink-0 border-r border-border">
 				<SidebarContent className="gap-0 p-2">
 					<SidebarGroup>
@@ -72,7 +62,7 @@ function AccountLayout() {
 									<SidebarMenuButton
 										onClick={() =>
 											navigate({
-												to: "/app/mail/$accountId",
+												to: "/mac_{$accountId}",
 												params: { accountId },
 											})
 										}
@@ -85,7 +75,14 @@ function AccountLayout() {
 									const Icon = FOLDER_ICONS[folder.kind] ?? FolderIcon;
 									return (
 										<SidebarMenuItem key={folder.id}>
-											<SidebarMenuButton onClick={() => navigateToFolder(folder.id)}>
+											<SidebarMenuButton
+												onClick={() =>
+													navigate({
+														to: "/mfl_{$folderId}",
+														params: { folderId: folder.id },
+													})
+												}
+											>
 												<Icon className="size-4" />
 												{folder.name}
 											</SidebarMenuButton>
@@ -103,7 +100,14 @@ function AccountLayout() {
 								<SidebarMenu>
 									{customFolders.map((folder) => (
 										<SidebarMenuItem key={folder.id}>
-											<SidebarMenuButton onClick={() => navigateToFolder(folder.id)}>
+											<SidebarMenuButton
+												onClick={() =>
+													navigate({
+														to: "/mfl_{$folderId}",
+														params: { folderId: folder.id },
+													})
+												}
+											>
 												<FolderIcon className="size-4" />
 												{folder.name}
 											</SidebarMenuButton>
@@ -138,9 +142,7 @@ function AccountLayout() {
 					)}
 				</SidebarContent>
 			</div>
-			<div className="flex min-w-0 flex-1 flex-col">
-				<Outlet />
-			</div>
+			<div className="flex w-0 min-w-0 flex-1 flex-col overflow-x-hidden">{children}</div>
 		</div>
 	);
 }

@@ -1,7 +1,7 @@
 import { QueryClient } from "@tanstack/react-query";
 import { describe, expect, it } from "vite-plus/test";
 
-import { Route } from "@chevrotain/web/pages/app";
+import { Route } from "@chevrotain/web/pages/_app";
 import { sessionQuery } from "@chevrotain/web/queries/session";
 
 describe("app route auth caching", () => {

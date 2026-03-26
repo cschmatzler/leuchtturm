@@ -12,7 +12,7 @@ in {
 					Referrer-Policy strict-origin-when-cross-origin
 					X-XSS-Protection "1; mode=block"
 					Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
-					Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://images.unsplash.com; font-src 'self' data:; connect-src 'self' https://api.${cfg.domain} wss://sync.${cfg.domain}; frame-ancestors 'none'"
+					Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https://api.${cfg.domain} wss://sync.${cfg.domain}; frame-ancestors 'none'"
 					-Server
 				}
 

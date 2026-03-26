@@ -25,8 +25,8 @@ export function Header({ children, className }: HeaderProps) {
 				className,
 			)}
 		>
-			<SidebarTrigger className="-ml-1" />
-			<Separator orientation="vertical" className="mr-2 self-stretch" />
+			<SidebarTrigger className="-ml-1 md:hidden" />
+			<Separator orientation="vertical" className="mr-2 self-stretch md:hidden" />
 			<div className="flex min-w-0 flex-1 items-center justify-between gap-2">
 				<div className="min-w-0 truncate text-base font-semibold">{titleChild}</div>
 				{actionChildren.length > 0 && (

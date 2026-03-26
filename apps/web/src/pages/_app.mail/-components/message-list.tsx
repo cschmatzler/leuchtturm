@@ -24,7 +24,7 @@ export function MessageList({ messages, onSelect }: MessageListProps) {
 	}
 
 	return (
-		<div className="flex flex-col divide-y divide-border overflow-y-auto">
+		<div className="flex min-w-0 flex-col divide-y divide-border overflow-y-auto overflow-x-hidden">
 			{messages.map((message) => {
 				const sender = message.sender as EmailAddress | null | undefined;
 				const senderDisplay = sender?.name ?? sender?.address ?? t("Unknown");
@@ -36,7 +36,7 @@ export function MessageList({ messages, onSelect }: MessageListProps) {
 						className="flex flex-col gap-1 px-4 py-3 text-left transition-colors hover:bg-accent"
 						onClick={() => onSelect(message.id)}
 					>
-						<div className="flex items-center justify-between gap-2">
+						<div className="flex min-w-0 items-center justify-between gap-2">
 							<span
 								className={cn(
 									"truncate text-sm",

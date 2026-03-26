@@ -9,7 +9,7 @@ const searchSchema = Schema.Struct({
 	state: MailOAuthStateId,
 });
 
-export const Route = createFileRoute("/app/mail/callback")({
+export const Route = createFileRoute("/_app/mail/callback")({
 	validateSearch: Schema.toStandardSchemaV1(searchSchema),
 	beforeLoad: async ({ search }) => {
 		const data = await (async () => {
@@ -23,12 +23,12 @@ export const Route = createFileRoute("/app/mail/callback")({
 					}),
 				);
 			} catch {
-				throw redirect({ to: "/app/mail" });
+				throw redirect({ to: "/mail" });
 			}
 		})();
 
 		throw redirect({
-			to: "/app/mail/$accountId",
+			to: "/mac_{$accountId}",
 			params: { accountId: data.accountId },
 		});
 	},

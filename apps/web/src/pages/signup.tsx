@@ -35,7 +35,7 @@ function Page() {
 				email: value.email,
 				password: value.password,
 				name: value.name,
-				callbackURL: "/app",
+				callbackURL: "/mail",
 			},
 			{
 				onRequest: () => {
@@ -46,7 +46,7 @@ function Page() {
 					await queryClient.fetchQuery(sessionQuery());
 					toast.dismiss();
 					toast.success(t("Account created!"));
-					navigate({ to: "/app" });
+					navigate({ to: "/mail" });
 				},
 				onError: (ctx) => {
 					toast.dismiss();

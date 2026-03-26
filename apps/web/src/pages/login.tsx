@@ -33,7 +33,7 @@ function Page() {
 			{
 				email: value.email,
 				password: value.password,
-				callbackURL: "/app",
+				callbackURL: "/mail",
 			},
 			{
 				onRequest: () => {
@@ -44,7 +44,7 @@ function Page() {
 					await queryClient.fetchQuery(sessionQuery());
 					toast.dismiss();
 					toast.success(t("Welcome back!"));
-					navigate({ to: "/app" });
+					navigate({ to: "/mail" });
 				},
 				onError: (ctx) => {
 					toast.dismiss();

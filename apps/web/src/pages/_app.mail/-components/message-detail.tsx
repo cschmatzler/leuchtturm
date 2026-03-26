@@ -15,7 +15,7 @@ export function MessageDetail({ messageId }: MessageDetailProps) {
 	const [bodyParts] = useZeroQuery(queries.mailMessageBodyParts({ messageId }));
 
 	return (
-		<div className="flex flex-col gap-4 p-4">
+		<div className="flex min-w-0 flex-col gap-4 overflow-x-hidden p-4">
 			<MessageBody bodyParts={bodyParts} />
 		</div>
 	);

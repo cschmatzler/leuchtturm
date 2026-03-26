@@ -1,0 +1,44 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { ArrowLeftIcon } from "lucide-react";
+
+import { Button } from "@chevrotain/web/components/ui/button";
+import { Link } from "@chevrotain/web/components/ui/link";
+import { useZeroQuery } from "@chevrotain/web/lib/query";
+import { parsePrefixedId, stringifyPrefixedId } from "@chevrotain/web/lib/route-params";
+import { MailAccountShell } from "@chevrotain/web/pages/_app.mail/-components/account-shell";
+import { MessageDetail } from "@chevrotain/web/pages/_app.mail/-components/message-detail";
+import { queries } from "@chevrotain/zero/queries";
+
+export const Route = createFileRoute("/_app/mmg_{$messageId}")({
+	params: {
+		parse: (params) => ({ messageId: parsePrefixedId(params.messageId, "mmg_") }),
+		stringify: (params) => ({ messageId: stringifyPrefixedId(params.messageId, "mmg_") }),
+	},
+	loader: async ({ context: { zero }, params: { messageId } }) => {
+		zero.preload(queries.mailMessage({ messageId }));
+		zero.preload(queries.mailMessageBodyParts({ messageId }));
+	},
+	component: MessagePage,
+});
+
+function MessagePage() {
+	const { messageId } = Route.useParams();
+	const [message] = useZeroQuery(queries.mailMessage({ messageId }));
+
+	if (!message) return null;
+
+	return (
+		<MailAccountShell accountId={message.accountId}>
+			<div className="flex min-w-0 flex-1 flex-col overflow-x-hidden">
+				<div className="flex items-center gap-3 border-b border-border px-4 py-3">
+					<Link to="/mac_{$accountId}" params={{ accountId: message.accountId }}>
+						<Button variant="ghost" size="icon">
+							<ArrowLeftIcon className="size-4" />
+						</Button>
+					</Link>
+				</div>
+				<MessageDetail messageId={messageId} />
+			</div>
+		</MailAccountShell>
+	);
+}

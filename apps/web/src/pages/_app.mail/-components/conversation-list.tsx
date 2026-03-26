@@ -22,7 +22,7 @@ export function ConversationList({ conversations, onSelect }: ConversationListPr
 	}
 
 	return (
-		<div className="flex flex-col divide-y divide-border overflow-y-auto">
+		<div className="flex min-w-0 flex-col divide-y divide-border overflow-y-auto overflow-x-hidden">
 			{conversations.map((conversation) => (
 				<button
 					key={conversation.id}
@@ -30,7 +30,7 @@ export function ConversationList({ conversations, onSelect }: ConversationListPr
 					className="flex flex-col gap-1 px-4 py-3 text-left transition-colors hover:bg-accent"
 					onClick={() => onSelect(conversation.id)}
 				>
-					<div className="flex items-center justify-between gap-2">
+					<div className="flex min-w-0 items-center justify-between gap-2">
 						<span
 							className={cn(
 								"truncate text-sm font-medium",

@@ -30,6 +30,13 @@ export const queries = defineQueries({
 			.where("accountId", (args as { accountId: string }).accountId),
 	),
 
+	mailFolder: defineQuery(({ ctx, args }) =>
+		zql.mail_folder
+			.where("userId", ctx?.userId ?? "")
+			.where("id", (args as { folderId: string }).folderId)
+			.one(),
+	),
+
 	// ---------------------------------------------------------------------------
 	// Mail labels for an account
 	// ---------------------------------------------------------------------------
@@ -51,6 +58,13 @@ export const queries = defineQueries({
 			.orderBy("latestMessageAt", "desc"),
 	),
 
+	mailConversation: defineQuery(({ ctx, args }) =>
+		zql.mail_conversation
+			.where("userId", ctx?.userId ?? "")
+			.where("id", (args as { conversationId: string }).conversationId)
+			.one(),
+	),
+
 	// ---------------------------------------------------------------------------
 	// Messages for an account (non-threaded message list)
 	// ---------------------------------------------------------------------------
@@ -60,6 +74,13 @@ export const queries = defineQueries({
 			.where("userId", ctx?.userId ?? "")
 			.where("accountId", (args as { accountId: string }).accountId)
 			.orderBy("receivedAt", "desc"),
+	),
+
+	mailMessage: defineQuery(({ ctx, args }) =>
+		zql.mail_message
+			.where("userId", ctx?.userId ?? "")
+			.where("id", (args as { messageId: string }).messageId)
+			.one(),
 	),
 
 	// ---------------------------------------------------------------------------

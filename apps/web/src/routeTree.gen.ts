@@ -9,19 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from "./pages/__root";
-import { Route as AppRouteImport } from "./pages/app";
-import { Route as AppIndexRouteImport } from "./pages/app.index";
-import { Route as AppMailRouteImport } from "./pages/app.mail";
-import { Route as AppMailAccountIdRouteImport } from "./pages/app.mail.$accountId";
-import { Route as AppMailAccountIdConversationConversationIdRouteImport } from "./pages/app.mail.$accountId.conversation.$conversationId";
-import { Route as AppMailAccountIdFolderFolderIdRouteImport } from "./pages/app.mail.$accountId.folder.$folderId";
-import { Route as AppMailAccountIdIndexRouteImport } from "./pages/app.mail.$accountId.index";
-import { Route as AppMailAccountIdMessageMessageIdRouteImport } from "./pages/app.mail.$accountId.message.$messageId";
-import { Route as AppMailCallbackRouteImport } from "./pages/app.mail.callback";
-import { Route as AppMailIndexRouteImport } from "./pages/app.mail.index";
-import { Route as AppSettingsRouteImport } from "./pages/app.settings";
-import { Route as AppSettingsBillingRouteImport } from "./pages/app.settings.billing";
-import { Route as AppSettingsPreferencesRouteImport } from "./pages/app.settings.preferences";
+import { Route as AppRouteImport } from "./pages/_app";
+import { Route as AppMac_Char123accountIdChar125RouteImport } from "./pages/_app.mac_{$accountId}";
+import { Route as AppMailRouteImport } from "./pages/_app.mail";
+import { Route as AppMailCallbackRouteImport } from "./pages/_app.mail.callback";
+import { Route as AppMcv_Char123conversationIdChar125RouteImport } from "./pages/_app.mcv_{$conversationId}";
+import { Route as AppMfl_Char123folderIdChar125RouteImport } from "./pages/_app.mfl_{$folderId}";
+import { Route as AppMmg_Char123messageIdChar125RouteImport } from "./pages/_app.mmg_{$messageId}";
+import { Route as AppSettingsRouteImport } from "./pages/_app.settings";
+import { Route as AppSettingsBillingRouteImport } from "./pages/_app.settings.billing";
+import { Route as AppSettingsMailRouteImport } from "./pages/_app.settings.mail";
+import { Route as AppSettingsPreferencesRouteImport } from "./pages/_app.settings.preferences";
 import { Route as ForgotPasswordRouteImport } from "./pages/forgot-password";
 import { Route as IndexRouteImport } from "./pages/index";
 import { Route as LoginRouteImport } from "./pages/login";
@@ -61,8 +59,7 @@ const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
 	getParentRoute: () => rootRouteImport,
 } as any);
 const AppRoute = AppRouteImport.update({
-	id: "/app",
-	path: "/app",
+	id: "/_app",
 	getParentRoute: () => rootRouteImport,
 } as any);
 const IndexRoute = IndexRouteImport.update({
@@ -70,29 +67,45 @@ const IndexRoute = IndexRouteImport.update({
 	path: "/",
 	getParentRoute: () => rootRouteImport,
 } as any);
-const AppIndexRoute = AppIndexRouteImport.update({
-	id: "/",
-	path: "/",
-	getParentRoute: () => AppRoute,
-} as any);
 const AppSettingsRoute = AppSettingsRouteImport.update({
 	id: "/settings",
 	path: "/settings",
 	getParentRoute: () => AppRoute,
 } as any);
+const AppMmg_Char123messageIdChar125Route = AppMmg_Char123messageIdChar125RouteImport.update({
+	id: "/mmg_{$messageId}",
+	path: "/mmg_{$messageId}",
+	getParentRoute: () => AppRoute,
+} as any);
+const AppMfl_Char123folderIdChar125Route = AppMfl_Char123folderIdChar125RouteImport.update({
+	id: "/mfl_{$folderId}",
+	path: "/mfl_{$folderId}",
+	getParentRoute: () => AppRoute,
+} as any);
+const AppMcv_Char123conversationIdChar125Route =
+	AppMcv_Char123conversationIdChar125RouteImport.update({
+		id: "/mcv_{$conversationId}",
+		path: "/mcv_{$conversationId}",
+		getParentRoute: () => AppRoute,
+	} as any);
 const AppMailRoute = AppMailRouteImport.update({
 	id: "/mail",
 	path: "/mail",
 	getParentRoute: () => AppRoute,
 } as any);
-const AppMailIndexRoute = AppMailIndexRouteImport.update({
-	id: "/",
-	path: "/",
-	getParentRoute: () => AppMailRoute,
+const AppMac_Char123accountIdChar125Route = AppMac_Char123accountIdChar125RouteImport.update({
+	id: "/mac_{$accountId}",
+	path: "/mac_{$accountId}",
+	getParentRoute: () => AppRoute,
 } as any);
 const AppSettingsPreferencesRoute = AppSettingsPreferencesRouteImport.update({
 	id: "/preferences",
 	path: "/preferences",
+	getParentRoute: () => AppSettingsRoute,
+} as any);
+const AppSettingsMailRoute = AppSettingsMailRouteImport.update({
+	id: "/mail",
+	path: "/mail",
 	getParentRoute: () => AppSettingsRoute,
 } as any);
 const AppSettingsBillingRoute = AppSettingsBillingRouteImport.update({
@@ -105,54 +118,25 @@ const AppMailCallbackRoute = AppMailCallbackRouteImport.update({
 	path: "/callback",
 	getParentRoute: () => AppMailRoute,
 } as any);
-const AppMailAccountIdRoute = AppMailAccountIdRouteImport.update({
-	id: "/$accountId",
-	path: "/$accountId",
-	getParentRoute: () => AppMailRoute,
-} as any);
-const AppMailAccountIdIndexRoute = AppMailAccountIdIndexRouteImport.update({
-	id: "/",
-	path: "/",
-	getParentRoute: () => AppMailAccountIdRoute,
-} as any);
-const AppMailAccountIdMessageMessageIdRoute = AppMailAccountIdMessageMessageIdRouteImport.update({
-	id: "/message/$messageId",
-	path: "/message/$messageId",
-	getParentRoute: () => AppMailAccountIdRoute,
-} as any);
-const AppMailAccountIdFolderFolderIdRoute = AppMailAccountIdFolderFolderIdRouteImport.update({
-	id: "/folder/$folderId",
-	path: "/folder/$folderId",
-	getParentRoute: () => AppMailAccountIdRoute,
-} as any);
-const AppMailAccountIdConversationConversationIdRoute =
-	AppMailAccountIdConversationConversationIdRouteImport.update({
-		id: "/conversation/$conversationId",
-		path: "/conversation/$conversationId",
-		getParentRoute: () => AppMailAccountIdRoute,
-	} as any);
 
 export interface FileRoutesByFullPath {
 	"/": typeof IndexRoute;
-	"/app": typeof AppRouteWithChildren;
 	"/forgot-password": typeof ForgotPasswordRoute;
 	"/login": typeof LoginRoute;
 	"/privacy-policy": typeof PrivacyPolicyRoute;
 	"/reset-password": typeof ResetPasswordRoute;
 	"/signup": typeof SignupRoute;
 	"/terms-of-service": typeof TermsOfServiceRoute;
-	"/app/mail": typeof AppMailRouteWithChildren;
-	"/app/settings": typeof AppSettingsRouteWithChildren;
-	"/app/": typeof AppIndexRoute;
-	"/app/mail/$accountId": typeof AppMailAccountIdRouteWithChildren;
-	"/app/mail/callback": typeof AppMailCallbackRoute;
-	"/app/settings/billing": typeof AppSettingsBillingRoute;
-	"/app/settings/preferences": typeof AppSettingsPreferencesRoute;
-	"/app/mail/": typeof AppMailIndexRoute;
-	"/app/mail/$accountId/": typeof AppMailAccountIdIndexRoute;
-	"/app/mail/$accountId/conversation/$conversationId": typeof AppMailAccountIdConversationConversationIdRoute;
-	"/app/mail/$accountId/folder/$folderId": typeof AppMailAccountIdFolderFolderIdRoute;
-	"/app/mail/$accountId/message/$messageId": typeof AppMailAccountIdMessageMessageIdRoute;
+	"/mac_{$accountId}": typeof AppMac_Char123accountIdChar125Route;
+	"/mail": typeof AppMailRouteWithChildren;
+	"/mcv_{$conversationId}": typeof AppMcv_Char123conversationIdChar125Route;
+	"/mfl_{$folderId}": typeof AppMfl_Char123folderIdChar125Route;
+	"/mmg_{$messageId}": typeof AppMmg_Char123messageIdChar125Route;
+	"/settings": typeof AppSettingsRouteWithChildren;
+	"/mail/callback": typeof AppMailCallbackRoute;
+	"/settings/billing": typeof AppSettingsBillingRoute;
+	"/settings/mail": typeof AppSettingsMailRoute;
+	"/settings/preferences": typeof AppSettingsPreferencesRoute;
 }
 export interface FileRoutesByTo {
 	"/": typeof IndexRoute;
@@ -162,63 +146,58 @@ export interface FileRoutesByTo {
 	"/reset-password": typeof ResetPasswordRoute;
 	"/signup": typeof SignupRoute;
 	"/terms-of-service": typeof TermsOfServiceRoute;
-	"/app/settings": typeof AppSettingsRouteWithChildren;
-	"/app": typeof AppIndexRoute;
-	"/app/mail/callback": typeof AppMailCallbackRoute;
-	"/app/settings/billing": typeof AppSettingsBillingRoute;
-	"/app/settings/preferences": typeof AppSettingsPreferencesRoute;
-	"/app/mail": typeof AppMailIndexRoute;
-	"/app/mail/$accountId": typeof AppMailAccountIdIndexRoute;
-	"/app/mail/$accountId/conversation/$conversationId": typeof AppMailAccountIdConversationConversationIdRoute;
-	"/app/mail/$accountId/folder/$folderId": typeof AppMailAccountIdFolderFolderIdRoute;
-	"/app/mail/$accountId/message/$messageId": typeof AppMailAccountIdMessageMessageIdRoute;
+	"/mac_{$accountId}": typeof AppMac_Char123accountIdChar125Route;
+	"/mail": typeof AppMailRouteWithChildren;
+	"/mcv_{$conversationId}": typeof AppMcv_Char123conversationIdChar125Route;
+	"/mfl_{$folderId}": typeof AppMfl_Char123folderIdChar125Route;
+	"/mmg_{$messageId}": typeof AppMmg_Char123messageIdChar125Route;
+	"/settings": typeof AppSettingsRouteWithChildren;
+	"/mail/callback": typeof AppMailCallbackRoute;
+	"/settings/billing": typeof AppSettingsBillingRoute;
+	"/settings/mail": typeof AppSettingsMailRoute;
+	"/settings/preferences": typeof AppSettingsPreferencesRoute;
 }
 export interface FileRoutesById {
 	__root__: typeof rootRouteImport;
 	"/": typeof IndexRoute;
-	"/app": typeof AppRouteWithChildren;
+	"/_app": typeof AppRouteWithChildren;
 	"/forgot-password": typeof ForgotPasswordRoute;
 	"/login": typeof LoginRoute;
 	"/privacy-policy": typeof PrivacyPolicyRoute;
 	"/reset-password": typeof ResetPasswordRoute;
 	"/signup": typeof SignupRoute;
 	"/terms-of-service": typeof TermsOfServiceRoute;
-	"/app/mail": typeof AppMailRouteWithChildren;
-	"/app/settings": typeof AppSettingsRouteWithChildren;
-	"/app/": typeof AppIndexRoute;
-	"/app/mail/$accountId": typeof AppMailAccountIdRouteWithChildren;
-	"/app/mail/callback": typeof AppMailCallbackRoute;
-	"/app/settings/billing": typeof AppSettingsBillingRoute;
-	"/app/settings/preferences": typeof AppSettingsPreferencesRoute;
-	"/app/mail/": typeof AppMailIndexRoute;
-	"/app/mail/$accountId/": typeof AppMailAccountIdIndexRoute;
-	"/app/mail/$accountId/conversation/$conversationId": typeof AppMailAccountIdConversationConversationIdRoute;
-	"/app/mail/$accountId/folder/$folderId": typeof AppMailAccountIdFolderFolderIdRoute;
-	"/app/mail/$accountId/message/$messageId": typeof AppMailAccountIdMessageMessageIdRoute;
+	"/_app/mac_{$accountId}": typeof AppMac_Char123accountIdChar125Route;
+	"/_app/mail": typeof AppMailRouteWithChildren;
+	"/_app/mcv_{$conversationId}": typeof AppMcv_Char123conversationIdChar125Route;
+	"/_app/mfl_{$folderId}": typeof AppMfl_Char123folderIdChar125Route;
+	"/_app/mmg_{$messageId}": typeof AppMmg_Char123messageIdChar125Route;
+	"/_app/settings": typeof AppSettingsRouteWithChildren;
+	"/_app/mail/callback": typeof AppMailCallbackRoute;
+	"/_app/settings/billing": typeof AppSettingsBillingRoute;
+	"/_app/settings/mail": typeof AppSettingsMailRoute;
+	"/_app/settings/preferences": typeof AppSettingsPreferencesRoute;
 }
 export interface FileRouteTypes {
 	fileRoutesByFullPath: FileRoutesByFullPath;
 	fullPaths:
 		| "/"
-		| "/app"
 		| "/forgot-password"
 		| "/login"
 		| "/privacy-policy"
 		| "/reset-password"
 		| "/signup"
 		| "/terms-of-service"
-		| "/app/mail"
-		| "/app/settings"
-		| "/app/"
-		| "/app/mail/$accountId"
-		| "/app/mail/callback"
-		| "/app/settings/billing"
-		| "/app/settings/preferences"
-		| "/app/mail/"
-		| "/app/mail/$accountId/"
-		| "/app/mail/$accountId/conversation/$conversationId"
-		| "/app/mail/$accountId/folder/$folderId"
-		| "/app/mail/$accountId/message/$messageId";
+		| "/mac_{$accountId}"
+		| "/mail"
+		| "/mcv_{$conversationId}"
+		| "/mfl_{$folderId}"
+		| "/mmg_{$messageId}"
+		| "/settings"
+		| "/mail/callback"
+		| "/settings/billing"
+		| "/settings/mail"
+		| "/settings/preferences";
 	fileRoutesByTo: FileRoutesByTo;
 	to:
 		| "/"
@@ -228,38 +207,36 @@ export interface FileRouteTypes {
 		| "/reset-password"
 		| "/signup"
 		| "/terms-of-service"
-		| "/app/settings"
-		| "/app"
-		| "/app/mail/callback"
-		| "/app/settings/billing"
-		| "/app/settings/preferences"
-		| "/app/mail"
-		| "/app/mail/$accountId"
-		| "/app/mail/$accountId/conversation/$conversationId"
-		| "/app/mail/$accountId/folder/$folderId"
-		| "/app/mail/$accountId/message/$messageId";
+		| "/mac_{$accountId}"
+		| "/mail"
+		| "/mcv_{$conversationId}"
+		| "/mfl_{$folderId}"
+		| "/mmg_{$messageId}"
+		| "/settings"
+		| "/mail/callback"
+		| "/settings/billing"
+		| "/settings/mail"
+		| "/settings/preferences";
 	id:
 		| "__root__"
 		| "/"
-		| "/app"
+		| "/_app"
 		| "/forgot-password"
 		| "/login"
 		| "/privacy-policy"
 		| "/reset-password"
 		| "/signup"
 		| "/terms-of-service"
-		| "/app/mail"
-		| "/app/settings"
-		| "/app/"
-		| "/app/mail/$accountId"
-		| "/app/mail/callback"
-		| "/app/settings/billing"
-		| "/app/settings/preferences"
-		| "/app/mail/"
-		| "/app/mail/$accountId/"
-		| "/app/mail/$accountId/conversation/$conversationId"
-		| "/app/mail/$accountId/folder/$folderId"
-		| "/app/mail/$accountId/message/$messageId";
+		| "/_app/mac_{$accountId}"
+		| "/_app/mail"
+		| "/_app/mcv_{$conversationId}"
+		| "/_app/mfl_{$folderId}"
+		| "/_app/mmg_{$messageId}"
+		| "/_app/settings"
+		| "/_app/mail/callback"
+		| "/_app/settings/billing"
+		| "/_app/settings/mail"
+		| "/_app/settings/preferences";
 	fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
@@ -317,10 +294,10 @@ declare module "@tanstack/react-router" {
 			preLoaderRoute: typeof ForgotPasswordRouteImport;
 			parentRoute: typeof rootRouteImport;
 		};
-		"/app": {
-			id: "/app";
-			path: "/app";
-			fullPath: "/app";
+		"/_app": {
+			id: "/_app";
+			path: "";
+			fullPath: "/";
 			preLoaderRoute: typeof AppRouteImport;
 			parentRoute: typeof rootRouteImport;
 		};
@@ -331,147 +308,119 @@ declare module "@tanstack/react-router" {
 			preLoaderRoute: typeof IndexRouteImport;
 			parentRoute: typeof rootRouteImport;
 		};
-		"/app/": {
-			id: "/app/";
-			path: "/";
-			fullPath: "/app/";
-			preLoaderRoute: typeof AppIndexRouteImport;
-			parentRoute: typeof AppRoute;
-		};
-		"/app/settings": {
-			id: "/app/settings";
+		"/_app/settings": {
+			id: "/_app/settings";
 			path: "/settings";
-			fullPath: "/app/settings";
+			fullPath: "/settings";
 			preLoaderRoute: typeof AppSettingsRouteImport;
 			parentRoute: typeof AppRoute;
 		};
-		"/app/mail": {
-			id: "/app/mail";
+		"/_app/mmg_{$messageId}": {
+			id: "/_app/mmg_{$messageId}";
+			path: "/mmg_{$messageId}";
+			fullPath: "/mmg_{$messageId}";
+			preLoaderRoute: typeof AppMmg_Char123messageIdChar125RouteImport;
+			parentRoute: typeof AppRoute;
+		};
+		"/_app/mfl_{$folderId}": {
+			id: "/_app/mfl_{$folderId}";
+			path: "/mfl_{$folderId}";
+			fullPath: "/mfl_{$folderId}";
+			preLoaderRoute: typeof AppMfl_Char123folderIdChar125RouteImport;
+			parentRoute: typeof AppRoute;
+		};
+		"/_app/mcv_{$conversationId}": {
+			id: "/_app/mcv_{$conversationId}";
+			path: "/mcv_{$conversationId}";
+			fullPath: "/mcv_{$conversationId}";
+			preLoaderRoute: typeof AppMcv_Char123conversationIdChar125RouteImport;
+			parentRoute: typeof AppRoute;
+		};
+		"/_app/mail": {
+			id: "/_app/mail";
 			path: "/mail";
-			fullPath: "/app/mail";
+			fullPath: "/mail";
 			preLoaderRoute: typeof AppMailRouteImport;
 			parentRoute: typeof AppRoute;
 		};
-		"/app/mail/": {
-			id: "/app/mail/";
-			path: "/";
-			fullPath: "/app/mail/";
-			preLoaderRoute: typeof AppMailIndexRouteImport;
-			parentRoute: typeof AppMailRoute;
+		"/_app/mac_{$accountId}": {
+			id: "/_app/mac_{$accountId}";
+			path: "/mac_{$accountId}";
+			fullPath: "/mac_{$accountId}";
+			preLoaderRoute: typeof AppMac_Char123accountIdChar125RouteImport;
+			parentRoute: typeof AppRoute;
 		};
-		"/app/settings/preferences": {
-			id: "/app/settings/preferences";
+		"/_app/settings/preferences": {
+			id: "/_app/settings/preferences";
 			path: "/preferences";
-			fullPath: "/app/settings/preferences";
+			fullPath: "/settings/preferences";
 			preLoaderRoute: typeof AppSettingsPreferencesRouteImport;
 			parentRoute: typeof AppSettingsRoute;
 		};
-		"/app/settings/billing": {
-			id: "/app/settings/billing";
+		"/_app/settings/mail": {
+			id: "/_app/settings/mail";
+			path: "/mail";
+			fullPath: "/settings/mail";
+			preLoaderRoute: typeof AppSettingsMailRouteImport;
+			parentRoute: typeof AppSettingsRoute;
+		};
+		"/_app/settings/billing": {
+			id: "/_app/settings/billing";
 			path: "/billing";
-			fullPath: "/app/settings/billing";
+			fullPath: "/settings/billing";
 			preLoaderRoute: typeof AppSettingsBillingRouteImport;
 			parentRoute: typeof AppSettingsRoute;
 		};
-		"/app/mail/callback": {
-			id: "/app/mail/callback";
+		"/_app/mail/callback": {
+			id: "/_app/mail/callback";
 			path: "/callback";
-			fullPath: "/app/mail/callback";
+			fullPath: "/mail/callback";
 			preLoaderRoute: typeof AppMailCallbackRouteImport;
 			parentRoute: typeof AppMailRoute;
-		};
-		"/app/mail/$accountId": {
-			id: "/app/mail/$accountId";
-			path: "/$accountId";
-			fullPath: "/app/mail/$accountId";
-			preLoaderRoute: typeof AppMailAccountIdRouteImport;
-			parentRoute: typeof AppMailRoute;
-		};
-		"/app/mail/$accountId/": {
-			id: "/app/mail/$accountId/";
-			path: "/";
-			fullPath: "/app/mail/$accountId/";
-			preLoaderRoute: typeof AppMailAccountIdIndexRouteImport;
-			parentRoute: typeof AppMailAccountIdRoute;
-		};
-		"/app/mail/$accountId/message/$messageId": {
-			id: "/app/mail/$accountId/message/$messageId";
-			path: "/message/$messageId";
-			fullPath: "/app/mail/$accountId/message/$messageId";
-			preLoaderRoute: typeof AppMailAccountIdMessageMessageIdRouteImport;
-			parentRoute: typeof AppMailAccountIdRoute;
-		};
-		"/app/mail/$accountId/folder/$folderId": {
-			id: "/app/mail/$accountId/folder/$folderId";
-			path: "/folder/$folderId";
-			fullPath: "/app/mail/$accountId/folder/$folderId";
-			preLoaderRoute: typeof AppMailAccountIdFolderFolderIdRouteImport;
-			parentRoute: typeof AppMailAccountIdRoute;
-		};
-		"/app/mail/$accountId/conversation/$conversationId": {
-			id: "/app/mail/$accountId/conversation/$conversationId";
-			path: "/conversation/$conversationId";
-			fullPath: "/app/mail/$accountId/conversation/$conversationId";
-			preLoaderRoute: typeof AppMailAccountIdConversationConversationIdRouteImport;
-			parentRoute: typeof AppMailAccountIdRoute;
 		};
 	}
 }
 
-interface AppMailAccountIdRouteChildren {
-	AppMailAccountIdIndexRoute: typeof AppMailAccountIdIndexRoute;
-	AppMailAccountIdConversationConversationIdRoute: typeof AppMailAccountIdConversationConversationIdRoute;
-	AppMailAccountIdFolderFolderIdRoute: typeof AppMailAccountIdFolderFolderIdRoute;
-	AppMailAccountIdMessageMessageIdRoute: typeof AppMailAccountIdMessageMessageIdRoute;
-}
-
-const AppMailAccountIdRouteChildren: AppMailAccountIdRouteChildren = {
-	AppMailAccountIdIndexRoute: AppMailAccountIdIndexRoute,
-	AppMailAccountIdConversationConversationIdRoute: AppMailAccountIdConversationConversationIdRoute,
-	AppMailAccountIdFolderFolderIdRoute: AppMailAccountIdFolderFolderIdRoute,
-	AppMailAccountIdMessageMessageIdRoute: AppMailAccountIdMessageMessageIdRoute,
-};
-
-const AppMailAccountIdRouteWithChildren = AppMailAccountIdRoute._addFileChildren(
-	AppMailAccountIdRouteChildren,
-);
-
 interface AppMailRouteChildren {
-	AppMailAccountIdRoute: typeof AppMailAccountIdRouteWithChildren;
 	AppMailCallbackRoute: typeof AppMailCallbackRoute;
-	AppMailIndexRoute: typeof AppMailIndexRoute;
 }
 
 const AppMailRouteChildren: AppMailRouteChildren = {
-	AppMailAccountIdRoute: AppMailAccountIdRouteWithChildren,
 	AppMailCallbackRoute: AppMailCallbackRoute,
-	AppMailIndexRoute: AppMailIndexRoute,
 };
 
 const AppMailRouteWithChildren = AppMailRoute._addFileChildren(AppMailRouteChildren);
 
 interface AppSettingsRouteChildren {
 	AppSettingsBillingRoute: typeof AppSettingsBillingRoute;
+	AppSettingsMailRoute: typeof AppSettingsMailRoute;
 	AppSettingsPreferencesRoute: typeof AppSettingsPreferencesRoute;
 }
 
 const AppSettingsRouteChildren: AppSettingsRouteChildren = {
 	AppSettingsBillingRoute: AppSettingsBillingRoute,
+	AppSettingsMailRoute: AppSettingsMailRoute,
 	AppSettingsPreferencesRoute: AppSettingsPreferencesRoute,
 };
 
 const AppSettingsRouteWithChildren = AppSettingsRoute._addFileChildren(AppSettingsRouteChildren);
 
 interface AppRouteChildren {
+	AppMac_Char123accountIdChar125Route: typeof AppMac_Char123accountIdChar125Route;
 	AppMailRoute: typeof AppMailRouteWithChildren;
+	AppMcv_Char123conversationIdChar125Route: typeof AppMcv_Char123conversationIdChar125Route;
+	AppMfl_Char123folderIdChar125Route: typeof AppMfl_Char123folderIdChar125Route;
+	AppMmg_Char123messageIdChar125Route: typeof AppMmg_Char123messageIdChar125Route;
 	AppSettingsRoute: typeof AppSettingsRouteWithChildren;
-	AppIndexRoute: typeof AppIndexRoute;
 }
 
 const AppRouteChildren: AppRouteChildren = {
+	AppMac_Char123accountIdChar125Route: AppMac_Char123accountIdChar125Route,
 	AppMailRoute: AppMailRouteWithChildren,
+	AppMcv_Char123conversationIdChar125Route: AppMcv_Char123conversationIdChar125Route,
+	AppMfl_Char123folderIdChar125Route: AppMfl_Char123folderIdChar125Route,
+	AppMmg_Char123messageIdChar125Route: AppMmg_Char123messageIdChar125Route,
 	AppSettingsRoute: AppSettingsRouteWithChildren,
-	AppIndexRoute: AppIndexRoute,
 };
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren);

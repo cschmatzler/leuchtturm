@@ -63,9 +63,13 @@ async function renderMarketingHeader(session: unknown) {
 		path: "/signup",
 		component: Empty,
 	});
-	const appRoute = createRoute({ getParentRoute: () => rootRoute, path: "/app", component: Empty });
+	const mailRoute = createRoute({
+		getParentRoute: () => rootRoute,
+		path: "/mail",
+		component: Empty,
+	});
 	const router = createRouter({
-		routeTree: rootRoute.addChildren([indexRoute, loginRoute, signupRoute, appRoute]),
+		routeTree: rootRoute.addChildren([indexRoute, loginRoute, signupRoute, mailRoute]),
 		history: createMemoryHistory({ initialEntries: ["/"] }),
 	});
 

@@ -26,6 +26,64 @@ import type { MailFolderKind, MailLabelKind } from "@chevrotain/core/mail/schema
 
 const GMAIL_API_BASE = "https://gmail.googleapis.com/gmail/v1/users/me";
 
+const CSS_COLOR_PATTERNS = [
+	/^(?:#[0-9a-f]{3,8}|(?:rgb|hsl)a?\([\d\s.,/%-]+\)|(?:inherit|initial|unset|transparent|currentcolor|[a-z-]+))$/i,
+];
+
+const CSS_LENGTH_PATTERNS = [
+	/^(?:auto|0|-?(?:\d+|\d*\.\d+)(?:px|em|rem|%|vh|vw|vmin|vmax|pt|pc|cm|mm|in|ex|ch))$/i,
+];
+
+const CSS_BOX_PATTERNS = [
+	/^(?:(?:auto|0|-?(?:\d+|\d*\.\d+)(?:px|em|rem|%|vh|vw|vmin|vmax|pt|pc|cm|mm|in|ex|ch))(?:\s+|$)){1,4}$/i,
+];
+
+const CSS_NUMBER_PATTERNS = [/^-?(?:\d+|\d*\.\d+)$/];
+
+const CSS_FONT_FAMILY_PATTERNS = [/^[\w\s"',-]+$/];
+
+const CSS_TEXT_DECORATION_PATTERNS = [
+	/^(?:none|underline|overline|line-through|blink)(?:\s+(?:solid|double|dotted|dashed|wavy))?$/i,
+];
+
+const CSS_TEXT_TRANSFORM_PATTERNS = [/^(?:none|capitalize|uppercase|lowercase)$/i];
+
+const CSS_WORD_BREAK_PATTERNS = [/^(?:normal|break-all|break-word|keep-all)$/i];
+
+const CSS_WHITE_SPACE_PATTERNS = [/^(?:normal|nowrap|pre|pre-wrap|pre-line|break-spaces)$/i];
+
+const CSS_OVERFLOW_PATTERNS = [/^(?:visible|hidden|clip|scroll|auto)$/i];
+
+const CSS_BORDER_STYLE_PATTERNS = [
+	/^(?:none|hidden|dotted|dashed|solid|double|groove|ridge|inset|outset)$/i,
+];
+
+const CSS_BORDER_PATTERNS = [
+	/^(?:(?:0|-?(?:\d+|\d*\.\d+)(?:px|em|rem|pt))\s+)?(?:none|hidden|dotted|dashed|solid|double|groove|ridge|inset|outset)(?:\s+(?:#[0-9a-f]{3,8}|(?:rgb|hsl)a?\([\d\s.,/%-]+\)|[a-z-]+))?$/i,
+];
+
+const CSS_DISPLAY_PATTERNS = [
+	/^(?:block|inline|inline-block|flex|inline-flex|grid|inline-grid|table|inline-table|table-row|table-cell|table-caption|table-column|table-column-group|table-footer-group|table-header-group|table-row-group|list-item|none)$/i,
+];
+
+const CSS_POSITION_PATTERNS = [/^(?:static|relative|absolute|sticky|fixed)$/i];
+
+const CSS_ALIGN_PATTERNS = [
+	/^(?:left|right|center|justify|start|end|top|middle|bottom|baseline|sub|super|text-top|text-bottom)$/i,
+];
+
+const CSS_REPEAT_PATTERNS = [/^(?:repeat|repeat-x|repeat-y|no-repeat|space|round)$/i];
+
+const CSS_BACKGROUND_SIZE_PATTERNS = [
+	/^(?:auto|cover|contain|(?:0|-?(?:\d+|\d*\.\d+)(?:px|em|rem|%))(?:\s+(?:0|-?(?:\d+|\d*\.\d+)(?:px|em|rem|%)))?)$/i,
+];
+
+const CSS_SHADOW_PATTERNS = [
+	/^(?:none|(?:inset\s+)?-?(?:\d+|\d*\.\d+)(?:px|em|rem)\s+-?(?:\d+|\d*\.\d+)(?:px|em|rem)(?:\s+-?(?:\d+|\d*\.\d+)(?:px|em|rem))?(?:\s+-?(?:\d+|\d*\.\d+)(?:px|em|rem))?(?:\s+(?:#[0-9a-f]{3,8}|(?:rgb|hsl)a?\([\d\s.,/%-]+\)|[a-z-]+))?)$/i,
+];
+
+const CSS_LINE_RULE_PATTERNS = [/^(?:exactly|at-least)$/i];
+
 const HTML_SANITIZER_CONFIG = {
 	allowedTags: [
 		"a",
@@ -89,6 +147,7 @@ const HTML_SANITIZER_CONFIG = {
 			"alt",
 			"title",
 			"class",
+			"style",
 			"width",
 			"height",
 			"dir",
@@ -105,6 +164,87 @@ const HTML_SANITIZER_CONFIG = {
 		],
 		a: ["href", "title"],
 		img: ["src", "alt", "title", "width", "height"],
+	},
+	allowedStyles: {
+		"*": {
+			color: CSS_COLOR_PATTERNS,
+			"background-color": CSS_COLOR_PATTERNS,
+			"border-color": CSS_COLOR_PATTERNS,
+			"border-top-color": CSS_COLOR_PATTERNS,
+			"border-right-color": CSS_COLOR_PATTERNS,
+			"border-bottom-color": CSS_COLOR_PATTERNS,
+			"border-left-color": CSS_COLOR_PATTERNS,
+			"font-family": CSS_FONT_FAMILY_PATTERNS,
+			"font-size": CSS_LENGTH_PATTERNS,
+			"font-weight": [/^(?:normal|bold|bolder|lighter|[1-9]00)$/i],
+			"font-style": [/^(?:normal|italic|oblique)$/i],
+			"font-variant": [/^(?:normal|small-caps)$/i],
+			"line-height": [...CSS_LENGTH_PATTERNS, ...CSS_NUMBER_PATTERNS],
+			"letter-spacing": CSS_LENGTH_PATTERNS,
+			"text-align": CSS_ALIGN_PATTERNS,
+			"vertical-align": CSS_ALIGN_PATTERNS,
+			"text-decoration": CSS_TEXT_DECORATION_PATTERNS,
+			"text-transform": CSS_TEXT_TRANSFORM_PATTERNS,
+			"white-space": CSS_WHITE_SPACE_PATTERNS,
+			"word-break": CSS_WORD_BREAK_PATTERNS,
+			"overflow-wrap": [/^(?:normal|break-word|anywhere)$/i],
+			margin: CSS_BOX_PATTERNS,
+			"margin-top": CSS_LENGTH_PATTERNS,
+			"margin-right": CSS_LENGTH_PATTERNS,
+			"margin-bottom": CSS_LENGTH_PATTERNS,
+			"margin-left": CSS_LENGTH_PATTERNS,
+			padding: CSS_BOX_PATTERNS,
+			"padding-top": CSS_LENGTH_PATTERNS,
+			"padding-right": CSS_LENGTH_PATTERNS,
+			"padding-bottom": CSS_LENGTH_PATTERNS,
+			"padding-left": CSS_LENGTH_PATTERNS,
+			width: CSS_LENGTH_PATTERNS,
+			"min-width": CSS_LENGTH_PATTERNS,
+			"max-width": CSS_LENGTH_PATTERNS,
+			height: CSS_LENGTH_PATTERNS,
+			"min-height": CSS_LENGTH_PATTERNS,
+			"max-height": CSS_LENGTH_PATTERNS,
+			display: CSS_DISPLAY_PATTERNS,
+			position: CSS_POSITION_PATTERNS,
+			top: CSS_LENGTH_PATTERNS,
+			right: CSS_LENGTH_PATTERNS,
+			bottom: CSS_LENGTH_PATTERNS,
+			left: CSS_LENGTH_PATTERNS,
+			overflow: CSS_OVERFLOW_PATTERNS,
+			"overflow-x": CSS_OVERFLOW_PATTERNS,
+			"overflow-y": CSS_OVERFLOW_PATTERNS,
+			border: CSS_BORDER_PATTERNS,
+			"border-top": CSS_BORDER_PATTERNS,
+			"border-right": CSS_BORDER_PATTERNS,
+			"border-bottom": CSS_BORDER_PATTERNS,
+			"border-left": CSS_BORDER_PATTERNS,
+			"border-style": CSS_BORDER_STYLE_PATTERNS,
+			"border-top-style": CSS_BORDER_STYLE_PATTERNS,
+			"border-right-style": CSS_BORDER_STYLE_PATTERNS,
+			"border-bottom-style": CSS_BORDER_STYLE_PATTERNS,
+			"border-left-style": CSS_BORDER_STYLE_PATTERNS,
+			"border-width": CSS_BOX_PATTERNS,
+			"border-top-width": CSS_LENGTH_PATTERNS,
+			"border-right-width": CSS_LENGTH_PATTERNS,
+			"border-bottom-width": CSS_LENGTH_PATTERNS,
+			"border-left-width": CSS_LENGTH_PATTERNS,
+			"border-collapse": [/^(?:collapse|separate)$/i],
+			"border-spacing": CSS_BOX_PATTERNS,
+			"border-radius": CSS_BOX_PATTERNS,
+			"table-layout": [/^(?:auto|fixed)$/i],
+			float: [/^(?:left|right|none)$/i],
+			clear: [/^(?:left|right|both|none)$/i],
+			"list-style-type": [
+				/^(?:none|disc|circle|square|decimal|lower-alpha|upper-alpha|lower-roman|upper-roman)$/i,
+			],
+			"list-style-position": [/^(?:inside|outside)$/i],
+			"background-repeat": CSS_REPEAT_PATTERNS,
+			"background-size": CSS_BACKGROUND_SIZE_PATTERNS,
+			"background-position": [/^[\w\s.%,-]+$/],
+			"box-shadow": CSS_SHADOW_PATTERNS,
+			opacity: [/^(?:0|0?\.\d+|1(?:\.0+)?)$/],
+			"mso-line-height-rule": CSS_LINE_RULE_PATTERNS,
+		},
 	},
 	allowedSchemes: ["http", "https", "mailto"],
 	allowedSchemesByTag: {
@@ -206,7 +346,7 @@ function decodeBase64Url(data: string): string {
 	return Buffer.from(padded, "base64").toString("utf-8");
 }
 
-function sanitizeHtml(html: string): string {
+export function sanitizeHtml(html: string): string {
 	return sanitizeMailHtml(html, HTML_SANITIZER_CONFIG);
 }
 

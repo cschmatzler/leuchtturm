@@ -1,15 +1,7 @@
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Outlet, redirect, useNavigate } from "@tanstack/react-router";
-import {
-	CheckIcon,
-	ChevronDownIcon,
-	CogIcon,
-	CreditCardIcon,
-	LogOutIcon,
-	MailIcon,
-	PlusIcon,
-} from "lucide-react";
+import { CheckIcon, CogIcon, LogOutIcon, MailIcon, PlusIcon } from "lucide-react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -31,14 +23,11 @@ import {
 	SidebarFooter,
 	SidebarGroup,
 	SidebarGroupContent,
-	SidebarGroupLabel,
-	SidebarHeader,
 	SidebarInset,
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
 	SidebarProvider,
-	SidebarRail,
 } from "@chevrotain/web/components/ui/sidebar";
 import { ZeroProvider, type SessionData } from "@chevrotain/web/contexts/zero";
 import { useAuth } from "@chevrotain/web/hooks/use-auth";
@@ -48,32 +37,11 @@ import { useZeroQuery } from "@chevrotain/web/lib/query";
 import { deviceSessionsQuery, sessionQuery } from "@chevrotain/web/queries/session";
 import { queries } from "@chevrotain/zero/queries";
 
-const SETTINGS_NAVIGATION = [
-	{
-		to: "/app/settings/preferences" as const,
-		icon: CogIcon,
-		labelKey: "Preferences",
-	},
-	{
-		to: "/app/settings/billing" as const,
-		icon: CreditCardIcon,
-		labelKey: "Billing",
-	},
-] as const;
-
-const MAIL_NAVIGATION = [
-	{
-		to: "/app/mail" as const,
-		icon: MailIcon,
-		labelKey: "Mail",
-	},
-] as const;
-
 function LogOutShortcut() {
 	return <OptionShiftShortcut keyLabel="Q" />;
 }
 
-export const Route = createFileRoute("/app")({
+export const Route = createFileRoute("/_app")({
 	beforeLoad: async ({ context: { queryClient } }) => {
 		const session = await queryClient.ensureQueryData(sessionQuery());
 		if (!session) throw redirect({ to: "/login" });
@@ -169,7 +137,7 @@ function Shell({ session }: { session: SessionData }) {
 				global: true,
 				icon: CogIcon,
 				run() {
-					navigate({ to: "/app/settings/preferences" });
+					navigate({ to: "/settings/preferences" });
 				},
 			},
 		],
@@ -187,43 +155,30 @@ function Shell({ session }: { session: SessionData }) {
 	};
 
 	return (
-		<SidebarProvider>
-			<Sidebar variant="inset">
-				<SidebarHeader>
-					<div className="flex items-center gap-2.5 px-2 py-1">
-						<div className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-							<MailIcon className="size-4" />
-						</div>
-						<span className="text-sm font-semibold">Chevrotain</span>
-					</div>
-				</SidebarHeader>
-				<SidebarContent className="gap-0">
+		<SidebarProvider open={false}>
+			<Sidebar variant="inset" collapsible="icon">
+				<SidebarContent>
 					<SidebarGroup>
 						<SidebarGroupContent>
 							<SidebarMenu>
-								{MAIL_NAVIGATION.map((item) => (
-									<SidebarMenuItem key={item.to}>
-										<SidebarMenuButton render={<Link to={item.to} />}>
-											<item.icon />
-											{t(item.labelKey)}
-										</SidebarMenuButton>
-									</SidebarMenuItem>
-								))}
+								<SidebarMenuItem>
+									<SidebarMenuButton tooltip={t("Mail")} render={<Link to="/mail" />}>
+										<MailIcon />
+										<span>{t("Mail")}</span>
+									</SidebarMenuButton>
+								</SidebarMenuItem>
 							</SidebarMenu>
 						</SidebarGroupContent>
 					</SidebarGroup>
-					<SidebarGroup>
-						<SidebarGroupLabel>{t("Settings")}</SidebarGroupLabel>
+					<SidebarGroup className="mt-auto">
 						<SidebarGroupContent>
 							<SidebarMenu>
-								{SETTINGS_NAVIGATION.map((item) => (
-									<SidebarMenuItem key={item.to}>
-										<SidebarMenuButton render={<Link to={item.to} />}>
-											<item.icon />
-											{t(item.labelKey)}
-										</SidebarMenuButton>
-									</SidebarMenuItem>
-								))}
+								<SidebarMenuItem>
+									<SidebarMenuButton tooltip={t("Settings")} render={<Link to="/settings" />}>
+										<CogIcon />
+										<span>{t("Settings")}</span>
+									</SidebarMenuButton>
+								</SidebarMenuItem>
 							</SidebarMenu>
 						</SidebarGroupContent>
 					</SidebarGroup>
@@ -236,7 +191,7 @@ function Shell({ session }: { session: SessionData }) {
 									size="lg"
 									className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
 								>
-									<Avatar className="h-8 w-8 rounded-lg">
+									<Avatar className="size-8 rounded-lg">
 										<AvatarFallback className="rounded-lg">
 											{currentUser?.name.slice(0, 1)}
 										</AvatarFallback>
@@ -245,11 +200,15 @@ function Shell({ session }: { session: SessionData }) {
 										<span className="truncate font-medium">{currentUser?.name}</span>
 										<span className="truncate text-xs">{currentUser?.email}</span>
 									</div>
-									<ChevronDownIcon className="ml-auto size-4" />
 								</SidebarMenuButton>
 							}
 						/>
-						<MenuContent side="right" alignOffset={-4}>
+						<MenuContent side="right" align="end">
+							<div className="px-2 py-1.5">
+								<p className="text-sm font-medium">{currentUser?.name}</p>
+								<p className="text-xs text-muted-foreground">{currentUser?.email}</p>
+							</div>
+							<MenuSeparator />
 							{deviceSessions && deviceSessions.length > 1 && (
 								<>
 									{deviceSessions.map((ds) => {
@@ -264,7 +223,7 @@ function Shell({ session }: { session: SessionData }) {
 													}
 												}}
 											>
-												<Avatar className="h-6 w-6 rounded-md">
+												<Avatar className="size-6 rounded-md">
 													<AvatarFallback className="rounded-md text-xs">
 														{ds.user.name.slice(0, 1)}
 													</AvatarFallback>
@@ -303,7 +262,6 @@ function Shell({ session }: { session: SessionData }) {
 						</MenuContent>
 					</Menu>
 				</SidebarFooter>
-				<SidebarRail />
 			</Sidebar>
 			<SidebarInset id="main-content">
 				<Outlet />
