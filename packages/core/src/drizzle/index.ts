@@ -2,9 +2,9 @@ import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Config, Effect, Layer, Redacted, ServiceMap } from "effect";
 import { Pool } from "pg";
 
-import { authRelations } from "@chevrotain/core/auth/auth.sql";
+import { allRelations } from "@chevrotain/core/drizzle/relations";
 
-export type DatabaseClient = NodePgDatabase<Record<string, never>, typeof authRelations> & {
+export type DatabaseClient = NodePgDatabase<Record<string, never>, typeof allRelations> & {
 	$client: Pool;
 };
 
@@ -31,7 +31,7 @@ export namespace Database {
 			return Service.of({
 				db: drizzle({
 					client: pool,
-					relations: authRelations,
+					relations: allRelations,
 				}),
 			});
 		}),
