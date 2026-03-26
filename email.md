@@ -483,7 +483,7 @@ This was a major turning point in the architecture.
 
 ### Q7. Should all message bodies be stored in Zero, or only a hot window / cache?
 
-**Answer:** **all bodies in Zero for all synced mail**.
+**Answer:** **all bodies in Zero for the mirrored subset of synced mail**.
 
 ### Q8. Should imported mail age out of Zero over time?
 
@@ -545,14 +545,14 @@ The practical rule is:
 - bootstrap only threads with at least one message in the last 30 days
 - once a thread qualifies, import the entire Gmail thread, including older messages
 
-### Q18. How should `mail_message_body` be queried through Zero?
+### Q18. How should `mail_message_body_part` be queried through Zero?
 
 **Answer:** keep it in Zero, but do not include it in list queries by default.
 
 The practical rule is:
 
 - inbox / folder / conversation list queries should read `mail_message` without joining large body columns by default
-- message-detail queries should read `mail_message_body` explicitly
+- message-detail queries should read `mail_message_body_part` explicitly
 
 ### Q19. What do provider-driven deletions mean locally?
 
@@ -619,8 +619,8 @@ Combining all the answers above, the final contract for v1 is:
 
 ### Storage and sync
 
-- all synced message bodies live in Zero-visible tables
-- `mail_message_body` stays out of list queries by default and is read explicitly for message detail
+- all bodies for the mirrored subset live in Zero-visible tables
+- `mail_message_body_part` stays out of list queries by default and is read explicitly for message detail
 - raw MIME stays out of Zero but is retained in backend-only storage
 - inline assets and attachment bytes can load later
 - provider-driven deletes and moves are mirrored locally
@@ -757,7 +757,7 @@ Recommended fields:
 - `provider` (`gmail`, `icloud_imap`, later maybe `microsoft_graph`)
 - `email`
 - `display_name`
-- `status`
+- `status` (`connecting`, `bootstrapping`, `healthy`, `resyncing`, `degraded`, `requires_reauth`, `paused`)
 - capability flags
 - timestamps
 
@@ -793,6 +793,18 @@ Secrets must be kept separate from:
 
 This table is **not** for Zero.
 
+### Encryption strategy
+
+Use application-level envelope encryption:
+
+- Each `mail_account_secret` row is encrypted with a per-row **data encryption key (DEK)**.
+- The DEK is itself encrypted (wrapped) with a **key encryption key (KEK)**.
+- The KEK is loaded from an environment variable in v1. In production, it should migrate to a KMS (e.g. AWS KMS, GCP KMS, or Vault transit).
+- Store the encrypted DEK alongside the encrypted payload in the row.
+- Rotate the KEK by re-wrapping all DEKs — this avoids re-encrypting all secret payloads.
+
+This means a database dump alone does not expose credentials, and key rotation does not require touching every secret payload.
+
 ---
 
 ### 11.3 `mail_folder`
@@ -812,6 +824,7 @@ Recommended fields:
   - `trash`
   - `spam`
   - `archive`
+  - `all_mail`
   - `custom`
 - `name`
 - `path`
@@ -820,11 +833,7 @@ Recommended fields:
 
 ### Gmail mapping
 
-For Gmail, labels are the upstream source of truth.
-
-Canonical folder rows are derived from Gmail system labels for navigation and counts.
-
-User-created Gmail labels remain labels, not folders.
+See §25.1 for the full Gmail label-to-folder mapping contract.
 
 ### iCloud mapping
 
@@ -849,7 +858,7 @@ Recommended fields:
 
 ### Provider notes
 
-- Gmail: yes
+- Gmail: yes, including both system and user labels
 - iCloud IMAP: likely none in v1
 
 This is explicitly provider-specific, not universal.
@@ -936,18 +945,37 @@ The `internet_message_id` should still be stored, but as metadata, not as the ca
 
 ---
 
-### 11.7 `mail_message_body`
+### 11.7 `mail_message_body_part`
 
-One-to-one with `mail_message`.
+One-to-many with `mail_message`. Each row is one body part from the MIME tree.
 
 Recommended fields:
 
+- `id`
+- `user_id`
 - `message_id`
-- `text_plain`
-- `html_sanitized`
-- `preferred_render` (`html`, `text`)
-- maybe `source_content_type`
+- `part_index` (ordering within the message, starting at 0)
+- `content_type` (`text/plain`, `text/html`)
+- `content` (the text or sanitized HTML)
+- `is_preferred_render` (boolean — the part the UI should render by default)
 - timestamps
+
+### Why one-to-many
+
+Email messages can have multiple `text/plain` and `text/html` parts — forwarded messages, digests, and nested `multipart/mixed` structures each produce multiple body leaf nodes. Storing each part as its own row handles all cases cleanly:
+
+- The 90% case (one plain, one HTML) becomes two rows — trivial to query.
+- Multipart messages with multiple bodies each get their own row, ordered by `part_index`.
+- The UI renders parts in `part_index` order and picks the `is_preferred_render = true` part for the default view.
+- Raw MIME is retained backend-side, so the original structure is always recoverable.
+
+### Ingest rules
+
+- Walk the MIME tree (or Gmail API parts tree) depth-first.
+- Emit one row per leaf `text/plain` or `text/html` part that is **not** an attachment.
+- For Gmail API responses, the API already assembles the parts tree — walk it and emit rows.
+- For IMAP/`postal-mime`, the parser flattens the MIME tree — emit rows from the flat result. If `postal-mime` returns a single `text` and single `html`, that is two rows. If it returns multiple (rare but possible with manual MIME assembly), emit one row per part.
+- Mark `is_preferred_render = true` on the first `text/html` part. If no HTML exists, mark the first `text/plain` part.
 
 ### Why it is a separate table
 
@@ -970,7 +998,11 @@ This does **not** mean every list query should join body content.
 The intended pattern is:
 
 - list queries read `mail_message`
-- detail queries explicitly read `mail_message_body`
+- detail queries explicitly read `mail_message_body_part WHERE message_id = ? ORDER BY part_index`
+
+### Uniqueness
+
+`(message_id, part_index)`
 
 ---
 
@@ -980,6 +1012,7 @@ Join table for labels.
 
 Recommended fields:
 
+- `user_id`
 - `message_id`
 - `label_id`
 - timestamps
@@ -997,6 +1030,7 @@ Mailbox-instance table for folder membership and provider-native mailbox identit
 Recommended fields:
 
 - `id`
+- `user_id`
 - `message_id`
 - `account_id`
 - `folder_id`
@@ -1014,9 +1048,7 @@ This table keeps mailbox-shaped location and sync identity honest without forcin
 
 #### Gmail
 
-Rows here represent derived canonical folder membership used for navigation.
-
-The upstream source of truth is still Gmail labels.
+Rows here represent derived canonical folder membership used for navigation. See §25.1 for the full Gmail label-to-folder mapping contract.
 
 #### IMAP/iCloud
 
@@ -1033,6 +1065,7 @@ Attachment metadata only.
 Recommended fields:
 
 - `id`
+- `user_id`
 - `message_id`
 - `provider_attachment_ref`
 - `filename`
@@ -1106,6 +1139,14 @@ Recommended fields:
 
 This table allows storing provider-specific details without polluting the canonical model too early.
 
+### Lifecycle rules
+
+- `mail_provider_state` is **not** replicated to Zero. It is backend-only.
+- Scope: each row is tied to `(account_id, object_type, object_id)`. Examples: a Gmail message's raw API metadata, an IMAP folder's extended attributes.
+- Cleanup: when the referenced object is hard-deleted locally (message, folder, or account), cascade-delete the corresponding `mail_provider_state` rows.
+- When an account is disconnected, delete all `mail_provider_state` rows for that account.
+- This table should **not** be used for data that has a natural home in the canonical schema. It is for genuinely provider-specific metadata that would pollute the common model.
+
 ---
 
 ## 12. What should and should not be in Zero
@@ -1117,7 +1158,7 @@ This table allows storing provider-specific details without polluting the canoni
 - `mail_label`
 - `mail_conversation`
 - `mail_message`
-- `mail_message_body`
+- `mail_message_body_part`
 - `mail_message_label`
 - `mail_message_mailbox`
 - `mail_attachment` metadata
@@ -1138,7 +1179,7 @@ Bodies are in-bounds because they are required for instant read UX.
 
 Binary attachments and secrets are not.
 
-Raw MIME is also out of Zero, but it should still be retained in backend-only storage for reparsing, debugging, and future processing.
+Raw MIME is also out of Zero, but it should still be retained in backend-only storage for reparsing, debugging, and future processing while the mirrored message exists.
 
 ---
 
@@ -1162,10 +1203,11 @@ Reasons:
 
 On first connect:
 
-- select Gmail threads with at least one message in the last 30 days
+- compute a fixed UTC cutoff once at the start of the run: `bootstrap_cutoff_at = now_utc - 30 days`
+- select Gmail threads with at least one message whose `internalDate >= bootstrap_cutoff_at`
 - import the full thread for every qualifying thread, even when older messages in that thread fall outside the 30-day window
-- derive canonical folders from Gmail system labels
-- fetch user labels
+- fetch all Gmail labels, both system and user
+- derive canonical folders only from Gmail system labels
 - fetch native Gmail threads/messages for the selected recent-activity threads
 - eagerly write:
   - messages
@@ -1190,6 +1232,8 @@ If the Gmail history cursor expires or becomes invalid:
 
 - mark the account as resyncing
 - re-run the bounded bootstrap rule for that account
+- repair the recent authoritative slice by upserting rows matched on provider identity
+- preserve older already-mirrored mail outside the repaired 30-day slice
 - resume forward sync from a fresh cursor
 
 ### Important behavior decision
@@ -1218,8 +1262,10 @@ Recommended:
 
 On first connect:
 
+- compute a fixed UTC cutoff once at the start of the run: `bootstrap_cutoff_at = now_utc - 30 days`
 - select all selectable mailboxes/folders
-- import only messages from the last 30 days from those folders
+- import only messages whose IMAP `INTERNALDATE >= bootstrap_cutoff_at` from those folders
+- if provider metadata is missing, fall back to the parsed RFC822 `Date` header only as a last resort
 - parse RFC822 messages into normalized message/body/attachment metadata
 - retain raw MIME in backend-only storage
 - do **not** create synthetic conversations
@@ -1228,15 +1274,28 @@ On first connect:
 
 After bootstrap:
 
-- use IMAP IDLE where practical
-- run periodic reconciliation
 - track per-folder state using provider-native mailbox identity and sync cursors
+
+#### IMAP IDLE strategy
+
+- Open one IDLE connection per folder that supports it (at minimum: INBOX).
+- Renew the IDLE command every **25 minutes** (before the RFC 2177 29-minute server timeout, and well within iCloud's shorter observed timeouts).
+- On any connection drop, TCP reset, or IDLE timeout, reconnect immediately with exponential backoff (max 5 minutes).
+- Regardless of IDLE status, run a **full folder reconciliation every 5 minutes** as a safety net. This catches anything IDLE missed (silent drops, server bugs, folders without IDLE support).
+- If a folder fails to maintain a stable connection after 3 consecutive retries, fall back to poll-only mode for that folder and log a warning.
 
 If `UIDVALIDITY` changes for a folder:
 
 - reset sync state for that folder
 - re-bootstrap that folder for the last 30 days
 - resume incremental sync from the new folder state
+
+If an IMAP message moves folders in v1:
+
+- treat it as mailbox-item replacement, not identity preservation across folders
+- delete the old local mailbox item
+- create a new `mail_message` row and a new `mail_message_mailbox` row for the destination folder item
+- do **not** attempt continuity across folders using `Message-ID`, `References`, or subject heuristics
 
 ### Explicit no-go decision
 
@@ -1286,6 +1345,18 @@ This satisfies:
 - common denominator first
 - provider-specific features layered on top
 
+### Partial mirror UX contract
+
+The UI should present the mailbox honestly as a mirrored subset, not as a full provider mailbox.
+
+That means:
+
+- counts only cover the mirrored subset
+- unread totals only cover the mirrored subset
+- any future search only covers the mirrored subset
+- older missing mail outside the mirror is expected behavior, not a sync bug
+- Gmail threads may contain older messages even when adjacent older threads are absent
+
 ---
 
 ## 16. Body rendering decision in practice
@@ -1300,6 +1371,9 @@ The user requirement was:
 The implementation should:
 
 - store both plain text and sanitized HTML
+- sanitize HTML server-side on ingest using `isomorphic-dompurify` (DOMPurify for Node.js)
+- configure a strict allowlist that strips `<script>`, `<iframe>`, `<form>`, `<object>`, `<embed>`, `<applet>`, all event handler attributes (`on*`), `javascript:` URLs, and `data:` URLs except for `data:image/*` when explicitly needed
+- rewrite remote image `src` attributes to require backend proxying
 - render sanitized HTML by default when present
 - fall back to plain text when HTML is absent
 - leave room for later UI affordances such as:
@@ -1321,6 +1395,12 @@ So the correct implementation goal is:
 Inline images and other CID assets do **not** need to block message open.
 
 They may load later via attachment references and content IDs.
+
+Remote images should be blocked by default in v1.
+
+Rendered HTML must never issue direct third-party requests from provider HTML.
+
+CID inline assets and attachment bytes should load only through authenticated backend endpoints. The client should never fetch provider URLs directly.
 
 ---
 
@@ -1408,6 +1488,10 @@ Examples:
 - `mail_label`
 - `mail_conversation`
 - `mail_message`
+- `mail_message_body_part`
+- `mail_message_label`
+- `mail_message_mailbox`
+- `mail_attachment`
 
 ### Why
 
@@ -1447,7 +1531,7 @@ At minimum, design indexes around:
 
 ### Why separate message and body tables still matters
 
-Even though all bodies are in Zero, a separate `mail_message_body` table still helps keep:
+Even though all bodies are in Zero, a separate `mail_message_body_part` table still helps keep:
 
 - inbox list views lighter
 - folder queries lighter
@@ -1550,7 +1634,7 @@ Build later:
 
 If all the research and decisions above are compressed into one statement, it is this:
 
-> Build a multi-user, per-account, read-only email app whose UI is powered by Zero and whose canonical source of truth is Drizzle/Postgres, using the Gmail API for Gmail and IMAP for iCloud, storing all synced message bodies in Zero, importing only the last 30 days at first connect, syncing forward forever after that, never backfilling older history, never evicting imported history, and never inventing provider features like threading when the provider does not natively expose them.
+> Build a multi-user, per-account, read-only email app whose UI is powered by Zero and whose canonical source of truth is Drizzle/Postgres, using the Gmail API for Gmail and IMAP for iCloud, storing all bodies for the mirrored subset in Zero, importing only the last 30 days at first connect, syncing forward forever after that, never backfilling older history, never evicting imported history, and never inventing provider features like threading when the provider does not natively expose them.
 
 For Gmail, bootstrap by recent activity but import full qualifying threads. For IMAP, sync all selectable folders, keep mailbox-scoped sync identity honest, and retain raw MIME backend-side while keeping it out of Zero.
 
@@ -1567,7 +1651,7 @@ For quick reference, the final decisions are:
 5. **product shape:** multi-user first
 6. **auth for iCloud:** app-specific password acceptable; OAuth nicer later
 7. **body fetch:** not on-demand
-8. **Zero body policy:** all synced bodies in Zero
+8. **Zero body policy:** all bodies for the mirrored subset in Zero
 9. **initial import window:** last 30 days
 10. **Gmail bootstrap rule:** last 30 days of activity, but full thread import for qualifying Gmail threads
 11. **historical backfill after bootstrap:** no
@@ -1594,10 +1678,139 @@ For quick reference, the final decisions are:
 32. **EmailEngine:** benchmark/reference only, not default foundation
 33. **Mail0:** useful for adapter/read-model inspiration, not a drop-in architecture
 34. **Superhuman takeaway:** provider-API-first and provider-shaped semantics appear to be the right instincts
+35. **HTML sanitization library:** `isomorphic-dompurify` (DOMPurify for Node.js)
+36. **secret encryption:** application-level envelope encryption with per-row DEK and environment-variable KEK in v1
+37. **sync concurrency:** at most one sync job per account at any time, enforced via Postgres advisory locks
+38. **account disconnection:** hard-delete all mail data and secrets; no soft-delete retention
 
 ---
 
-## 25. What this document intentionally does not settle
+## 25. Additional implementation invariants now settled
+
+The following ambiguities are now explicitly resolved and should be treated as part of the architecture contract, not as open implementation questions.
+
+### 25.1 Gmail label and folder contract
+
+- store every Gmail label, system and user, in `mail_label`
+- store exact Gmail label membership in `mail_message_label`
+- treat `mail_folder` as a derived navigation read model for Gmail, not the authoritative source of truth
+- derive Gmail folder views only for `inbox`, `sent`, `drafts`, `trash`, `spam`, and `all_mail`
+- keep Gmail categories, `STARRED`, and `IMPORTANT` as labels/flags rather than converting them into folders
+- treat Gmail `mail_message_mailbox` rows as rebuildable derived folder membership, not as authoritative state
+
+### 25.2 Exact bootstrap cutoff semantics
+
+- compute `bootstrap_cutoff_at = now_utc - 30 days` once at the start of each bootstrap or bounded resync
+- keep that cutoff fixed for the duration of the run
+- for Gmail, a thread qualifies when any message in the thread has `internalDate >= bootstrap_cutoff_at`
+- for IMAP, a message qualifies when `INTERNALDATE >= bootstrap_cutoff_at`
+- unread flips, label-only changes, and other metadata-only churn do **not** make old mail newly eligible for bootstrap
+
+### 25.3 Bounded resync semantics
+
+- bounded resync is a repair pass, not a destructive replacement of the full mirror
+- resync re-imports the recent authoritative slice using the normal 30-day cutoff rules
+- resync upserts by provider identity
+- resync does **not** delete older already-mirrored mail solely because it falls outside the repaired 30-day window
+
+### 25.4 Partial mirror UX contract
+
+- counts, unread totals, and any future search cover only the mirrored subset
+- older missing mail outside the mirror is expected behavior, not a sync bug
+- Gmail threads may include older messages while adjacent older threads remain absent
+
+### 25.5 Account lifecycle states
+
+The allowed `mail_account.status` states are:
+
+- `connecting`
+- `bootstrapping`
+- `healthy`
+- `resyncing`
+- `degraded`
+- `requires_reauth`
+- `paused`
+
+### 25.6 Idempotency and uniqueness rules
+
+Use the following provider identity rules:
+
+- Gmail `mail_conversation`: `(account_id, provider_conversation_ref)`
+- Gmail `mail_message`: `(account_id, provider_message_ref)`
+- Gmail `mail_label`: `(account_id, provider_label_ref)`
+- Gmail `mail_message_label`: `(message_id, label_id)`
+- `mail_message_body_part`: `(message_id, part_index)`
+- Gmail `mail_message_mailbox`: `(message_id, folder_id)`
+- IMAP mailbox identity: `(account_id, folder_id, uidvalidity, uid)` on `mail_message_mailbox`
+
+In v1, each imported IMAP mailbox item gets exactly one `mail_message` row and exactly one `mail_message_mailbox` row.
+
+### 25.7 IMAP move semantics
+
+- in v1, an IMAP move is treated as mailbox-item replacement, not identity preservation across folders
+- delete the old local mailbox item and create a new local destination item
+- do **not** attempt cross-folder continuity or deduplication using `Message-ID`, `References`, or subject heuristics
+
+### 25.8 Zero ownership, rendering, and asset-loading rules
+
+- put `user_id` on every Zero-visible mail table
+- sanitize HTML server-side on ingest using `isomorphic-dompurify`
+- strip active content and block remote images by default in v1
+- never let rendered provider HTML issue direct third-party network requests
+- fetch CID assets and attachment bytes only through authenticated backend endpoints
+- never let the client fetch provider attachment URLs directly
+
+### 25.9 Raw MIME retention policy
+
+- retain raw MIME only while the mirrored local message exists
+- keep raw MIME backend-only and encrypted at rest
+- purge raw MIME when the local mirrored message is hard-deleted
+- purge all raw MIME for an account when that account is disconnected
+
+### 25.10 Sync concurrency and rate limiting
+
+#### Per-account mutual exclusion
+
+- At most one sync job (bootstrap, incremental, or resync) may run per `mail_account` at any time.
+- Enforce this with a Postgres advisory lock keyed on `mail_account.id`, acquired at sync job start and released on completion or failure.
+- If a push notification arrives while a sync job is already running, enqueue the work — do not start a second concurrent sync.
+- If a sync job crashes without releasing the lock, the advisory lock is automatically released when the database connection closes.
+
+#### Provider rate limiting
+
+- Gmail: respect the per-user quota (250 quota units/second by default). Use exponential backoff on 429 responses. Batch Gmail API requests where possible (e.g. `batchGet` for messages).
+- IMAP: limit concurrent IMAP connections per account to 1 in v1. iCloud enforces low connection limits.
+- For multi-user scale: use a job queue with per-account concurrency of 1 and global concurrency bounded to avoid overwhelming provider APIs.
+- Log and surface rate-limit events in `mail_account.status` — if an account is persistently rate-limited, transition to `degraded`.
+
+### 25.11 Account disconnection contract
+
+When a user disconnects a `mail_account`:
+
+1. Set `mail_account.status` to `paused` immediately to stop all sync jobs.
+2. Hard-delete all Zero-visible mail data for that account:
+   - `mail_message_body_part`
+   - `mail_message_label`
+   - `mail_message_mailbox`
+   - `mail_attachment`
+   - `mail_message`
+   - `mail_conversation`
+   - `mail_folder`
+   - `mail_label`
+3. Delete all backend-only data:
+   - `mail_account_secret`
+   - `mail_sync_cursor`
+   - `mail_provider_state`
+   - Raw MIME storage for the account
+4. Hard-delete the `mail_account` row itself.
+
+This is a hard delete, not a soft delete. The project does not retain mail data after disconnection. If the user reconnects the same mailbox, it bootstraps fresh.
+
+Deletion should be processed as a background job to avoid blocking the UI. The account should appear as disconnecting until cleanup completes.
+
+---
+
+## 26. What this document intentionally does not settle
 
 This session did **not** settle every implementation detail.
 
@@ -1606,8 +1819,8 @@ Examples of implementation details still open for actual coding work:
 - exact Drizzle column names and types
 - exact Zero schema/query definitions
 - exact sync job orchestration layout in this repo
-- exact sanitization implementation for HTML bodies
-- exact attachment download endpoint design
+- exact allowlist tuning details for HTML body sanitization beyond the base DOMPurify config
+- exact attachment/CID endpoint route shape and caching strategy
 - exact account connection UI flow
 - exact pagination UX and component structure
 
