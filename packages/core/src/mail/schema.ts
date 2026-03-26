@@ -1,0 +1,157 @@
+import { Schema } from "effect";
+
+import { Ulid } from "@chevrotain/core/schema";
+
+// ---------------------------------------------------------------------------
+// ID types
+// ---------------------------------------------------------------------------
+
+export const MailAccountId = Schema.TemplateLiteral(["mac_", Ulid]).pipe(
+	Schema.brand("MailAccountId"),
+);
+export type MailAccountId = typeof MailAccountId.Type;
+
+export const MailFolderId = Schema.TemplateLiteral(["mfl_", Ulid]).pipe(
+	Schema.brand("MailFolderId"),
+);
+export type MailFolderId = typeof MailFolderId.Type;
+
+export const MailLabelId = Schema.TemplateLiteral(["mlb_", Ulid]).pipe(
+	Schema.brand("MailLabelId"),
+);
+export type MailLabelId = typeof MailLabelId.Type;
+
+export const MailConversationId = Schema.TemplateLiteral(["mcv_", Ulid]).pipe(
+	Schema.brand("MailConversationId"),
+);
+export type MailConversationId = typeof MailConversationId.Type;
+
+export const MailMessageId = Schema.TemplateLiteral(["mmg_", Ulid]).pipe(
+	Schema.brand("MailMessageId"),
+);
+export type MailMessageId = typeof MailMessageId.Type;
+
+export const MailMessageBodyPartId = Schema.TemplateLiteral(["mbp_", Ulid]).pipe(
+	Schema.brand("MailMessageBodyPartId"),
+);
+export type MailMessageBodyPartId = typeof MailMessageBodyPartId.Type;
+
+export const MailMessageMailboxId = Schema.TemplateLiteral(["mmb_", Ulid]).pipe(
+	Schema.brand("MailMessageMailboxId"),
+);
+export type MailMessageMailboxId = typeof MailMessageMailboxId.Type;
+
+export const MailAttachmentId = Schema.TemplateLiteral(["mat_", Ulid]).pipe(
+	Schema.brand("MailAttachmentId"),
+);
+export type MailAttachmentId = typeof MailAttachmentId.Type;
+
+export const MailSyncCursorId = Schema.TemplateLiteral(["msc_", Ulid]).pipe(
+	Schema.brand("MailSyncCursorId"),
+);
+export type MailSyncCursorId = typeof MailSyncCursorId.Type;
+
+export const MailProviderStateId = Schema.TemplateLiteral(["mps_", Ulid]).pipe(
+	Schema.brand("MailProviderStateId"),
+);
+export type MailProviderStateId = typeof MailProviderStateId.Type;
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+export type MailProvider = "gmail" | "icloud_imap";
+
+export type MailAccountStatus =
+	| "connecting"
+	| "bootstrapping"
+	| "healthy"
+	| "resyncing"
+	| "degraded"
+	| "requires_reauth"
+	| "paused";
+
+export type MailFolderKind =
+	| "inbox"
+	| "sent"
+	| "drafts"
+	| "trash"
+	| "spam"
+	| "archive"
+	| "all_mail"
+	| "custom";
+
+export type MailLabelKind = "system" | "user";
+
+export type MailAuthKind = "oauth2" | "app_password";
+
+// ---------------------------------------------------------------------------
+// Value objects
+// ---------------------------------------------------------------------------
+
+export const EmailAddress = Schema.Struct({
+	name: Schema.optional(Schema.String),
+	address: Schema.String,
+});
+export type EmailAddress = typeof EmailAddress.Type;
+
+// ---------------------------------------------------------------------------
+// Provider capability matrix (§10)
+// ---------------------------------------------------------------------------
+
+export interface ProviderCapabilities {
+	readonly supportsThreads: boolean;
+	readonly supportsLabels: boolean;
+	readonly supportsPushSync: boolean;
+	readonly supportsOauth: boolean;
+	readonly supportsServerSearch: boolean;
+}
+
+export const GMAIL_CAPABILITIES: ProviderCapabilities = {
+	supportsThreads: true,
+	supportsLabels: true,
+	supportsPushSync: true,
+	supportsOauth: true,
+	supportsServerSearch: true,
+};
+
+export const ICLOUD_IMAP_CAPABILITIES: ProviderCapabilities = {
+	supportsThreads: false,
+	supportsLabels: false,
+	supportsPushSync: false,
+	supportsOauth: false,
+	supportsServerSearch: false,
+};
+
+export function getProviderCapabilities(provider: MailProvider): ProviderCapabilities {
+	switch (provider) {
+		case "gmail":
+			return GMAIL_CAPABILITIES;
+		case "icloud_imap":
+			return ICLOUD_IMAP_CAPABILITIES;
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Gmail label → folder mapping (§25.1)
+// ---------------------------------------------------------------------------
+
+const GMAIL_SYSTEM_LABEL_TO_FOLDER_KIND: Partial<Record<string, MailFolderKind>> = {
+	INBOX: "inbox",
+	SENT: "sent",
+	DRAFT: "drafts",
+	TRASH: "trash",
+	SPAM: "spam",
+	UNREAD: "inbox", // not a folder
+	STARRED: "inbox", // not a folder
+	IMPORTANT: "inbox", // not a folder
+};
+
+const GMAIL_FOLDER_LABELS = new Set(["INBOX", "SENT", "DRAFT", "TRASH", "SPAM"]);
+
+export function gmailLabelToFolderKind(labelId: string): MailFolderKind | undefined {
+	if (GMAIL_FOLDER_LABELS.has(labelId)) {
+		return GMAIL_SYSTEM_LABEL_TO_FOLDER_KIND[labelId];
+	}
+	return undefined;
+}
