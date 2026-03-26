@@ -2,9 +2,10 @@
 	den,
 	inputs,
 	lib,
-	pkgs,
 	...
-}: {
+}: let
+	cloud-utils = inputs.nixpkgs.legacyPackages.x86_64-linux.cloud-utils;
+in {
 	options.flake = {
 		deploy =
 			lib.mkOption {
@@ -24,7 +25,7 @@
 		den.default.nixos.system.stateVersion = "25.11";
 		den.default.homeManager.home.stateVersion = "25.11";
 		den.default.nixos.nixpkgs.overlays = [inputs.nixos-config.overlays.default];
-		den.default.nixos.environment.systemPackages = [pkgs.cloud-utils];
+		den.default.nixos.environment.systemPackages = [cloud-utils];
 
 		den.default.nixos.security.sudo.extraRules = [
 			{
