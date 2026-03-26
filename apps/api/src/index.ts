@@ -7,6 +7,7 @@ import { ChevrotainApi } from "@chevrotain/api/contract";
 import { AnalyticsHandlerLive } from "@chevrotain/api/handlers/analytics";
 import { AuthHandlerLive } from "@chevrotain/api/handlers/auth";
 import { HealthHandlerLive } from "@chevrotain/api/handlers/health";
+import { MailHandlerLive } from "@chevrotain/api/handlers/mail";
 import { MetricsHandlerLive } from "@chevrotain/api/handlers/metrics";
 import { ZeroHandlerLive } from "@chevrotain/api/handlers/zero";
 import { MetricsMiddleware, routeLabelFromUrl } from "@chevrotain/api/metrics";
@@ -21,6 +22,7 @@ const HandlersLive = Layer.mergeAll(
 	AnalyticsHandlerLive,
 	ZeroHandlerLive,
 	AuthHandlerLive,
+	MailHandlerLive,
 );
 
 const ApiLive = HttpApiBuilder.layer(ChevrotainApi).pipe(

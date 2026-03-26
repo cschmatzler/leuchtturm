@@ -46,10 +46,40 @@ const authGroup = HttpApiGroup.make("auth")
 	.add(HttpApiEndpoint.get("authGet", "/auth/*", { error: AuthRouteError }))
 	.add(HttpApiEndpoint.post("authPost", "/auth/*", { error: AuthRouteError }));
 
+const mailGroup = HttpApiGroup.make("mail")
+	.add(
+		HttpApiEndpoint.get("mailOAuthUrl", "/mail/oauth/url", {
+			success: Schema.Struct({ url: Schema.String }),
+			error: ProtectedRouteError,
+		}),
+	)
+	.add(
+		HttpApiEndpoint.post("mailOAuthCallback", "/mail/oauth/callback", {
+			payload: Schema.Struct({ code: Schema.String }),
+			success: Schema.Struct({ accountId: Schema.String }),
+			error: ProtectedRouteError,
+		}),
+	)
+	.add(
+		HttpApiEndpoint.post("mailSync", "/mail/sync", {
+			payload: Schema.Struct({ accountId: Schema.String }),
+			success: Schema.Struct({ success: Schema.Literal(true) }),
+			error: ProtectedRouteError,
+		}),
+	)
+	.add(
+		HttpApiEndpoint.post("mailDisconnect", "/mail/disconnect", {
+			payload: Schema.Struct({ accountId: Schema.String }),
+			success: SuccessResponse,
+			error: ProtectedRouteError,
+		}),
+	)
+	.middleware(AuthMiddleware);
+
 export class ChevrotainWebApi extends HttpApi.make("chevrotain-web")
 	.add(analyticsGroup)
 	.prefix("/api") {}
 
 export class ChevrotainApi extends HttpApi.make("chevrotain")
-	.add(healthGroup, metricsGroup, analyticsGroup, zeroGroup, authGroup)
+	.add(healthGroup, metricsGroup, analyticsGroup, zeroGroup, authGroup, mailGroup)
 	.prefix("/api") {}

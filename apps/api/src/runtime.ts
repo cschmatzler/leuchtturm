@@ -5,6 +5,8 @@ import { Analytics } from "@chevrotain/core/analytics/index";
 import { Auth } from "@chevrotain/core/auth/index";
 import { Database } from "@chevrotain/core/drizzle/index";
 import { Email } from "@chevrotain/core/email";
+import { MailEncryption } from "@chevrotain/core/mail/encryption";
+import { GmailOAuth } from "@chevrotain/core/mail/gmail/oauth";
 import { RateLimit } from "@chevrotain/core/rate-limit";
 
 const DatabasePoolMetricsLive = Layer.effectDiscard(
@@ -19,6 +21,8 @@ export const AppLayer = Layer.mergeAll(
 	Database.defaultLayer,
 	Analytics.defaultLayer,
 	Email.defaultLayer,
+	MailEncryption.defaultLayer,
+	GmailOAuth.defaultLayer,
 	RateLimit.defaultLayer,
 	Auth.defaultLayer,
 	DatabasePoolMetricsLive,
