@@ -211,6 +211,8 @@ export const mailConversation = pgTable(
 			table.providerConversationRef,
 		),
 		unique("mail_conversation_ownership_uniq").on(table.id, table.accountId, table.userId),
+		// Query-shaped index for account thread list
+		index("mail_conversation_list_idx").on(table.userId, table.accountId, table.latestMessageAt),
 	],
 );
 
@@ -238,6 +240,7 @@ export const mailConversationLabel = pgTable(
 	(table) => [
 		primaryKey({ columns: [table.conversationId, table.labelId] }),
 		index("mail_conversation_label_user_id_idx").on(table.userId),
+		index("mail_conversation_label_label_id_idx").on(table.labelId),
 	],
 );
 
@@ -317,6 +320,9 @@ export const mailMessage = pgTable(
 			table.providerMessageRef,
 		),
 		unique("mail_message_ownership_uniq").on(table.id, table.accountId, table.userId),
+		// Query-shaped indexes for message list views
+		index("mail_message_list_idx").on(table.userId, table.accountId, table.receivedAt),
+		index("mail_message_unread_idx").on(table.userId, table.accountId, table.isUnread),
 	],
 );
 
@@ -442,6 +448,8 @@ export const mailMessageMailbox = pgTable(
 			table.uidvalidity,
 			table.uid,
 		),
+		// Query-shaped index for folder message list
+		index("mail_message_mailbox_folder_list_idx").on(table.userId, table.folderId),
 	],
 );
 
