@@ -582,7 +582,61 @@ export const mailFolderSyncState = pgTable(
 );
 
 // ---------------------------------------------------------------------------
-// §11.10a mail_search_document (backend-only, NOT in Zero)
+// §11.10 mail_participant
+// ---------------------------------------------------------------------------
+
+export const mailParticipant = pgTable(
+	"mail_participant",
+	{
+		id: char("id", { length: 30 }).primaryKey(),
+		userId: char("user_id", { length: 30 })
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		normalizedAddress: text("normalized_address").notNull(),
+		displayName: text("display_name"),
+		lastSeenAt: timestamp("last_seen_at"),
+		sourceKind: text("source_kind").notNull().default("derived_from_mail"), // "derived_from_mail" | "imported_contact" | "user_edited"
+		createdAt: timestamp("created_at").notNull(),
+		updatedAt: timestamp("updated_at")
+			.$onUpdate(() => new Date())
+			.notNull(),
+	},
+	(table) => [
+		index("mail_participant_user_id_idx").on(table.userId),
+		unique("mail_participant_user_address_uniq").on(table.userId, table.normalizedAddress),
+	],
+);
+
+// ---------------------------------------------------------------------------
+// §11.10a mail_message_participant
+// ---------------------------------------------------------------------------
+
+export const mailMessageParticipant = pgTable(
+	"mail_message_participant",
+	{
+		id: char("id", { length: 30 }).primaryKey(),
+		messageId: char("message_id", { length: 30 })
+			.notNull()
+			.references(() => mailMessage.id, { onDelete: "cascade" }),
+		participantId: char("participant_id", { length: 30 })
+			.notNull()
+			.references(() => mailParticipant.id, { onDelete: "cascade" }),
+		role: text("role").notNull(), // "from" | "to" | "cc" | "bcc" | "reply_to"
+		ordinal: smallint("ordinal").notNull().default(0),
+		createdAt: timestamp("created_at").notNull(),
+		updatedAt: timestamp("updated_at")
+			.$onUpdate(() => new Date())
+			.notNull(),
+	},
+	(table) => [
+		index("mail_message_participant_message_id_idx").on(table.messageId),
+		index("mail_message_participant_participant_id_idx").on(table.participantId),
+		unique("mail_message_participant_unique").on(table.messageId, table.participantId, table.role),
+	],
+);
+
+// ---------------------------------------------------------------------------
+// §11.10b mail_search_document (backend-only, NOT in Zero)
 // ---------------------------------------------------------------------------
 
 export const mailSearchDocument = pgTable(

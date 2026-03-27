@@ -15,7 +15,7 @@
 		"@clickhouse/client": "1.18.2",
 		"@effect/opentelemetry": "4.0.0-beta.34",
 		"@polar-sh/better-auth": "^1.8.3",
-		"@polar-sh/sdk": "^0.46.6",
+		"@polar-sh/sdk": "^0.46.7",
 		"better-auth": "1.5.6",
 		"drizzle-kit": "1.0.0-beta.12-a5629fb",
 		"drizzle-orm": "1.0.0-beta.12-a5629fb",

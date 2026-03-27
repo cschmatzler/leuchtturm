@@ -15,6 +15,8 @@ import {
 	mailMessageHeader,
 	mailMessageLabel,
 	mailMessageMailbox,
+	mailMessageParticipant,
+	mailParticipant,
 } from "@chevrotain/core/mail/mail.sql";
 
 export const allRelations = defineRelationsPart(
@@ -34,6 +36,8 @@ export const allRelations = defineRelationsPart(
 		mailMessageHeader,
 		mailMessageLabel,
 		mailMessageMailbox,
+		mailMessageParticipant,
+		mailParticipant,
 		mailAttachment,
 	},
 	(r) => ({
@@ -167,6 +171,10 @@ export const allRelations = defineRelationsPart(
 				from: r.mailMessage.id,
 				to: r.mailAttachment.messageId,
 			}),
+			participants: r.many.mailMessageParticipant({
+				from: r.mailMessage.id,
+				to: r.mailMessageParticipant.messageId,
+			}),
 		},
 		mailMessageBodyPart: {
 			message: r.one.mailMessage({
@@ -198,6 +206,22 @@ export const allRelations = defineRelationsPart(
 			folder: r.one.mailFolder({
 				from: r.mailMessageMailbox.folderId,
 				to: r.mailFolder.id,
+			}),
+		},
+		mailParticipant: {
+			messageParticipants: r.many.mailMessageParticipant({
+				from: r.mailParticipant.id,
+				to: r.mailMessageParticipant.participantId,
+			}),
+		},
+		mailMessageParticipant: {
+			message: r.one.mailMessage({
+				from: r.mailMessageParticipant.messageId,
+				to: r.mailMessage.id,
+			}),
+			participant: r.one.mailParticipant({
+				from: r.mailMessageParticipant.participantId,
+				to: r.mailParticipant.id,
 			}),
 		},
 		mailAttachment: {

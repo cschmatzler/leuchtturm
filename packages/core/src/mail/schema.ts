@@ -60,6 +60,16 @@ export const MailFolderSyncStateId = Schema.TemplateLiteral(["mfs_", Ulid]).pipe
 );
 export type MailFolderSyncStateId = typeof MailFolderSyncStateId.Type;
 
+export const MailParticipantId = Schema.TemplateLiteral(["mpt_", Ulid]).pipe(
+	Schema.brand("MailParticipantId"),
+);
+export type MailParticipantId = typeof MailParticipantId.Type;
+
+export const MailMessageParticipantId = Schema.TemplateLiteral(["mmp_", Ulid]).pipe(
+	Schema.brand("MailMessageParticipantId"),
+);
+export type MailMessageParticipantId = typeof MailMessageParticipantId.Type;
+
 export const MailMessageSourceId = Schema.TemplateLiteral(["mms_", Ulid]).pipe(
 	Schema.brand("MailMessageSourceId"),
 );
@@ -119,6 +129,14 @@ export function createMailFolderSyncStateId(): MailFolderSyncStateId {
 	return MailFolderSyncStateId.makeUnsafe(`mfs_${ulid()}`);
 }
 
+export function createMailParticipantId(): MailParticipantId {
+	return MailParticipantId.makeUnsafe(`mpt_${ulid()}`);
+}
+
+export function createMailMessageParticipantId(): MailMessageParticipantId {
+	return MailMessageParticipantId.makeUnsafe(`mmp_${ulid()}`);
+}
+
 export function createMailMessageSourceId(): MailMessageSourceId {
 	return MailMessageSourceId.makeUnsafe(`mms_${ulid()}`);
 }
@@ -176,6 +194,10 @@ export type MailSourceKind = "raw_mime" | "gmail_raw_json" | "gmail_full_message
 export type MailStorageKind = "postgres" | "s3" | "r2" | "filesystem";
 
 export type MailMirroredCoverageKind = "full_thread" | "recent_only" | "headers_only";
+
+export type MailParticipantSourceKind = "derived_from_mail" | "imported_contact" | "user_edited";
+
+export type MailParticipantRole = "from" | "to" | "cc" | "bcc" | "reply_to";
 
 // ---------------------------------------------------------------------------
 // Value objects

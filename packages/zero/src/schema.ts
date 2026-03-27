@@ -231,6 +231,31 @@ const mailMessageMailbox = table("mail_message_mailbox")
 	})
 	.primaryKey("id");
 
+const mailParticipant = table("mail_participant")
+	.columns({
+		id: string(),
+		userId: string().from("user_id"),
+		normalizedAddress: string().from("normalized_address"),
+		displayName: string().from("display_name").optional(),
+		lastSeenAt: number().from("last_seen_at").optional(),
+		sourceKind: string().from("source_kind"),
+		createdAt: number().from("created_at"),
+		updatedAt: number().from("updated_at"),
+	})
+	.primaryKey("id");
+
+const mailMessageParticipant = table("mail_message_participant")
+	.columns({
+		id: string(),
+		messageId: string().from("message_id"),
+		participantId: string().from("participant_id"),
+		role: string(),
+		ordinal: number(),
+		createdAt: number().from("created_at"),
+		updatedAt: number().from("updated_at"),
+	})
+	.primaryKey("id");
+
 const mailAttachment = table("mail_attachment")
 	.columns({
 		id: string(),
@@ -440,6 +465,18 @@ const mailMessageRelationships = relationships(mailMessage, ({ one, many }) => (
 		destField: ["messageId"],
 		destSchema: mailAttachment,
 	}),
+	participants: many(
+		{
+			sourceField: ["id"],
+			destField: ["messageId"],
+			destSchema: mailMessageParticipant,
+		},
+		{
+			sourceField: ["participantId"],
+			destField: ["id"],
+			destSchema: mailParticipant,
+		},
+	),
 }));
 
 const mailMessageBodyPartRelationships = relationships(mailMessageBodyPart, ({ one }) => ({
@@ -476,6 +513,27 @@ const mailMessageMailboxRelationships = relationships(mailMessageMailbox, ({ one
 	}),
 }));
 
+const mailParticipantRelationships = relationships(mailParticipant, ({ many }) => ({
+	messageParticipants: many({
+		sourceField: ["id"],
+		destField: ["participantId"],
+		destSchema: mailMessageParticipant,
+	}),
+}));
+
+const mailMessageParticipantRelationships = relationships(mailMessageParticipant, ({ one }) => ({
+	message: one({
+		sourceField: ["messageId"],
+		destField: ["id"],
+		destSchema: mailMessage,
+	}),
+	participant: one({
+		sourceField: ["participantId"],
+		destField: ["id"],
+		destSchema: mailParticipant,
+	}),
+}));
+
 const mailAttachmentRelationships = relationships(mailAttachment, ({ one }) => ({
 	message: one({
 		sourceField: ["messageId"],
@@ -503,6 +561,8 @@ export const schema = createSchema({
 		mailMessageHeader,
 		mailMessageLabel,
 		mailMessageMailbox,
+		mailParticipant,
+		mailMessageParticipant,
 		mailAttachment,
 	],
 	relationships: [
@@ -519,6 +579,8 @@ export const schema = createSchema({
 		mailMessageHeaderRelationships,
 		mailMessageLabelRelationships,
 		mailMessageMailboxRelationships,
+		mailParticipantRelationships,
+		mailMessageParticipantRelationships,
 		mailAttachmentRelationships,
 	],
 });
@@ -549,6 +611,8 @@ export type MailMessageBodyPartRow = Row<typeof schema.tables.mail_message_body_
 export type MailMessageHeaderRow = Row<typeof schema.tables.mail_message_header>;
 export type MailMessageLabelRow = Row<typeof schema.tables.mail_message_label>;
 export type MailMessageMailboxRow = Row<typeof schema.tables.mail_message_mailbox>;
+export type MailParticipantRow = Row<typeof schema.tables.mail_participant>;
+export type MailMessageParticipantRow = Row<typeof schema.tables.mail_message_participant>;
 export type MailAttachmentRow = Row<typeof schema.tables.mail_attachment>;
 
 export type { Zero };
