@@ -10,13 +10,14 @@ import type { DatabaseClient } from "@chevrotain/core/drizzle/index";
 import {
 	mailAccount,
 	mailAccountSecret,
+	mailAccountSyncState,
 	mailConversation,
 	mailFolder,
+	mailFolderSyncState,
 	mailLabel,
 	mailMessage,
 	mailOAuthState,
 	mailProviderState,
-	mailSyncCursor,
 } from "@chevrotain/core/mail/mail.sql";
 
 // ---------------------------------------------------------------------------
@@ -183,7 +184,8 @@ export async function disconnectMailAccount(db: DatabaseClient, accountId: strin
 
 	// Backend-only data
 	await db.delete(mailAccountSecret).where(eq(mailAccountSecret.accountId, accountId));
-	await db.delete(mailSyncCursor).where(eq(mailSyncCursor.accountId, accountId));
+	await db.delete(mailAccountSyncState).where(eq(mailAccountSyncState.accountId, accountId));
+	await db.delete(mailFolderSyncState).where(eq(mailFolderSyncState.accountId, accountId));
 	await db.delete(mailProviderState).where(eq(mailProviderState.accountId, accountId));
 
 	// Finally, the account itself

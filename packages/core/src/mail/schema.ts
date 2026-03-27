@@ -45,10 +45,15 @@ export const MailAttachmentId = Schema.TemplateLiteral(["mat_", Ulid]).pipe(
 );
 export type MailAttachmentId = typeof MailAttachmentId.Type;
 
-export const MailSyncCursorId = Schema.TemplateLiteral(["msc_", Ulid]).pipe(
-	Schema.brand("MailSyncCursorId"),
+export const MailAccountSyncStateId = Schema.TemplateLiteral(["mas_", Ulid]).pipe(
+	Schema.brand("MailAccountSyncStateId"),
 );
-export type MailSyncCursorId = typeof MailSyncCursorId.Type;
+export type MailAccountSyncStateId = typeof MailAccountSyncStateId.Type;
+
+export const MailFolderSyncStateId = Schema.TemplateLiteral(["mfs_", Ulid]).pipe(
+	Schema.brand("MailFolderSyncStateId"),
+);
+export type MailFolderSyncStateId = typeof MailFolderSyncStateId.Type;
 
 export const MailProviderStateId = Schema.TemplateLiteral(["mps_", Ulid]).pipe(
 	Schema.brand("MailProviderStateId"),
@@ -92,8 +97,12 @@ export function createMailAttachmentId(): MailAttachmentId {
 	return MailAttachmentId.makeUnsafe(`mat_${ulid()}`);
 }
 
-export function createMailSyncCursorId(): MailSyncCursorId {
-	return MailSyncCursorId.makeUnsafe(`msc_${ulid()}`);
+export function createMailAccountSyncStateId(): MailAccountSyncStateId {
+	return MailAccountSyncStateId.makeUnsafe(`mas_${ulid()}`);
+}
+
+export function createMailFolderSyncStateId(): MailFolderSyncStateId {
+	return MailFolderSyncStateId.makeUnsafe(`mfs_${ulid()}`);
 }
 
 export function createMailProviderStateId(): MailProviderStateId {

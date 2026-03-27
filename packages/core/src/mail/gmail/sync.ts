@@ -26,7 +26,7 @@ import {
 	mailMessageBodyPart,
 	mailMessageLabel,
 	mailMessageMailbox,
-	mailSyncCursor,
+	mailAccountSyncState,
 } from "@chevrotain/core/mail/mail.sql";
 import type {
 	ProviderLabel,
@@ -41,7 +41,7 @@ import {
 	createMailMessageBodyPartId,
 	createMailMessageId,
 	createMailMessageMailboxId,
-	createMailSyncCursorId,
+	createMailAccountSyncStateId,
 } from "@chevrotain/core/mail/schema";
 
 type SyncDatabaseClient = NodePgDatabase<Record<string, never>, typeof allRelations>;
@@ -113,11 +113,11 @@ function incrementalGmailSyncImpl(db: SyncDatabaseClient, accountId: string, acc
 		const [cursorRow] = yield* Effect.tryPromise(() =>
 			db
 				.select()
-				.from(mailSyncCursor)
+				.from(mailAccountSyncState)
 				.where(
 					and(
-						eq(mailSyncCursor.accountId, accountId),
-						eq(mailSyncCursor.cursorKind, "gmail_history"),
+						eq(mailAccountSyncState.accountId, accountId),
+						eq(mailAccountSyncState.stateKind, "gmail_history"),
 					),
 				)
 				.limit(1),
@@ -128,7 +128,7 @@ function incrementalGmailSyncImpl(db: SyncDatabaseClient, accountId: string, acc
 			return;
 		}
 
-		const startHistoryId = (cursorRow.cursorPayload as { historyId: string }).historyId;
+		const startHistoryId = (cursorRow.payload as { historyId: string }).historyId;
 		const { changes, newCursor, cursorExpired } = yield* Effect.tryPromise(() =>
 			adapter.getHistoryChanges(startHistoryId),
 		);
@@ -802,21 +802,27 @@ async function upsertSyncCursorImpl(
 ): Promise<void> {
 	const now = new Date();
 	await db
-		.insert(mailSyncCursor)
+		.insert(mailAccountSyncState)
 		.values({
-			id: createMailSyncCursorId(),
+			id: createMailAccountSyncStateId(),
 			accountId,
 			provider: "gmail",
-			cursorKind: "gmail_history",
-			cursorPayload: { historyId },
+			stateKind: "gmail_history",
+			payload: { historyId },
+			lastSuccessfulSyncAt: now,
+			lastAttemptedSyncAt: now,
 			createdAt: now,
 			updatedAt: now,
 		})
 		.onConflictDoUpdate({
-			target: [mailSyncCursor.accountId, mailSyncCursor.cursorKind],
+			target: [mailAccountSyncState.accountId, mailAccountSyncState.stateKind],
 			set: {
 				provider: "gmail",
-				cursorPayload: { historyId },
+				payload: { historyId },
+				lastSuccessfulSyncAt: now,
+				lastAttemptedSyncAt: now,
+				lastErrorCode: null,
+				lastErrorMessage: null,
 				updatedAt: now,
 			},
 		});

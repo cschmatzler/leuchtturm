@@ -369,31 +369,68 @@ export const mailAttachment = pgTable(
 );
 
 // ---------------------------------------------------------------------------
-// §11.11 mail_sync_cursor (backend-only, NOT in Zero)
+// §11.11 mail_account_sync_state (backend-only, NOT in Zero)
 // ---------------------------------------------------------------------------
 
-export const mailSyncCursor = pgTable(
-	"mail_sync_cursor",
+export const mailAccountSyncState = pgTable(
+	"mail_account_sync_state",
 	{
 		id: char("id", { length: 30 }).primaryKey(),
 		accountId: char("account_id", { length: 30 })
 			.notNull()
 			.references(() => mailAccount.id, { onDelete: "cascade" }),
-		folderId: char("folder_id", { length: 30 }).references(() => mailFolder.id, {
-			onDelete: "cascade",
-		}),
 		provider: text("provider").notNull(),
-		cursorKind: text("cursor_kind").notNull(), // "gmail_history" | "imap_uid" | etc.
-		cursorPayload: jsonb("cursor_payload").notNull(), // provider-specific cursor data
+		stateKind: text("state_kind").notNull(), // "gmail_history" | "bootstrap" | etc.
+		payload: jsonb("payload").notNull(), // provider-specific cursor/state data
+		lastSuccessfulSyncAt: timestamp("last_successful_sync_at"),
+		lastAttemptedSyncAt: timestamp("last_attempted_sync_at"),
+		lastErrorCode: text("last_error_code"),
+		lastErrorMessage: text("last_error_message"),
 		createdAt: timestamp("created_at").notNull(),
 		updatedAt: timestamp("updated_at")
 			.$onUpdate(() => new Date())
 			.notNull(),
 	},
 	(table) => [
-		index("mail_sync_cursor_account_id_idx").on(table.accountId),
-		index("mail_sync_cursor_folder_id_idx").on(table.folderId),
-		unique("mail_sync_cursor_account_id_cursor_kind_uniq").on(table.accountId, table.cursorKind),
+		index("mail_account_sync_state_account_id_idx").on(table.accountId),
+		unique("mail_account_sync_state_account_kind_uniq").on(table.accountId, table.stateKind),
+	],
+);
+
+// ---------------------------------------------------------------------------
+// §11.11a mail_folder_sync_state (backend-only, NOT in Zero)
+// ---------------------------------------------------------------------------
+
+export const mailFolderSyncState = pgTable(
+	"mail_folder_sync_state",
+	{
+		id: char("id", { length: 30 }).primaryKey(),
+		accountId: char("account_id", { length: 30 })
+			.notNull()
+			.references(() => mailAccount.id, { onDelete: "cascade" }),
+		folderId: char("folder_id", { length: 30 })
+			.notNull()
+			.references(() => mailFolder.id, { onDelete: "cascade" }),
+		provider: text("provider").notNull(),
+		stateKind: text("state_kind").notNull(), // "imap_uid" | "imap_idle" | "reconciliation" | etc.
+		payload: jsonb("payload").notNull(), // uidvalidity, highest_uid, modseq, idle state, etc.
+		lastSuccessfulSyncAt: timestamp("last_successful_sync_at"),
+		lastAttemptedSyncAt: timestamp("last_attempted_sync_at"),
+		lastErrorCode: text("last_error_code"),
+		lastErrorMessage: text("last_error_message"),
+		createdAt: timestamp("created_at").notNull(),
+		updatedAt: timestamp("updated_at")
+			.$onUpdate(() => new Date())
+			.notNull(),
+	},
+	(table) => [
+		index("mail_folder_sync_state_account_id_idx").on(table.accountId),
+		index("mail_folder_sync_state_folder_id_idx").on(table.folderId),
+		unique("mail_folder_sync_state_folder_kind_uniq").on(
+			table.accountId,
+			table.folderId,
+			table.stateKind,
+		),
 	],
 );
 
