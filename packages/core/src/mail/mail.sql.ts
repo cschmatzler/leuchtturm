@@ -496,6 +496,36 @@ export const mailFolderSyncState = pgTable(
 );
 
 // ---------------------------------------------------------------------------
+// §11.11b mail_message_source (backend-only, NOT in Zero)
+// ---------------------------------------------------------------------------
+
+export const mailMessageSource = pgTable(
+	"mail_message_source",
+	{
+		id: char("id", { length: 30 }).primaryKey(),
+		messageId: char("message_id", { length: 30 })
+			.notNull()
+			.references(() => mailMessage.id, { onDelete: "cascade" }),
+		sourceKind: text("source_kind").notNull(), // "raw_mime" | "gmail_raw_json" | "gmail_full_message" | etc.
+		storageKind: text("storage_kind").notNull(), // "postgres" | "s3" | "r2" | "filesystem"
+		storageKey: text("storage_key").notNull(),
+		contentSha256: text("content_sha256"),
+		byteSize: integer("byte_size"),
+		parserVersion: text("parser_version"),
+		sanitizerVersion: text("sanitizer_version"),
+		encryptionMetadata: jsonb("encryption_metadata"), // key_id, algorithm, etc.
+		createdAt: timestamp("created_at").notNull(),
+		updatedAt: timestamp("updated_at")
+			.$onUpdate(() => new Date())
+			.notNull(),
+	},
+	(table) => [
+		index("mail_message_source_message_id_idx").on(table.messageId),
+		unique("mail_message_source_message_kind_uniq").on(table.messageId, table.sourceKind),
+	],
+);
+
+// ---------------------------------------------------------------------------
 // §11.12 mail_provider_state (backend-only, NOT in Zero)
 // ---------------------------------------------------------------------------
 

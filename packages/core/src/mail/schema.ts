@@ -55,6 +55,11 @@ export const MailFolderSyncStateId = Schema.TemplateLiteral(["mfs_", Ulid]).pipe
 );
 export type MailFolderSyncStateId = typeof MailFolderSyncStateId.Type;
 
+export const MailMessageSourceId = Schema.TemplateLiteral(["mms_", Ulid]).pipe(
+	Schema.brand("MailMessageSourceId"),
+);
+export type MailMessageSourceId = typeof MailMessageSourceId.Type;
+
 export const MailProviderStateId = Schema.TemplateLiteral(["mps_", Ulid]).pipe(
 	Schema.brand("MailProviderStateId"),
 );
@@ -105,6 +110,10 @@ export function createMailFolderSyncStateId(): MailFolderSyncStateId {
 	return MailFolderSyncStateId.makeUnsafe(`mfs_${ulid()}`);
 }
 
+export function createMailMessageSourceId(): MailMessageSourceId {
+	return MailMessageSourceId.makeUnsafe(`mms_${ulid()}`);
+}
+
 export function createMailProviderStateId(): MailProviderStateId {
 	return MailProviderStateId.makeUnsafe(`mps_${ulid()}`);
 }
@@ -152,6 +161,10 @@ export type MailFolderKind =
 export type MailLabelKind = "system" | "user";
 
 export type MailAuthKind = "oauth2" | "app_password";
+
+export type MailSourceKind = "raw_mime" | "gmail_raw_json" | "gmail_full_message";
+
+export type MailStorageKind = "postgres" | "s3" | "r2" | "filesystem";
 
 // ---------------------------------------------------------------------------
 // Value objects
