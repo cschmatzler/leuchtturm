@@ -98,6 +98,37 @@ export const mailOAuthState = pgTable(
 );
 
 // ---------------------------------------------------------------------------
+// §11.2b mail_identity
+// ---------------------------------------------------------------------------
+
+export const mailIdentity = pgTable(
+	"mail_identity",
+	{
+		id: char("id", { length: 30 }).primaryKey(),
+		userId: char("user_id", { length: 30 })
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		accountId: char("account_id", { length: 30 })
+			.notNull()
+			.references(() => mailAccount.id, { onDelete: "cascade" }),
+		address: text("address").notNull(),
+		displayName: text("display_name"),
+		isPrimary: boolean("is_primary").notNull().default(false),
+		isDefaultSendAs: boolean("is_default_send_as").notNull().default(false),
+		providerIdentityRef: text("provider_identity_ref"),
+		createdAt: timestamp("created_at").notNull(),
+		updatedAt: timestamp("updated_at")
+			.$onUpdate(() => new Date())
+			.notNull(),
+	},
+	(table) => [
+		index("mail_identity_user_id_idx").on(table.userId),
+		index("mail_identity_account_id_idx").on(table.accountId),
+		unique("mail_identity_account_address_uniq").on(table.accountId, table.address),
+	],
+);
+
+// ---------------------------------------------------------------------------
 // §11.3 mail_folder
 // ---------------------------------------------------------------------------
 

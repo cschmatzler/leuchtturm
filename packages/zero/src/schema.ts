@@ -53,6 +53,21 @@ const mailAccount = table("mail_account")
 	})
 	.primaryKey("id");
 
+const mailIdentity = table("mail_identity")
+	.columns({
+		id: string(),
+		userId: string().from("user_id"),
+		accountId: string().from("account_id"),
+		address: string(),
+		displayName: string().from("display_name").optional(),
+		isPrimary: boolean().from("is_primary"),
+		isDefaultSendAs: boolean().from("is_default_send_as"),
+		providerIdentityRef: string().from("provider_identity_ref").optional(),
+		createdAt: number().from("created_at"),
+		updatedAt: number().from("updated_at"),
+	})
+	.primaryKey("id");
+
 const mailFolder = table("mail_folder")
 	.columns({
 		id: string(),
@@ -244,11 +259,24 @@ const userMailAccounts = relationships(user, ({ many }) => ({
 	}),
 }));
 
+const mailIdentityRelationships = relationships(mailIdentity, ({ one }) => ({
+	account: one({
+		sourceField: ["accountId"],
+		destField: ["id"],
+		destSchema: mailAccount,
+	}),
+}));
+
 const mailAccountRelationships = relationships(mailAccount, ({ one, many }) => ({
 	user: one({
 		sourceField: ["userId"],
 		destField: ["id"],
 		destSchema: user,
+	}),
+	identities: many({
+		sourceField: ["id"],
+		destField: ["accountId"],
+		destSchema: mailIdentity,
 	}),
 	folders: many({
 		sourceField: ["id"],
@@ -464,6 +492,7 @@ export const schema = createSchema({
 	tables: [
 		user,
 		mailAccount,
+		mailIdentity,
 		mailFolder,
 		mailLabel,
 		mailConversation,
@@ -479,6 +508,7 @@ export const schema = createSchema({
 	relationships: [
 		userMailAccounts,
 		mailAccountRelationships,
+		mailIdentityRelationships,
 		mailFolderRelationships,
 		mailLabelRelationships,
 		mailConversationRelationships,
@@ -508,6 +538,7 @@ declare module "@rocicorp/zero" {
 
 export type UserRow = Row<typeof schema.tables.user>;
 export type MailAccountRow = Row<typeof schema.tables.mail_account>;
+export type MailIdentityRow = Row<typeof schema.tables.mail_identity>;
 export type MailFolderRow = Row<typeof schema.tables.mail_folder>;
 export type MailLabelRow = Row<typeof schema.tables.mail_label>;
 export type MailConversationRow = Row<typeof schema.tables.mail_conversation>;

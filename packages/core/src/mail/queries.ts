@@ -14,6 +14,7 @@ import {
 	mailConversation,
 	mailFolder,
 	mailFolderSyncState,
+	mailIdentity,
 	mailLabel,
 	mailMessage,
 	mailOAuthState,
@@ -182,6 +183,7 @@ export async function disconnectMailAccount(db: DatabaseClient, accountId: strin
 	await db.delete(mailConversation).where(eq(mailConversation.accountId, accountId));
 	await db.delete(mailFolder).where(eq(mailFolder.accountId, accountId));
 	await db.delete(mailLabel).where(eq(mailLabel.accountId, accountId));
+	await db.delete(mailIdentity).where(eq(mailIdentity.accountId, accountId));
 
 	// Backend-only data
 	await db.delete(mailAccountSecret).where(eq(mailAccountSecret.accountId, accountId));

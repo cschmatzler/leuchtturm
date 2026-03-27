@@ -16,6 +16,7 @@ export const queries = defineQueries({
 	mailAccounts: defineQuery(({ ctx }) =>
 		zql.mail_account
 			.where("userId", ctx?.userId ?? "")
+			.related("identities")
 			.related("folders")
 			.related("labels"),
 	),

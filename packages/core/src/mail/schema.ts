@@ -12,6 +12,11 @@ export const MailAccountId = Schema.TemplateLiteral(["mac_", Ulid]).pipe(
 );
 export type MailAccountId = typeof MailAccountId.Type;
 
+export const MailIdentityId = Schema.TemplateLiteral(["mid_", Ulid]).pipe(
+	Schema.brand("MailIdentityId"),
+);
+export type MailIdentityId = typeof MailIdentityId.Type;
+
 export const MailFolderId = Schema.TemplateLiteral(["mfl_", Ulid]).pipe(
 	Schema.brand("MailFolderId"),
 );
@@ -72,6 +77,10 @@ export type MailOAuthStateId = typeof MailOAuthStateId.Type;
 
 export function createMailAccountId(): MailAccountId {
 	return MailAccountId.makeUnsafe(`mac_${ulid()}`);
+}
+
+export function createMailIdentityId(): MailIdentityId {
+	return MailIdentityId.makeUnsafe(`mid_${ulid()}`);
 }
 
 export function createMailFolderId(): MailFolderId {
