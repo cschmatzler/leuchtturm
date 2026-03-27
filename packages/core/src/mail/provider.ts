@@ -46,6 +46,14 @@ export interface ProviderBodyPart {
 	readonly content: string;
 }
 
+export interface ProviderMessageHeaders {
+	readonly replyTo?: ProviderEmailAddress[];
+	readonly inReplyTo?: string;
+	readonly references?: string;
+	readonly listUnsubscribe?: string;
+	readonly listUnsubscribePost?: string;
+}
+
 export interface ProviderMessage {
 	readonly providerRef: string;
 	readonly internetMessageId?: string;
@@ -62,6 +70,7 @@ export interface ProviderMessage {
 	readonly isStarred: boolean;
 	readonly isDraft: boolean;
 	readonly labelRefs?: string[];
+	readonly headers?: ProviderMessageHeaders;
 	readonly bodyParts: ProviderBodyPart[];
 	readonly attachments: ProviderAttachment[];
 }

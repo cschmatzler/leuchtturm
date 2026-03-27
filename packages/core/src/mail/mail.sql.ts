@@ -301,6 +301,28 @@ export const mailMessage = pgTable(
 );
 
 // ---------------------------------------------------------------------------
+// §11.6a mail_message_header
+// ---------------------------------------------------------------------------
+
+export const mailMessageHeader = pgTable("mail_message_header", {
+	messageId: char("message_id", { length: 30 })
+		.primaryKey()
+		.references(() => mailMessage.id, { onDelete: "cascade" }),
+	userId: char("user_id", { length: 30 })
+		.notNull()
+		.references(() => user.id, { onDelete: "cascade" }),
+	replyTo: jsonb("reply_to"), // { name?: string, address: string }[]
+	inReplyTo: text("in_reply_to"),
+	references: text("references"), // space-separated Message-ID list
+	listUnsubscribe: text("list_unsubscribe"),
+	listUnsubscribePost: text("list_unsubscribe_post"),
+	createdAt: timestamp("created_at").notNull(),
+	updatedAt: timestamp("updated_at")
+		.$onUpdate(() => new Date())
+		.notNull(),
+});
+
+// ---------------------------------------------------------------------------
 // §11.7 mail_message_body_part
 // ---------------------------------------------------------------------------
 

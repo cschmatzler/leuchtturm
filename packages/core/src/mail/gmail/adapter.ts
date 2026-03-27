@@ -14,6 +14,7 @@ import type {
 	ProviderHistoryChange,
 	ProviderLabel,
 	ProviderMessage,
+	ProviderMessageHeaders,
 	ProviderThread,
 } from "@chevrotain/core/mail/provider";
 import type { MailFolderKind, MailLabelKind } from "@chevrotain/core/mail/schema";
@@ -157,6 +158,22 @@ function extractParts(
 // Convert Gmail message to provider-normalized message
 // ---------------------------------------------------------------------------
 
+function extractHeaders(payload: GmailMessagePart): ProviderMessageHeaders {
+	const replyToRaw = getHeader(payload, "Reply-To");
+	const inReplyTo = getHeader(payload, "In-Reply-To");
+	const references = getHeader(payload, "References");
+	const listUnsubscribe = getHeader(payload, "List-Unsubscribe");
+	const listUnsubscribePost = getHeader(payload, "List-Unsubscribe-Post");
+
+	return {
+		replyTo: replyToRaw ? parseEmailAddresses(replyToRaw) : undefined,
+		inReplyTo: inReplyTo?.trim(),
+		references: references?.trim(),
+		listUnsubscribe: listUnsubscribe?.trim(),
+		listUnsubscribePost: listUnsubscribePost?.trim(),
+	};
+}
+
 function normalizeGmailMessage(msg: GmailMessage): ProviderMessage {
 	const payload = msg.payload;
 	const bodyParts: ProviderBodyPart[] = [];
@@ -184,6 +201,7 @@ function normalizeGmailMessage(msg: GmailMessage): ProviderMessage {
 		isStarred: labelIds.includes("STARRED"),
 		isDraft: labelIds.includes("DRAFT"),
 		labelRefs: labelIds,
+		headers: payload ? extractHeaders(payload) : undefined,
 		bodyParts,
 		attachments,
 	};

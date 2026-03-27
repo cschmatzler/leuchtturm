@@ -26,6 +26,7 @@ import {
 	mailLabel,
 	mailMessage,
 	mailMessageBodyPart,
+	mailMessageHeader,
 	mailMessageLabel,
 	mailMessageMailbox,
 	mailAccountSyncState,
@@ -681,6 +682,35 @@ async function upsertMessageImpl(
 				updatedAt: now,
 			});
 		}
+	}
+
+	// Upsert promoted headers (§11.6a)
+	if (message.headers) {
+		const h = message.headers;
+		await db
+			.insert(mailMessageHeader)
+			.values({
+				messageId: msgId,
+				userId,
+				replyTo: h.replyTo ?? null,
+				inReplyTo: h.inReplyTo ?? null,
+				references: h.references ?? null,
+				listUnsubscribe: h.listUnsubscribe ?? null,
+				listUnsubscribePost: h.listUnsubscribePost ?? null,
+				createdAt: now,
+				updatedAt: now,
+			})
+			.onConflictDoUpdate({
+				target: [mailMessageHeader.messageId],
+				set: {
+					replyTo: h.replyTo ?? null,
+					inReplyTo: h.inReplyTo ?? null,
+					references: h.references ?? null,
+					listUnsubscribe: h.listUnsubscribe ?? null,
+					listUnsubscribePost: h.listUnsubscribePost ?? null,
+					updatedAt: now,
+				},
+			});
 	}
 
 	// Sync label associations

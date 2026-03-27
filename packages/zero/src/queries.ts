@@ -97,6 +97,7 @@ export const queries = defineQueries({
 			.where("conversationId", (args as { conversationId: string }).conversationId)
 			.related("attachments")
 			.related("labels")
+			.related("header")
 			.orderBy("receivedAt", "asc"),
 	),
 
