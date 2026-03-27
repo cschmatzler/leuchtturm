@@ -84,12 +84,38 @@ const mailConversation = table("mail_conversation")
 		subject: string().optional(),
 		snippet: string().optional(),
 		latestMessageAt: number().from("latest_message_at").optional(),
+		latestMessageId: string().from("latest_message_id").optional(),
+		latestSender: json<EmailAddress>().from("latest_sender").optional(),
+		participantsPreview: json<EmailAddress[]>().from("participants_preview").optional(),
 		messageCount: number().from("message_count"),
 		unreadCount: number().from("unread_count"),
+		hasAttachments: boolean().from("has_attachments"),
+		isStarred: boolean().from("is_starred"),
+		draftCount: number().from("draft_count"),
 		createdAt: number().from("created_at"),
 		updatedAt: number().from("updated_at"),
 	})
 	.primaryKey("id");
+
+const mailConversationLabel = table("mail_conversation_label")
+	.columns({
+		userId: string().from("user_id"),
+		conversationId: string().from("conversation_id"),
+		labelId: string().from("label_id"),
+		createdAt: number().from("created_at"),
+		updatedAt: number().from("updated_at"),
+	})
+	.primaryKey("conversationId", "labelId");
+
+const mailConversationFolder = table("mail_conversation_folder")
+	.columns({
+		userId: string().from("user_id"),
+		conversationId: string().from("conversation_id"),
+		folderId: string().from("folder_id"),
+		createdAt: number().from("created_at"),
+		updatedAt: number().from("updated_at"),
+	})
+	.primaryKey("conversationId", "folderId");
 
 type EmailAddress = { name?: string; address: string };
 
@@ -253,6 +279,56 @@ const mailConversationRelationships = relationships(mailConversation, ({ one, ma
 		destField: ["conversationId"],
 		destSchema: mailMessage,
 	}),
+	labels: many(
+		{
+			sourceField: ["id"],
+			destField: ["conversationId"],
+			destSchema: mailConversationLabel,
+		},
+		{
+			sourceField: ["labelId"],
+			destField: ["id"],
+			destSchema: mailLabel,
+		},
+	),
+	folders: many(
+		{
+			sourceField: ["id"],
+			destField: ["conversationId"],
+			destSchema: mailConversationFolder,
+		},
+		{
+			sourceField: ["folderId"],
+			destField: ["id"],
+			destSchema: mailFolder,
+		},
+	),
+}));
+
+const mailConversationLabelRelationships = relationships(mailConversationLabel, ({ one }) => ({
+	conversation: one({
+		sourceField: ["conversationId"],
+		destField: ["id"],
+		destSchema: mailConversation,
+	}),
+	label: one({
+		sourceField: ["labelId"],
+		destField: ["id"],
+		destSchema: mailLabel,
+	}),
+}));
+
+const mailConversationFolderRelationships = relationships(mailConversationFolder, ({ one }) => ({
+	conversation: one({
+		sourceField: ["conversationId"],
+		destField: ["id"],
+		destSchema: mailConversation,
+	}),
+	folder: one({
+		sourceField: ["folderId"],
+		destField: ["id"],
+		destSchema: mailFolder,
+	}),
 }));
 
 const mailMessageRelationships = relationships(mailMessage, ({ one, many }) => ({
@@ -348,6 +424,8 @@ export const schema = createSchema({
 		mailFolder,
 		mailLabel,
 		mailConversation,
+		mailConversationLabel,
+		mailConversationFolder,
 		mailMessage,
 		mailMessageBodyPart,
 		mailMessageLabel,
@@ -360,6 +438,8 @@ export const schema = createSchema({
 		mailFolderRelationships,
 		mailLabelRelationships,
 		mailConversationRelationships,
+		mailConversationLabelRelationships,
+		mailConversationFolderRelationships,
 		mailMessageRelationships,
 		mailMessageBodyPartRelationships,
 		mailMessageLabelRelationships,
@@ -386,6 +466,8 @@ export type MailAccountRow = Row<typeof schema.tables.mail_account>;
 export type MailFolderRow = Row<typeof schema.tables.mail_folder>;
 export type MailLabelRow = Row<typeof schema.tables.mail_label>;
 export type MailConversationRow = Row<typeof schema.tables.mail_conversation>;
+export type MailConversationLabelRow = Row<typeof schema.tables.mail_conversation_label>;
+export type MailConversationFolderRow = Row<typeof schema.tables.mail_conversation_folder>;
 export type MailMessageRow = Row<typeof schema.tables.mail_message>;
 export type MailMessageBodyPartRow = Row<typeof schema.tables.mail_message_body_part>;
 export type MailMessageLabelRow = Row<typeof schema.tables.mail_message_label>;

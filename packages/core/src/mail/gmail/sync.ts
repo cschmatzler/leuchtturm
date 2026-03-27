@@ -20,6 +20,8 @@ import {
 	mailAccount,
 	mailAttachment,
 	mailConversation,
+	mailConversationFolder,
+	mailConversationLabel,
 	mailFolder,
 	mailLabel,
 	mailMessage,
@@ -282,6 +284,23 @@ function syncThreads(
 	});
 }
 
+function collectParticipants(
+	messages: ProviderMessage[],
+): Array<{ name?: string; address: string }> {
+	const seen = new Set<string>();
+	const participants: Array<{ name?: string; address: string }> = [];
+	for (const msg of messages) {
+		if (msg.sender) {
+			const key = msg.sender.address.toLowerCase();
+			if (!seen.has(key)) {
+				seen.add(key);
+				participants.push(msg.sender);
+			}
+		}
+	}
+	return participants;
+}
+
 async function syncThreadImpl(
 	db: SyncDatabaseClient,
 	userId: string,
@@ -292,10 +311,25 @@ async function syncThreadImpl(
 	const messages = thread.messages;
 	if (messages.length === 0) return;
 
-	// Upsert conversation
+	// Upsert conversation with projection fields
 	const latestMessage = messages[messages.length - 1]!;
 	const conversationId = createMailConversationId();
 	const subject = messages[0]?.subject ?? null;
+	const participantsPreview = collectParticipants(messages);
+
+	const conversationValues = {
+		subject,
+		snippet: latestMessage.snippet ?? null,
+		latestMessageAt: latestMessage.receivedAt ?? now,
+		latestSender: latestMessage.sender ?? null,
+		participantsPreview,
+		messageCount: messages.length,
+		unreadCount: messages.filter((m) => m.isUnread).length,
+		hasAttachments: messages.some((m) => m.attachments.length > 0),
+		isStarred: messages.some((m) => m.isStarred),
+		draftCount: messages.filter((m) => m.isDraft).length,
+		updatedAt: now,
+	};
 
 	const [conversation] = await db
 		.insert(mailConversation)
@@ -304,13 +338,8 @@ async function syncThreadImpl(
 			userId,
 			accountId,
 			providerConversationRef: thread.providerRef,
-			subject,
-			snippet: latestMessage.snippet ?? null,
-			latestMessageAt: latestMessage.receivedAt ?? now,
-			messageCount: messages.length,
-			unreadCount: messages.filter((m) => m.isUnread).length,
+			...conversationValues,
 			createdAt: now,
-			updatedAt: now,
 		})
 		.onConflictDoUpdate({
 			target: [mailConversation.accountId, mailConversation.providerConversationRef],
@@ -318,14 +347,7 @@ async function syncThreadImpl(
 				eq(mailConversation.accountId, accountId),
 				eq(mailConversation.providerConversationRef, thread.providerRef),
 			),
-			set: {
-				subject,
-				snippet: latestMessage.snippet ?? null,
-				latestMessageAt: latestMessage.receivedAt ?? now,
-				messageCount: messages.length,
-				unreadCount: messages.filter((m) => m.isUnread).length,
-				updatedAt: now,
-			},
+			set: conversationValues,
 		})
 		.returning({ id: mailConversation.id });
 
@@ -335,6 +357,9 @@ async function syncThreadImpl(
 	for (const message of messages) {
 		await upsertMessageImpl(db, userId, accountId, message, convId);
 	}
+
+	// Recompute derived conversation projections after all messages are synced
+	await recomputeConversationProjections(db, userId, accountId, convId);
 }
 
 function upsertMessage(
@@ -399,10 +424,16 @@ async function recomputeConversationStats(
 		.select({
 			id: mailMessage.id,
 			isUnread: mailMessage.isUnread,
+			isStarred: mailMessage.isStarred,
+			isDraft: mailMessage.isDraft,
+			hasAttachments: mailMessage.hasAttachments,
 			subject: mailMessage.subject,
 			snippet: mailMessage.snippet,
+			sender: mailMessage.sender,
 			receivedAt: mailMessage.receivedAt,
 			createdAt: mailMessage.createdAt,
+			userId: mailMessage.userId,
+			accountId: mailMessage.accountId,
 		})
 		.from(mailMessage)
 		.where(eq(mailMessage.conversationId, conversationId))
@@ -414,17 +445,113 @@ async function recomputeConversationStats(
 	}
 
 	const latestMessage = messages[0]!;
+
+	// Collect unique participants
+	const seen = new Set<string>();
+	const participantsPreview: Array<{ name?: string; address: string }> = [];
+	for (const msg of messages) {
+		const sender = msg.sender as { name?: string; address: string } | null;
+		if (sender) {
+			const key = sender.address.toLowerCase();
+			if (!seen.has(key)) {
+				seen.add(key);
+				participantsPreview.push(sender);
+			}
+		}
+	}
+
 	await db
 		.update(mailConversation)
 		.set({
 			subject: latestMessage.subject ?? null,
 			snippet: latestMessage.snippet ?? null,
 			latestMessageAt: latestMessage.receivedAt ?? latestMessage.createdAt,
+			latestMessageId: latestMessage.id,
+			latestSender: latestMessage.sender,
+			participantsPreview,
 			messageCount: messages.length,
-			unreadCount: messages.filter((message) => message.isUnread).length,
+			unreadCount: messages.filter((m) => m.isUnread).length,
+			hasAttachments: messages.some((m) => m.hasAttachments),
+			isStarred: messages.some((m) => m.isStarred),
+			draftCount: messages.filter((m) => m.isDraft).length,
 			updatedAt: new Date(),
 		})
 		.where(eq(mailConversation.id, conversationId));
+
+	// Also recompute derived conversation label/folder projections
+	if (latestMessage.userId && latestMessage.accountId) {
+		await recomputeConversationProjections(
+			db,
+			latestMessage.userId,
+			latestMessage.accountId,
+			conversationId,
+		);
+	}
+}
+
+async function recomputeConversationProjections(
+	db: SyncDatabaseClient,
+	userId: string,
+	_accountId: string,
+	conversationId: string,
+): Promise<void> {
+	const now = new Date();
+
+	// Get all message IDs in this conversation
+	const messageIds = await db
+		.select({ id: mailMessage.id })
+		.from(mailMessage)
+		.where(eq(mailMessage.conversationId, conversationId));
+
+	if (messageIds.length === 0) return;
+
+	const msgIds = messageIds.map((m) => m.id);
+
+	// Derive conversation-level labels from message labels
+	const labelIdSet = new Set<string>();
+	for (const id of msgIds) {
+		const rows = await db
+			.select({ labelId: mailMessageLabel.labelId })
+			.from(mailMessageLabel)
+			.where(eq(mailMessageLabel.messageId, id));
+		for (const row of rows) {
+			labelIdSet.add(row.labelId);
+		}
+	}
+
+	// Replace conversation labels
+	await db
+		.delete(mailConversationLabel)
+		.where(eq(mailConversationLabel.conversationId, conversationId));
+	for (const labelId of labelIdSet) {
+		await db
+			.insert(mailConversationLabel)
+			.values({ userId, conversationId, labelId, createdAt: now, updatedAt: now })
+			.onConflictDoNothing();
+	}
+
+	// Derive conversation-level folders from message mailboxes
+	const folderIdSet = new Set<string>();
+	for (const id of msgIds) {
+		const rows = await db
+			.select({ folderId: mailMessageMailbox.folderId })
+			.from(mailMessageMailbox)
+			.where(eq(mailMessageMailbox.messageId, id));
+		for (const row of rows) {
+			folderIdSet.add(row.folderId);
+		}
+	}
+
+	// Replace conversation folders
+	await db
+		.delete(mailConversationFolder)
+		.where(eq(mailConversationFolder.conversationId, conversationId));
+	for (const folderId of folderIdSet) {
+		await db
+			.insert(mailConversationFolder)
+			.values({ userId, conversationId, folderId, createdAt: now, updatedAt: now })
+			.onConflictDoNothing();
+	}
 }
 
 async function getCurrentMessageLabelRefs(

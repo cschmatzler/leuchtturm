@@ -177,6 +177,7 @@ export async function disconnectMailAccount(db: DatabaseClient, accountId: strin
 	// Hard-delete in dependency order.
 	// Messages cascade to body_part, message_label, message_mailbox, attachment
 	// via FK ON DELETE CASCADE, so deleting messages cleans those up.
+	// Conversation labels/folders cascade from conversation via FK ON DELETE CASCADE.
 	await db.delete(mailMessage).where(eq(mailMessage.accountId, accountId));
 	await db.delete(mailConversation).where(eq(mailConversation.accountId, accountId));
 	await db.delete(mailFolder).where(eq(mailFolder.accountId, accountId));

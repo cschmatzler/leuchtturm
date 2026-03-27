@@ -55,6 +55,8 @@ export const queries = defineQueries({
 		zql.mail_conversation
 			.where("userId", ctx?.userId ?? "")
 			.where("accountId", (args as { accountId: string }).accountId)
+			.related("labels")
+			.related("folders")
 			.orderBy("latestMessageAt", "desc"),
 	),
 
@@ -62,6 +64,8 @@ export const queries = defineQueries({
 		zql.mail_conversation
 			.where("userId", ctx?.userId ?? "")
 			.where("id", (args as { conversationId: string }).conversationId)
+			.related("labels")
+			.related("folders")
 			.one(),
 	),
 

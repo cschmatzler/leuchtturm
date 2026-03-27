@@ -5,6 +5,8 @@ import {
 	mailAccount,
 	mailAttachment,
 	mailConversation,
+	mailConversationFolder,
+	mailConversationLabel,
 	mailFolder,
 	mailLabel,
 	mailMessage,
@@ -22,6 +24,8 @@ export const allRelations = defineRelationsPart(
 		mailFolder,
 		mailLabel,
 		mailConversation,
+		mailConversationLabel,
+		mailConversationFolder,
 		mailMessage,
 		mailMessageBodyPart,
 		mailMessageLabel,
@@ -90,6 +94,34 @@ export const allRelations = defineRelationsPart(
 			messages: r.many.mailMessage({
 				from: r.mailConversation.id,
 				to: r.mailMessage.conversationId,
+			}),
+			labels: r.many.mailConversationLabel({
+				from: r.mailConversation.id,
+				to: r.mailConversationLabel.conversationId,
+			}),
+			folders: r.many.mailConversationFolder({
+				from: r.mailConversation.id,
+				to: r.mailConversationFolder.conversationId,
+			}),
+		},
+		mailConversationLabel: {
+			conversation: r.one.mailConversation({
+				from: r.mailConversationLabel.conversationId,
+				to: r.mailConversation.id,
+			}),
+			label: r.one.mailLabel({
+				from: r.mailConversationLabel.labelId,
+				to: r.mailLabel.id,
+			}),
+		},
+		mailConversationFolder: {
+			conversation: r.one.mailConversation({
+				from: r.mailConversationFolder.conversationId,
+				to: r.mailConversation.id,
+			}),
+			folder: r.one.mailFolder({
+				from: r.mailConversationFolder.folderId,
+				to: r.mailFolder.id,
 			}),
 		},
 		mailMessage: {

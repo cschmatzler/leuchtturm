@@ -167,8 +167,14 @@ export const mailConversation = pgTable(
 		subject: text("subject"),
 		snippet: text("snippet"),
 		latestMessageAt: timestamp("latest_message_at"),
+		latestMessageId: char("latest_message_id", { length: 30 }),
+		latestSender: jsonb("latest_sender"), // { name?: string, address: string }
+		participantsPreview: jsonb("participants_preview"), // { name?: string, address: string }[]
 		messageCount: integer("message_count").notNull().default(0),
 		unreadCount: integer("unread_count").notNull().default(0),
+		hasAttachments: boolean("has_attachments").notNull().default(false),
+		isStarred: boolean("is_starred").notNull().default(false),
+		draftCount: integer("draft_count").notNull().default(0),
 		createdAt: timestamp("created_at").notNull(),
 		updatedAt: timestamp("updated_at")
 			.$onUpdate(() => new Date())
@@ -182,6 +188,61 @@ export const mailConversation = pgTable(
 			table.accountId,
 			table.providerConversationRef,
 		),
+	],
+);
+
+// ---------------------------------------------------------------------------
+// §11.5a mail_conversation_label (derived projection)
+// ---------------------------------------------------------------------------
+
+export const mailConversationLabel = pgTable(
+	"mail_conversation_label",
+	{
+		userId: char("user_id", { length: 30 })
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		conversationId: char("conversation_id", { length: 30 })
+			.notNull()
+			.references(() => mailConversation.id, { onDelete: "cascade" }),
+		labelId: char("label_id", { length: 30 })
+			.notNull()
+			.references(() => mailLabel.id, { onDelete: "cascade" }),
+		createdAt: timestamp("created_at").notNull(),
+		updatedAt: timestamp("updated_at")
+			.$onUpdate(() => new Date())
+			.notNull(),
+	},
+	(table) => [
+		primaryKey({ columns: [table.conversationId, table.labelId] }),
+		index("mail_conversation_label_user_id_idx").on(table.userId),
+	],
+);
+
+// ---------------------------------------------------------------------------
+// §11.5b mail_conversation_folder (derived projection)
+// ---------------------------------------------------------------------------
+
+export const mailConversationFolder = pgTable(
+	"mail_conversation_folder",
+	{
+		userId: char("user_id", { length: 30 })
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		conversationId: char("conversation_id", { length: 30 })
+			.notNull()
+			.references(() => mailConversation.id, { onDelete: "cascade" }),
+		folderId: char("folder_id", { length: 30 })
+			.notNull()
+			.references(() => mailFolder.id, { onDelete: "cascade" }),
+		createdAt: timestamp("created_at").notNull(),
+		updatedAt: timestamp("updated_at")
+			.$onUpdate(() => new Date())
+			.notNull(),
+	},
+	(table) => [
+		primaryKey({ columns: [table.conversationId, table.folderId] }),
+		index("mail_conversation_folder_user_id_idx").on(table.userId),
+		index("mail_conversation_folder_folder_id_idx").on(table.folderId),
 	],
 );
 
