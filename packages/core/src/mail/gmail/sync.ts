@@ -71,11 +71,19 @@ function bootstrapGmailAccountImpl(db: SyncDatabaseClient, accountId: string, ac
 		);
 		if (!account) return yield* Effect.fail(new Error(`Account ${accountId} not found`));
 
+		const now = new Date();
+
 		try {
+			const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
 			yield* Effect.tryPromise(() =>
 				db
 					.update(mailAccount)
-					.set({ status: "bootstrapping" })
+					.set({
+						status: "bootstrapping",
+						bootstrapCutoffAt: cutoff,
+						lastAttemptedSyncAt: now,
+					})
 					.where(eq(mailAccount.id, accountId)),
 			);
 
@@ -86,19 +94,39 @@ function bootstrapGmailAccountImpl(db: SyncDatabaseClient, accountId: string, ac
 			const folders = getGmailFolders(labels);
 			yield* syncFolders(db, account.userId, accountId, folders);
 
-			const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 			const threads = yield* Effect.tryPromise(() => adapter.listRecentThreads(cutoff));
 			yield* syncThreads(db, account.userId, accountId, threads);
 
 			const cursor = yield* Effect.tryPromise(() => adapter.getLatestCursor());
 			yield* upsertSyncCursor(db, accountId, cursor);
 
+			const completedAt = new Date();
 			yield* Effect.tryPromise(() =>
-				db.update(mailAccount).set({ status: "healthy" }).where(eq(mailAccount.id, accountId)),
+				db
+					.update(mailAccount)
+					.set({
+						status: "healthy",
+						bootstrapCompletedAt: completedAt,
+						lastSuccessfulSyncAt: completedAt,
+						lastAttemptedSyncAt: completedAt,
+						lastErrorCode: null,
+						lastErrorMessage: null,
+						degradedReason: null,
+					})
+					.where(eq(mailAccount.id, accountId)),
 			);
 		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : String(error);
 			yield* Effect.tryPromise(() =>
-				db.update(mailAccount).set({ status: "degraded" }).where(eq(mailAccount.id, accountId)),
+				db
+					.update(mailAccount)
+					.set({
+						status: "degraded",
+						lastErrorCode: "bootstrap_failed",
+						lastErrorMessage: errorMessage,
+						degradedReason: "Bootstrap sync failed",
+					})
+					.where(eq(mailAccount.id, accountId)),
 			);
 			throw error;
 		}
@@ -164,6 +192,21 @@ function incrementalGmailSyncImpl(db: SyncDatabaseClient, accountId: string, acc
 
 		const labels = yield* Effect.tryPromise(() => adapter.listLabels());
 		yield* syncLabels(db, account.userId, accountId, labels);
+
+		// Update account health metadata
+		const syncedAt = new Date();
+		yield* Effect.tryPromise(() =>
+			db
+				.update(mailAccount)
+				.set({
+					lastSuccessfulSyncAt: syncedAt,
+					lastAttemptedSyncAt: syncedAt,
+					lastErrorCode: null,
+					lastErrorMessage: null,
+					degradedReason: null,
+				})
+				.where(eq(mailAccount.id, accountId)),
+		);
 	});
 }
 

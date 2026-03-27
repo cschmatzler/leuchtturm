@@ -37,6 +37,15 @@ export const mailAccount = pgTable(
 		supportsOauth: boolean("supports_oauth").notNull().default(false),
 		supportsServerSearch: boolean("supports_server_search").notNull().default(false),
 
+		// Coverage and health metadata
+		bootstrapCutoffAt: timestamp("bootstrap_cutoff_at"),
+		bootstrapCompletedAt: timestamp("bootstrap_completed_at"),
+		lastSuccessfulSyncAt: timestamp("last_successful_sync_at"),
+		lastAttemptedSyncAt: timestamp("last_attempted_sync_at"),
+		lastErrorCode: text("last_error_code"),
+		lastErrorMessage: text("last_error_message"),
+		degradedReason: text("degraded_reason"),
+
 		createdAt: timestamp("created_at").notNull(),
 		updatedAt: timestamp("updated_at")
 			.$onUpdate(() => new Date())

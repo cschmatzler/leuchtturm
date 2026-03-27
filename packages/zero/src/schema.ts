@@ -41,6 +41,13 @@ const mailAccount = table("mail_account")
 		supportsPushSync: boolean().from("supports_push_sync"),
 		supportsOauth: boolean().from("supports_oauth"),
 		supportsServerSearch: boolean().from("supports_server_search"),
+		bootstrapCutoffAt: number().from("bootstrap_cutoff_at").optional(),
+		bootstrapCompletedAt: number().from("bootstrap_completed_at").optional(),
+		lastSuccessfulSyncAt: number().from("last_successful_sync_at").optional(),
+		lastAttemptedSyncAt: number().from("last_attempted_sync_at").optional(),
+		lastErrorCode: string().from("last_error_code").optional(),
+		lastErrorMessage: string().from("last_error_message").optional(),
+		degradedReason: string().from("degraded_reason").optional(),
 		createdAt: number().from("created_at"),
 		updatedAt: number().from("updated_at"),
 	})
