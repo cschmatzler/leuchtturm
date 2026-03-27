@@ -116,6 +116,7 @@ export const mailFolder = pgTable(
 		index("mail_folder_user_id_idx").on(table.userId),
 		index("mail_folder_account_id_idx").on(table.accountId),
 		unique("mail_folder_account_id_provider_ref_uniq").on(table.accountId, table.providerFolderRef),
+		unique("mail_folder_ownership_uniq").on(table.id, table.accountId, table.userId),
 	],
 );
 
@@ -146,6 +147,7 @@ export const mailLabel = pgTable(
 		index("mail_label_user_id_idx").on(table.userId),
 		index("mail_label_account_id_idx").on(table.accountId),
 		unique("mail_label_account_id_provider_ref_uniq").on(table.accountId, table.providerLabelRef),
+		unique("mail_label_ownership_uniq").on(table.id, table.accountId, table.userId),
 	],
 );
 
@@ -188,6 +190,7 @@ export const mailConversation = pgTable(
 			table.accountId,
 			table.providerConversationRef,
 		),
+		unique("mail_conversation_ownership_uniq").on(table.id, table.accountId, table.userId),
 	],
 );
 
@@ -293,6 +296,7 @@ export const mailMessage = pgTable(
 			table.accountId,
 			table.providerMessageRef,
 		),
+		unique("mail_message_ownership_uniq").on(table.id, table.accountId, table.userId),
 	],
 );
 
@@ -352,6 +356,7 @@ export const mailMessageLabel = pgTable(
 	(table) => [
 		primaryKey({ columns: [table.messageId, table.labelId] }),
 		index("mail_message_label_user_id_idx").on(table.userId),
+		index("mail_message_label_label_id_idx").on(table.labelId),
 	],
 );
 
