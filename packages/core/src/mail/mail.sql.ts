@@ -582,7 +582,40 @@ export const mailFolderSyncState = pgTable(
 );
 
 // ---------------------------------------------------------------------------
-// §11.11b mail_message_source (backend-only, NOT in Zero)
+// §11.10a mail_search_document (backend-only, NOT in Zero)
+// ---------------------------------------------------------------------------
+
+export const mailSearchDocument = pgTable(
+	"mail_search_document",
+	{
+		messageId: char("message_id", { length: 30 })
+			.primaryKey()
+			.references(() => mailMessage.id, { onDelete: "cascade" }),
+		accountId: char("account_id", { length: 30 })
+			.notNull()
+			.references(() => mailAccount.id, { onDelete: "cascade" }),
+		conversationId: char("conversation_id", { length: 30 }),
+		folderIds: jsonb("folder_ids"), // string[]
+		labelIds: jsonb("label_ids"), // string[]
+		subjectText: text("subject_text"),
+		senderText: text("sender_text"),
+		recipientText: text("recipient_text"),
+		bodyText: text("body_text"),
+		snippetText: text("snippet_text"),
+		mirroredCoverageKind: text("mirrored_coverage_kind").notNull().default("full_thread"), // "full_thread" | "recent_only" | "headers_only"
+		createdAt: timestamp("created_at").notNull(),
+		updatedAt: timestamp("updated_at")
+			.$onUpdate(() => new Date())
+			.notNull(),
+	},
+	(table) => [
+		index("mail_search_document_account_id_idx").on(table.accountId),
+		index("mail_search_document_conversation_id_idx").on(table.conversationId),
+	],
+);
+
+// ---------------------------------------------------------------------------
+// §11.10b mail_message_source (backend-only, NOT in Zero)
 // ---------------------------------------------------------------------------
 
 export const mailMessageSource = pgTable(

@@ -175,6 +175,8 @@ export type MailSourceKind = "raw_mime" | "gmail_raw_json" | "gmail_full_message
 
 export type MailStorageKind = "postgres" | "s3" | "r2" | "filesystem";
 
+export type MailMirroredCoverageKind = "full_thread" | "recent_only" | "headers_only";
+
 // ---------------------------------------------------------------------------
 // Value objects
 // ---------------------------------------------------------------------------
