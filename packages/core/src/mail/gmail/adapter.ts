@@ -246,12 +246,18 @@ export class GmailAdapter implements MailProviderAdapter {
 
 	async listLabels(): Promise<ProviderLabel[]> {
 		const data = await this.gmailFetch<{ labels: GmailLabel[] }>("/labels");
-		return (data.labels ?? []).map((label) => ({
-			providerRef: label.id,
-			name: label.name,
-			color: label.color?.backgroundColor,
-			kind: gmailLabelKind(label.type),
-		}));
+		return (data.labels ?? []).map((label) => {
+			// Gmail nested labels use "/" as delimiter: "Projects/Alpha"
+			const hasHierarchy = label.name.includes("/");
+			return {
+				providerRef: label.id,
+				name: hasHierarchy ? label.name.split("/").pop()! : label.name,
+				path: label.name,
+				delimiter: hasHierarchy ? "/" : undefined,
+				color: label.color?.backgroundColor,
+				kind: gmailLabelKind(label.type),
+			};
+		});
 	}
 
 	// -----------------------------------------------------------------------

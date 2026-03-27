@@ -22,12 +22,15 @@ export interface ProviderFolder {
 	readonly kind: MailFolderKind;
 	readonly name: string;
 	readonly path?: string;
+	readonly delimiter?: string;
 	readonly isSelectable: boolean;
 }
 
 export interface ProviderLabel {
 	readonly providerRef: string;
 	readonly name: string;
+	readonly path?: string;
+	readonly delimiter?: string;
 	readonly color?: string;
 	readonly kind: MailLabelKind;
 }

@@ -255,7 +255,10 @@ function syncLabels(
 ) {
 	return Effect.tryPromise(async () => {
 		const now = new Date();
+
+		// First pass: upsert all labels
 		for (const label of labels) {
+			const depth = label.path ? label.path.split(label.delimiter ?? "/").length - 1 : 0;
 			await db
 				.insert(mailLabel)
 				.values({
@@ -264,6 +267,9 @@ function syncLabels(
 					accountId,
 					providerLabelRef: label.providerRef,
 					name: label.name,
+					path: label.path ?? null,
+					delimiter: label.delimiter ?? null,
+					depth,
 					color: label.color,
 					kind: label.kind,
 					createdAt: now,
@@ -275,8 +281,44 @@ function syncLabels(
 						eq(mailLabel.accountId, accountId),
 						eq(mailLabel.providerLabelRef, label.providerRef),
 					),
-					set: { name: label.name, color: label.color, kind: label.kind, updatedAt: now },
+					set: {
+						name: label.name,
+						path: label.path ?? null,
+						delimiter: label.delimiter ?? null,
+						depth,
+						color: label.color,
+						kind: label.kind,
+						updatedAt: now,
+					},
 				});
+		}
+
+		// Second pass: resolve parent_id from paths
+		const dbLabels = await db
+			.select({
+				id: mailLabel.id,
+				path: mailLabel.path,
+			})
+			.from(mailLabel)
+			.where(eq(mailLabel.accountId, accountId));
+
+		const pathToId = new Map(dbLabels.filter((l) => l.path).map((l) => [l.path!, l.id]));
+
+		for (const label of labels) {
+			if (!label.path || !label.delimiter) continue;
+			const segments = label.path.split(label.delimiter);
+			if (segments.length <= 1) continue;
+			const parentPath = segments.slice(0, -1).join(label.delimiter);
+			const parentId = pathToId.get(parentPath);
+			if (parentId) {
+				const labelId = pathToId.get(label.path);
+				if (labelId) {
+					await db
+						.update(mailLabel)
+						.set({ parentId, updatedAt: now })
+						.where(eq(mailLabel.id, labelId));
+				}
+			}
 		}
 	});
 }

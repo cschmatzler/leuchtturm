@@ -115,6 +115,10 @@ export const mailFolder = pgTable(
 		kind: text("kind").notNull(), // inbox | sent | drafts | trash | spam | archive | all_mail | custom
 		name: text("name").notNull(),
 		path: text("path"),
+		delimiter: text("delimiter"),
+		parentId: char("parent_id", { length: 30 }),
+		depth: smallint("depth").notNull().default(0),
+		sortKey: integer("sort_key"),
 		isSelectable: boolean("is_selectable").notNull().default(true),
 		createdAt: timestamp("created_at").notNull(),
 		updatedAt: timestamp("updated_at")
@@ -126,6 +130,7 @@ export const mailFolder = pgTable(
 		index("mail_folder_account_id_idx").on(table.accountId),
 		unique("mail_folder_account_id_provider_ref_uniq").on(table.accountId, table.providerFolderRef),
 		unique("mail_folder_ownership_uniq").on(table.id, table.accountId, table.userId),
+		index("mail_folder_parent_id_idx").on(table.parentId),
 	],
 );
 
@@ -145,6 +150,11 @@ export const mailLabel = pgTable(
 			.references(() => mailAccount.id, { onDelete: "cascade" }),
 		providerLabelRef: text("provider_label_ref").notNull(),
 		name: text("name").notNull(),
+		path: text("path"),
+		delimiter: text("delimiter"),
+		parentId: char("parent_id", { length: 30 }),
+		depth: smallint("depth").notNull().default(0),
+		sortKey: integer("sort_key"),
 		color: text("color"),
 		kind: text("kind").notNull(), // "system" | "user"
 		createdAt: timestamp("created_at").notNull(),
@@ -157,6 +167,7 @@ export const mailLabel = pgTable(
 		index("mail_label_account_id_idx").on(table.accountId),
 		unique("mail_label_account_id_provider_ref_uniq").on(table.accountId, table.providerLabelRef),
 		unique("mail_label_ownership_uniq").on(table.id, table.accountId, table.userId),
+		index("mail_label_parent_id_idx").on(table.parentId),
 	],
 );
 
