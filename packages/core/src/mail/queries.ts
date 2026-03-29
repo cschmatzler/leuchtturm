@@ -1,10 +1,9 @@
 /**
- * Mail database query/mutation functions.
- *
- * All direct Drizzle access lives here so that apps/api never imports drizzle-orm.
+ * All Drizzle access centralized here so apps/api never imports drizzle-orm directly.
  */
 
 import { and, eq, gt } from "drizzle-orm";
+import { Schema } from "effect";
 
 import type { DatabaseClient } from "@chevrotain/core/drizzle/index";
 import {
@@ -20,10 +19,21 @@ import {
 	mailOAuthState,
 	mailProviderState,
 } from "@chevrotain/core/mail/mail.sql";
+import {
+	CreateMailAccountInput,
+	CreateMailAccountSecretInput,
+	CreateMailOAuthStateInput,
+	MailAccountId,
+	MailAccountStatus,
+	UpdateMailAccountSecretInput,
+} from "@chevrotain/core/mail/schema";
 
-// ---------------------------------------------------------------------------
-// mail_account
-// ---------------------------------------------------------------------------
+const decodeCreateMailAccountInput = Schema.decodeUnknownSync(CreateMailAccountInput);
+const decodeCreateMailAccountSecretInput = Schema.decodeUnknownSync(CreateMailAccountSecretInput);
+const decodeCreateMailOAuthStateInput = Schema.decodeUnknownSync(CreateMailOAuthStateInput);
+const decodeMailAccountId = Schema.decodeUnknownSync(MailAccountId);
+const decodeMailAccountStatus = Schema.decodeUnknownSync(MailAccountStatus);
+const decodeUpdateMailAccountSecretInput = Schema.decodeUnknownSync(UpdateMailAccountSecretInput);
 
 export async function createMailAccount(
 	db: DatabaseClient,
@@ -41,9 +51,10 @@ export async function createMailAccount(
 		supportsServerSearch: boolean;
 	},
 ): Promise<void> {
+	const validatedValues = decodeCreateMailAccountInput(values);
 	const now = new Date();
 	await db.insert(mailAccount).values({
-		...values,
+		...validatedValues,
 		createdAt: now,
 		updatedAt: now,
 	});
@@ -67,15 +78,13 @@ export async function updateMailAccountStatus(
 	accountId: string,
 	status: string,
 ): Promise<void> {
+	const validatedAccountId = decodeMailAccountId(accountId);
+	const validatedStatus = decodeMailAccountStatus(status);
 	await db
 		.update(mailAccount)
-		.set({ status, updatedAt: new Date() })
-		.where(eq(mailAccount.id, accountId));
+		.set({ status: validatedStatus, updatedAt: new Date() })
+		.where(eq(mailAccount.id, validatedAccountId));
 }
-
-// ---------------------------------------------------------------------------
-// mail_account_secret
-// ---------------------------------------------------------------------------
 
 export async function createMailAccountSecret(
 	db: DatabaseClient,
@@ -86,9 +95,10 @@ export async function createMailAccountSecret(
 		encryptedDek: string;
 	},
 ): Promise<void> {
+	const validatedValues = decodeCreateMailAccountSecretInput(values);
 	const now = new Date();
 	await db.insert(mailAccountSecret).values({
-		...values,
+		...validatedValues,
 		createdAt: now,
 		updatedAt: now,
 	});
@@ -114,20 +124,18 @@ export async function updateMailAccountSecret(
 		encryptedDek: string;
 	},
 ): Promise<void> {
+	const validatedAccountId = decodeMailAccountId(accountId);
+	const validatedValues = decodeUpdateMailAccountSecretInput(values);
 	const now = new Date();
 	await db
 		.update(mailAccountSecret)
 		.set({
-			encryptedPayload: values.encryptedPayload,
-			encryptedDek: values.encryptedDek,
+			encryptedPayload: validatedValues.encryptedPayload,
+			encryptedDek: validatedValues.encryptedDek,
 			updatedAt: now,
 		})
-		.where(eq(mailAccountSecret.accountId, accountId));
+		.where(eq(mailAccountSecret.accountId, validatedAccountId));
 }
-
-// ---------------------------------------------------------------------------
-// mail_oauth_state
-// ---------------------------------------------------------------------------
 
 export async function createMailOAuthState(
 	db: DatabaseClient,
@@ -138,8 +146,9 @@ export async function createMailOAuthState(
 		expiresAt: Date;
 	},
 ): Promise<void> {
+	const validatedValues = decodeCreateMailOAuthStateInput(values);
 	await db.insert(mailOAuthState).values({
-		...values,
+		...validatedValues,
 		createdAt: new Date(),
 	});
 }
@@ -167,30 +176,17 @@ export async function consumeMailOAuthState(
 	return row;
 }
 
-// ---------------------------------------------------------------------------
-// Account disconnection (§25.11)
-// ---------------------------------------------------------------------------
-
 export async function disconnectMailAccount(db: DatabaseClient, accountId: string): Promise<void> {
-	// Set status to paused immediately
 	await db.update(mailAccount).set({ status: "paused" }).where(eq(mailAccount.id, accountId));
 
-	// Hard-delete in dependency order.
-	// Messages cascade to body_part, message_label, message_mailbox, attachment
-	// via FK ON DELETE CASCADE, so deleting messages cleans those up.
-	// Conversation labels/folders cascade from conversation via FK ON DELETE CASCADE.
 	await db.delete(mailMessage).where(eq(mailMessage.accountId, accountId));
 	await db.delete(mailConversation).where(eq(mailConversation.accountId, accountId));
 	await db.delete(mailFolder).where(eq(mailFolder.accountId, accountId));
 	await db.delete(mailLabel).where(eq(mailLabel.accountId, accountId));
 	await db.delete(mailIdentity).where(eq(mailIdentity.accountId, accountId));
-
-	// Backend-only data
 	await db.delete(mailAccountSecret).where(eq(mailAccountSecret.accountId, accountId));
 	await db.delete(mailAccountSyncState).where(eq(mailAccountSyncState.accountId, accountId));
 	await db.delete(mailFolderSyncState).where(eq(mailFolderSyncState.accountId, accountId));
 	await db.delete(mailProviderState).where(eq(mailProviderState.accountId, accountId));
-
-	// Finally, the account itself
 	await db.delete(mailAccount).where(eq(mailAccount.id, accountId));
 }

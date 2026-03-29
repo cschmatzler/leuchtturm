@@ -1,11 +1,10 @@
 import { Schema } from "effect";
 import { ulid } from "ulid";
 
+import { SessionId, UserId } from "@chevrotain/core/auth/schema";
 import { Ulid } from "@chevrotain/core/schema";
 
-// ---------------------------------------------------------------------------
-// ID types
-// ---------------------------------------------------------------------------
+const NullableString = Schema.NullOr(Schema.String);
 
 export const MailAccountId = Schema.TemplateLiteral(["mac_", Ulid]).pipe(
 	Schema.brand("MailAccountId"),
@@ -149,10 +148,6 @@ export function createMailOAuthStateId(): MailOAuthStateId {
 	return MailOAuthStateId.makeUnsafe(`mos_${ulid()}`);
 }
 
-// ---------------------------------------------------------------------------
-// Stored secret shape (encrypted in mail_account_secret)
-// ---------------------------------------------------------------------------
-
 export const StoredMailOAuthSecret = Schema.Struct({
 	accessToken: Schema.String,
 	refreshToken: Schema.optional(Schema.String),
@@ -160,48 +155,60 @@ export const StoredMailOAuthSecret = Schema.Struct({
 });
 export type StoredMailOAuthSecret = typeof StoredMailOAuthSecret.Type;
 
-// ---------------------------------------------------------------------------
-// Enums
-// ---------------------------------------------------------------------------
+export const MailProvider = Schema.Literals(["gmail", "icloud_imap"]);
+export type MailProvider = typeof MailProvider.Type;
 
-export type MailProvider = "gmail" | "icloud_imap";
+export const MailAccountStatus = Schema.Literals([
+	"connecting",
+	"bootstrapping",
+	"healthy",
+	"resyncing",
+	"degraded",
+	"requires_reauth",
+	"paused",
+]);
+export type MailAccountStatus = typeof MailAccountStatus.Type;
 
-export type MailAccountStatus =
-	| "connecting"
-	| "bootstrapping"
-	| "healthy"
-	| "resyncing"
-	| "degraded"
-	| "requires_reauth"
-	| "paused";
+export const MailFolderKind = Schema.Literals([
+	"inbox",
+	"sent",
+	"drafts",
+	"trash",
+	"spam",
+	"archive",
+	"all_mail",
+	"custom",
+]);
+export type MailFolderKind = typeof MailFolderKind.Type;
 
-export type MailFolderKind =
-	| "inbox"
-	| "sent"
-	| "drafts"
-	| "trash"
-	| "spam"
-	| "archive"
-	| "all_mail"
-	| "custom";
+export const MailLabelKind = Schema.Literals(["system", "user"]);
+export type MailLabelKind = typeof MailLabelKind.Type;
 
-export type MailLabelKind = "system" | "user";
+export const MailAuthKind = Schema.Literals(["oauth2", "app_password"]);
+export type MailAuthKind = typeof MailAuthKind.Type;
 
-export type MailAuthKind = "oauth2" | "app_password";
+export const MailSourceKind = Schema.Literals(["raw_mime", "gmail_raw_json", "gmail_full_message"]);
+export type MailSourceKind = typeof MailSourceKind.Type;
 
-export type MailSourceKind = "raw_mime" | "gmail_raw_json" | "gmail_full_message";
+export const MailStorageKind = Schema.Literals(["postgres", "s3", "r2", "filesystem"]);
+export type MailStorageKind = typeof MailStorageKind.Type;
 
-export type MailStorageKind = "postgres" | "s3" | "r2" | "filesystem";
+export const MailMirroredCoverageKind = Schema.Literals([
+	"full_thread",
+	"recent_only",
+	"headers_only",
+]);
+export type MailMirroredCoverageKind = typeof MailMirroredCoverageKind.Type;
 
-export type MailMirroredCoverageKind = "full_thread" | "recent_only" | "headers_only";
+export const MailParticipantSourceKind = Schema.Literals([
+	"derived_from_mail",
+	"imported_contact",
+	"user_edited",
+]);
+export type MailParticipantSourceKind = typeof MailParticipantSourceKind.Type;
 
-export type MailParticipantSourceKind = "derived_from_mail" | "imported_contact" | "user_edited";
-
-export type MailParticipantRole = "from" | "to" | "cc" | "bcc" | "reply_to";
-
-// ---------------------------------------------------------------------------
-// Value objects
-// ---------------------------------------------------------------------------
+export const MailParticipantRole = Schema.Literals(["from", "to", "cc", "bcc", "reply_to"]);
+export type MailParticipantRole = typeof MailParticipantRole.Type;
 
 export const EmailAddress = Schema.Struct({
 	name: Schema.optional(Schema.String),
@@ -209,10 +216,44 @@ export const EmailAddress = Schema.Struct({
 });
 export type EmailAddress = typeof EmailAddress.Type;
 
-// ---------------------------------------------------------------------------
-// Provider capability matrix (§10)
-// ---------------------------------------------------------------------------
+export const CreateMailAccountInput = Schema.Struct({
+	id: MailAccountId,
+	userId: UserId,
+	provider: MailProvider,
+	email: Schema.String,
+	displayName: NullableString,
+	status: MailAccountStatus,
+	supportsThreads: Schema.Boolean,
+	supportsLabels: Schema.Boolean,
+	supportsPushSync: Schema.Boolean,
+	supportsOauth: Schema.Boolean,
+	supportsServerSearch: Schema.Boolean,
+});
+export type CreateMailAccountInput = typeof CreateMailAccountInput.Type;
 
+export const CreateMailAccountSecretInput = Schema.Struct({
+	accountId: MailAccountId,
+	authKind: MailAuthKind,
+	encryptedPayload: Schema.String,
+	encryptedDek: Schema.String,
+});
+export type CreateMailAccountSecretInput = typeof CreateMailAccountSecretInput.Type;
+
+export const UpdateMailAccountSecretInput = Schema.Struct({
+	encryptedPayload: Schema.String,
+	encryptedDek: Schema.String,
+});
+export type UpdateMailAccountSecretInput = typeof UpdateMailAccountSecretInput.Type;
+
+export const CreateMailOAuthStateInput = Schema.Struct({
+	id: MailOAuthStateId,
+	userId: UserId,
+	sessionId: SessionId,
+	expiresAt: Schema.Date,
+});
+export type CreateMailOAuthStateInput = typeof CreateMailOAuthStateInput.Type;
+
+/** Provider capability matrix (§10) */
 export interface ProviderCapabilities {
 	readonly supportsThreads: boolean;
 	readonly supportsLabels: boolean;
@@ -246,19 +287,16 @@ export function getProviderCapabilities(provider: MailProvider): ProviderCapabil
 	}
 }
 
-// ---------------------------------------------------------------------------
-// Gmail label → folder mapping (§25.1)
-// ---------------------------------------------------------------------------
-
+/** Gmail label → folder mapping (§25.1) */
 const GMAIL_SYSTEM_LABEL_TO_FOLDER_KIND: Partial<Record<string, MailFolderKind>> = {
 	INBOX: "inbox",
 	SENT: "sent",
 	DRAFT: "drafts",
 	TRASH: "trash",
 	SPAM: "spam",
-	UNREAD: "inbox", // not a folder
-	STARRED: "inbox", // not a folder
-	IMPORTANT: "inbox", // not a folder
+	UNREAD: "inbox",
+	STARRED: "inbox",
+	IMPORTANT: "inbox",
 };
 
 const GMAIL_FOLDER_LABELS = new Set(["INBOX", "SENT", "DRAFT", "TRASH", "SPAM"]);

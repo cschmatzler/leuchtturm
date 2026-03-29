@@ -1,4 +1,8 @@
-## Vite+ Toolchain
+# Workflow
+
+- Never try to generate migrations yourself. Tell the user to.
+
+# Vite+ Toolchain
 
 Unified toolchain (Vite + Rolldown + Vitest + Oxlint + Oxfmt):
 
@@ -24,7 +28,6 @@ import { defineConfig } from "vite-plus";
 
 Always run `vp check` and `vp test` after making changes.
 
-<cog>
 # Cog
 
 Code intelligence, persistent memory, and interactive debugging.
@@ -194,3 +197,4 @@ skills:
 - task: "TanStack Router config, route generation, code splitting, Vite router plugin setup"
 load: "node_modules/@tanstack/router-plugin/skills/router-plugin/SKILL.md"
 <!-- intent-skills:end -->
+

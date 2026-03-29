@@ -84,16 +84,3 @@ export const Verification = Schema.Struct({
 });
 
 export type Verification = typeof Verification.Type;
-
-export const JWKSId = Schema.TemplateLiteral(["jwk_", Ulid]).pipe(Schema.brand("JWKSId"));
-
-export type JWKSId = typeof JWKSId.Type;
-
-export const JWKS = Schema.Struct({
-	id: JWKSId,
-	publicKey: Schema.String,
-	privateKey: Schema.String,
-	createdAt: Schema.Date,
-});
-
-export type JWKS = typeof JWKS.Type;

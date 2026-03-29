@@ -13,10 +13,6 @@ import {
 
 import { type SupportedLanguage } from "@chevrotain/core/i18n";
 
-// ---------------------------------------------------------------------------
-// Tables
-// ---------------------------------------------------------------------------
-
 const user = table("user")
 	.columns({
 		id: string(),
@@ -130,6 +126,7 @@ const mailConversation = table("mail_conversation")
 
 const mailConversationLabel = table("mail_conversation_label")
 	.columns({
+		accountId: string().from("account_id"),
 		userId: string().from("user_id"),
 		conversationId: string().from("conversation_id"),
 		labelId: string().from("label_id"),
@@ -140,6 +137,7 @@ const mailConversationLabel = table("mail_conversation_label")
 
 const mailConversationFolder = table("mail_conversation_folder")
 	.columns({
+		accountId: string().from("account_id"),
 		userId: string().from("user_id"),
 		conversationId: string().from("conversation_id"),
 		folderId: string().from("folder_id"),
@@ -207,6 +205,7 @@ const mailMessageBodyPart = table("mail_message_body_part")
 
 const mailMessageLabel = table("mail_message_label")
 	.columns({
+		accountId: string().from("account_id"),
 		userId: string().from("user_id"),
 		messageId: string().from("message_id"),
 		labelId: string().from("label_id"),
@@ -247,6 +246,7 @@ const mailParticipant = table("mail_participant")
 const mailMessageParticipant = table("mail_message_participant")
 	.columns({
 		id: string(),
+		userId: string().from("user_id"),
 		messageId: string().from("message_id"),
 		participantId: string().from("participant_id"),
 		role: string(),
@@ -271,10 +271,6 @@ const mailAttachment = table("mail_attachment")
 		updatedAt: number().from("updated_at"),
 	})
 	.primaryKey("id");
-
-// ---------------------------------------------------------------------------
-// Relationships
-// ---------------------------------------------------------------------------
 
 const userMailAccounts = relationships(user, ({ many }) => ({
 	mailAccounts: many({
@@ -541,10 +537,6 @@ const mailAttachmentRelationships = relationships(mailAttachment, ({ one }) => (
 		destSchema: mailMessage,
 	}),
 }));
-
-// ---------------------------------------------------------------------------
-// Schema
-// ---------------------------------------------------------------------------
 
 export const schema = createSchema({
 	tables: [

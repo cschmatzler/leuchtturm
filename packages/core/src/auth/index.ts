@@ -9,7 +9,6 @@ import { ulid } from "ulid";
 import * as schema from "@chevrotain/core/auth/auth.sql";
 import {
 	AccountId,
-	JWKSId,
 	PASSWORD_MIN_LENGTH,
 	Session,
 	SessionId,
@@ -180,8 +179,6 @@ export namespace Auth {
 									return SessionId.makeUnsafe(`ses_${ulid()}`);
 								case "verification":
 									return VerificationId.makeUnsafe(`ver_${ulid()}`);
-								case "jwks":
-									return JWKSId.makeUnsafe(`jwk_${ulid()}`);
 								default:
 									throw new Error(`Unknown auth model: ${model}`);
 							}

@@ -1,15 +1,8 @@
 /**
  * Envelope encryption for mail account secrets (§11.2, §36).
- *
- * Each secret row gets a random per-row data encryption key (DEK).
- * The DEK encrypts the actual secret payload (OAuth tokens, app passwords).
- * The DEK itself is encrypted (wrapped) with a key encryption key (KEK)
- * loaded from the environment.
- *
- * Format for both encrypted_dek and encrypted_payload:
- *   base64(nonce[12] + ciphertext + authTag[16])
- *
- * Algorithm: AES-256-GCM throughout.
+ * Each row gets a random DEK that encrypts the payload; the DEK itself is encrypted with a KEK from env.
+ * Format: base64(nonce[12] + ciphertext + authTag[16])
+ * Algorithm: AES-256-GCM
  */
 
 import { Config, Effect, Layer, Redacted, ServiceMap } from "effect";
@@ -33,10 +26,6 @@ function parseMailKek(raw: string): Buffer {
 	throw new Error("MAIL_KEK must be either a 64-character hex string or a 32-byte raw string");
 }
 
-// ---------------------------------------------------------------------------
-// Low-level crypto helpers
-// ---------------------------------------------------------------------------
-
 function encryptRaw(key: Buffer, plaintext: Buffer): string {
 	const nonce = randomBytes(NONCE_LENGTH);
 	const cipher = createCipheriv(ALGORITHM, key, nonce);
@@ -55,10 +44,6 @@ function decryptRaw(key: Buffer, encoded: string): Buffer {
 	return Buffer.concat([decipher.update(ciphertext), decipher.final()]);
 }
 
-// ---------------------------------------------------------------------------
-// Envelope encryption operations
-// ---------------------------------------------------------------------------
-
 export interface EncryptedSecret {
 	readonly encryptedDek: string;
 	readonly encryptedPayload: string;
@@ -76,10 +61,6 @@ function envelopeDecrypt(kek: Buffer, encrypted: EncryptedSecret): string {
 	const payload = decryptRaw(dek, encrypted.encryptedPayload);
 	return payload.toString("utf-8");
 }
-
-// ---------------------------------------------------------------------------
-// Effect service
-// ---------------------------------------------------------------------------
 
 export namespace MailEncryption {
 	export interface Interface {

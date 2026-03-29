@@ -1,98 +1,112 @@
 /**
  * Provider adapter boundary (§3.1, §9).
- *
- * Each provider implements this interface. The sync layer calls the adapter
- * to fetch normalized data from the provider, then writes it to the canonical
- * Drizzle schema.
  */
 
-import type { MailFolderKind, MailLabelKind } from "@chevrotain/core/mail/schema";
+import { Schema } from "effect";
+
+import { EmailAddress, MailFolderKind, MailLabelKind } from "@chevrotain/core/mail/schema";
 
 // ---------------------------------------------------------------------------
 // Normalized types returned by provider adapters
 // ---------------------------------------------------------------------------
 
-export interface ProviderEmailAddress {
-	readonly name?: string;
-	readonly address: string;
-}
+export const ProviderEmailAddress = EmailAddress;
+export type ProviderEmailAddress = typeof ProviderEmailAddress.Type;
 
-export interface ProviderFolder {
-	readonly providerRef: string;
-	readonly kind: MailFolderKind;
-	readonly name: string;
-	readonly path?: string;
-	readonly delimiter?: string;
-	readonly isSelectable: boolean;
-}
+export const ProviderFolder = Schema.Struct({
+	providerRef: Schema.String,
+	kind: MailFolderKind,
+	name: Schema.String,
+	path: Schema.optional(Schema.String),
+	delimiter: Schema.optional(Schema.String),
+	isSelectable: Schema.Boolean,
+});
+export type ProviderFolder = typeof ProviderFolder.Type;
 
-export interface ProviderLabel {
-	readonly providerRef: string;
-	readonly name: string;
-	readonly path?: string;
-	readonly delimiter?: string;
-	readonly color?: string;
-	readonly kind: MailLabelKind;
-}
+export const ProviderLabel = Schema.Struct({
+	providerRef: Schema.String,
+	name: Schema.String,
+	path: Schema.optional(Schema.String),
+	delimiter: Schema.optional(Schema.String),
+	color: Schema.optional(Schema.String),
+	kind: MailLabelKind,
+});
+export type ProviderLabel = typeof ProviderLabel.Type;
 
-export interface ProviderAttachment {
-	readonly providerRef?: string;
-	readonly filename?: string;
-	readonly mimeType?: string;
-	readonly size?: number;
-	readonly isInline: boolean;
-	readonly contentId?: string;
-}
+export const ProviderAttachment = Schema.Struct({
+	providerRef: Schema.optional(Schema.String),
+	filename: Schema.optional(Schema.String),
+	mimeType: Schema.optional(Schema.String),
+	size: Schema.optional(Schema.Number),
+	isInline: Schema.Boolean,
+	contentId: Schema.optional(Schema.String),
+});
+export type ProviderAttachment = typeof ProviderAttachment.Type;
 
-export interface ProviderBodyPart {
-	readonly contentType: "text/plain" | "text/html";
-	readonly content: string;
-}
+export const ProviderBodyPart = Schema.Struct({
+	contentType: Schema.Literals(["text/plain", "text/html"]),
+	content: Schema.String,
+});
+export type ProviderBodyPart = typeof ProviderBodyPart.Type;
 
-export interface ProviderMessageHeaders {
-	readonly replyTo?: ProviderEmailAddress[];
-	readonly inReplyTo?: string;
-	readonly references?: string;
-	readonly listUnsubscribe?: string;
-	readonly listUnsubscribePost?: string;
-}
+export const ProviderMessageHeaders = Schema.Struct({
+	replyTo: Schema.optional(Schema.Array(ProviderEmailAddress)),
+	inReplyTo: Schema.optional(Schema.String),
+	references: Schema.optional(Schema.String),
+	listUnsubscribe: Schema.optional(Schema.String),
+	listUnsubscribePost: Schema.optional(Schema.String),
+});
+export type ProviderMessageHeaders = typeof ProviderMessageHeaders.Type;
 
-export interface ProviderMessage {
-	readonly providerRef: string;
-	readonly internetMessageId?: string;
-	readonly threadRef?: string;
-	readonly subject?: string;
-	readonly snippet?: string;
-	readonly sender?: ProviderEmailAddress;
-	readonly toRecipients?: ProviderEmailAddress[];
-	readonly ccRecipients?: ProviderEmailAddress[];
-	readonly bccRecipients?: ProviderEmailAddress[];
-	readonly sentAt?: Date;
-	readonly receivedAt?: Date;
-	readonly isUnread: boolean;
-	readonly isStarred: boolean;
-	readonly isDraft: boolean;
-	readonly labelRefs?: string[];
-	readonly headers?: ProviderMessageHeaders;
-	readonly bodyParts: ProviderBodyPart[];
-	readonly attachments: ProviderAttachment[];
-}
+export const ProviderMessage = Schema.Struct({
+	providerRef: Schema.String,
+	internetMessageId: Schema.optional(Schema.String),
+	threadRef: Schema.optional(Schema.String),
+	subject: Schema.optional(Schema.String),
+	snippet: Schema.optional(Schema.String),
+	sender: Schema.optional(ProviderEmailAddress),
+	toRecipients: Schema.optional(Schema.Array(ProviderEmailAddress)),
+	ccRecipients: Schema.optional(Schema.Array(ProviderEmailAddress)),
+	bccRecipients: Schema.optional(Schema.Array(ProviderEmailAddress)),
+	sentAt: Schema.optional(Schema.Date),
+	receivedAt: Schema.optional(Schema.Date),
+	isUnread: Schema.Boolean,
+	isStarred: Schema.Boolean,
+	isDraft: Schema.Boolean,
+	labelRefs: Schema.optional(Schema.Array(Schema.String)),
+	headers: Schema.optional(ProviderMessageHeaders),
+	bodyParts: Schema.Array(ProviderBodyPart),
+	attachments: Schema.Array(ProviderAttachment),
+});
+export type ProviderMessage = typeof ProviderMessage.Type;
 
-export interface ProviderThread {
-	readonly providerRef: string;
-	readonly messages: ProviderMessage[];
-}
+export const ProviderThread = Schema.Struct({
+	providerRef: Schema.String,
+	messages: Schema.Array(ProviderMessage),
+});
+export type ProviderThread = typeof ProviderThread.Type;
 
 // ---------------------------------------------------------------------------
 // Incremental sync changes
 // ---------------------------------------------------------------------------
 
-export interface ProviderHistoryChange {
-	readonly messagesAdded: ProviderMessage[];
-	readonly messagesDeleted: string[]; // provider message refs
-	readonly labelsAdded: Array<{ messageRef: string; labelRefs: string[] }>;
-	readonly labelsRemoved: Array<{ messageRef: string; labelRefs: string[] }>;
-}
+export const ProviderHistoryChange = Schema.Struct({
+	messagesAdded: Schema.Array(ProviderMessage),
+	messagesDeleted: Schema.Array(Schema.String),
+	labelsAdded: Schema.Array(
+		Schema.Struct({
+			messageRef: Schema.String,
+			labelRefs: Schema.Array(Schema.String),
+		}),
+	),
+	labelsRemoved: Schema.Array(
+		Schema.Struct({
+			messageRef: Schema.String,
+			labelRefs: Schema.Array(Schema.String),
+		}),
+	),
+});
+export type ProviderHistoryChange = typeof ProviderHistoryChange.Type;
 
 // ---------------------------------------------------------------------------
 // Provider adapter interface

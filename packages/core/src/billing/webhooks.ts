@@ -3,6 +3,7 @@ import type { CustomerState } from "@polar-sh/sdk/models/components/customerstat
 import type { Order } from "@polar-sh/sdk/models/components/order";
 import type { Subscription } from "@polar-sh/sdk/models/components/subscription";
 import { eq } from "drizzle-orm";
+import { Schema } from "effect";
 
 import { user } from "@chevrotain/core/auth/auth.sql";
 import {
@@ -10,11 +11,46 @@ import {
 	billingOrder,
 	billingSubscription,
 } from "@chevrotain/core/billing/billing.sql";
+import {
+	BillingCustomerSnapshotRow,
+	BillingOrderSnapshotRow,
+	BillingSubscriptionSnapshotRow,
+} from "@chevrotain/core/billing/schema";
 import type { DatabaseClient } from "@chevrotain/core/drizzle/index";
 import { BillingError } from "@chevrotain/core/errors";
 
 function serializeSnapshot(value: unknown) {
 	return JSON.stringify(value);
+}
+
+function decodeBillingCustomerSnapshot(values: unknown): BillingCustomerSnapshotRow {
+	try {
+		return Schema.decodeUnknownSync(BillingCustomerSnapshotRow)(values);
+	} catch (error) {
+		throw new BillingError({
+			message: `Invalid billing customer snapshot payload: ${error instanceof Error ? error.message : String(error)}`,
+		});
+	}
+}
+
+function decodeBillingSubscriptionSnapshot(values: unknown): BillingSubscriptionSnapshotRow {
+	try {
+		return Schema.decodeUnknownSync(BillingSubscriptionSnapshotRow)(values);
+	} catch (error) {
+		throw new BillingError({
+			message: `Invalid billing subscription snapshot payload: ${error instanceof Error ? error.message : String(error)}`,
+		});
+	}
+}
+
+function decodeBillingOrderSnapshot(values: unknown): BillingOrderSnapshotRow {
+	try {
+		return Schema.decodeUnknownSync(BillingOrderSnapshotRow)(values);
+	} catch (error) {
+		throw new BillingError({
+			message: `Invalid billing order snapshot payload: ${error instanceof Error ? error.message : String(error)}`,
+		});
+	}
 }
 
 export function assertPolarCustomer(
@@ -89,9 +125,11 @@ export function makePolarWebhookHandlers(
 			syncedAt: new Date(),
 		};
 
-		await db.insert(billingCustomer).values(nextValues).onConflictDoUpdate({
+		const persistedValues = decodeBillingCustomerSnapshot(nextValues);
+
+		await db.insert(billingCustomer).values(persistedValues).onConflictDoUpdate({
 			target: billingCustomer.userId,
-			set: nextValues,
+			set: persistedValues,
 		});
 	}
 
@@ -126,9 +164,11 @@ export function makePolarWebhookHandlers(
 			syncedAt: new Date(),
 		};
 
-		await db.insert(billingSubscription).values(nextValues).onConflictDoUpdate({
+		const persistedValues = decodeBillingSubscriptionSnapshot(nextValues);
+
+		await db.insert(billingSubscription).values(persistedValues).onConflictDoUpdate({
 			target: billingSubscription.id,
-			set: nextValues,
+			set: persistedValues,
 		});
 	}
 
@@ -157,9 +197,11 @@ export function makePolarWebhookHandlers(
 			syncedAt: new Date(),
 		};
 
-		await db.insert(billingOrder).values(nextValues).onConflictDoUpdate({
+		const persistedValues = decodeBillingOrderSnapshot(nextValues);
+
+		await db.insert(billingOrder).values(persistedValues).onConflictDoUpdate({
 			target: billingOrder.id,
-			set: nextValues,
+			set: persistedValues,
 		});
 	}
 

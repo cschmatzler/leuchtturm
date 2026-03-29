@@ -11,6 +11,7 @@ import type {
 	ProviderAttachment,
 	ProviderBodyPart,
 	ProviderEmailAddress,
+	ProviderFolder,
 	ProviderHistoryChange,
 	ProviderLabel,
 	ProviderMessage,
@@ -423,14 +424,17 @@ export class GmailAdapter implements MailProviderAdapter {
 // Export folder mapping for sync layer
 // ---------------------------------------------------------------------------
 
-export function getGmailFolders(
-	labels: ProviderLabel[],
-): Array<{ providerRef: string; kind: MailFolderKind; name: string }> {
-	const folders: Array<{ providerRef: string; kind: MailFolderKind; name: string }> = [];
+export function getGmailFolders(labels: readonly ProviderLabel[]): ProviderFolder[] {
+	const folders: ProviderFolder[] = [];
 	for (const label of labels) {
 		const kind = GMAIL_LABEL_FOLDER_MAP[label.providerRef];
 		if (kind) {
-			folders.push({ providerRef: label.providerRef, kind, name: label.name });
+			folders.push({
+				providerRef: label.providerRef,
+				kind,
+				name: label.name,
+				isSelectable: true,
+			});
 		}
 	}
 	return folders;

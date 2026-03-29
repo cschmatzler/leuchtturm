@@ -11,7 +11,7 @@
 
 import { and, desc, eq } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
-import { Effect } from "effect";
+import { Effect, Schema } from "effect";
 
 import { Database } from "@chevrotain/core/drizzle/index";
 import type { allRelations } from "@chevrotain/core/drizzle/relations";
@@ -31,7 +31,9 @@ import {
 	mailMessageMailbox,
 	mailAccountSyncState,
 } from "@chevrotain/core/mail/mail.sql";
-import type {
+import {
+	ProviderFolder,
+	ProviderHistoryChange,
 	ProviderLabel,
 	ProviderMessage,
 	ProviderThread,
@@ -48,6 +50,12 @@ import {
 } from "@chevrotain/core/mail/schema";
 
 type SyncDatabaseClient = NodePgDatabase<Record<string, never>, typeof allRelations>;
+
+const decodeProviderFolders = Schema.decodeUnknownSync(Schema.Array(ProviderFolder));
+const decodeProviderHistoryChange = Schema.decodeUnknownSync(ProviderHistoryChange);
+const decodeProviderLabels = Schema.decodeUnknownSync(Schema.Array(ProviderLabel));
+const decodeProviderMessage = Schema.decodeUnknownSync(ProviderMessage);
+const decodeProviderThreads = Schema.decodeUnknownSync(Schema.Array(ProviderThread));
 
 // ---------------------------------------------------------------------------
 // Sync entry point
@@ -88,7 +96,7 @@ function bootstrapGmailAccountImpl(db: SyncDatabaseClient, accountId: string, ac
 			);
 
 			const adapter = new GmailAdapter(accessToken);
-			const labels = yield* Effect.tryPromise(() => adapter.listLabels());
+			const labels = decodeProviderLabels(yield* Effect.tryPromise(() => adapter.listLabels()));
 			yield* syncLabels(db, account.userId, accountId, labels);
 
 			const folders = getGmailFolders(labels);
@@ -163,6 +171,7 @@ function incrementalGmailSyncImpl(db: SyncDatabaseClient, accountId: string, acc
 		const { changes, newCursor, cursorExpired } = yield* Effect.tryPromise(() =>
 			adapter.getHistoryChanges(startHistoryId),
 		);
+		const validatedChanges = decodeProviderHistoryChange(changes);
 
 		if (cursorExpired) {
 			yield* Effect.tryPromise(() =>
@@ -172,25 +181,25 @@ function incrementalGmailSyncImpl(db: SyncDatabaseClient, accountId: string, acc
 			return;
 		}
 
-		for (const message of changes.messagesAdded) {
+		for (const message of validatedChanges.messagesAdded) {
 			yield* upsertMessage(db, account.userId, accountId, message);
 		}
 
-		for (const deletedRef of changes.messagesDeleted) {
+		for (const deletedRef of validatedChanges.messagesDeleted) {
 			yield* deleteMessageByProviderRef(db, accountId, deletedRef);
 		}
 
-		for (const { messageRef, labelRefs } of changes.labelsAdded) {
+		for (const { messageRef, labelRefs } of validatedChanges.labelsAdded) {
 			yield* addMessageLabels(db, account.userId, accountId, messageRef, labelRefs);
 		}
 
-		for (const { messageRef, labelRefs } of changes.labelsRemoved) {
+		for (const { messageRef, labelRefs } of validatedChanges.labelsRemoved) {
 			yield* removeMessageLabels(db, accountId, messageRef, labelRefs);
 		}
 
 		yield* upsertSyncCursor(db, accountId, newCursor);
 
-		const labels = yield* Effect.tryPromise(() => adapter.listLabels());
+		const labels = decodeProviderLabels(yield* Effect.tryPromise(() => adapter.listLabels()));
 		yield* syncLabels(db, account.userId, accountId, labels);
 
 		// Update account health metadata
@@ -221,7 +230,7 @@ async function boundedResyncImpl(
 	adapter: GmailAdapter,
 ): Promise<void> {
 	const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-	const threads = await adapter.listRecentThreads(cutoff);
+	const threads = decodeProviderThreads(await adapter.listRecentThreads(cutoff));
 
 	// Upsert — repair recent authoritative slice without deleting older mirrored mail
 	for (const thread of threads) {
@@ -251,13 +260,14 @@ function syncLabels(
 	db: SyncDatabaseClient,
 	userId: string,
 	accountId: string,
-	labels: ProviderLabel[],
+	labels: readonly ProviderLabel[],
 ) {
 	return Effect.tryPromise(async () => {
+		const validatedLabels = decodeProviderLabels(labels);
 		const now = new Date();
 
 		// First pass: upsert all labels
-		for (const label of labels) {
+		for (const label of validatedLabels) {
 			const depth = label.path ? label.path.split(label.delimiter ?? "/").length - 1 : 0;
 			await db
 				.insert(mailLabel)
@@ -304,7 +314,7 @@ function syncLabels(
 
 		const pathToId = new Map(dbLabels.filter((l) => l.path).map((l) => [l.path!, l.id]));
 
-		for (const label of labels) {
+		for (const label of validatedLabels) {
 			if (!label.path || !label.delimiter) continue;
 			const segments = label.path.split(label.delimiter);
 			if (segments.length <= 1) continue;
@@ -327,11 +337,12 @@ function syncFolders(
 	db: SyncDatabaseClient,
 	userId: string,
 	accountId: string,
-	folders: Array<{ providerRef: string; kind: string; name: string }>,
+	folders: readonly ProviderFolder[],
 ) {
 	return Effect.tryPromise(async () => {
+		const validatedFolders = decodeProviderFolders(folders);
 		const now = new Date();
-		for (const folder of folders) {
+		for (const folder of validatedFolders) {
 			await db
 				.insert(mailFolder)
 				.values({
@@ -341,7 +352,7 @@ function syncFolders(
 					providerFolderRef: folder.providerRef,
 					kind: folder.kind,
 					name: folder.name,
-					isSelectable: true,
+					isSelectable: folder.isSelectable,
 					createdAt: now,
 					updatedAt: now,
 				})
@@ -351,7 +362,12 @@ function syncFolders(
 						eq(mailFolder.accountId, accountId),
 						eq(mailFolder.providerFolderRef, folder.providerRef),
 					),
-					set: { name: folder.name, kind: folder.kind, updatedAt: now },
+					set: {
+						name: folder.name,
+						kind: folder.kind,
+						isSelectable: folder.isSelectable,
+						updatedAt: now,
+					},
 				});
 		}
 	});
@@ -361,17 +377,17 @@ function syncThreads(
 	db: SyncDatabaseClient,
 	userId: string,
 	accountId: string,
-	threads: ProviderThread[],
+	threads: readonly ProviderThread[],
 ) {
 	return Effect.tryPromise(async () => {
-		for (const thread of threads) {
+		for (const thread of decodeProviderThreads(threads)) {
 			await syncThreadImpl(db, userId, accountId, thread);
 		}
 	});
 }
 
 function collectParticipants(
-	messages: ProviderMessage[],
+	messages: readonly ProviderMessage[],
 ): Array<{ name?: string; address: string }> {
 	const seen = new Set<string>();
 	const participants: Array<{ name?: string; address: string }> = [];
@@ -454,7 +470,9 @@ function upsertMessage(
 	accountId: string,
 	message: ProviderMessage,
 ) {
-	return Effect.tryPromise(() => upsertMessageImpl(db, userId, accountId, message));
+	return Effect.tryPromise(() =>
+		upsertMessageImpl(db, userId, accountId, decodeProviderMessage(message)),
+	);
 }
 
 async function ensureConversationForMessage(
@@ -578,7 +596,7 @@ async function recomputeConversationStats(
 async function recomputeConversationProjections(
 	db: SyncDatabaseClient,
 	userId: string,
-	_accountId: string,
+	accountId: string,
 	conversationId: string,
 ): Promise<void> {
 	const now = new Date();
@@ -612,7 +630,7 @@ async function recomputeConversationProjections(
 	for (const labelId of labelIdSet) {
 		await db
 			.insert(mailConversationLabel)
-			.values({ userId, conversationId, labelId, createdAt: now, updatedAt: now })
+			.values({ accountId, userId, conversationId, labelId, createdAt: now, updatedAt: now })
 			.onConflictDoNothing();
 	}
 
@@ -635,7 +653,7 @@ async function recomputeConversationProjections(
 	for (const folderId of folderIdSet) {
 		await db
 			.insert(mailConversationFolder)
-			.values({ userId, conversationId, folderId, createdAt: now, updatedAt: now })
+			.values({ accountId, userId, conversationId, folderId, createdAt: now, updatedAt: now })
 			.onConflictDoNothing();
 	}
 }
@@ -818,7 +836,7 @@ async function syncMessageLabelsImpl(
 	userId: string,
 	accountId: string,
 	messageId: string,
-	labelRefs: string[],
+	labelRefs: readonly string[],
 ): Promise<void> {
 	const now = new Date();
 
@@ -839,7 +857,7 @@ async function syncMessageLabelsImpl(
 		if (labelId) {
 			await db
 				.insert(mailMessageLabel)
-				.values({ userId, messageId, labelId, createdAt: now, updatedAt: now })
+				.values({ accountId, userId, messageId, labelId, createdAt: now, updatedAt: now })
 				.onConflictDoNothing();
 		}
 	}
@@ -850,7 +868,7 @@ async function syncMessageFolderMembershipImpl(
 	userId: string,
 	accountId: string,
 	messageId: string,
-	labelRefs: string[],
+	labelRefs: readonly string[],
 ): Promise<void> {
 	const now = new Date();
 
@@ -916,7 +934,7 @@ function addMessageLabels(
 	userId: string,
 	accountId: string,
 	messageRef: string,
-	labelRefs: string[],
+	labelRefs: readonly string[],
 ) {
 	return Effect.tryPromise(async () => {
 		const [msg] = await db
@@ -942,7 +960,14 @@ function addMessageLabels(
 			if (labelId) {
 				await db
 					.insert(mailMessageLabel)
-					.values({ userId, messageId: msg.id, labelId, createdAt: now, updatedAt: now })
+					.values({
+						accountId,
+						userId,
+						messageId: msg.id,
+						labelId,
+						createdAt: now,
+						updatedAt: now,
+					})
 					.onConflictDoNothing();
 			}
 		}
@@ -974,7 +999,7 @@ function removeMessageLabels(
 	db: SyncDatabaseClient,
 	accountId: string,
 	messageRef: string,
-	labelRefs: string[],
+	labelRefs: readonly string[],
 ) {
 	return Effect.tryPromise(async () => {
 		const [msg] = await db

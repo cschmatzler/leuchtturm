@@ -1,7 +1,5 @@
 /**
- * Mail API handlers.
- *
- * Handles Gmail OAuth2 connection flow and account disconnection.
+ * Gmail OAuth2 connection flow, account disconnection.
  * Sync orchestration is delegated to durable workflows.
  */
 

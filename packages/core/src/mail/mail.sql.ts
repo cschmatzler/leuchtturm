@@ -1,6 +1,7 @@
 import {
 	boolean,
 	char,
+	foreignKey,
 	index,
 	integer,
 	jsonb,
@@ -14,10 +15,7 @@ import {
 
 import { session, user } from "@chevrotain/core/auth/auth.sql";
 
-// ---------------------------------------------------------------------------
-// §11.1 mail_account
-// ---------------------------------------------------------------------------
-
+/** §11.1 */
 export const mailAccount = pgTable(
 	"mail_account",
 	{
@@ -25,19 +23,15 @@ export const mailAccount = pgTable(
 		userId: char("user_id", { length: 30 })
 			.notNull()
 			.references(() => user.id, { onDelete: "cascade" }),
-		provider: text("provider").notNull(), // "gmail" | "icloud_imap"
+		provider: text("provider").notNull(),
 		email: text("email").notNull(),
 		displayName: text("display_name"),
-		status: text("status").notNull().default("connecting"), // connecting | bootstrapping | healthy | resyncing | degraded | requires_reauth | paused
-
-		// Capability flags (§10)
+		status: text("status").notNull().default("connecting"),
 		supportsThreads: boolean("supports_threads").notNull().default(false),
 		supportsLabels: boolean("supports_labels").notNull().default(false),
 		supportsPushSync: boolean("supports_push_sync").notNull().default(false),
 		supportsOauth: boolean("supports_oauth").notNull().default(false),
 		supportsServerSearch: boolean("supports_server_search").notNull().default(false),
-
-		// Coverage and health metadata
 		bootstrapCutoffAt: timestamp("bootstrap_cutoff_at"),
 		bootstrapCompletedAt: timestamp("bootstrap_completed_at"),
 		lastSuccessfulSyncAt: timestamp("last_successful_sync_at"),
@@ -45,7 +39,6 @@ export const mailAccount = pgTable(
 		lastErrorCode: text("last_error_code"),
 		lastErrorMessage: text("last_error_message"),
 		degradedReason: text("degraded_reason"),
-
 		createdAt: timestamp("created_at").notNull(),
 		updatedAt: timestamp("updated_at")
 			.$onUpdate(() => new Date())
@@ -54,30 +47,25 @@ export const mailAccount = pgTable(
 	(table) => [
 		index("mail_account_user_id_idx").on(table.userId),
 		unique("mail_account_user_id_email_uniq").on(table.userId, table.email),
+		unique("mail_account_id_user_id_uniq").on(table.id, table.userId),
 	],
 );
 
-// ---------------------------------------------------------------------------
-// §11.2 mail_account_secret (backend-only, NOT in Zero)
-// ---------------------------------------------------------------------------
-
+/** §11.2 backend-only */
 export const mailAccountSecret = pgTable("mail_account_secret", {
 	accountId: char("account_id", { length: 30 })
 		.primaryKey()
 		.references(() => mailAccount.id, { onDelete: "cascade" }),
-	authKind: text("auth_kind").notNull(), // "oauth2" | "app_password"
-	encryptedPayload: text("encrypted_payload").notNull(), // base64(nonce + ciphertext + tag)
-	encryptedDek: text("encrypted_dek").notNull(), // base64(nonce + ciphertext + tag)
+	authKind: text("auth_kind").notNull(),
+	encryptedPayload: text("encrypted_payload").notNull(),
+	encryptedDek: text("encrypted_dek").notNull(),
 	createdAt: timestamp("created_at").notNull(),
 	updatedAt: timestamp("updated_at")
 		.$onUpdate(() => new Date())
 		.notNull(),
 });
 
-// ---------------------------------------------------------------------------
-// §11.2a mail_oauth_state (backend-only, NOT in Zero)
-// ---------------------------------------------------------------------------
-
+/** §11.2a backend-only */
 export const mailOAuthState = pgTable(
 	"mail_oauth_state",
 	{
@@ -97,10 +85,7 @@ export const mailOAuthState = pgTable(
 	],
 );
 
-// ---------------------------------------------------------------------------
-// §11.2b mail_identity
-// ---------------------------------------------------------------------------
-
+/** §11.2b */
 export const mailIdentity = pgTable(
 	"mail_identity",
 	{
@@ -108,9 +93,7 @@ export const mailIdentity = pgTable(
 		userId: char("user_id", { length: 30 })
 			.notNull()
 			.references(() => user.id, { onDelete: "cascade" }),
-		accountId: char("account_id", { length: 30 })
-			.notNull()
-			.references(() => mailAccount.id, { onDelete: "cascade" }),
+		accountId: char("account_id", { length: 30 }).notNull(),
 		address: text("address").notNull(),
 		displayName: text("display_name"),
 		isPrimary: boolean("is_primary").notNull().default(false),
@@ -125,13 +108,15 @@ export const mailIdentity = pgTable(
 		index("mail_identity_user_id_idx").on(table.userId),
 		index("mail_identity_account_id_idx").on(table.accountId),
 		unique("mail_identity_account_address_uniq").on(table.accountId, table.address),
+		foreignKey({
+			name: "mail_identity_account_user_fkey",
+			columns: [table.accountId, table.userId],
+			foreignColumns: [mailAccount.id, mailAccount.userId],
+		}).onDelete("cascade"),
 	],
 );
 
-// ---------------------------------------------------------------------------
-// §11.3 mail_folder
-// ---------------------------------------------------------------------------
-
+/** §11.3 */
 export const mailFolder = pgTable(
 	"mail_folder",
 	{
@@ -139,11 +124,9 @@ export const mailFolder = pgTable(
 		userId: char("user_id", { length: 30 })
 			.notNull()
 			.references(() => user.id, { onDelete: "cascade" }),
-		accountId: char("account_id", { length: 30 })
-			.notNull()
-			.references(() => mailAccount.id, { onDelete: "cascade" }),
+		accountId: char("account_id", { length: 30 }).notNull(),
 		providerFolderRef: text("provider_folder_ref").notNull(),
-		kind: text("kind").notNull(), // inbox | sent | drafts | trash | spam | archive | all_mail | custom
+		kind: text("kind").notNull(),
 		name: text("name").notNull(),
 		path: text("path"),
 		delimiter: text("delimiter"),
@@ -161,14 +144,22 @@ export const mailFolder = pgTable(
 		index("mail_folder_account_id_idx").on(table.accountId),
 		unique("mail_folder_account_id_provider_ref_uniq").on(table.accountId, table.providerFolderRef),
 		unique("mail_folder_ownership_uniq").on(table.id, table.accountId, table.userId),
+		unique("mail_folder_id_account_id_uniq").on(table.id, table.accountId),
 		index("mail_folder_parent_id_idx").on(table.parentId),
+		foreignKey({
+			name: "mail_folder_account_user_fkey",
+			columns: [table.accountId, table.userId],
+			foreignColumns: [mailAccount.id, mailAccount.userId],
+		}).onDelete("cascade"),
+		foreignKey({
+			name: "mail_folder_parent_scope_fkey",
+			columns: [table.parentId, table.accountId, table.userId],
+			foreignColumns: [table.id, table.accountId, table.userId],
+		}).onDelete("set null"),
 	],
 );
 
-// ---------------------------------------------------------------------------
-// §11.4 mail_label
-// ---------------------------------------------------------------------------
-
+/** §11.4 */
 export const mailLabel = pgTable(
 	"mail_label",
 	{
@@ -176,9 +167,7 @@ export const mailLabel = pgTable(
 		userId: char("user_id", { length: 30 })
 			.notNull()
 			.references(() => user.id, { onDelete: "cascade" }),
-		accountId: char("account_id", { length: 30 })
-			.notNull()
-			.references(() => mailAccount.id, { onDelete: "cascade" }),
+		accountId: char("account_id", { length: 30 }).notNull(),
 		providerLabelRef: text("provider_label_ref").notNull(),
 		name: text("name").notNull(),
 		path: text("path"),
@@ -187,7 +176,7 @@ export const mailLabel = pgTable(
 		depth: smallint("depth").notNull().default(0),
 		sortKey: integer("sort_key"),
 		color: text("color"),
-		kind: text("kind").notNull(), // "system" | "user"
+		kind: text("kind").notNull(),
 		createdAt: timestamp("created_at").notNull(),
 		updatedAt: timestamp("updated_at")
 			.$onUpdate(() => new Date())
@@ -199,13 +188,20 @@ export const mailLabel = pgTable(
 		unique("mail_label_account_id_provider_ref_uniq").on(table.accountId, table.providerLabelRef),
 		unique("mail_label_ownership_uniq").on(table.id, table.accountId, table.userId),
 		index("mail_label_parent_id_idx").on(table.parentId),
+		foreignKey({
+			name: "mail_label_account_user_fkey",
+			columns: [table.accountId, table.userId],
+			foreignColumns: [mailAccount.id, mailAccount.userId],
+		}).onDelete("cascade"),
+		foreignKey({
+			name: "mail_label_parent_scope_fkey",
+			columns: [table.parentId, table.accountId, table.userId],
+			foreignColumns: [table.id, table.accountId, table.userId],
+		}).onDelete("set null"),
 	],
 );
 
-// ---------------------------------------------------------------------------
-// §11.5 mail_conversation
-// ---------------------------------------------------------------------------
-
+/** §11.5 */
 export const mailConversation = pgTable(
 	"mail_conversation",
 	{
@@ -213,16 +209,14 @@ export const mailConversation = pgTable(
 		userId: char("user_id", { length: 30 })
 			.notNull()
 			.references(() => user.id, { onDelete: "cascade" }),
-		accountId: char("account_id", { length: 30 })
-			.notNull()
-			.references(() => mailAccount.id, { onDelete: "cascade" }),
+		accountId: char("account_id", { length: 30 }).notNull(),
 		providerConversationRef: text("provider_conversation_ref").notNull(),
 		subject: text("subject"),
 		snippet: text("snippet"),
 		latestMessageAt: timestamp("latest_message_at"),
 		latestMessageId: char("latest_message_id", { length: 30 }),
-		latestSender: jsonb("latest_sender"), // { name?: string, address: string }
-		participantsPreview: jsonb("participants_preview"), // { name?: string, address: string }[]
+		latestSender: jsonb("latest_sender"),
+		participantsPreview: jsonb("participants_preview"),
 		messageCount: integer("message_count").notNull().default(0),
 		unreadCount: integer("unread_count").notNull().default(0),
 		hasAttachments: boolean("has_attachments").notNull().default(false),
@@ -242,27 +236,25 @@ export const mailConversation = pgTable(
 			table.providerConversationRef,
 		),
 		unique("mail_conversation_ownership_uniq").on(table.id, table.accountId, table.userId),
-		// Query-shaped index for account thread list
+		foreignKey({
+			name: "mail_conversation_account_user_fkey",
+			columns: [table.accountId, table.userId],
+			foreignColumns: [mailAccount.id, mailAccount.userId],
+		}).onDelete("cascade"),
 		index("mail_conversation_list_idx").on(table.userId, table.accountId, table.latestMessageAt),
 	],
 );
 
-// ---------------------------------------------------------------------------
-// §11.5a mail_conversation_label (derived projection)
-// ---------------------------------------------------------------------------
-
+/** §11.5a derived projection */
 export const mailConversationLabel = pgTable(
 	"mail_conversation_label",
 	{
+		accountId: char("account_id", { length: 30 }).notNull(),
 		userId: char("user_id", { length: 30 })
 			.notNull()
 			.references(() => user.id, { onDelete: "cascade" }),
-		conversationId: char("conversation_id", { length: 30 })
-			.notNull()
-			.references(() => mailConversation.id, { onDelete: "cascade" }),
-		labelId: char("label_id", { length: 30 })
-			.notNull()
-			.references(() => mailLabel.id, { onDelete: "cascade" }),
+		conversationId: char("conversation_id", { length: 30 }).notNull(),
+		labelId: char("label_id", { length: 30 }).notNull(),
 		createdAt: timestamp("created_at").notNull(),
 		updatedAt: timestamp("updated_at")
 			.$onUpdate(() => new Date())
@@ -271,26 +263,31 @@ export const mailConversationLabel = pgTable(
 	(table) => [
 		primaryKey({ columns: [table.conversationId, table.labelId] }),
 		index("mail_conversation_label_user_id_idx").on(table.userId),
+		index("mail_conversation_label_account_id_idx").on(table.accountId),
 		index("mail_conversation_label_label_id_idx").on(table.labelId),
+		foreignKey({
+			name: "mail_conv_label_conversation_fkey",
+			columns: [table.conversationId, table.accountId, table.userId],
+			foreignColumns: [mailConversation.id, mailConversation.accountId, mailConversation.userId],
+		}).onDelete("cascade"),
+		foreignKey({
+			name: "mail_conv_label_label_fkey",
+			columns: [table.labelId, table.accountId, table.userId],
+			foreignColumns: [mailLabel.id, mailLabel.accountId, mailLabel.userId],
+		}).onDelete("cascade"),
 	],
 );
 
-// ---------------------------------------------------------------------------
-// §11.5b mail_conversation_folder (derived projection)
-// ---------------------------------------------------------------------------
-
+/** §11.5b derived projection */
 export const mailConversationFolder = pgTable(
 	"mail_conversation_folder",
 	{
+		accountId: char("account_id", { length: 30 }).notNull(),
 		userId: char("user_id", { length: 30 })
 			.notNull()
 			.references(() => user.id, { onDelete: "cascade" }),
-		conversationId: char("conversation_id", { length: 30 })
-			.notNull()
-			.references(() => mailConversation.id, { onDelete: "cascade" }),
-		folderId: char("folder_id", { length: 30 })
-			.notNull()
-			.references(() => mailFolder.id, { onDelete: "cascade" }),
+		conversationId: char("conversation_id", { length: 30 }).notNull(),
+		folderId: char("folder_id", { length: 30 }).notNull(),
 		createdAt: timestamp("created_at").notNull(),
 		updatedAt: timestamp("updated_at")
 			.$onUpdate(() => new Date())
@@ -299,14 +296,22 @@ export const mailConversationFolder = pgTable(
 	(table) => [
 		primaryKey({ columns: [table.conversationId, table.folderId] }),
 		index("mail_conversation_folder_user_id_idx").on(table.userId),
+		index("mail_conversation_folder_account_id_idx").on(table.accountId),
 		index("mail_conversation_folder_folder_id_idx").on(table.folderId),
+		foreignKey({
+			name: "mail_conv_folder_conversation_fkey",
+			columns: [table.conversationId, table.accountId, table.userId],
+			foreignColumns: [mailConversation.id, mailConversation.accountId, mailConversation.userId],
+		}).onDelete("cascade"),
+		foreignKey({
+			name: "mail_conv_folder_folder_fkey",
+			columns: [table.folderId, table.accountId, table.userId],
+			foreignColumns: [mailFolder.id, mailFolder.accountId, mailFolder.userId],
+		}).onDelete("cascade"),
 	],
 );
 
-// ---------------------------------------------------------------------------
-// §11.6 mail_message
-// ---------------------------------------------------------------------------
-
+/** §11.6 */
 export const mailMessage = pgTable(
 	"mail_message",
 	{
@@ -314,20 +319,16 @@ export const mailMessage = pgTable(
 		userId: char("user_id", { length: 30 })
 			.notNull()
 			.references(() => user.id, { onDelete: "cascade" }),
-		accountId: char("account_id", { length: 30 })
-			.notNull()
-			.references(() => mailAccount.id, { onDelete: "cascade" }),
-		conversationId: char("conversation_id", { length: 30 }).references(() => mailConversation.id, {
-			onDelete: "set null",
-		}),
+		accountId: char("account_id", { length: 30 }).notNull(),
+		conversationId: char("conversation_id", { length: 30 }),
 		providerMessageRef: text("provider_message_ref"),
 		internetMessageId: text("internet_message_id"),
 		subject: text("subject"),
 		snippet: text("snippet"),
-		sender: jsonb("sender"), // { name?: string, address: string }
-		toRecipients: jsonb("to_recipients"), // { name?: string, address: string }[]
-		ccRecipients: jsonb("cc_recipients"), // { name?: string, address: string }[]
-		bccRecipients: jsonb("bcc_recipients"), // { name?: string, address: string }[]
+		sender: jsonb("sender"),
+		toRecipients: jsonb("to_recipients"),
+		ccRecipients: jsonb("cc_recipients"),
+		bccRecipients: jsonb("bcc_recipients"),
 		sentAt: timestamp("sent_at"),
 		receivedAt: timestamp("received_at"),
 		isUnread: boolean("is_unread").notNull().default(true),
@@ -350,39 +351,51 @@ export const mailMessage = pgTable(
 			table.accountId,
 			table.providerMessageRef,
 		),
+		unique("mail_message_id_user_id_uniq").on(table.id, table.userId),
 		unique("mail_message_ownership_uniq").on(table.id, table.accountId, table.userId),
-		// Query-shaped indexes for message list views
+		foreignKey({
+			name: "mail_message_account_user_fkey",
+			columns: [table.accountId, table.userId],
+			foreignColumns: [mailAccount.id, mailAccount.userId],
+		}).onDelete("cascade"),
+		foreignKey({
+			name: "mail_message_conversation_scope_fkey",
+			columns: [table.conversationId, table.accountId, table.userId],
+			foreignColumns: [mailConversation.id, mailConversation.accountId, mailConversation.userId],
+		}).onDelete("set null"),
 		index("mail_message_list_idx").on(table.userId, table.accountId, table.receivedAt),
 		index("mail_message_unread_idx").on(table.userId, table.accountId, table.isUnread),
 	],
 );
 
-// ---------------------------------------------------------------------------
-// §11.6a mail_message_header
-// ---------------------------------------------------------------------------
+/** §11.6a */
+export const mailMessageHeader = pgTable(
+	"mail_message_header",
+	{
+		messageId: char("message_id", { length: 30 }).primaryKey(),
+		userId: char("user_id", { length: 30 })
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		replyTo: jsonb("reply_to"),
+		inReplyTo: text("in_reply_to"),
+		references: text("references"),
+		listUnsubscribe: text("list_unsubscribe"),
+		listUnsubscribePost: text("list_unsubscribe_post"),
+		createdAt: timestamp("created_at").notNull(),
+		updatedAt: timestamp("updated_at")
+			.$onUpdate(() => new Date())
+			.notNull(),
+	},
+	(table) => [
+		foreignKey({
+			name: "mail_message_header_message_user_fkey",
+			columns: [table.messageId, table.userId],
+			foreignColumns: [mailMessage.id, mailMessage.userId],
+		}).onDelete("cascade"),
+	],
+);
 
-export const mailMessageHeader = pgTable("mail_message_header", {
-	messageId: char("message_id", { length: 30 })
-		.primaryKey()
-		.references(() => mailMessage.id, { onDelete: "cascade" }),
-	userId: char("user_id", { length: 30 })
-		.notNull()
-		.references(() => user.id, { onDelete: "cascade" }),
-	replyTo: jsonb("reply_to"), // { name?: string, address: string }[]
-	inReplyTo: text("in_reply_to"),
-	references: text("references"), // space-separated Message-ID list
-	listUnsubscribe: text("list_unsubscribe"),
-	listUnsubscribePost: text("list_unsubscribe_post"),
-	createdAt: timestamp("created_at").notNull(),
-	updatedAt: timestamp("updated_at")
-		.$onUpdate(() => new Date())
-		.notNull(),
-});
-
-// ---------------------------------------------------------------------------
-// §11.7 mail_message_body_part
-// ---------------------------------------------------------------------------
-
+/** §11.7 */
 export const mailMessageBodyPart = pgTable(
 	"mail_message_body_part",
 	{
@@ -390,11 +403,9 @@ export const mailMessageBodyPart = pgTable(
 		userId: char("user_id", { length: 30 })
 			.notNull()
 			.references(() => user.id, { onDelete: "cascade" }),
-		messageId: char("message_id", { length: 30 })
-			.notNull()
-			.references(() => mailMessage.id, { onDelete: "cascade" }),
+		messageId: char("message_id", { length: 30 }).notNull(),
 		partIndex: smallint("part_index").notNull(),
-		contentType: text("content_type").notNull(), // "text/plain" | "text/html"
+		contentType: text("content_type").notNull(),
 		content: text("content").notNull(),
 		isPreferredRender: boolean("is_preferred_render").notNull().default(false),
 		createdAt: timestamp("created_at").notNull(),
@@ -408,25 +419,24 @@ export const mailMessageBodyPart = pgTable(
 			table.messageId,
 			table.partIndex,
 		),
+		foreignKey({
+			name: "mail_message_body_part_message_user_fkey",
+			columns: [table.messageId, table.userId],
+			foreignColumns: [mailMessage.id, mailMessage.userId],
+		}).onDelete("cascade"),
 	],
 );
 
-// ---------------------------------------------------------------------------
-// §11.8 mail_message_label
-// ---------------------------------------------------------------------------
-
+/** §11.8 */
 export const mailMessageLabel = pgTable(
 	"mail_message_label",
 	{
+		accountId: char("account_id", { length: 30 }).notNull(),
 		userId: char("user_id", { length: 30 })
 			.notNull()
 			.references(() => user.id, { onDelete: "cascade" }),
-		messageId: char("message_id", { length: 30 })
-			.notNull()
-			.references(() => mailMessage.id, { onDelete: "cascade" }),
-		labelId: char("label_id", { length: 30 })
-			.notNull()
-			.references(() => mailLabel.id, { onDelete: "cascade" }),
+		messageId: char("message_id", { length: 30 }).notNull(),
+		labelId: char("label_id", { length: 30 }).notNull(),
 		createdAt: timestamp("created_at").notNull(),
 		updatedAt: timestamp("updated_at")
 			.$onUpdate(() => new Date())
@@ -435,14 +445,22 @@ export const mailMessageLabel = pgTable(
 	(table) => [
 		primaryKey({ columns: [table.messageId, table.labelId] }),
 		index("mail_message_label_user_id_idx").on(table.userId),
+		index("mail_message_label_account_id_idx").on(table.accountId),
 		index("mail_message_label_label_id_idx").on(table.labelId),
+		foreignKey({
+			name: "mail_message_label_message_fkey",
+			columns: [table.messageId, table.accountId, table.userId],
+			foreignColumns: [mailMessage.id, mailMessage.accountId, mailMessage.userId],
+		}).onDelete("cascade"),
+		foreignKey({
+			name: "mail_message_label_label_fkey",
+			columns: [table.labelId, table.accountId, table.userId],
+			foreignColumns: [mailLabel.id, mailLabel.accountId, mailLabel.userId],
+		}).onDelete("cascade"),
 	],
 );
 
-// ---------------------------------------------------------------------------
-// §11.9 mail_message_mailbox
-// ---------------------------------------------------------------------------
-
+/** §11.9 */
 export const mailMessageMailbox = pgTable(
 	"mail_message_mailbox",
 	{
@@ -450,15 +468,9 @@ export const mailMessageMailbox = pgTable(
 		userId: char("user_id", { length: 30 })
 			.notNull()
 			.references(() => user.id, { onDelete: "cascade" }),
-		messageId: char("message_id", { length: 30 })
-			.notNull()
-			.references(() => mailMessage.id, { onDelete: "cascade" }),
-		accountId: char("account_id", { length: 30 })
-			.notNull()
-			.references(() => mailAccount.id, { onDelete: "cascade" }),
-		folderId: char("folder_id", { length: 30 })
-			.notNull()
-			.references(() => mailFolder.id, { onDelete: "cascade" }),
+		messageId: char("message_id", { length: 30 }).notNull(),
+		accountId: char("account_id", { length: 30 }).notNull(),
+		folderId: char("folder_id", { length: 30 }).notNull(),
 		providerFolderRef: text("provider_folder_ref"),
 		uidvalidity: integer("uidvalidity"),
 		uid: integer("uid"),
@@ -479,15 +491,21 @@ export const mailMessageMailbox = pgTable(
 			table.uidvalidity,
 			table.uid,
 		),
-		// Query-shaped index for folder message list
+		foreignKey({
+			name: "mail_message_mailbox_message_fkey",
+			columns: [table.messageId, table.accountId, table.userId],
+			foreignColumns: [mailMessage.id, mailMessage.accountId, mailMessage.userId],
+		}).onDelete("cascade"),
+		foreignKey({
+			name: "mail_message_mailbox_folder_fkey",
+			columns: [table.folderId, table.accountId, table.userId],
+			foreignColumns: [mailFolder.id, mailFolder.accountId, mailFolder.userId],
+		}).onDelete("cascade"),
 		index("mail_message_mailbox_folder_list_idx").on(table.userId, table.folderId),
 	],
 );
 
-// ---------------------------------------------------------------------------
-// §11.10 mail_attachment
-// ---------------------------------------------------------------------------
-
+/** §11.10 */
 export const mailAttachment = pgTable(
 	"mail_attachment",
 	{
@@ -495,9 +513,7 @@ export const mailAttachment = pgTable(
 		userId: char("user_id", { length: 30 })
 			.notNull()
 			.references(() => user.id, { onDelete: "cascade" }),
-		messageId: char("message_id", { length: 30 })
-			.notNull()
-			.references(() => mailMessage.id, { onDelete: "cascade" }),
+		messageId: char("message_id", { length: 30 }).notNull(),
 		providerAttachmentRef: text("provider_attachment_ref"),
 		filename: text("filename"),
 		mimeType: text("mime_type"),
@@ -512,13 +528,15 @@ export const mailAttachment = pgTable(
 	(table) => [
 		index("mail_attachment_user_id_idx").on(table.userId),
 		index("mail_attachment_message_id_idx").on(table.messageId),
+		foreignKey({
+			name: "mail_attachment_message_user_fkey",
+			columns: [table.messageId, table.userId],
+			foreignColumns: [mailMessage.id, mailMessage.userId],
+		}).onDelete("cascade"),
 	],
 );
 
-// ---------------------------------------------------------------------------
-// §11.11 mail_account_sync_state (backend-only, NOT in Zero)
-// ---------------------------------------------------------------------------
-
+/** §11.11 backend-only */
 export const mailAccountSyncState = pgTable(
 	"mail_account_sync_state",
 	{
@@ -527,8 +545,8 @@ export const mailAccountSyncState = pgTable(
 			.notNull()
 			.references(() => mailAccount.id, { onDelete: "cascade" }),
 		provider: text("provider").notNull(),
-		stateKind: text("state_kind").notNull(), // "gmail_history" | "bootstrap" | etc.
-		payload: jsonb("payload").notNull(), // provider-specific cursor/state data
+		stateKind: text("state_kind").notNull(),
+		payload: jsonb("payload").notNull(),
 		lastSuccessfulSyncAt: timestamp("last_successful_sync_at"),
 		lastAttemptedSyncAt: timestamp("last_attempted_sync_at"),
 		lastErrorCode: text("last_error_code"),
@@ -544,10 +562,7 @@ export const mailAccountSyncState = pgTable(
 	],
 );
 
-// ---------------------------------------------------------------------------
-// §11.11a mail_folder_sync_state (backend-only, NOT in Zero)
-// ---------------------------------------------------------------------------
-
+/** §11.11a backend-only */
 export const mailFolderSyncState = pgTable(
 	"mail_folder_sync_state",
 	{
@@ -555,12 +570,10 @@ export const mailFolderSyncState = pgTable(
 		accountId: char("account_id", { length: 30 })
 			.notNull()
 			.references(() => mailAccount.id, { onDelete: "cascade" }),
-		folderId: char("folder_id", { length: 30 })
-			.notNull()
-			.references(() => mailFolder.id, { onDelete: "cascade" }),
+		folderId: char("folder_id", { length: 30 }).notNull(),
 		provider: text("provider").notNull(),
-		stateKind: text("state_kind").notNull(), // "imap_uid" | "imap_idle" | "reconciliation" | etc.
-		payload: jsonb("payload").notNull(), // uidvalidity, highest_uid, modseq, idle state, etc.
+		stateKind: text("state_kind").notNull(),
+		payload: jsonb("payload").notNull(),
 		lastSuccessfulSyncAt: timestamp("last_successful_sync_at"),
 		lastAttemptedSyncAt: timestamp("last_attempted_sync_at"),
 		lastErrorCode: text("last_error_code"),
@@ -578,13 +591,15 @@ export const mailFolderSyncState = pgTable(
 			table.folderId,
 			table.stateKind,
 		),
+		foreignKey({
+			name: "mail_folder_sync_state_folder_scope_fkey",
+			columns: [table.folderId, table.accountId],
+			foreignColumns: [mailFolder.id, mailFolder.accountId],
+		}).onDelete("cascade"),
 	],
 );
 
-// ---------------------------------------------------------------------------
-// §11.10 mail_participant
-// ---------------------------------------------------------------------------
-
+/** §11.10 */
 export const mailParticipant = pgTable(
 	"mail_participant",
 	{
@@ -595,7 +610,7 @@ export const mailParticipant = pgTable(
 		normalizedAddress: text("normalized_address").notNull(),
 		displayName: text("display_name"),
 		lastSeenAt: timestamp("last_seen_at"),
-		sourceKind: text("source_kind").notNull().default("derived_from_mail"), // "derived_from_mail" | "imported_contact" | "user_edited"
+		sourceKind: text("source_kind").notNull().default("derived_from_mail"),
 		createdAt: timestamp("created_at").notNull(),
 		updatedAt: timestamp("updated_at")
 			.$onUpdate(() => new Date())
@@ -603,25 +618,22 @@ export const mailParticipant = pgTable(
 	},
 	(table) => [
 		index("mail_participant_user_id_idx").on(table.userId),
+		unique("mail_participant_id_user_id_uniq").on(table.id, table.userId),
 		unique("mail_participant_user_address_uniq").on(table.userId, table.normalizedAddress),
 	],
 );
 
-// ---------------------------------------------------------------------------
-// §11.10a mail_message_participant
-// ---------------------------------------------------------------------------
-
+/** §11.10a */
 export const mailMessageParticipant = pgTable(
 	"mail_message_participant",
 	{
 		id: char("id", { length: 30 }).primaryKey(),
-		messageId: char("message_id", { length: 30 })
+		userId: char("user_id", { length: 30 })
 			.notNull()
-			.references(() => mailMessage.id, { onDelete: "cascade" }),
-		participantId: char("participant_id", { length: 30 })
-			.notNull()
-			.references(() => mailParticipant.id, { onDelete: "cascade" }),
-		role: text("role").notNull(), // "from" | "to" | "cc" | "bcc" | "reply_to"
+			.references(() => user.id, { onDelete: "cascade" }),
+		messageId: char("message_id", { length: 30 }).notNull(),
+		participantId: char("participant_id", { length: 30 }).notNull(),
+		role: text("role").notNull(),
 		ordinal: smallint("ordinal").notNull().default(0),
 		createdAt: timestamp("created_at").notNull(),
 		updatedAt: timestamp("updated_at")
@@ -629,16 +641,24 @@ export const mailMessageParticipant = pgTable(
 			.notNull(),
 	},
 	(table) => [
+		index("mail_message_participant_user_id_idx").on(table.userId),
 		index("mail_message_participant_message_id_idx").on(table.messageId),
 		index("mail_message_participant_participant_id_idx").on(table.participantId),
 		unique("mail_message_participant_unique").on(table.messageId, table.participantId, table.role),
+		foreignKey({
+			name: "mail_message_participant_message_fkey",
+			columns: [table.messageId, table.userId],
+			foreignColumns: [mailMessage.id, mailMessage.userId],
+		}).onDelete("cascade"),
+		foreignKey({
+			name: "mail_message_participant_participant_fkey",
+			columns: [table.participantId, table.userId],
+			foreignColumns: [mailParticipant.id, mailParticipant.userId],
+		}).onDelete("cascade"),
 	],
 );
 
-// ---------------------------------------------------------------------------
-// §11.10b mail_search_document (backend-only, NOT in Zero)
-// ---------------------------------------------------------------------------
-
+/** §11.10b backend-only */
 export const mailSearchDocument = pgTable(
 	"mail_search_document",
 	{
@@ -649,14 +669,14 @@ export const mailSearchDocument = pgTable(
 			.notNull()
 			.references(() => mailAccount.id, { onDelete: "cascade" }),
 		conversationId: char("conversation_id", { length: 30 }),
-		folderIds: jsonb("folder_ids"), // string[]
-		labelIds: jsonb("label_ids"), // string[]
+		folderIds: jsonb("folder_ids"),
+		labelIds: jsonb("label_ids"),
 		subjectText: text("subject_text"),
 		senderText: text("sender_text"),
 		recipientText: text("recipient_text"),
 		bodyText: text("body_text"),
 		snippetText: text("snippet_text"),
-		mirroredCoverageKind: text("mirrored_coverage_kind").notNull().default("full_thread"), // "full_thread" | "recent_only" | "headers_only"
+		mirroredCoverageKind: text("mirrored_coverage_kind").notNull().default("full_thread"),
 		createdAt: timestamp("created_at").notNull(),
 		updatedAt: timestamp("updated_at")
 			.$onUpdate(() => new Date())
@@ -668,10 +688,7 @@ export const mailSearchDocument = pgTable(
 	],
 );
 
-// ---------------------------------------------------------------------------
-// §11.10b mail_message_source (backend-only, NOT in Zero)
-// ---------------------------------------------------------------------------
-
+/** §11.10b backend-only */
 export const mailMessageSource = pgTable(
 	"mail_message_source",
 	{
@@ -679,14 +696,14 @@ export const mailMessageSource = pgTable(
 		messageId: char("message_id", { length: 30 })
 			.notNull()
 			.references(() => mailMessage.id, { onDelete: "cascade" }),
-		sourceKind: text("source_kind").notNull(), // "raw_mime" | "gmail_raw_json" | "gmail_full_message" | etc.
-		storageKind: text("storage_kind").notNull(), // "postgres" | "s3" | "r2" | "filesystem"
+		sourceKind: text("source_kind").notNull(),
+		storageKind: text("storage_kind").notNull(),
 		storageKey: text("storage_key").notNull(),
 		contentSha256: text("content_sha256"),
 		byteSize: integer("byte_size"),
 		parserVersion: text("parser_version"),
 		sanitizerVersion: text("sanitizer_version"),
-		encryptionMetadata: jsonb("encryption_metadata"), // key_id, algorithm, etc.
+		encryptionMetadata: jsonb("encryption_metadata"),
 		createdAt: timestamp("created_at").notNull(),
 		updatedAt: timestamp("updated_at")
 			.$onUpdate(() => new Date())
@@ -698,10 +715,7 @@ export const mailMessageSource = pgTable(
 	],
 );
 
-// ---------------------------------------------------------------------------
-// §11.12 mail_provider_state (backend-only, NOT in Zero)
-// ---------------------------------------------------------------------------
-
+/** §11.12 backend-only */
 export const mailProviderState = pgTable(
 	"mail_provider_state",
 	{

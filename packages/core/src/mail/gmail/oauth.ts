@@ -1,7 +1,5 @@
 /**
- * Gmail OAuth2 service.
- *
- * Encapsulates the OAuth2 flow: URL generation and code-for-token exchange.
+ * OAuth2 flow: URL generation and code-for-token exchange.
  * Config is resolved at layer construction time so handlers stay pure Effect.
  */
 

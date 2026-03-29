@@ -1,9 +1,6 @@
 /**
- * Client-side email HTML sanitization using DOMPurify.
- *
- * Raw email HTML is stored as-is in the database so we can change the
- * rendering/sanitization pipeline without re-syncing. Sanitization happens
- * here, at render time.
+ * Raw email HTML is stored as-is so sanitization can change without re-syncing.
+ * Done at render time with DOMPurify.
  */
 
 import DOMPurify from "dompurify";
@@ -88,15 +85,10 @@ const ALLOWED_ATTRS = [
 
 /**
  * Sanitize raw email HTML for safe rendering.
- *
- * Uses DOMPurify with an allowlist of tags, attributes, and URI schemes
- * appropriate for email content. Links are forced to open in a new tab.
+ * Uses DOMPurify with an allowlist of tags, attributes, and URI schemes.
  */
-/**
- * Tags explicitly forbidden regardless of ALLOWED_TAGS.
- * Defence-in-depth against elements that could execute code, load remote
- * resources outside of img, or break out of the rendering container.
- */
+
+// Additional defence-in-depth: block dangerous elements even if they slip into ALLOWED_TAGS
 const FORBID_TAGS = [
 	"script",
 	"style",

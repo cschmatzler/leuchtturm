@@ -4,7 +4,6 @@ import { describe, expect, it } from "vite-plus/test";
 
 import {
 	AccountId,
-	JWKSId,
 	Session,
 	SessionId,
 	User,
@@ -19,7 +18,6 @@ const authIdSchemas = [
 	{ name: "SessionId", schema: SessionId, prefix: "ses", wrongPrefix: "usr" },
 	{ name: "AccountId", schema: AccountId, prefix: "acc", wrongPrefix: "usr" },
 	{ name: "VerificationId", schema: VerificationId, prefix: "ver", wrongPrefix: "usr" },
-	{ name: "JWKSId", schema: JWKSId, prefix: "jwk", wrongPrefix: "usr" },
 ] as const;
 
 describe("auth ID schemas", () => {
