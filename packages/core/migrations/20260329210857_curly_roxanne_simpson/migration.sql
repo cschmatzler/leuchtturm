@@ -1,0 +1,2 @@
+ALTER TABLE "account" ADD CONSTRAINT "account_provider_account_id_uniq" UNIQUE("provider_id","account_id");--> statement-breakpoint
+ALTER TABLE "verification" ADD CONSTRAINT "verification_identifier_value_uniq" UNIQUE("identifier","value");

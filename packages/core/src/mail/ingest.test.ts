@@ -1,0 +1,107 @@
+import { describe, expect, it } from "vite-plus/test";
+
+import {
+	buildMailParticipantInputs,
+	buildMailSearchDocumentValues,
+	collectConversationParticipants,
+	createProviderPayloadDigest,
+} from "@chevrotain/core/mail/ingest";
+import type { ProviderMessage } from "@chevrotain/core/mail/provider";
+
+const providerMessage: ProviderMessage = {
+	providerRef: "msg_123",
+	subject: "Quarterly update",
+	snippet: "Latest numbers attached",
+	sender: { name: "Ada Lovelace", address: "ADA@example.com" },
+	toRecipients: [{ address: "team@example.com" }],
+	ccRecipients: [{ name: "Grace Hopper", address: "grace@example.com" }],
+	bccRecipients: [{ address: "audit@example.com" }],
+	isUnread: true,
+	isStarred: false,
+	isDraft: false,
+	headers: {
+		replyTo: [{ address: "reply@example.com" }],
+	},
+	bodyParts: [
+		{ contentType: "text/plain", content: "Hello world" },
+		{ contentType: "text/html", content: "<p>Hello <strong>world</strong></p>" },
+	],
+	attachments: [],
+};
+
+describe("mail ingest helpers", () => {
+	it("extracts normalized participants for every mail role", () => {
+		expect(buildMailParticipantInputs(providerMessage)).toEqual([
+			{
+				displayName: "Ada Lovelace",
+				normalizedAddress: "ada@example.com",
+				ordinal: 0,
+				role: "from",
+			},
+			{
+				displayName: null,
+				normalizedAddress: "team@example.com",
+				ordinal: 0,
+				role: "to",
+			},
+			{
+				displayName: "Grace Hopper",
+				normalizedAddress: "grace@example.com",
+				ordinal: 0,
+				role: "cc",
+			},
+			{
+				displayName: null,
+				normalizedAddress: "audit@example.com",
+				ordinal: 0,
+				role: "bcc",
+			},
+			{
+				displayName: null,
+				normalizedAddress: "reply@example.com",
+				ordinal: 0,
+				role: "reply_to",
+			},
+		]);
+	});
+
+	it("collects unique conversation participants from senders and visible recipients", () => {
+		expect(
+			collectConversationParticipants([
+				providerMessage,
+				{
+					...providerMessage,
+					providerRef: "msg_456",
+					sender: { address: "team@example.com" },
+					toRecipients: [{ address: "ada@example.com" }],
+					ccRecipients: [],
+					bccRecipients: [],
+				},
+			]),
+		).toEqual([
+			{ address: "ada@example.com", name: "Ada Lovelace" },
+			{ address: "team@example.com", name: undefined },
+			{ address: "grace@example.com", name: "Grace Hopper" },
+		]);
+	});
+
+	it("builds search document text from normalized message content", () => {
+		expect(buildMailSearchDocumentValues(providerMessage)).toEqual({
+			bodyText: "Hello world Hello world",
+			mirroredCoverageKind: "full_thread",
+			recipientText: "team@example.com Grace Hopper <grace@example.com> audit@example.com",
+			senderText: "Ada Lovelace <ada@example.com>",
+			snippetText: "Latest numbers attached",
+			subjectText: "Quarterly update",
+		});
+	});
+
+	it("hashes provider payloads deterministically", () => {
+		const digestA = createProviderPayloadDigest({ id: "msg_123", value: 1 });
+		const digestB = createProviderPayloadDigest({ id: "msg_123", value: 1 });
+
+		expect(digestA.json).toBe('{"id":"msg_123","value":1}');
+		expect(digestA.byteSize).toBeGreaterThan(0);
+		expect(digestA.contentSha256).toBe(digestB.contentSha256);
+	});
+});

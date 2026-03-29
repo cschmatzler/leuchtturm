@@ -1,8 +1,8 @@
 {
 	"version": "8",
 	"dialect": "postgres",
-	"id": "8357ce9c-496d-4c6a-ab66-eb04b69b50af",
-	"prevIds": ["aa79de8c-bfe9-41b3-8bb0-4b398f061fa4"],
+	"id": "32cd9808-e4af-471f-aa02-7646b1223b1c",
+	"prevIds": ["8357ce9c-496d-4c6a-ab66-eb04b69b50af"],
 	"ddl": [
 		{
 			"isRlsEnabled": false,
@@ -6522,6 +6522,24 @@
 			"schema": "public",
 			"table": "mail_search_document",
 			"entityType": "pks"
+		},
+		{
+			"nameExplicit": true,
+			"columns": ["provider_id", "account_id"],
+			"nullsNotDistinct": false,
+			"name": "account_provider_account_id_uniq",
+			"entityType": "uniques",
+			"schema": "public",
+			"table": "account"
+		},
+		{
+			"nameExplicit": true,
+			"columns": ["identifier", "value"],
+			"nullsNotDistinct": false,
+			"name": "verification_identifier_value_uniq",
+			"entityType": "uniques",
+			"schema": "public",
+			"table": "verification"
 		},
 		{
 			"nameExplicit": true,

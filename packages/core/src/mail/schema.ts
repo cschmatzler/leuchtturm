@@ -2,7 +2,7 @@ import { Schema } from "effect";
 import { ulid } from "ulid";
 
 import { SessionId, UserId } from "@chevrotain/core/auth/schema";
-import { Ulid } from "@chevrotain/core/schema";
+import { Email, Ulid } from "@chevrotain/core/schema";
 
 const NullableString = Schema.NullOr(Schema.String);
 
@@ -220,14 +220,9 @@ export const CreateMailAccountInput = Schema.Struct({
 	id: MailAccountId,
 	userId: UserId,
 	provider: MailProvider,
-	email: Schema.String,
+	email: Email,
 	displayName: NullableString,
 	status: MailAccountStatus,
-	supportsThreads: Schema.Boolean,
-	supportsLabels: Schema.Boolean,
-	supportsPushSync: Schema.Boolean,
-	supportsOauth: Schema.Boolean,
-	supportsServerSearch: Schema.Boolean,
 });
 export type CreateMailAccountInput = typeof CreateMailAccountInput.Type;
 

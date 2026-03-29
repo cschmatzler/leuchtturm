@@ -9,27 +9,46 @@
  * Sync concurrency is handled at the workflow layer via idempotency keys.
  */
 
-import { and, desc, eq } from "drizzle-orm";
-import type { NodePgDatabase } from "drizzle-orm/node-postgres";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { Effect, Schema } from "effect";
 
 import { Database } from "@chevrotain/core/drizzle/index";
-import type { allRelations } from "@chevrotain/core/drizzle/relations";
-import { getGmailFolders, GmailAdapter } from "@chevrotain/core/mail/gmail/adapter";
+import type { DatabaseExecutor } from "@chevrotain/core/drizzle/index";
+import {
+	getGmailFolders,
+	GmailAdapter,
+	type GmailProviderFolder,
+	type GmailProviderHistoryChange,
+	type GmailProviderLabel,
+	type GmailProviderMessage,
+	type GmailProviderThread,
+} from "@chevrotain/core/mail/gmail/adapter";
+import {
+	buildMailParticipantInputs,
+	buildMailSearchDocumentValues,
+	collectConversationParticipants,
+	createProviderPayloadDigest,
+} from "@chevrotain/core/mail/ingest";
 import {
 	mailAccount,
+	mailAccountSyncState,
 	mailAttachment,
 	mailConversation,
 	mailConversationFolder,
 	mailConversationLabel,
 	mailFolder,
+	mailFolderSyncState,
 	mailLabel,
 	mailMessage,
 	mailMessageBodyPart,
 	mailMessageHeader,
 	mailMessageLabel,
 	mailMessageMailbox,
-	mailAccountSyncState,
+	mailMessageParticipant,
+	mailMessageSource,
+	mailParticipant,
+	mailProviderState,
+	mailSearchDocument,
 } from "@chevrotain/core/mail/mail.sql";
 import {
 	ProviderFolder,
@@ -39,23 +58,69 @@ import {
 	ProviderThread,
 } from "@chevrotain/core/mail/provider";
 import {
+	createMailAccountSyncStateId,
 	createMailAttachmentId,
 	createMailConversationId,
 	createMailFolderId,
+	createMailFolderSyncStateId,
 	createMailLabelId,
 	createMailMessageBodyPartId,
 	createMailMessageId,
 	createMailMessageMailboxId,
-	createMailAccountSyncStateId,
+	createMailMessageParticipantId,
+	createMailMessageSourceId,
+	createMailParticipantId,
+	createMailProviderStateId,
 } from "@chevrotain/core/mail/schema";
 
-type SyncDatabaseClient = NodePgDatabase<Record<string, never>, typeof allRelations>;
+type SyncDatabaseClient = DatabaseExecutor;
+
+const GMAIL_FOLDER_SYNC_STATE_KIND = "gmail_folder_projection";
+const GMAIL_HISTORY_SYNC_STATE_KIND = "gmail_history";
+const GMAIL_MESSAGE_SOURCE_KIND = "gmail_full_message";
+const GMAIL_MESSAGE_PARSER_VERSION = "gmail-rest-v1";
+const GMAIL_PROVIDER = "gmail";
+const GMAIL_PROVIDER_FOLDER_OBJECT = "gmail_folder";
+const GMAIL_PROVIDER_LABEL_OBJECT = "gmail_label";
+const GMAIL_PROVIDER_MESSAGE_OBJECT = "gmail_message";
 
 const decodeProviderFolders = Schema.decodeUnknownSync(Schema.Array(ProviderFolder));
 const decodeProviderHistoryChange = Schema.decodeUnknownSync(ProviderHistoryChange);
 const decodeProviderLabels = Schema.decodeUnknownSync(Schema.Array(ProviderLabel));
 const decodeProviderMessage = Schema.decodeUnknownSync(ProviderMessage);
 const decodeProviderThreads = Schema.decodeUnknownSync(Schema.Array(ProviderThread));
+
+function assertProviderFolders<T extends readonly GmailProviderFolder[]>(folders: T): T {
+	decodeProviderFolders(folders);
+	return folders;
+}
+
+function assertProviderHistoryChange<T extends GmailProviderHistoryChange>(changes: T): T {
+	decodeProviderHistoryChange(changes);
+	return changes;
+}
+
+function assertProviderLabels<T extends readonly GmailProviderLabel[]>(labels: T): T {
+	decodeProviderLabels(labels);
+	return labels;
+}
+
+function assertProviderMessage<T extends GmailProviderMessage>(message: T): T {
+	decodeProviderMessage(message);
+	return message;
+}
+
+function assertProviderThreads<T extends readonly GmailProviderThread[]>(threads: T): T {
+	decodeProviderThreads(threads);
+	return threads;
+}
+
+function runInTransaction<T>(
+	db: SyncDatabaseClient,
+	callback: (tx: SyncDatabaseClient) => Promise<T>,
+): Promise<T> {
+	return db.transaction(async (tx) => callback(tx as unknown as SyncDatabaseClient));
+}
 
 // ---------------------------------------------------------------------------
 // Sync entry point
@@ -96,32 +161,36 @@ function bootstrapGmailAccountImpl(db: SyncDatabaseClient, accountId: string, ac
 			);
 
 			const adapter = new GmailAdapter(accessToken);
-			const labels = decodeProviderLabels(yield* Effect.tryPromise(() => adapter.listLabels()));
-			yield* syncLabels(db, account.userId, accountId, labels);
-
-			const folders = getGmailFolders(labels);
-			yield* syncFolders(db, account.userId, accountId, folders);
-
-			const threads = yield* Effect.tryPromise(() => adapter.listRecentThreads(cutoff));
-			yield* syncThreads(db, account.userId, accountId, threads);
-
+			const labels = assertProviderLabels(yield* Effect.tryPromise(() => adapter.listLabels()));
+			const folders = assertProviderFolders(getGmailFolders(labels));
+			const threads = assertProviderThreads(
+				yield* Effect.tryPromise(() => adapter.listRecentThreads(cutoff)),
+			);
 			const cursor = yield* Effect.tryPromise(() => adapter.getLatestCursor());
-			yield* upsertSyncCursor(db, accountId, cursor);
 
-			const completedAt = new Date();
 			yield* Effect.tryPromise(() =>
-				db
-					.update(mailAccount)
-					.set({
-						status: "healthy",
-						bootstrapCompletedAt: completedAt,
-						lastSuccessfulSyncAt: completedAt,
-						lastAttemptedSyncAt: completedAt,
-						lastErrorCode: null,
-						lastErrorMessage: null,
-						degradedReason: null,
-					})
-					.where(eq(mailAccount.id, accountId)),
+				runInTransaction(db, async (tx) => {
+					await syncLabelsImpl(tx, account.userId, accountId, labels);
+					await syncFoldersImpl(tx, account.userId, accountId, folders);
+					for (const thread of threads) {
+						await syncThreadImpl(tx, account.userId, accountId, thread);
+					}
+					await upsertSyncCursorImpl(tx, accountId, cursor);
+
+					const completedAt = new Date();
+					await tx
+						.update(mailAccount)
+						.set({
+							status: "healthy",
+							bootstrapCompletedAt: completedAt,
+							lastSuccessfulSyncAt: completedAt,
+							lastAttemptedSyncAt: completedAt,
+							lastErrorCode: null,
+							lastErrorMessage: null,
+							degradedReason: null,
+						})
+						.where(eq(mailAccount.id, accountId));
+				}),
 			);
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : String(error);
@@ -156,7 +225,7 @@ function incrementalGmailSyncImpl(db: SyncDatabaseClient, accountId: string, acc
 				.where(
 					and(
 						eq(mailAccountSyncState.accountId, accountId),
-						eq(mailAccountSyncState.stateKind, "gmail_history"),
+						eq(mailAccountSyncState.stateKind, GMAIL_HISTORY_SYNC_STATE_KIND),
 					),
 				)
 				.limit(1),
@@ -171,50 +240,58 @@ function incrementalGmailSyncImpl(db: SyncDatabaseClient, accountId: string, acc
 		const { changes, newCursor, cursorExpired } = yield* Effect.tryPromise(() =>
 			adapter.getHistoryChanges(startHistoryId),
 		);
-		const validatedChanges = decodeProviderHistoryChange(changes);
+		const validatedChanges = assertProviderHistoryChange(changes);
 
 		if (cursorExpired) {
 			yield* Effect.tryPromise(() =>
-				db.update(mailAccount).set({ status: "resyncing" }).where(eq(mailAccount.id, accountId)),
+				db
+					.update(mailAccount)
+					.set({ status: "resyncing", lastAttemptedSyncAt: new Date() })
+					.where(eq(mailAccount.id, accountId)),
 			);
 			yield* boundedResync(db, account.userId, accountId, adapter);
 			return;
 		}
 
-		for (const message of validatedChanges.messagesAdded) {
-			yield* upsertMessage(db, account.userId, accountId, message);
-		}
+		const labels = assertProviderLabels(yield* Effect.tryPromise(() => adapter.listLabels()));
+		const folders = assertProviderFolders(getGmailFolders(labels));
 
-		for (const deletedRef of validatedChanges.messagesDeleted) {
-			yield* deleteMessageByProviderRef(db, accountId, deletedRef);
-		}
-
-		for (const { messageRef, labelRefs } of validatedChanges.labelsAdded) {
-			yield* addMessageLabels(db, account.userId, accountId, messageRef, labelRefs);
-		}
-
-		for (const { messageRef, labelRefs } of validatedChanges.labelsRemoved) {
-			yield* removeMessageLabels(db, accountId, messageRef, labelRefs);
-		}
-
-		yield* upsertSyncCursor(db, accountId, newCursor);
-
-		const labels = decodeProviderLabels(yield* Effect.tryPromise(() => adapter.listLabels()));
-		yield* syncLabels(db, account.userId, accountId, labels);
-
-		// Update account health metadata
-		const syncedAt = new Date();
 		yield* Effect.tryPromise(() =>
-			db
-				.update(mailAccount)
-				.set({
-					lastSuccessfulSyncAt: syncedAt,
-					lastAttemptedSyncAt: syncedAt,
-					lastErrorCode: null,
-					lastErrorMessage: null,
-					degradedReason: null,
-				})
-				.where(eq(mailAccount.id, accountId)),
+			runInTransaction(db, async (tx) => {
+				for (const message of validatedChanges.messagesAdded) {
+					await upsertMessageImpl(tx, account.userId, accountId, message);
+				}
+
+				for (const deletedRef of validatedChanges.messagesDeleted) {
+					await deleteMessageByProviderRefImpl(tx, accountId, deletedRef);
+				}
+
+				for (const { messageRef, labelRefs } of validatedChanges.labelsAdded) {
+					await addMessageLabelsImpl(tx, account.userId, accountId, messageRef, labelRefs);
+				}
+
+				for (const { messageRef, labelRefs } of validatedChanges.labelsRemoved) {
+					await removeMessageLabelsImpl(tx, accountId, messageRef, labelRefs);
+				}
+
+				await syncLabelsImpl(tx, account.userId, accountId, labels);
+				await syncFoldersImpl(tx, account.userId, accountId, folders);
+				await rebuildSearchDocumentsForAccount(tx, accountId);
+				await upsertSyncCursorImpl(tx, accountId, newCursor);
+
+				const syncedAt = new Date();
+				await tx
+					.update(mailAccount)
+					.set({
+						status: "healthy",
+						lastSuccessfulSyncAt: syncedAt,
+						lastAttemptedSyncAt: syncedAt,
+						lastErrorCode: null,
+						lastErrorMessage: null,
+						degradedReason: null,
+					})
+					.where(eq(mailAccount.id, accountId));
+			}),
 		);
 	});
 }
@@ -230,17 +307,36 @@ async function boundedResyncImpl(
 	adapter: GmailAdapter,
 ): Promise<void> {
 	const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-	const threads = decodeProviderThreads(await adapter.listRecentThreads(cutoff));
-
-	// Upsert — repair recent authoritative slice without deleting older mirrored mail
-	for (const thread of threads) {
-		await syncThreadImpl(db, userId, accountId, thread);
-	}
-
+	const labels = assertProviderLabels(await adapter.listLabels());
+	const folders = assertProviderFolders(getGmailFolders(labels));
+	const threads = assertProviderThreads(await adapter.listRecentThreads(cutoff));
 	const cursor = await adapter.getLatestCursor();
-	await upsertSyncCursorImpl(db, accountId, cursor);
 
-	await db.update(mailAccount).set({ status: "healthy" }).where(eq(mailAccount.id, accountId));
+	await runInTransaction(db, async (tx) => {
+		await syncLabelsImpl(tx, userId, accountId, labels);
+		await syncFoldersImpl(tx, userId, accountId, folders);
+
+		// Upsert — repair recent authoritative slice without deleting older mirrored mail.
+		for (const thread of threads) {
+			await syncThreadImpl(tx, userId, accountId, thread);
+		}
+
+		await rebuildSearchDocumentsForAccount(tx, accountId);
+		await upsertSyncCursorImpl(tx, accountId, cursor);
+
+		const syncedAt = new Date();
+		await tx
+			.update(mailAccount)
+			.set({
+				status: "healthy",
+				lastSuccessfulSyncAt: syncedAt,
+				lastAttemptedSyncAt: syncedAt,
+				lastErrorCode: null,
+				lastErrorMessage: null,
+				degradedReason: null,
+			})
+			.where(eq(mailAccount.id, accountId));
+	});
 }
 
 function boundedResync(
@@ -256,168 +352,216 @@ function boundedResync(
 // Data writing helpers
 // ---------------------------------------------------------------------------
 
-function syncLabels(
+async function syncLabelsImpl(
 	db: SyncDatabaseClient,
 	userId: string,
 	accountId: string,
-	labels: readonly ProviderLabel[],
-) {
-	return Effect.tryPromise(async () => {
-		const validatedLabels = decodeProviderLabels(labels);
-		const now = new Date();
+	labels: readonly GmailProviderLabel[],
+): Promise<void> {
+	const now = new Date();
 
-		// First pass: upsert all labels
-		for (const label of validatedLabels) {
-			const depth = label.path ? label.path.split(label.delimiter ?? "/").length - 1 : 0;
-			await db
-				.insert(mailLabel)
-				.values({
-					id: createMailLabelId(),
-					userId,
-					accountId,
-					providerLabelRef: label.providerRef,
+	for (const label of labels) {
+		const depth = label.path ? label.path.split(label.delimiter ?? "/").length - 1 : 0;
+		await db
+			.insert(mailLabel)
+			.values({
+				id: createMailLabelId(),
+				userId,
+				accountId,
+				providerLabelRef: label.providerRef,
+				name: label.name,
+				path: label.path ?? null,
+				delimiter: label.delimiter ?? null,
+				depth,
+				color: label.color ?? null,
+				kind: label.kind,
+				createdAt: now,
+				updatedAt: now,
+			})
+			.onConflictDoUpdate({
+				target: [mailLabel.accountId, mailLabel.providerLabelRef],
+				targetWhere: and(
+					eq(mailLabel.accountId, accountId),
+					eq(mailLabel.providerLabelRef, label.providerRef),
+				),
+				set: {
 					name: label.name,
 					path: label.path ?? null,
 					delimiter: label.delimiter ?? null,
 					depth,
-					color: label.color,
+					color: label.color ?? null,
 					kind: label.kind,
-					createdAt: now,
 					updatedAt: now,
-				})
-				.onConflictDoUpdate({
-					target: [mailLabel.accountId, mailLabel.providerLabelRef],
-					targetWhere: and(
-						eq(mailLabel.accountId, accountId),
-						eq(mailLabel.providerLabelRef, label.providerRef),
-					),
-					set: {
-						name: label.name,
-						path: label.path ?? null,
-						delimiter: label.delimiter ?? null,
-						depth,
-						color: label.color,
-						kind: label.kind,
-						updatedAt: now,
-					},
-				});
+				},
+			});
+
+		await upsertProviderStateImpl(
+			db,
+			accountId,
+			GMAIL_PROVIDER_LABEL_OBJECT,
+			label.providerRef,
+			label.providerStatePayload,
+		);
+	}
+
+	const dbLabels = await db
+		.select({
+			id: mailLabel.id,
+			path: mailLabel.path,
+			providerLabelRef: mailLabel.providerLabelRef,
+		})
+		.from(mailLabel)
+		.where(eq(mailLabel.accountId, accountId));
+
+	const pathToId = new Map(
+		dbLabels.filter((label) => label.path).map((label) => [label.path!, label.id]),
+	);
+
+	for (const label of labels) {
+		const labelId = pathToId.get(label.path ?? "");
+		if (!labelId) {
+			continue;
 		}
 
-		// Second pass: resolve parent_id from paths
-		const dbLabels = await db
-			.select({
-				id: mailLabel.id,
-				path: mailLabel.path,
-			})
-			.from(mailLabel)
-			.where(eq(mailLabel.accountId, accountId));
+		const parentId =
+			label.path && label.delimiter
+				? (pathToId.get(label.path.split(label.delimiter).slice(0, -1).join(label.delimiter)) ??
+					null)
+				: null;
 
-		const pathToId = new Map(dbLabels.filter((l) => l.path).map((l) => [l.path!, l.id]));
+		await db.update(mailLabel).set({ parentId, updatedAt: now }).where(eq(mailLabel.id, labelId));
+	}
 
-		for (const label of validatedLabels) {
-			if (!label.path || !label.delimiter) continue;
-			const segments = label.path.split(label.delimiter);
-			if (segments.length <= 1) continue;
-			const parentPath = segments.slice(0, -1).join(label.delimiter);
-			const parentId = pathToId.get(parentPath);
-			if (parentId) {
-				const labelId = pathToId.get(label.path);
-				if (labelId) {
-					await db
-						.update(mailLabel)
-						.set({ parentId, updatedAt: now })
-						.where(eq(mailLabel.id, labelId));
-				}
-			}
-		}
-	});
+	const currentRefs = new Set(labels.map((label) => label.providerRef));
+	const staleLabels = dbLabels.filter((label) => !currentRefs.has(label.providerLabelRef));
+
+	if (staleLabels.length > 0) {
+		await db.delete(mailLabel).where(
+			inArray(
+				mailLabel.id,
+				staleLabels.map((label) => label.id),
+			),
+		);
+		await db.delete(mailProviderState).where(
+			and(
+				eq(mailProviderState.accountId, accountId),
+				eq(mailProviderState.objectType, GMAIL_PROVIDER_LABEL_OBJECT),
+				inArray(
+					mailProviderState.objectId,
+					staleLabels.map((label) => label.providerLabelRef),
+				),
+			),
+		);
+	}
 }
 
-function syncFolders(
+async function syncFoldersImpl(
 	db: SyncDatabaseClient,
 	userId: string,
 	accountId: string,
-	folders: readonly ProviderFolder[],
-) {
-	return Effect.tryPromise(async () => {
-		const validatedFolders = decodeProviderFolders(folders);
-		const now = new Date();
-		for (const folder of validatedFolders) {
-			await db
-				.insert(mailFolder)
-				.values({
-					id: createMailFolderId(),
-					userId,
-					accountId,
-					providerFolderRef: folder.providerRef,
+	folders: readonly GmailProviderFolder[],
+): Promise<void> {
+	const now = new Date();
+
+	for (const folder of folders) {
+		await db
+			.insert(mailFolder)
+			.values({
+				id: createMailFolderId(),
+				userId,
+				accountId,
+				providerFolderRef: folder.providerRef,
+				kind: folder.kind,
+				name: folder.name,
+				path: folder.path ?? null,
+				delimiter: folder.delimiter ?? null,
+				depth: folder.path ? folder.path.split(folder.delimiter ?? "/").length - 1 : 0,
+				isSelectable: folder.isSelectable,
+				createdAt: now,
+				updatedAt: now,
+			})
+			.onConflictDoUpdate({
+				target: [mailFolder.accountId, mailFolder.providerFolderRef],
+				targetWhere: and(
+					eq(mailFolder.accountId, accountId),
+					eq(mailFolder.providerFolderRef, folder.providerRef),
+				),
+				set: {
 					kind: folder.kind,
 					name: folder.name,
+					path: folder.path ?? null,
+					delimiter: folder.delimiter ?? null,
+					depth: folder.path ? folder.path.split(folder.delimiter ?? "/").length - 1 : 0,
+					parentId: null,
 					isSelectable: folder.isSelectable,
-					createdAt: now,
 					updatedAt: now,
-				})
-				.onConflictDoUpdate({
-					target: [mailFolder.accountId, mailFolder.providerFolderRef],
-					targetWhere: and(
-						eq(mailFolder.accountId, accountId),
-						eq(mailFolder.providerFolderRef, folder.providerRef),
-					),
-					set: {
-						name: folder.name,
-						kind: folder.kind,
-						isSelectable: folder.isSelectable,
-						updatedAt: now,
-					},
-				});
-		}
-	});
-}
+				},
+			});
 
-function syncThreads(
-	db: SyncDatabaseClient,
-	userId: string,
-	accountId: string,
-	threads: readonly ProviderThread[],
-) {
-	return Effect.tryPromise(async () => {
-		for (const thread of decodeProviderThreads(threads)) {
-			await syncThreadImpl(db, userId, accountId, thread);
-		}
-	});
-}
-
-function collectParticipants(
-	messages: readonly ProviderMessage[],
-): Array<{ name?: string; address: string }> {
-	const seen = new Set<string>();
-	const participants: Array<{ name?: string; address: string }> = [];
-	for (const msg of messages) {
-		if (msg.sender) {
-			const key = msg.sender.address.toLowerCase();
-			if (!seen.has(key)) {
-				seen.add(key);
-				participants.push(msg.sender);
-			}
-		}
+		await upsertProviderStateImpl(
+			db,
+			accountId,
+			GMAIL_PROVIDER_FOLDER_OBJECT,
+			folder.providerRef,
+			folder.providerStatePayload,
+		);
 	}
-	return participants;
+
+	const dbFolders = await db
+		.select({ id: mailFolder.id, providerFolderRef: mailFolder.providerFolderRef })
+		.from(mailFolder)
+		.where(eq(mailFolder.accountId, accountId));
+
+	const refToId = new Map(dbFolders.map((folder) => [folder.providerFolderRef, folder.id]));
+
+	for (const folder of folders) {
+		const folderId = refToId.get(folder.providerRef);
+		if (!folderId) {
+			continue;
+		}
+
+		await upsertFolderSyncStateImpl(db, accountId, folderId, folder.providerStatePayload);
+	}
+
+	const currentRefs = new Set(folders.map((folder) => folder.providerRef));
+	const staleFolders = dbFolders.filter((folder) => !currentRefs.has(folder.providerFolderRef));
+
+	if (staleFolders.length > 0) {
+		await db.delete(mailFolder).where(
+			inArray(
+				mailFolder.id,
+				staleFolders.map((folder) => folder.id),
+			),
+		);
+		await db.delete(mailProviderState).where(
+			and(
+				eq(mailProviderState.accountId, accountId),
+				eq(mailProviderState.objectType, GMAIL_PROVIDER_FOLDER_OBJECT),
+				inArray(
+					mailProviderState.objectId,
+					staleFolders.map((folder) => folder.providerFolderRef),
+				),
+			),
+		);
+	}
 }
 
 async function syncThreadImpl(
 	db: SyncDatabaseClient,
 	userId: string,
 	accountId: string,
-	thread: ProviderThread,
+	thread: GmailProviderThread,
 ): Promise<void> {
 	const now = new Date();
 	const messages = thread.messages;
-	if (messages.length === 0) return;
+	if (messages.length === 0) {
+		return;
+	}
 
-	// Upsert conversation with projection fields
 	const latestMessage = messages[messages.length - 1]!;
 	const conversationId = createMailConversationId();
 	const subject = messages[0]?.subject ?? null;
-	const participantsPreview = collectParticipants(messages);
+	const participantsPreview = collectConversationParticipants(messages);
 
 	const conversationValues = {
 		subject,
@@ -426,10 +570,10 @@ async function syncThreadImpl(
 		latestSender: latestMessage.sender ?? null,
 		participantsPreview,
 		messageCount: messages.length,
-		unreadCount: messages.filter((m) => m.isUnread).length,
-		hasAttachments: messages.some((m) => m.attachments.length > 0),
-		isStarred: messages.some((m) => m.isStarred),
-		draftCount: messages.filter((m) => m.isDraft).length,
+		unreadCount: messages.filter((message) => message.isUnread).length,
+		hasAttachments: messages.some((message) => message.attachments.length > 0),
+		isStarred: messages.some((message) => message.isStarred),
+		draftCount: messages.filter((message) => message.isDraft).length,
 		updatedAt: now,
 	};
 
@@ -453,33 +597,20 @@ async function syncThreadImpl(
 		})
 		.returning({ id: mailConversation.id });
 
-	const convId = conversation?.id ?? conversationId;
+	const resolvedConversationId = conversation?.id ?? conversationId;
 
-	// Upsert each message in the thread
 	for (const message of messages) {
-		await upsertMessageImpl(db, userId, accountId, message, convId);
+		await upsertMessageImpl(db, userId, accountId, message, resolvedConversationId);
 	}
 
-	// Recompute derived conversation projections after all messages are synced
-	await recomputeConversationProjections(db, userId, accountId, convId);
-}
-
-function upsertMessage(
-	db: SyncDatabaseClient,
-	userId: string,
-	accountId: string,
-	message: ProviderMessage,
-) {
-	return Effect.tryPromise(() =>
-		upsertMessageImpl(db, userId, accountId, decodeProviderMessage(message)),
-	);
+	await recomputeConversationProjections(db, userId, accountId, resolvedConversationId);
 }
 
 async function ensureConversationForMessage(
 	db: SyncDatabaseClient,
 	userId: string,
 	accountId: string,
-	message: ProviderMessage,
+	message: GmailProviderMessage,
 ): Promise<string | undefined> {
 	if (!message.threadRef) {
 		return undefined;
@@ -526,18 +657,20 @@ async function recomputeConversationStats(
 ): Promise<void> {
 	const messages = await db
 		.select({
-			id: mailMessage.id,
-			isUnread: mailMessage.isUnread,
-			isStarred: mailMessage.isStarred,
-			isDraft: mailMessage.isDraft,
-			hasAttachments: mailMessage.hasAttachments,
-			subject: mailMessage.subject,
-			snippet: mailMessage.snippet,
-			sender: mailMessage.sender,
-			receivedAt: mailMessage.receivedAt,
-			createdAt: mailMessage.createdAt,
-			userId: mailMessage.userId,
 			accountId: mailMessage.accountId,
+			ccRecipients: mailMessage.ccRecipients,
+			createdAt: mailMessage.createdAt,
+			id: mailMessage.id,
+			hasAttachments: mailMessage.hasAttachments,
+			isDraft: mailMessage.isDraft,
+			isStarred: mailMessage.isStarred,
+			isUnread: mailMessage.isUnread,
+			receivedAt: mailMessage.receivedAt,
+			sender: mailMessage.sender,
+			snippet: mailMessage.snippet,
+			subject: mailMessage.subject,
+			toRecipients: mailMessage.toRecipients,
+			userId: mailMessage.userId,
 		})
 		.from(mailMessage)
 		.where(eq(mailMessage.conversationId, conversationId))
@@ -549,48 +682,68 @@ async function recomputeConversationStats(
 	}
 
 	const latestMessage = messages[0]!;
-
-	// Collect unique participants
-	const seen = new Set<string>();
-	const participantsPreview: Array<{ name?: string; address: string }> = [];
-	for (const msg of messages) {
-		const sender = msg.sender as { name?: string; address: string } | null;
-		if (sender) {
-			const key = sender.address.toLowerCase();
-			if (!seen.has(key)) {
-				seen.add(key);
-				participantsPreview.push(sender);
-			}
-		}
-	}
+	const participantsPreview = collectConversationParticipants(
+		messages.map(
+			(message) =>
+				({
+					attachments: [],
+					bccRecipients: [],
+					bodyParts: [],
+					...(message.ccRecipients
+						? {
+								ccRecipients: message.ccRecipients as Array<{
+									address: string;
+									name?: string;
+								}>,
+							}
+						: {}),
+					isDraft: message.isDraft,
+					isStarred: message.isStarred,
+					isUnread: message.isUnread,
+					providerRef: message.id,
+					...(message.sender
+						? {
+								sender: message.sender as { address: string; name?: string },
+							}
+						: {}),
+					...(message.snippet ? { snippet: message.snippet } : {}),
+					...(message.subject ? { subject: message.subject } : {}),
+					...(message.toRecipients
+						? {
+								toRecipients: message.toRecipients as Array<{
+									address: string;
+									name?: string;
+								}>,
+							}
+						: {}),
+				}) as ProviderMessage,
+		),
+	);
 
 	await db
 		.update(mailConversation)
 		.set({
-			subject: latestMessage.subject ?? null,
-			snippet: latestMessage.snippet ?? null,
+			draftCount: messages.filter((message) => message.isDraft).length,
+			hasAttachments: messages.some((message) => message.hasAttachments),
+			isStarred: messages.some((message) => message.isStarred),
 			latestMessageAt: latestMessage.receivedAt ?? latestMessage.createdAt,
 			latestMessageId: latestMessage.id,
 			latestSender: latestMessage.sender,
-			participantsPreview,
 			messageCount: messages.length,
-			unreadCount: messages.filter((m) => m.isUnread).length,
-			hasAttachments: messages.some((m) => m.hasAttachments),
-			isStarred: messages.some((m) => m.isStarred),
-			draftCount: messages.filter((m) => m.isDraft).length,
+			participantsPreview,
+			snippet: latestMessage.snippet ?? null,
+			subject: latestMessage.subject ?? null,
+			unreadCount: messages.filter((message) => message.isUnread).length,
 			updatedAt: new Date(),
 		})
 		.where(eq(mailConversation.id, conversationId));
 
-	// Also recompute derived conversation label/folder projections
-	if (latestMessage.userId && latestMessage.accountId) {
-		await recomputeConversationProjections(
-			db,
-			latestMessage.userId,
-			latestMessage.accountId,
-			conversationId,
-		);
-	}
+	await recomputeConversationProjections(
+		db,
+		latestMessage.userId,
+		latestMessage.accountId,
+		conversationId,
+	);
 }
 
 async function recomputeConversationProjections(
@@ -599,62 +752,55 @@ async function recomputeConversationProjections(
 	accountId: string,
 	conversationId: string,
 ): Promise<void> {
-	const now = new Date();
-
-	// Get all message IDs in this conversation
 	const messageIds = await db
 		.select({ id: mailMessage.id })
 		.from(mailMessage)
 		.where(eq(mailMessage.conversationId, conversationId));
 
-	if (messageIds.length === 0) return;
-
-	const msgIds = messageIds.map((m) => m.id);
-
-	// Derive conversation-level labels from message labels
-	const labelIdSet = new Set<string>();
-	for (const id of msgIds) {
-		const rows = await db
-			.select({ labelId: mailMessageLabel.labelId })
-			.from(mailMessageLabel)
-			.where(eq(mailMessageLabel.messageId, id));
-		for (const row of rows) {
-			labelIdSet.add(row.labelId);
-		}
+	if (messageIds.length === 0) {
+		return;
 	}
 
-	// Replace conversation labels
+	const messageIdList = messageIds.map((message) => message.id);
+	const labelRows = await db
+		.select({ labelId: mailMessageLabel.labelId })
+		.from(mailMessageLabel)
+		.where(inArray(mailMessageLabel.messageId, messageIdList));
+	const folderRows = await db
+		.select({ folderId: mailMessageMailbox.folderId })
+		.from(mailMessageMailbox)
+		.where(inArray(mailMessageMailbox.messageId, messageIdList));
+
+	const now = new Date();
+	const labelIds = Array.from(new Set(labelRows.map((row) => row.labelId)));
+	const folderIds = Array.from(new Set(folderRows.map((row) => row.folderId)));
+
 	await db
 		.delete(mailConversationLabel)
 		.where(eq(mailConversationLabel.conversationId, conversationId));
-	for (const labelId of labelIdSet) {
-		await db
-			.insert(mailConversationLabel)
-			.values({ accountId, userId, conversationId, labelId, createdAt: now, updatedAt: now })
-			.onConflictDoNothing();
+	for (const labelId of labelIds) {
+		await db.insert(mailConversationLabel).values({
+			accountId,
+			userId,
+			conversationId,
+			labelId,
+			createdAt: now,
+			updatedAt: now,
+		});
 	}
 
-	// Derive conversation-level folders from message mailboxes
-	const folderIdSet = new Set<string>();
-	for (const id of msgIds) {
-		const rows = await db
-			.select({ folderId: mailMessageMailbox.folderId })
-			.from(mailMessageMailbox)
-			.where(eq(mailMessageMailbox.messageId, id));
-		for (const row of rows) {
-			folderIdSet.add(row.folderId);
-		}
-	}
-
-	// Replace conversation folders
 	await db
 		.delete(mailConversationFolder)
 		.where(eq(mailConversationFolder.conversationId, conversationId));
-	for (const folderId of folderIdSet) {
-		await db
-			.insert(mailConversationFolder)
-			.values({ accountId, userId, conversationId, folderId, createdAt: now, updatedAt: now })
-			.onConflictDoNothing();
+	for (const folderId of folderIds) {
+		await db.insert(mailConversationFolder).values({
+			accountId,
+			userId,
+			conversationId,
+			folderId,
+			createdAt: now,
+			updatedAt: now,
+		});
 	}
 }
 
@@ -671,163 +817,510 @@ async function getCurrentMessageLabelRefs(
 	return rows.map((row) => row.providerLabelRef);
 }
 
+async function replaceMessageBodyPartsImpl(
+	db: SyncDatabaseClient,
+	userId: string,
+	messageId: string,
+	bodyParts: GmailProviderMessage["bodyParts"],
+): Promise<void> {
+	const now = new Date();
+	await db.delete(mailMessageBodyPart).where(eq(mailMessageBodyPart.messageId, messageId));
+
+	let preferredSet = false;
+	const hasHtml = bodyParts.some((bodyPart) => bodyPart.contentType === "text/html");
+
+	for (const [index, bodyPart] of bodyParts.entries()) {
+		const isPreferred =
+			!preferredSet && (bodyPart.contentType === "text/html" || (index === 0 && !hasHtml));
+
+		await db.insert(mailMessageBodyPart).values({
+			id: createMailMessageBodyPartId(),
+			userId,
+			messageId,
+			partIndex: index,
+			contentType: bodyPart.contentType,
+			content: bodyPart.content,
+			isPreferredRender: isPreferred,
+			createdAt: now,
+			updatedAt: now,
+		});
+
+		if (isPreferred) {
+			preferredSet = true;
+		}
+	}
+}
+
+async function replaceMessageAttachmentsImpl(
+	db: SyncDatabaseClient,
+	userId: string,
+	messageId: string,
+	attachments: GmailProviderMessage["attachments"],
+): Promise<void> {
+	const now = new Date();
+	await db.delete(mailAttachment).where(eq(mailAttachment.messageId, messageId));
+
+	for (const attachment of attachments) {
+		await db.insert(mailAttachment).values({
+			id: createMailAttachmentId(),
+			userId,
+			messageId,
+			providerAttachmentRef: attachment.providerRef ?? null,
+			filename: attachment.filename ?? null,
+			mimeType: attachment.mimeType ?? null,
+			size: attachment.size ?? null,
+			isInline: attachment.isInline,
+			contentId: attachment.contentId ?? null,
+			createdAt: now,
+			updatedAt: now,
+		});
+	}
+}
+
+async function syncMessageHeaderImpl(
+	db: SyncDatabaseClient,
+	userId: string,
+	messageId: string,
+	headers: GmailProviderMessage["headers"],
+): Promise<void> {
+	if (!headers) {
+		await db.delete(mailMessageHeader).where(eq(mailMessageHeader.messageId, messageId));
+		return;
+	}
+
+	const now = new Date();
+	await db
+		.insert(mailMessageHeader)
+		.values({
+			messageId,
+			userId,
+			replyTo: headers.replyTo ?? null,
+			inReplyTo: headers.inReplyTo ?? null,
+			references: headers.references ?? null,
+			listUnsubscribe: headers.listUnsubscribe ?? null,
+			listUnsubscribePost: headers.listUnsubscribePost ?? null,
+			createdAt: now,
+			updatedAt: now,
+		})
+		.onConflictDoUpdate({
+			target: [mailMessageHeader.messageId],
+			set: {
+				replyTo: headers.replyTo ?? null,
+				inReplyTo: headers.inReplyTo ?? null,
+				references: headers.references ?? null,
+				listUnsubscribe: headers.listUnsubscribe ?? null,
+				listUnsubscribePost: headers.listUnsubscribePost ?? null,
+				updatedAt: now,
+			},
+		});
+}
+
+async function cleanupParticipantIdsIfOrphaned(
+	db: SyncDatabaseClient,
+	userId: string,
+	participantIds: readonly string[],
+): Promise<void> {
+	if (participantIds.length === 0) {
+		return;
+	}
+
+	const remainingRefs = await db
+		.select({ participantId: mailMessageParticipant.participantId })
+		.from(mailMessageParticipant)
+		.where(inArray(mailMessageParticipant.participantId, [...new Set(participantIds)]));
+
+	const activeParticipantIds = new Set(remainingRefs.map((row) => row.participantId));
+	const staleParticipantIds = [...new Set(participantIds)].filter(
+		(participantId) => !activeParticipantIds.has(participantId),
+	);
+
+	if (staleParticipantIds.length > 0) {
+		await db
+			.delete(mailParticipant)
+			.where(
+				and(eq(mailParticipant.userId, userId), inArray(mailParticipant.id, staleParticipantIds)),
+			);
+	}
+}
+
+async function syncMessageParticipantsImpl(
+	db: SyncDatabaseClient,
+	userId: string,
+	messageId: string,
+	message: GmailProviderMessage,
+): Promise<void> {
+	const previousRefs = await db
+		.select({ participantId: mailMessageParticipant.participantId })
+		.from(mailMessageParticipant)
+		.where(eq(mailMessageParticipant.messageId, messageId));
+	await db.delete(mailMessageParticipant).where(eq(mailMessageParticipant.messageId, messageId));
+
+	const now = new Date();
+	const lastSeenAt = message.receivedAt ?? message.sentAt ?? now;
+	for (const participant of buildMailParticipantInputs(message)) {
+		await db
+			.insert(mailParticipant)
+			.values({
+				id: createMailParticipantId(),
+				userId,
+				normalizedAddress: participant.normalizedAddress,
+				displayName: participant.displayName,
+				lastSeenAt,
+				sourceKind: "derived_from_mail",
+				createdAt: now,
+				updatedAt: now,
+			})
+			.onConflictDoUpdate({
+				target: [mailParticipant.userId, mailParticipant.normalizedAddress],
+				set: {
+					displayName: sql`coalesce(excluded.display_name, ${mailParticipant.displayName})`,
+					lastSeenAt,
+					sourceKind: "derived_from_mail",
+					updatedAt: now,
+				},
+			});
+
+		const [persistedParticipant] = await db
+			.select({ id: mailParticipant.id })
+			.from(mailParticipant)
+			.where(
+				and(
+					eq(mailParticipant.userId, userId),
+					eq(mailParticipant.normalizedAddress, participant.normalizedAddress),
+				),
+			)
+			.limit(1);
+
+		if (!persistedParticipant) {
+			continue;
+		}
+
+		await db
+			.insert(mailMessageParticipant)
+			.values({
+				id: createMailMessageParticipantId(),
+				userId,
+				messageId,
+				participantId: persistedParticipant.id,
+				role: participant.role,
+				ordinal: participant.ordinal,
+				createdAt: now,
+				updatedAt: now,
+			})
+			.onConflictDoNothing();
+	}
+
+	await cleanupParticipantIdsIfOrphaned(
+		db,
+		userId,
+		previousRefs.map((participantRef) => participantRef.participantId),
+	);
+}
+
+async function upsertProviderStateImpl(
+	db: SyncDatabaseClient,
+	accountId: string,
+	objectType: string,
+	objectId: string,
+	payload: unknown,
+): Promise<void> {
+	const now = new Date();
+	await db
+		.insert(mailProviderState)
+		.values({
+			id: createMailProviderStateId(),
+			accountId,
+			provider: GMAIL_PROVIDER,
+			objectType,
+			objectId,
+			payload,
+			createdAt: now,
+			updatedAt: now,
+		})
+		.onConflictDoUpdate({
+			target: [
+				mailProviderState.accountId,
+				mailProviderState.objectType,
+				mailProviderState.objectId,
+			],
+			set: {
+				provider: GMAIL_PROVIDER,
+				payload,
+				updatedAt: now,
+			},
+		});
+}
+
+async function upsertFolderSyncStateImpl(
+	db: SyncDatabaseClient,
+	accountId: string,
+	folderId: string,
+	payload: unknown,
+): Promise<void> {
+	const now = new Date();
+	await db
+		.insert(mailFolderSyncState)
+		.values({
+			id: createMailFolderSyncStateId(),
+			accountId,
+			folderId,
+			provider: GMAIL_PROVIDER,
+			stateKind: GMAIL_FOLDER_SYNC_STATE_KIND,
+			payload,
+			lastSuccessfulSyncAt: now,
+			lastAttemptedSyncAt: now,
+			createdAt: now,
+			updatedAt: now,
+		})
+		.onConflictDoUpdate({
+			target: [
+				mailFolderSyncState.accountId,
+				mailFolderSyncState.folderId,
+				mailFolderSyncState.stateKind,
+			],
+			set: {
+				provider: GMAIL_PROVIDER,
+				payload,
+				lastSuccessfulSyncAt: now,
+				lastAttemptedSyncAt: now,
+				lastErrorCode: null,
+				lastErrorMessage: null,
+				updatedAt: now,
+			},
+		});
+}
+
+async function upsertMessageSourceImpl(
+	db: SyncDatabaseClient,
+	messageId: string,
+	providerRef: string,
+	payload: unknown,
+): Promise<void> {
+	const now = new Date();
+	const digest = createProviderPayloadDigest(payload);
+	await db
+		.insert(mailMessageSource)
+		.values({
+			id: createMailMessageSourceId(),
+			messageId,
+			sourceKind: GMAIL_MESSAGE_SOURCE_KIND,
+			storageKind: "postgres",
+			storageKey: `${GMAIL_PROVIDER_MESSAGE_OBJECT}/${providerRef}`,
+			contentSha256: digest.contentSha256,
+			byteSize: digest.byteSize,
+			parserVersion: GMAIL_MESSAGE_PARSER_VERSION,
+			sanitizerVersion: null,
+			createdAt: now,
+			updatedAt: now,
+		})
+		.onConflictDoUpdate({
+			target: [mailMessageSource.messageId, mailMessageSource.sourceKind],
+			set: {
+				storageKind: "postgres",
+				storageKey: `${GMAIL_PROVIDER_MESSAGE_OBJECT}/${providerRef}`,
+				contentSha256: digest.contentSha256,
+				byteSize: digest.byteSize,
+				parserVersion: GMAIL_MESSAGE_PARSER_VERSION,
+				sanitizerVersion: null,
+				updatedAt: now,
+			},
+		});
+}
+
+async function rebuildSearchDocumentForMessage(
+	db: SyncDatabaseClient,
+	messageId: string,
+): Promise<void> {
+	const [persistedMessage] = await db
+		.select({
+			accountId: mailMessage.accountId,
+			bccRecipients: mailMessage.bccRecipients,
+			ccRecipients: mailMessage.ccRecipients,
+			conversationId: mailMessage.conversationId,
+			id: mailMessage.id,
+			sender: mailMessage.sender,
+			snippet: mailMessage.snippet,
+			subject: mailMessage.subject,
+			toRecipients: mailMessage.toRecipients,
+		})
+		.from(mailMessage)
+		.where(eq(mailMessage.id, messageId))
+		.limit(1);
+
+	if (!persistedMessage) {
+		return;
+	}
+
+	const bodyParts = await db
+		.select({ content: mailMessageBodyPart.content, contentType: mailMessageBodyPart.contentType })
+		.from(mailMessageBodyPart)
+		.where(eq(mailMessageBodyPart.messageId, messageId));
+	const labelRows = await db
+		.select({ labelId: mailMessageLabel.labelId })
+		.from(mailMessageLabel)
+		.where(eq(mailMessageLabel.messageId, messageId));
+	const folderRows = await db
+		.select({ folderId: mailMessageMailbox.folderId })
+		.from(mailMessageMailbox)
+		.where(eq(mailMessageMailbox.messageId, messageId));
+
+	const searchValues = buildMailSearchDocumentValues({
+		bccRecipients: persistedMessage.bccRecipients as Array<{
+			address: string;
+			name?: string;
+		}> | null,
+		bodyParts: bodyParts as Array<{
+			content: string;
+			contentType: "text/html" | "text/plain";
+		}>,
+		ccRecipients: persistedMessage.ccRecipients as Array<{ address: string; name?: string }> | null,
+		sender: persistedMessage.sender as { address: string; name?: string } | null,
+		snippet: persistedMessage.snippet,
+		subject: persistedMessage.subject,
+		toRecipients: persistedMessage.toRecipients as Array<{ address: string; name?: string }> | null,
+	});
+
+	const now = new Date();
+	await db
+		.insert(mailSearchDocument)
+		.values({
+			messageId: persistedMessage.id,
+			accountId: persistedMessage.accountId,
+			conversationId: persistedMessage.conversationId,
+			folderIds: folderRows.map((row) => row.folderId),
+			labelIds: labelRows.map((row) => row.labelId),
+			...searchValues,
+			createdAt: now,
+			updatedAt: now,
+		})
+		.onConflictDoUpdate({
+			target: [mailSearchDocument.messageId],
+			set: {
+				accountId: persistedMessage.accountId,
+				conversationId: persistedMessage.conversationId,
+				folderIds: folderRows.map((row) => row.folderId),
+				labelIds: labelRows.map((row) => row.labelId),
+				...searchValues,
+				updatedAt: now,
+			},
+		});
+}
+
+async function rebuildSearchDocumentsForAccount(
+	db: SyncDatabaseClient,
+	accountId: string,
+): Promise<void> {
+	const messages = await db
+		.select({ id: mailMessage.id })
+		.from(mailMessage)
+		.where(eq(mailMessage.accountId, accountId));
+
+	for (const message of messages) {
+		await rebuildSearchDocumentForMessage(db, message.id);
+	}
+}
+
 async function upsertMessageImpl(
 	db: SyncDatabaseClient,
 	userId: string,
 	accountId: string,
-	message: ProviderMessage,
+	message: GmailProviderMessage,
 	conversationId?: string,
 ): Promise<void> {
+	const validatedMessage = assertProviderMessage(message);
 	const now = new Date();
-	const messageId = createMailMessageId();
 	const resolvedConversationId =
-		conversationId ?? (await ensureConversationForMessage(db, userId, accountId, message));
+		conversationId ?? (await ensureConversationForMessage(db, userId, accountId, validatedMessage));
 
-	const bodyParts = message.bodyParts;
-	const hasHtml = bodyParts.some((p) => p.contentType === "text/html");
-	const hasPlainText = bodyParts.some((p) => p.contentType === "text/plain");
+	const hasHtml = validatedMessage.bodyParts.some(
+		(bodyPart) => bodyPart.contentType === "text/html",
+	);
+	const hasPlainText = validatedMessage.bodyParts.some(
+		(bodyPart) => bodyPart.contentType === "text/plain",
+	);
 
-	// If message already exists, get its ID
 	const [existing] = await db
 		.select({ id: mailMessage.id, conversationId: mailMessage.conversationId })
 		.from(mailMessage)
 		.where(
 			and(
 				eq(mailMessage.accountId, accountId),
-				eq(mailMessage.providerMessageRef, message.providerRef),
+				eq(mailMessage.providerMessageRef, validatedMessage.providerRef),
 			),
 		)
 		.limit(1);
 
-	const msgId = existing?.id ?? messageId;
+	const messageId = existing?.id ?? createMailMessageId();
+	const nextConversationId = resolvedConversationId ?? existing?.conversationId ?? null;
+	const nextMessageValues = {
+		conversationId: nextConversationId,
+		internetMessageId: validatedMessage.internetMessageId ?? null,
+		subject: validatedMessage.subject ?? null,
+		snippet: validatedMessage.snippet ?? null,
+		sender: validatedMessage.sender ?? null,
+		toRecipients: validatedMessage.toRecipients ?? null,
+		ccRecipients: validatedMessage.ccRecipients ?? null,
+		bccRecipients: validatedMessage.bccRecipients ?? null,
+		sentAt: validatedMessage.sentAt ?? null,
+		receivedAt: validatedMessage.receivedAt ?? null,
+		isUnread: validatedMessage.isUnread,
+		isStarred: validatedMessage.isStarred,
+		isDraft: validatedMessage.isDraft,
+		hasAttachments: validatedMessage.attachments.length > 0,
+		hasHtml,
+		hasPlainText,
+		updatedAt: now,
+	};
 
 	if (existing) {
-		// Update existing message
-		await db
-			.update(mailMessage)
-			.set({
-				conversationId: resolvedConversationId ?? existing.conversationId ?? null,
-				isUnread: message.isUnread,
-				isStarred: message.isStarred,
-				isDraft: message.isDraft,
-				subject: message.subject ?? null,
-				snippet: message.snippet ?? null,
-				sentAt: message.sentAt ?? null,
-				receivedAt: message.receivedAt ?? null,
-				hasAttachments: message.attachments.length > 0,
-				hasHtml,
-				hasPlainText,
-				updatedAt: now,
-			})
-			.where(eq(mailMessage.id, existing.id));
+		await db.update(mailMessage).set(nextMessageValues).where(eq(mailMessage.id, existing.id));
 	} else {
-		// Insert new message
 		await db.insert(mailMessage).values({
-			id: msgId,
+			id: messageId,
 			userId,
 			accountId,
-			conversationId: resolvedConversationId ?? null,
-			providerMessageRef: message.providerRef,
-			internetMessageId: message.internetMessageId ?? null,
-			subject: message.subject ?? null,
-			snippet: message.snippet ?? null,
-			sender: message.sender ?? null,
-			toRecipients: message.toRecipients ?? null,
-			ccRecipients: message.ccRecipients ?? null,
-			bccRecipients: message.bccRecipients ?? null,
-			sentAt: message.sentAt ?? null,
-			receivedAt: message.receivedAt ?? null,
-			isUnread: message.isUnread,
-			isStarred: message.isStarred,
-			isDraft: message.isDraft,
-			hasAttachments: message.attachments.length > 0,
-			hasHtml,
-			hasPlainText,
+			providerMessageRef: validatedMessage.providerRef,
 			createdAt: now,
-			updatedAt: now,
+			...nextMessageValues,
 		});
-
-		// Insert body parts (§11.7)
-		let preferredSet = false;
-		for (let i = 0; i < bodyParts.length; i++) {
-			const part = bodyParts[i]!;
-			const isPreferred =
-				!preferredSet && (part.contentType === "text/html" || (i === 0 && !hasHtml));
-
-			await db.insert(mailMessageBodyPart).values({
-				id: createMailMessageBodyPartId(),
-				userId,
-				messageId: msgId,
-				partIndex: i,
-				contentType: part.contentType,
-				content: part.content,
-				isPreferredRender: isPreferred,
-				createdAt: now,
-				updatedAt: now,
-			});
-
-			if (isPreferred) preferredSet = true;
-		}
-
-		// Insert attachments (§11.10)
-		for (const attachment of message.attachments) {
-			await db.insert(mailAttachment).values({
-				id: createMailAttachmentId(),
-				userId,
-				messageId: msgId,
-				providerAttachmentRef: attachment.providerRef ?? null,
-				filename: attachment.filename ?? null,
-				mimeType: attachment.mimeType ?? null,
-				size: attachment.size ?? null,
-				isInline: attachment.isInline,
-				contentId: attachment.contentId ?? null,
-				createdAt: now,
-				updatedAt: now,
-			});
-		}
 	}
 
-	// Upsert promoted headers (§11.6a)
-	if (message.headers) {
-		const h = message.headers;
-		await db
-			.insert(mailMessageHeader)
-			.values({
-				messageId: msgId,
-				userId,
-				replyTo: h.replyTo ?? null,
-				inReplyTo: h.inReplyTo ?? null,
-				references: h.references ?? null,
-				listUnsubscribe: h.listUnsubscribe ?? null,
-				listUnsubscribePost: h.listUnsubscribePost ?? null,
-				createdAt: now,
-				updatedAt: now,
-			})
-			.onConflictDoUpdate({
-				target: [mailMessageHeader.messageId],
-				set: {
-					replyTo: h.replyTo ?? null,
-					inReplyTo: h.inReplyTo ?? null,
-					references: h.references ?? null,
-					listUnsubscribe: h.listUnsubscribe ?? null,
-					listUnsubscribePost: h.listUnsubscribePost ?? null,
-					updatedAt: now,
-				},
-			});
+	await replaceMessageBodyPartsImpl(db, userId, messageId, validatedMessage.bodyParts);
+	await replaceMessageAttachmentsImpl(db, userId, messageId, validatedMessage.attachments);
+	await syncMessageHeaderImpl(db, userId, messageId, validatedMessage.headers);
+	await syncMessageParticipantsImpl(db, userId, messageId, validatedMessage);
+
+	if (validatedMessage.labelRefs) {
+		await syncMessageLabelsImpl(db, userId, accountId, messageId, validatedMessage.labelRefs);
+		await syncMessageFolderMembershipImpl(
+			db,
+			userId,
+			accountId,
+			messageId,
+			validatedMessage.labelRefs,
+		);
+	} else {
+		await db.delete(mailMessageLabel).where(eq(mailMessageLabel.messageId, messageId));
+		await db.delete(mailMessageMailbox).where(eq(mailMessageMailbox.messageId, messageId));
 	}
 
-	// Sync label associations
-	if (message.labelRefs) {
-		await syncMessageLabelsImpl(db, userId, accountId, msgId, message.labelRefs);
-	}
+	await upsertProviderStateImpl(
+		db,
+		accountId,
+		GMAIL_PROVIDER_MESSAGE_OBJECT,
+		validatedMessage.providerRef,
+		validatedMessage.providerStatePayload,
+	);
+	await upsertMessageSourceImpl(
+		db,
+		messageId,
+		validatedMessage.providerRef,
+		validatedMessage.providerStatePayload,
+	);
+	await rebuildSearchDocumentForMessage(db, messageId);
 
-	// Sync folder membership (derived from system labels)
-	if (message.labelRefs) {
-		await syncMessageFolderMembershipImpl(db, userId, accountId, msgId, message.labelRefs);
-	}
-
-	if (resolvedConversationId) {
-		await recomputeConversationStats(db, resolvedConversationId);
+	if (nextConversationId) {
+		await recomputeConversationStats(db, nextConversationId);
 	}
 }
 
@@ -839,27 +1332,31 @@ async function syncMessageLabelsImpl(
 	labelRefs: readonly string[],
 ): Promise<void> {
 	const now = new Date();
-
-	// Get label IDs for these refs
 	const dbLabels = await db
 		.select({ id: mailLabel.id, providerLabelRef: mailLabel.providerLabelRef })
 		.from(mailLabel)
 		.where(eq(mailLabel.accountId, accountId));
 
-	const refToId = new Map(dbLabels.map((l) => [l.providerLabelRef, l.id]));
-
-	// Delete existing label associations for this message
+	const refToId = new Map(dbLabels.map((label) => [label.providerLabelRef, label.id]));
 	await db.delete(mailMessageLabel).where(eq(mailMessageLabel.messageId, messageId));
 
-	// Insert new associations
 	for (const ref of labelRefs) {
 		const labelId = refToId.get(ref);
-		if (labelId) {
-			await db
-				.insert(mailMessageLabel)
-				.values({ accountId, userId, messageId, labelId, createdAt: now, updatedAt: now })
-				.onConflictDoNothing();
+		if (!labelId) {
+			continue;
 		}
+
+		await db
+			.insert(mailMessageLabel)
+			.values({
+				accountId,
+				userId,
+				messageId,
+				labelId,
+				createdAt: now,
+				updatedAt: now,
+			})
+			.onConflictDoNothing();
 	}
 }
 
@@ -871,191 +1368,222 @@ async function syncMessageFolderMembershipImpl(
 	labelRefs: readonly string[],
 ): Promise<void> {
 	const now = new Date();
-
-	// Get folders for this account
 	const dbFolders = await db
 		.select({ id: mailFolder.id, providerFolderRef: mailFolder.providerFolderRef })
 		.from(mailFolder)
 		.where(eq(mailFolder.accountId, accountId));
 
-	const refToFolderId = new Map(dbFolders.map((f) => [f.providerFolderRef, f.id]));
-
-	// Delete existing mailbox entries for this message
+	const refToFolderId = new Map(dbFolders.map((folder) => [folder.providerFolderRef, folder.id]));
 	await db.delete(mailMessageMailbox).where(eq(mailMessageMailbox.messageId, messageId));
 
-	// Insert folder memberships based on system label refs
 	for (const ref of labelRefs) {
 		const folderId = refToFolderId.get(ref);
-		if (folderId) {
-			await db
-				.insert(mailMessageMailbox)
-				.values({
-					id: createMailMessageMailboxId(),
-					userId,
-					messageId,
-					accountId,
-					folderId,
-					providerFolderRef: ref,
-					createdAt: now,
-					updatedAt: now,
-				})
-				.onConflictDoNothing();
+		if (!folderId) {
+			continue;
 		}
+
+		await db
+			.insert(mailMessageMailbox)
+			.values({
+				id: createMailMessageMailboxId(),
+				userId,
+				messageId,
+				accountId,
+				folderId,
+				providerFolderRef: ref,
+				createdAt: now,
+				updatedAt: now,
+			})
+			.onConflictDoNothing();
 	}
 }
 
-function deleteMessageByProviderRef(
+async function deleteMessageByProviderRefImpl(
 	db: SyncDatabaseClient,
 	accountId: string,
 	providerRef: string,
-) {
-	return Effect.tryPromise(async () => {
-		const [msg] = await db
-			.select({ id: mailMessage.id, conversationId: mailMessage.conversationId })
-			.from(mailMessage)
-			.where(
-				and(eq(mailMessage.accountId, accountId), eq(mailMessage.providerMessageRef, providerRef)),
-			)
-			.limit(1);
+): Promise<void> {
+	const [message] = await db
+		.select({
+			conversationId: mailMessage.conversationId,
+			id: mailMessage.id,
+			userId: mailMessage.userId,
+		})
+		.from(mailMessage)
+		.where(
+			and(eq(mailMessage.accountId, accountId), eq(mailMessage.providerMessageRef, providerRef)),
+		)
+		.limit(1);
 
-		if (msg) {
-			// Cascading deletes handle body parts, labels, mailbox entries, attachments
-			await db.delete(mailMessage).where(eq(mailMessage.id, msg.id));
+	if (!message) {
+		return;
+	}
 
-			if (msg.conversationId) {
-				await recomputeConversationStats(db, msg.conversationId);
-			}
-		}
-	});
+	const participantRefs = await db
+		.select({ participantId: mailMessageParticipant.participantId })
+		.from(mailMessageParticipant)
+		.where(eq(mailMessageParticipant.messageId, message.id));
+
+	await db.delete(mailMessage).where(eq(mailMessage.id, message.id));
+	await db
+		.delete(mailProviderState)
+		.where(
+			and(
+				eq(mailProviderState.accountId, accountId),
+				eq(mailProviderState.objectType, GMAIL_PROVIDER_MESSAGE_OBJECT),
+				eq(mailProviderState.objectId, providerRef),
+			),
+		);
+	await cleanupParticipantIdsIfOrphaned(
+		db,
+		message.userId,
+		participantRefs.map((participantRef) => participantRef.participantId),
+	);
+
+	if (message.conversationId) {
+		await recomputeConversationStats(db, message.conversationId);
+	}
 }
 
-function addMessageLabels(
+async function updateMessageFlagsFromLabels(
+	db: SyncDatabaseClient,
+	messageId: string,
+	labelRefs: readonly string[],
+	present: boolean,
+): Promise<void> {
+	const updates: Partial<Record<"isDraft" | "isStarred" | "isUnread", boolean>> = {};
+	if (labelRefs.includes("UNREAD")) {
+		updates.isUnread = present;
+	}
+	if (labelRefs.includes("STARRED")) {
+		updates.isStarred = present;
+	}
+	if (labelRefs.includes("DRAFT")) {
+		updates.isDraft = present;
+	}
+
+	if (Object.keys(updates).length === 0) {
+		return;
+	}
+
+	await db
+		.update(mailMessage)
+		.set({ ...updates, updatedAt: new Date() })
+		.where(eq(mailMessage.id, messageId));
+}
+
+async function addMessageLabelsImpl(
 	db: SyncDatabaseClient,
 	userId: string,
 	accountId: string,
 	messageRef: string,
 	labelRefs: readonly string[],
-) {
-	return Effect.tryPromise(async () => {
-		const [msg] = await db
-			.select({ id: mailMessage.id, conversationId: mailMessage.conversationId })
-			.from(mailMessage)
-			.where(
-				and(eq(mailMessage.accountId, accountId), eq(mailMessage.providerMessageRef, messageRef)),
-			)
-			.limit(1);
+): Promise<void> {
+	const [message] = await db
+		.select({ conversationId: mailMessage.conversationId, id: mailMessage.id })
+		.from(mailMessage)
+		.where(
+			and(eq(mailMessage.accountId, accountId), eq(mailMessage.providerMessageRef, messageRef)),
+		)
+		.limit(1);
 
-		if (!msg) return;
+	if (!message) {
+		return;
+	}
 
-		const dbLabels = await db
-			.select({ id: mailLabel.id, providerLabelRef: mailLabel.providerLabelRef })
-			.from(mailLabel)
-			.where(eq(mailLabel.accountId, accountId));
+	const dbLabels = await db
+		.select({ id: mailLabel.id, providerLabelRef: mailLabel.providerLabelRef })
+		.from(mailLabel)
+		.where(eq(mailLabel.accountId, accountId));
 
-		const refToId = new Map(dbLabels.map((l) => [l.providerLabelRef, l.id]));
-		const now = new Date();
+	const refToId = new Map(dbLabels.map((label) => [label.providerLabelRef, label.id]));
+	const now = new Date();
 
-		for (const ref of labelRefs) {
-			const labelId = refToId.get(ref);
-			if (labelId) {
-				await db
-					.insert(mailMessageLabel)
-					.values({
-						accountId,
-						userId,
-						messageId: msg.id,
-						labelId,
-						createdAt: now,
-						updatedAt: now,
-					})
-					.onConflictDoNothing();
-			}
+	for (const ref of labelRefs) {
+		const labelId = refToId.get(ref);
+		if (!labelId) {
+			continue;
 		}
 
-		// Update UNREAD/STARRED flags
-		if (labelRefs.includes("UNREAD")) {
-			await db
-				.update(mailMessage)
-				.set({ isUnread: true, updatedAt: now })
-				.where(eq(mailMessage.id, msg.id));
-		}
-		if (labelRefs.includes("STARRED")) {
-			await db
-				.update(mailMessage)
-				.set({ isStarred: true, updatedAt: now })
-				.where(eq(mailMessage.id, msg.id));
-		}
+		await db
+			.insert(mailMessageLabel)
+			.values({
+				accountId,
+				userId,
+				messageId: message.id,
+				labelId,
+				createdAt: now,
+				updatedAt: now,
+			})
+			.onConflictDoNothing();
+	}
 
-		const currentLabelRefs = await getCurrentMessageLabelRefs(db, msg.id);
-		await syncMessageFolderMembershipImpl(db, userId, accountId, msg.id, currentLabelRefs);
+	await updateMessageFlagsFromLabels(db, message.id, labelRefs, true);
+	const currentLabelRefs = await getCurrentMessageLabelRefs(db, message.id);
+	await syncMessageFolderMembershipImpl(db, userId, accountId, message.id, currentLabelRefs);
+	await rebuildSearchDocumentForMessage(db, message.id);
 
-		if (msg.conversationId && labelRefs.includes("UNREAD")) {
-			await recomputeConversationStats(db, msg.conversationId);
-		}
-	});
+	if (message.conversationId) {
+		await recomputeConversationStats(db, message.conversationId);
+	}
 }
 
-function removeMessageLabels(
+async function removeMessageLabelsImpl(
 	db: SyncDatabaseClient,
 	accountId: string,
 	messageRef: string,
 	labelRefs: readonly string[],
-) {
-	return Effect.tryPromise(async () => {
-		const [msg] = await db
-			.select({
-				id: mailMessage.id,
-				userId: mailMessage.userId,
-				conversationId: mailMessage.conversationId,
-			})
-			.from(mailMessage)
+): Promise<void> {
+	const [message] = await db
+		.select({
+			conversationId: mailMessage.conversationId,
+			id: mailMessage.id,
+			userId: mailMessage.userId,
+		})
+		.from(mailMessage)
+		.where(
+			and(eq(mailMessage.accountId, accountId), eq(mailMessage.providerMessageRef, messageRef)),
+		)
+		.limit(1);
+
+	if (!message) {
+		return;
+	}
+
+	const dbLabels = await db
+		.select({ id: mailLabel.id, providerLabelRef: mailLabel.providerLabelRef })
+		.from(mailLabel)
+		.where(eq(mailLabel.accountId, accountId));
+
+	const refToId = new Map(dbLabels.map((label) => [label.providerLabelRef, label.id]));
+
+	for (const ref of labelRefs) {
+		const labelId = refToId.get(ref);
+		if (!labelId) {
+			continue;
+		}
+
+		await db
+			.delete(mailMessageLabel)
 			.where(
-				and(eq(mailMessage.accountId, accountId), eq(mailMessage.providerMessageRef, messageRef)),
-			)
-			.limit(1);
+				and(eq(mailMessageLabel.messageId, message.id), eq(mailMessageLabel.labelId, labelId)),
+			);
+	}
 
-		if (!msg) return;
+	await updateMessageFlagsFromLabels(db, message.id, labelRefs, false);
+	const currentLabelRefs = await getCurrentMessageLabelRefs(db, message.id);
+	await syncMessageFolderMembershipImpl(
+		db,
+		message.userId,
+		accountId,
+		message.id,
+		currentLabelRefs,
+	);
+	await rebuildSearchDocumentForMessage(db, message.id);
 
-		const dbLabels = await db
-			.select({ id: mailLabel.id, providerLabelRef: mailLabel.providerLabelRef })
-			.from(mailLabel)
-			.where(eq(mailLabel.accountId, accountId));
-
-		const refToId = new Map(dbLabels.map((l) => [l.providerLabelRef, l.id]));
-		const now = new Date();
-
-		for (const ref of labelRefs) {
-			const labelId = refToId.get(ref);
-			if (labelId) {
-				await db
-					.delete(mailMessageLabel)
-					.where(
-						and(eq(mailMessageLabel.messageId, msg.id), eq(mailMessageLabel.labelId, labelId)),
-					);
-			}
-		}
-
-		// Update UNREAD/STARRED flags
-		if (labelRefs.includes("UNREAD")) {
-			await db
-				.update(mailMessage)
-				.set({ isUnread: false, updatedAt: now })
-				.where(eq(mailMessage.id, msg.id));
-		}
-		if (labelRefs.includes("STARRED")) {
-			await db
-				.update(mailMessage)
-				.set({ isStarred: false, updatedAt: now })
-				.where(eq(mailMessage.id, msg.id));
-		}
-
-		const currentLabelRefs = await getCurrentMessageLabelRefs(db, msg.id);
-		await syncMessageFolderMembershipImpl(db, msg.userId, accountId, msg.id, currentLabelRefs);
-
-		if (msg.conversationId && labelRefs.includes("UNREAD")) {
-			await recomputeConversationStats(db, msg.conversationId);
-		}
-	});
+	if (message.conversationId) {
+		await recomputeConversationStats(db, message.conversationId);
+	}
 }
 
 // ---------------------------------------------------------------------------
@@ -1073,8 +1601,8 @@ async function upsertSyncCursorImpl(
 		.values({
 			id: createMailAccountSyncStateId(),
 			accountId,
-			provider: "gmail",
-			stateKind: "gmail_history",
+			provider: GMAIL_PROVIDER,
+			stateKind: GMAIL_HISTORY_SYNC_STATE_KIND,
 			payload: { historyId },
 			lastSuccessfulSyncAt: now,
 			lastAttemptedSyncAt: now,
@@ -1084,7 +1612,7 @@ async function upsertSyncCursorImpl(
 		.onConflictDoUpdate({
 			target: [mailAccountSyncState.accountId, mailAccountSyncState.stateKind],
 			set: {
-				provider: "gmail",
+				provider: GMAIL_PROVIDER,
 				payload: { historyId },
 				lastSuccessfulSyncAt: now,
 				lastAttemptedSyncAt: now,
@@ -1093,8 +1621,4 @@ async function upsertSyncCursorImpl(
 				updatedAt: now,
 			},
 		});
-}
-
-function upsertSyncCursor(db: SyncDatabaseClient, accountId: string, historyId: string) {
-	return Effect.tryPromise(() => upsertSyncCursorImpl(db, accountId, historyId));
 }

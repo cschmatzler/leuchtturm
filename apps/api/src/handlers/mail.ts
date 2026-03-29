@@ -21,11 +21,7 @@ import {
 	disconnectMailAccount,
 	getMailAccountForUser,
 } from "@chevrotain/core/mail/queries";
-import {
-	createMailAccountId,
-	createMailOAuthStateId,
-	GMAIL_CAPABILITIES,
-} from "@chevrotain/core/mail/schema";
+import { createMailAccountId, createMailOAuthStateId } from "@chevrotain/core/mail/schema";
 
 const MAIL_OAUTH_STATE_TTL_MS = 10 * 60 * 1000;
 
@@ -116,7 +112,6 @@ export const MailHandlerLive = HttpApiBuilder.group(ChevrotainApi, "mail", (hand
 							email: userInfo.email,
 							displayName: userInfo.name ?? null,
 							status: "connecting",
-							...GMAIL_CAPABILITIES,
 						}),
 					catch: (error) => toDatabaseError("Failed to create mail account", error),
 				});

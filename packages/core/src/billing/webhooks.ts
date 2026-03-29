@@ -16,7 +16,7 @@ import {
 	BillingOrderSnapshotRow,
 	BillingSubscriptionSnapshotRow,
 } from "@chevrotain/core/billing/schema";
-import type { DatabaseClient } from "@chevrotain/core/drizzle/index";
+import type { DatabaseExecutor } from "@chevrotain/core/drizzle/index";
 import { BillingError } from "@chevrotain/core/errors";
 
 function serializeSnapshot(value: unknown) {
@@ -74,7 +74,7 @@ export function assertPolarCustomer(
 }
 
 export function makePolarWebhookHandlers(
-	db: DatabaseClient,
+	db: DatabaseExecutor,
 ): Pick<
 	WebhooksOptions,
 	| "onPayload"

@@ -1,5 +1,5 @@
 import { defineRelationsPart } from "drizzle-orm";
-import { boolean, char, index, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, char, index, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
 	id: char("id", { length: 30 }).primaryKey(),
@@ -54,7 +54,10 @@ export const account = pgTable(
 			.$onUpdate(() => new Date())
 			.notNull(),
 	},
-	(table) => [index("account_user_id_idx").on(table.userId)],
+	(table) => [
+		index("account_user_id_idx").on(table.userId),
+		unique("account_provider_account_id_uniq").on(table.providerId, table.accountId),
+	],
 );
 
 export const verification = pgTable(
@@ -69,7 +72,10 @@ export const verification = pgTable(
 			.$onUpdate(() => new Date())
 			.notNull(),
 	},
-	(table) => [index("verification_identifier_idx").on(table.identifier)],
+	(table) => [
+		index("verification_identifier_idx").on(table.identifier),
+		unique("verification_identifier_value_uniq").on(table.identifier, table.value),
+	],
 );
 
 export const authRelations = defineRelationsPart({ user, session, account }, (r) => ({

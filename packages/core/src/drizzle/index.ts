@@ -8,6 +8,8 @@ export type DatabaseClient = NodePgDatabase<Record<string, never>, typeof allRel
 	$client: Pool;
 };
 
+export type DatabaseExecutor = Omit<DatabaseClient, "$client">;
+
 export namespace Database {
 	export interface Interface {
 		readonly db: DatabaseClient;

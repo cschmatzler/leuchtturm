@@ -13,17 +13,15 @@ describe("mail persisted write schemas", () => {
 			id: `mac_${ulid()}`,
 			userId: `usr_${ulid()}`,
 			provider: "gmail",
-			email: "mail@example.com",
+			email: "Mail@Example.com",
 			displayName: null,
 			status: "connecting",
-			supportsThreads: true,
-			supportsLabels: true,
-			supportsPushSync: true,
-			supportsOauth: true,
-			supportsServerSearch: true,
 		});
 
 		expect(Option.isSome(result)).toBe(true);
+		if (Option.isSome(result)) {
+			expect(result.value.email).toBe("mail@example.com");
+		}
 	});
 
 	it("rejects an invalid mail account status", () => {

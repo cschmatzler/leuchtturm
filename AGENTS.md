@@ -197,4 +197,3 @@ skills:
 - task: "TanStack Router config, route generation, code splitting, Vite router plugin setup"
 load: "node_modules/@tanstack/router-plugin/skills/router-plugin/SKILL.md"
 <!-- intent-skills:end -->
-

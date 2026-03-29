@@ -2,10 +2,10 @@
  * All Drizzle access centralized here so apps/api never imports drizzle-orm directly.
  */
 
-import { and, eq, gt } from "drizzle-orm";
+import { and, eq, gt, inArray } from "drizzle-orm";
 import { Schema } from "effect";
 
-import type { DatabaseClient } from "@chevrotain/core/drizzle/index";
+import type { DatabaseExecutor } from "@chevrotain/core/drizzle/index";
 import {
 	mailAccount,
 	mailAccountSecret,
@@ -16,7 +16,9 @@ import {
 	mailIdentity,
 	mailLabel,
 	mailMessage,
+	mailMessageParticipant,
 	mailOAuthState,
+	mailParticipant,
 	mailProviderState,
 } from "@chevrotain/core/mail/mail.sql";
 import {
@@ -25,6 +27,7 @@ import {
 	CreateMailOAuthStateInput,
 	MailAccountId,
 	MailAccountStatus,
+	getProviderCapabilities,
 	UpdateMailAccountSecretInput,
 } from "@chevrotain/core/mail/schema";
 
@@ -36,7 +39,7 @@ const decodeMailAccountStatus = Schema.decodeUnknownSync(MailAccountStatus);
 const decodeUpdateMailAccountSecretInput = Schema.decodeUnknownSync(UpdateMailAccountSecretInput);
 
 export async function createMailAccount(
-	db: DatabaseClient,
+	db: DatabaseExecutor,
 	values: {
 		id: string;
 		userId: string;
@@ -44,24 +47,21 @@ export async function createMailAccount(
 		email: string;
 		displayName: string | null;
 		status: string;
-		supportsThreads: boolean;
-		supportsLabels: boolean;
-		supportsPushSync: boolean;
-		supportsOauth: boolean;
-		supportsServerSearch: boolean;
 	},
 ): Promise<void> {
 	const validatedValues = decodeCreateMailAccountInput(values);
+	const capabilities = getProviderCapabilities(validatedValues.provider);
 	const now = new Date();
 	await db.insert(mailAccount).values({
 		...validatedValues,
+		...capabilities,
 		createdAt: now,
 		updatedAt: now,
 	});
 }
 
 export async function getMailAccountForUser(
-	db: DatabaseClient,
+	db: DatabaseExecutor,
 	accountId: string,
 	userId: string,
 ): Promise<typeof mailAccount.$inferSelect | undefined> {
@@ -74,7 +74,7 @@ export async function getMailAccountForUser(
 }
 
 export async function updateMailAccountStatus(
-	db: DatabaseClient,
+	db: DatabaseExecutor,
 	accountId: string,
 	status: string,
 ): Promise<void> {
@@ -87,7 +87,7 @@ export async function updateMailAccountStatus(
 }
 
 export async function createMailAccountSecret(
-	db: DatabaseClient,
+	db: DatabaseExecutor,
 	values: {
 		accountId: string;
 		authKind: string;
@@ -105,7 +105,7 @@ export async function createMailAccountSecret(
 }
 
 export async function getMailAccountSecret(
-	db: DatabaseClient,
+	db: DatabaseExecutor,
 	accountId: string,
 ): Promise<typeof mailAccountSecret.$inferSelect | undefined> {
 	const [row] = await db
@@ -117,7 +117,7 @@ export async function getMailAccountSecret(
 }
 
 export async function updateMailAccountSecret(
-	db: DatabaseClient,
+	db: DatabaseExecutor,
 	accountId: string,
 	values: {
 		encryptedPayload: string;
@@ -138,7 +138,7 @@ export async function updateMailAccountSecret(
 }
 
 export async function createMailOAuthState(
-	db: DatabaseClient,
+	db: DatabaseExecutor,
 	values: {
 		id: string;
 		userId: string;
@@ -154,7 +154,7 @@ export async function createMailOAuthState(
 }
 
 export async function consumeMailOAuthState(
-	db: DatabaseClient,
+	db: DatabaseExecutor,
 	values: {
 		id: string;
 		userId: string;
@@ -176,17 +176,59 @@ export async function consumeMailOAuthState(
 	return row;
 }
 
-export async function disconnectMailAccount(db: DatabaseClient, accountId: string): Promise<void> {
-	await db.update(mailAccount).set({ status: "paused" }).where(eq(mailAccount.id, accountId));
+export async function disconnectMailAccount(
+	db: DatabaseExecutor,
+	accountId: string,
+): Promise<void> {
+	const [account] = await db
+		.select({ id: mailAccount.id, userId: mailAccount.userId })
+		.from(mailAccount)
+		.where(eq(mailAccount.id, accountId))
+		.limit(1);
 
-	await db.delete(mailMessage).where(eq(mailMessage.accountId, accountId));
-	await db.delete(mailConversation).where(eq(mailConversation.accountId, accountId));
-	await db.delete(mailFolder).where(eq(mailFolder.accountId, accountId));
-	await db.delete(mailLabel).where(eq(mailLabel.accountId, accountId));
-	await db.delete(mailIdentity).where(eq(mailIdentity.accountId, accountId));
-	await db.delete(mailAccountSecret).where(eq(mailAccountSecret.accountId, accountId));
-	await db.delete(mailAccountSyncState).where(eq(mailAccountSyncState.accountId, accountId));
-	await db.delete(mailFolderSyncState).where(eq(mailFolderSyncState.accountId, accountId));
-	await db.delete(mailProviderState).where(eq(mailProviderState.accountId, accountId));
-	await db.delete(mailAccount).where(eq(mailAccount.id, accountId));
+	if (!account) {
+		return;
+	}
+
+	await db.transaction(async (tx) => {
+		const now = new Date();
+
+		await tx
+			.update(mailAccount)
+			.set({ status: "paused", updatedAt: now })
+			.where(eq(mailAccount.id, accountId));
+
+		await tx.delete(mailMessage).where(eq(mailMessage.accountId, accountId));
+		await tx.delete(mailConversation).where(eq(mailConversation.accountId, accountId));
+		await tx.delete(mailFolder).where(eq(mailFolder.accountId, accountId));
+		await tx.delete(mailLabel).where(eq(mailLabel.accountId, accountId));
+		await tx.delete(mailIdentity).where(eq(mailIdentity.accountId, accountId));
+		await tx.delete(mailAccountSecret).where(eq(mailAccountSecret.accountId, accountId));
+		await tx.delete(mailAccountSyncState).where(eq(mailAccountSyncState.accountId, accountId));
+		await tx.delete(mailFolderSyncState).where(eq(mailFolderSyncState.accountId, accountId));
+		await tx.delete(mailProviderState).where(eq(mailProviderState.accountId, accountId));
+		await tx.delete(mailAccount).where(eq(mailAccount.id, accountId));
+
+		const remainingParticipantRefs = await tx
+			.select({ participantId: mailMessageParticipant.participantId })
+			.from(mailMessageParticipant)
+			.where(eq(mailMessageParticipant.userId, account.userId));
+
+		const activeParticipantIds = new Set(
+			remainingParticipantRefs.map((participantRef) => participantRef.participantId),
+		);
+
+		const userParticipants = await tx
+			.select({ id: mailParticipant.id })
+			.from(mailParticipant)
+			.where(eq(mailParticipant.userId, account.userId));
+
+		const staleParticipantIds = userParticipants
+			.map((participant) => participant.id)
+			.filter((participantId) => !activeParticipantIds.has(participantId));
+
+		if (staleParticipantIds.length > 0) {
+			await tx.delete(mailParticipant).where(inArray(mailParticipant.id, staleParticipantIds));
+		}
+	});
 }

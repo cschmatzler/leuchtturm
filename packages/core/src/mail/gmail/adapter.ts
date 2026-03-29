@@ -12,13 +12,45 @@ import type {
 	ProviderBodyPart,
 	ProviderEmailAddress,
 	ProviderFolder,
-	ProviderHistoryChange,
 	ProviderLabel,
 	ProviderMessage,
 	ProviderMessageHeaders,
 	ProviderThread,
 } from "@chevrotain/core/mail/provider";
 import type { MailFolderKind, MailLabelKind } from "@chevrotain/core/mail/schema";
+
+export interface GmailProviderLabel extends ProviderLabel {
+	readonly providerStatePayload: GmailLabel;
+}
+
+export interface GmailProviderFolder extends ProviderFolder {
+	readonly providerStatePayload: {
+		readonly kind: MailFolderKind;
+		readonly labelId: string;
+		readonly labelName: string;
+	};
+}
+
+export interface GmailProviderMessage extends ProviderMessage {
+	readonly providerStatePayload: GmailMessage;
+}
+
+export interface GmailProviderThread extends ProviderThread {
+	readonly messages: GmailProviderMessage[];
+}
+
+export interface GmailProviderHistoryChange {
+	readonly labelsAdded: Array<{
+		readonly labelRefs: string[];
+		readonly messageRef: string;
+	}>;
+	readonly labelsRemoved: Array<{
+		readonly labelRefs: string[];
+		readonly messageRef: string;
+	}>;
+	readonly messagesAdded: GmailProviderMessage[];
+	readonly messagesDeleted: string[];
+}
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -175,7 +207,7 @@ function extractHeaders(payload: GmailMessagePart): ProviderMessageHeaders {
 	};
 }
 
-function normalizeGmailMessage(msg: GmailMessage): ProviderMessage {
+function normalizeGmailMessage(msg: GmailMessage): GmailProviderMessage {
 	const payload = msg.payload;
 	const bodyParts: ProviderBodyPart[] = [];
 	const attachments: ProviderAttachment[] = [];
@@ -205,6 +237,7 @@ function normalizeGmailMessage(msg: GmailMessage): ProviderMessage {
 		headers: payload ? extractHeaders(payload) : undefined,
 		bodyParts,
 		attachments,
+		providerStatePayload: msg,
 	};
 }
 
@@ -245,7 +278,7 @@ export class GmailAdapter implements MailProviderAdapter {
 	// Labels
 	// -----------------------------------------------------------------------
 
-	async listLabels(): Promise<ProviderLabel[]> {
+	async listLabels(): Promise<GmailProviderLabel[]> {
 		const data = await this.gmailFetch<{ labels: GmailLabel[] }>("/labels");
 		return (data.labels ?? []).map((label) => {
 			// Gmail nested labels use "/" as delimiter: "Projects/Alpha"
@@ -257,6 +290,7 @@ export class GmailAdapter implements MailProviderAdapter {
 				delimiter: hasHierarchy ? "/" : undefined,
 				color: label.color?.backgroundColor,
 				kind: gmailLabelKind(label.type),
+				providerStatePayload: label,
 			};
 		});
 	}
@@ -265,7 +299,7 @@ export class GmailAdapter implements MailProviderAdapter {
 	// Thread listing for bootstrap (§13, §25.2)
 	// -----------------------------------------------------------------------
 
-	async listRecentThreads(cutoff: Date): Promise<ProviderThread[]> {
+	async listRecentThreads(cutoff: Date): Promise<GmailProviderThread[]> {
 		const epochSeconds = Math.floor(cutoff.getTime() / 1000);
 		const query = `after:${epochSeconds}`;
 		const threadIds: string[] = [];
@@ -288,7 +322,7 @@ export class GmailAdapter implements MailProviderAdapter {
 		} while (pageToken);
 
 		// Fetch full thread details (batch in groups to respect rate limits)
-		const threads: ProviderThread[] = [];
+		const threads: GmailProviderThread[] = [];
 		const batchSize = 10;
 
 		for (let i = 0; i < threadIds.length; i += batchSize) {
@@ -313,11 +347,11 @@ export class GmailAdapter implements MailProviderAdapter {
 	// -----------------------------------------------------------------------
 
 	async getHistoryChanges(startHistoryId: string): Promise<{
-		changes: ProviderHistoryChange;
+		changes: GmailProviderHistoryChange;
 		newCursor: string;
 		cursorExpired: boolean;
 	}> {
-		const changes: ProviderHistoryChange = {
+		const changes: GmailProviderHistoryChange = {
 			messagesAdded: [],
 			messagesDeleted: [],
 			labelsAdded: [],
@@ -348,24 +382,19 @@ export class GmailAdapter implements MailProviderAdapter {
 					if (record.messagesAdded) {
 						for (const added of record.messagesAdded) {
 							const fullMessage = await this.getMessage(added.message.id);
-							(changes.messagesAdded as ProviderMessage[]).push(fullMessage);
+							changes.messagesAdded.push(fullMessage);
 						}
 					}
 
 					if (record.messagesDeleted) {
 						for (const deleted of record.messagesDeleted) {
-							(changes.messagesDeleted as string[]).push(deleted.message.id);
+							changes.messagesDeleted.push(deleted.message.id);
 						}
 					}
 
 					if (record.labelsAdded) {
 						for (const added of record.labelsAdded) {
-							(
-								changes.labelsAdded as Array<{
-									messageRef: string;
-									labelRefs: string[];
-								}>
-							).push({
+							changes.labelsAdded.push({
 								messageRef: added.message.id,
 								labelRefs: added.labelIds,
 							});
@@ -374,12 +403,7 @@ export class GmailAdapter implements MailProviderAdapter {
 
 					if (record.labelsRemoved) {
 						for (const removed of record.labelsRemoved) {
-							(
-								changes.labelsRemoved as Array<{
-									messageRef: string;
-									labelRefs: string[];
-								}>
-							).push({
+							changes.labelsRemoved.push({
 								messageRef: removed.message.id,
 								labelRefs: removed.labelIds,
 							});
@@ -403,7 +427,7 @@ export class GmailAdapter implements MailProviderAdapter {
 	// Single message fetch
 	// -----------------------------------------------------------------------
 
-	async getMessage(providerRef: string): Promise<ProviderMessage> {
+	async getMessage(providerRef: string): Promise<GmailProviderMessage> {
 		const msg = await this.gmailFetch<GmailMessage>(`/messages/${providerRef}`, {
 			format: "full",
 		});
@@ -424,8 +448,8 @@ export class GmailAdapter implements MailProviderAdapter {
 // Export folder mapping for sync layer
 // ---------------------------------------------------------------------------
 
-export function getGmailFolders(labels: readonly ProviderLabel[]): ProviderFolder[] {
-	const folders: ProviderFolder[] = [];
+export function getGmailFolders(labels: readonly GmailProviderLabel[]): GmailProviderFolder[] {
+	const folders: GmailProviderFolder[] = [];
 	for (const label of labels) {
 		const kind = GMAIL_LABEL_FOLDER_MAP[label.providerRef];
 		if (kind) {
@@ -434,6 +458,11 @@ export function getGmailFolders(labels: readonly ProviderLabel[]): ProviderFolde
 				kind,
 				name: label.name,
 				isSelectable: true,
+				providerStatePayload: {
+					kind,
+					labelId: label.providerRef,
+					labelName: label.path ?? label.name,
+				},
 			});
 		}
 	}
