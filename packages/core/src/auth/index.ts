@@ -35,13 +35,13 @@ export namespace Auth {
 
 	export type SessionData = typeof SessionData.Type;
 
-	export class AuthError extends Schema.TaggedErrorClass<AuthError>()("AuthError", {
+	export class Error extends Schema.TaggedErrorClass<Error>()("AuthError", {
 		message: Schema.String,
 	}) {}
 
 	export interface Interface {
-		readonly handle: (request: Request) => Effect.Effect<Response, AuthError>;
-		readonly getSession: (headers: Headers) => Effect.Effect<SessionData | null, AuthError>;
+		readonly handle: (request: Request) => Effect.Effect<Response, Error>;
+		readonly getSession: (headers: Headers) => Effect.Effect<SessionData | null, Error>;
 	}
 
 	export class Service extends ServiceMap.Service<Service, Interface>()("@chevrotain/Auth") {}
@@ -168,7 +168,7 @@ export namespace Auth {
 								case "verification":
 									return VerificationId.makeUnsafe(`ver_${ulid()}`);
 								default:
-									throw new Error(`Unknown auth model: ${model}`);
+									throw new globalThis.Error(`Unknown auth model: ${model}`);
 							}
 						},
 					},
@@ -179,8 +179,8 @@ export namespace Auth {
 				return yield* Effect.tryPromise({
 					try: () => auth.handler(request),
 					catch: (error) =>
-						new AuthError({
-							message: `Auth handler failed: ${error instanceof Error ? error.message : String(error)}`,
+						new Error({
+							message: `Auth handler failed: ${error instanceof globalThis.Error ? error.message : String(error)}`,
 						}),
 				});
 			});
@@ -189,8 +189,8 @@ export namespace Auth {
 				const session = yield* Effect.tryPromise({
 					try: () => auth.api.getSession({ headers }),
 					catch: (error) =>
-						new AuthError({
-							message: `Auth getSession failed: ${error instanceof Error ? error.message : String(error)}`,
+						new Error({
+							message: `Auth getSession failed: ${error instanceof globalThis.Error ? error.message : String(error)}`,
 						}),
 				});
 
@@ -201,7 +201,7 @@ export namespace Auth {
 				return yield* Schema.decodeUnknownEffect(SessionData)(session).pipe(
 					Effect.mapError(
 						(error) =>
-							new AuthError({
+							new Error({
 								message: `Invalid auth session payload: ${error.message}`,
 							}),
 					),

@@ -34,7 +34,7 @@ const AuthMock: Auth.Interface = {
 		switch (request.headers.get("x-auth-mode")) {
 			case "error":
 				return Effect.fail(
-					new Auth.AuthError({
+					new Auth.Error({
 						message: "auth backend unavailable",
 					}),
 				);
@@ -65,7 +65,7 @@ const AuthMock: Auth.Interface = {
 		switch (headers.get("x-session-mode")) {
 			case "error":
 				return Effect.fail(
-					new Auth.AuthError({
+					new Auth.Error({
 						message: "session store unavailable",
 					}),
 				);
