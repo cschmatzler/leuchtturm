@@ -16,12 +16,12 @@ import {
 	UserId,
 	VerificationId,
 } from "@chevrotain/core/auth/schema";
-import { POLAR_PRO_PRODUCT_ID, POLAR_PRO_PRODUCT_SLUG } from "@chevrotain/core/billing/products";
 import {
 	upsertPolarCustomerState,
 	upsertPolarOrder,
 	upsertPolarSubscription,
-} from "@chevrotain/core/billing/queries";
+} from "@chevrotain/core/billing";
+import { POLAR_PRO_PRODUCT_ID, POLAR_PRO_PRODUCT_SLUG } from "@chevrotain/core/billing/products";
 import { Config } from "@chevrotain/core/config";
 import { Database } from "@chevrotain/core/drizzle/index";
 import { Email } from "@chevrotain/core/email";

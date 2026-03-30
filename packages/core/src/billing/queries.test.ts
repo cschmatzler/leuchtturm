@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { assertPolarCustomer } from "@chevrotain/core/billing/queries";
+import { assertPolarCustomer } from "@chevrotain/core/billing";
 
 describe("assertPolarCustomer", () => {
 	it("returns the local user id when the webhook references a known user", () => {
