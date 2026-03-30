@@ -10,7 +10,7 @@ import type {
 } from "@chevrotain/web/components/data-table-filter/types";
 import { useDataTableFilters } from "@chevrotain/web/hooks/use-data-table-filters";
 
-type TestRow = {
+type TestItem = {
 	id: string;
 	status: string;
 	tags: string[];
@@ -19,7 +19,7 @@ type TestRow = {
 };
 
 const testIcon = Circle;
-const builder = createFilterBuilder<TestRow>();
+const builder = createFilterBuilder<TestItem>();
 
 const statusOptions: ColumnOption[] = [
 	{ value: "active", label: "Active" },
@@ -64,7 +64,7 @@ const filterDefinitions = [
 		.build(),
 ] as const;
 
-const data: TestRow[] = [
+const data: TestItem[] = [
 	{
 		id: "1",
 		status: "active",

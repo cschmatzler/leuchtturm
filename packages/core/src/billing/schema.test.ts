@@ -3,9 +3,9 @@ import { ulid } from "ulid";
 import { describe, expect, it } from "vite-plus/test";
 
 import {
-	BillingCustomerSnapshotRow,
-	BillingOrderSnapshotRow,
-	BillingSubscriptionSnapshotRow,
+	BillingCustomerSnapshot,
+	BillingOrderSnapshot,
+	BillingSubscriptionSnapshot,
 } from "@chevrotain/core/billing/schema";
 
 const userId = `usr_${ulid()}`;
@@ -13,7 +13,7 @@ const now = new Date();
 
 describe("billing snapshot schemas", () => {
 	it("normalizes persisted customer emails", () => {
-		const result = Schema.decodeUnknownOption(BillingCustomerSnapshotRow)({
+		const result = Schema.decodeUnknownOption(BillingCustomerSnapshot)({
 			userId,
 			polarCustomerId: "pol_123",
 			email: "User@Example.com",
@@ -34,7 +34,7 @@ describe("billing snapshot schemas", () => {
 	});
 
 	it("rejects an invalid local user id", () => {
-		const result = Schema.decodeUnknownOption(BillingSubscriptionSnapshotRow)({
+		const result = Schema.decodeUnknownOption(BillingSubscriptionSnapshot)({
 			id: "sub_123",
 			userId: "not-a-user-id",
 			polarCustomerId: "pol_123",
@@ -62,7 +62,7 @@ describe("billing snapshot schemas", () => {
 	});
 
 	it("rejects unsupported subscription enums and currencies", () => {
-		const result = Schema.decodeUnknownOption(BillingSubscriptionSnapshotRow)({
+		const result = Schema.decodeUnknownOption(BillingSubscriptionSnapshot)({
 			id: "sub_123",
 			userId,
 			polarCustomerId: "pol_123",
@@ -90,7 +90,7 @@ describe("billing snapshot schemas", () => {
 	});
 
 	it("accepts nullable order ownership for unknown users", () => {
-		const result = Schema.decodeUnknownOption(BillingOrderSnapshotRow)({
+		const result = Schema.decodeUnknownOption(BillingOrderSnapshot)({
 			id: "ord_123",
 			userId: null,
 			polarCustomerId: "pol_123",
@@ -117,7 +117,7 @@ describe("billing snapshot schemas", () => {
 	});
 
 	it("rejects unsupported order enums and currencies", () => {
-		const result = Schema.decodeUnknownOption(BillingOrderSnapshotRow)({
+		const result = Schema.decodeUnknownOption(BillingOrderSnapshot)({
 			id: "ord_123",
 			userId,
 			polarCustomerId: "pol_123",

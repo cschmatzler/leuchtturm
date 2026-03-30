@@ -6,8 +6,8 @@ import { ProviderMessage } from "@chevrotain/core/mail/provider";
 import {
 	CreateMailAccountInput,
 	MailAccountStatus,
-	MailConversationRow,
-	MailSearchDocumentRow,
+	MailConversation,
+	MailSearchDocument,
 } from "@chevrotain/core/mail/schema";
 
 const now = new Date();
@@ -36,7 +36,7 @@ describe("mail persisted write schemas", () => {
 	});
 
 	it("accepts a valid conversation row projection", () => {
-		const result = Schema.decodeUnknownOption(MailConversationRow)({
+		const result = Schema.decodeUnknownOption(MailConversation)({
 			id: `mcv_${ulid()}`,
 			userId: `usr_${ulid()}`,
 			accountId: `mac_${ulid()}`,
@@ -60,7 +60,7 @@ describe("mail persisted write schemas", () => {
 	});
 
 	it("rejects invalid scoped ids in search documents", () => {
-		const result = Schema.decodeUnknownOption(MailSearchDocumentRow)({
+		const result = Schema.decodeUnknownOption(MailSearchDocument)({
 			messageId: "not-a-mail-message-id",
 			userId: `usr_${ulid()}`,
 			accountId: `mac_${ulid()}`,

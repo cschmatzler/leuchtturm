@@ -266,7 +266,7 @@ const mailConversationValueFields = {
 export const MailConversationValues = Schema.Struct(mailConversationValueFields);
 export type MailConversationValues = typeof MailConversationValues.Type;
 
-export const MailConversationRow = Schema.Struct({
+export const MailConversation = Schema.Struct({
 	id: MailConversationId,
 	userId: UserId,
 	accountId: MailAccountId,
@@ -274,7 +274,7 @@ export const MailConversationRow = Schema.Struct({
 	...mailConversationValueFields,
 	createdAt: Schema.Date,
 });
-export type MailConversationRow = typeof MailConversationRow.Type;
+export type MailConversation = typeof MailConversation.Type;
 
 const mailSearchDocumentValueFields = {
 	conversationId: Schema.NullOr(MailConversationId),
@@ -292,14 +292,14 @@ const mailSearchDocumentValueFields = {
 export const MailSearchDocumentValues = Schema.Struct(mailSearchDocumentValueFields);
 export type MailSearchDocumentValues = typeof MailSearchDocumentValues.Type;
 
-export const MailSearchDocumentRow = Schema.Struct({
+export const MailSearchDocument = Schema.Struct({
 	messageId: MailMessageId,
 	userId: UserId,
 	accountId: MailAccountId,
 	...mailSearchDocumentValueFields,
 	createdAt: Schema.Date,
 });
-export type MailSearchDocumentRow = typeof MailSearchDocumentRow.Type;
+export type MailSearchDocument = typeof MailSearchDocument.Type;
 
 /** Provider capability matrix (§10) */
 export interface ProviderCapabilities {

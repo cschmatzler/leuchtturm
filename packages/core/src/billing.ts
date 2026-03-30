@@ -12,9 +12,9 @@ import {
 	billingSubscription,
 } from "@chevrotain/core/billing/billing.sql";
 import {
-	BillingCustomerSnapshotRow,
-	BillingOrderSnapshotRow,
-	BillingSubscriptionSnapshotRow,
+	BillingCustomerSnapshot,
+	BillingOrderSnapshot,
+	BillingSubscriptionSnapshot,
 } from "@chevrotain/core/billing/schema";
 import type { DatabaseExecutor } from "@chevrotain/core/drizzle/index";
 import { BillingError } from "@chevrotain/core/errors";
@@ -28,7 +28,7 @@ async function syncBillingCustomerState(
 		state: CustomerState;
 	},
 ) {
-	const customerRow = Schema.decodeUnknownSync(BillingCustomerSnapshotRow)({
+	const customerSnapshot = Schema.decodeUnknownSync(BillingCustomerSnapshot)({
 		userId: values.userId,
 		polarCustomerId: values.state.id,
 		email: values.state.email,
@@ -42,13 +42,13 @@ async function syncBillingCustomerState(
 		syncedAt: new Date(),
 	});
 
-	await db.insert(billingCustomer).values(customerRow).onConflictDoUpdate({
+	await db.insert(billingCustomer).values(customerSnapshot).onConflictDoUpdate({
 		target: billingCustomer.userId,
-		set: customerRow,
+		set: customerSnapshot,
 	});
 
 	for (const sub of values.state.activeSubscriptions) {
-		const subRow = Schema.decodeUnknownSync(BillingSubscriptionSnapshotRow)({
+		const subscriptionSnapshot = Schema.decodeUnknownSync(BillingSubscriptionSnapshot)({
 			id: sub.id,
 			userId: values.userId,
 			polarCustomerId: values.state.id,
@@ -72,9 +72,9 @@ async function syncBillingCustomerState(
 			syncedAt: new Date(),
 		});
 
-		await db.insert(billingSubscription).values(subRow).onConflictDoUpdate({
+		await db.insert(billingSubscription).values(subscriptionSnapshot).onConflictDoUpdate({
 			target: billingSubscription.id,
-			set: subRow,
+			set: subscriptionSnapshot,
 		});
 	}
 }
@@ -155,7 +155,7 @@ export async function upsertPolarSubscription(
 			state: customerState,
 		});
 
-		const subRow = Schema.decodeUnknownSync(BillingSubscriptionSnapshotRow)({
+		const subscriptionSnapshot = Schema.decodeUnknownSync(BillingSubscriptionSnapshot)({
 			id: subscription.id,
 			userId,
 			polarCustomerId: subscription.customerId,
@@ -179,9 +179,9 @@ export async function upsertPolarSubscription(
 			syncedAt: new Date(),
 		});
 
-		await tx.insert(billingSubscription).values(subRow).onConflictDoUpdate({
+		await tx.insert(billingSubscription).values(subscriptionSnapshot).onConflictDoUpdate({
 			target: billingSubscription.id,
-			set: subRow,
+			set: subscriptionSnapshot,
 		});
 	});
 }
@@ -240,7 +240,7 @@ export async function upsertPolarOrder(
 						});
 					}
 
-					const subRow = Schema.decodeUnknownSync(BillingSubscriptionSnapshotRow)({
+					const subscriptionSnapshot = Schema.decodeUnknownSync(BillingSubscriptionSnapshot)({
 						id: order.subscription.id,
 						userId,
 						polarCustomerId: order.subscription.customerId,
@@ -264,15 +264,15 @@ export async function upsertPolarOrder(
 						syncedAt: new Date(),
 					});
 
-					await tx.insert(billingSubscription).values(subRow).onConflictDoUpdate({
+					await tx.insert(billingSubscription).values(subscriptionSnapshot).onConflictDoUpdate({
 						target: billingSubscription.id,
-						set: subRow,
+						set: subscriptionSnapshot,
 					});
 				}
 			}
 		}
 
-		const orderRow = Schema.decodeUnknownSync(BillingOrderSnapshotRow)({
+		const orderSnapshot = Schema.decodeUnknownSync(BillingOrderSnapshot)({
 			id: order.id,
 			userId,
 			polarCustomerId: order.customerId,
@@ -295,9 +295,9 @@ export async function upsertPolarOrder(
 			syncedAt: new Date(),
 		});
 
-		await tx.insert(billingOrder).values(orderRow).onConflictDoUpdate({
+		await tx.insert(billingOrder).values(orderSnapshot).onConflictDoUpdate({
 			target: billingOrder.id,
-			set: orderRow,
+			set: orderSnapshot,
 		});
 	});
 }

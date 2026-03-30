@@ -2,12 +2,12 @@ import { InboxIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { cn } from "@chevrotain/web/lib/cn";
-import type { MailMessageRow } from "@chevrotain/zero/schema";
+import type { MailMessage } from "@chevrotain/zero/schema";
 
 type EmailAddress = { name?: string; address: string };
 
 interface MessageListProps {
-	messages: readonly MailMessageRow[];
+	messages: readonly MailMessage[];
 	onSelect: (messageId: string) => void;
 }
 

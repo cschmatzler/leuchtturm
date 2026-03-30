@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useZeroQuery } from "@chevrotain/web/lib/query";
 import { sanitizeEmailHtml } from "@chevrotain/web/lib/sanitize-html";
 import { queries } from "@chevrotain/zero/queries";
-import type { MailMessageRow } from "@chevrotain/zero/schema";
+import type { MailMessage } from "@chevrotain/zero/schema";
 
 type EmailAddress = { name?: string; address: string };
 
@@ -60,7 +60,7 @@ function SanitizedHtml({ html }: { html: string }) {
 	);
 }
 
-export function MessageHeader({ message }: { message: MailMessageRow }) {
+export function MessageHeader({ message }: { message: MailMessage }) {
 	const { t } = useTranslation();
 	const sender = message.sender as EmailAddress | null | undefined;
 	const toRecipients = (message.toRecipients as EmailAddress[] | null) ?? [];

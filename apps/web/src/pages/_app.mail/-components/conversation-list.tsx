@@ -2,10 +2,10 @@ import { InboxIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { cn } from "@chevrotain/web/lib/cn";
-import type { MailConversationRow } from "@chevrotain/zero/schema";
+import type { MailConversation } from "@chevrotain/zero/schema";
 
 interface ConversationListProps {
-	conversations: readonly MailConversationRow[];
+	conversations: readonly MailConversation[];
 	onSelect: (conversationId: string) => void;
 }
 

@@ -590,21 +590,21 @@ declare module "@rocicorp/zero" {
 	}
 }
 
-export type UserRow = Row<typeof schema.tables.user>;
-export type MailAccountRow = Row<typeof schema.tables.mail_account>;
-export type MailIdentityRow = Row<typeof schema.tables.mail_identity>;
-export type MailFolderRow = Row<typeof schema.tables.mail_folder>;
-export type MailLabelRow = Row<typeof schema.tables.mail_label>;
-export type MailConversationRow = Row<typeof schema.tables.mail_conversation>;
-export type MailConversationLabelRow = Row<typeof schema.tables.mail_conversation_label>;
-export type MailConversationFolderRow = Row<typeof schema.tables.mail_conversation_folder>;
-export type MailMessageRow = Row<typeof schema.tables.mail_message>;
-export type MailMessageBodyPartRow = Row<typeof schema.tables.mail_message_body_part>;
-export type MailMessageHeaderRow = Row<typeof schema.tables.mail_message_header>;
-export type MailMessageLabelRow = Row<typeof schema.tables.mail_message_label>;
-export type MailMessageMailboxRow = Row<typeof schema.tables.mail_message_mailbox>;
-export type MailParticipantRow = Row<typeof schema.tables.mail_participant>;
-export type MailMessageParticipantRow = Row<typeof schema.tables.mail_message_participant>;
-export type MailAttachmentRow = Row<typeof schema.tables.mail_attachment>;
+export type User = Row<typeof schema.tables.user>;
+export type MailAccount = Row<typeof schema.tables.mail_account>;
+export type MailIdentity = Row<typeof schema.tables.mail_identity>;
+export type MailFolder = Row<typeof schema.tables.mail_folder>;
+export type MailLabel = Row<typeof schema.tables.mail_label>;
+export type MailConversation = Row<typeof schema.tables.mail_conversation>;
+export type MailConversationLabel = Row<typeof schema.tables.mail_conversation_label>;
+export type MailConversationFolder = Row<typeof schema.tables.mail_conversation_folder>;
+export type MailMessage = Row<typeof schema.tables.mail_message>;
+export type MailMessageBodyPart = Row<typeof schema.tables.mail_message_body_part>;
+export type MailMessageHeader = Row<typeof schema.tables.mail_message_header>;
+export type MailMessageLabel = Row<typeof schema.tables.mail_message_label>;
+export type MailMessageMailbox = Row<typeof schema.tables.mail_message_mailbox>;
+export type MailParticipant = Row<typeof schema.tables.mail_participant>;
+export type MailMessageParticipant = Row<typeof schema.tables.mail_message_participant>;
+export type MailAttachment = Row<typeof schema.tables.mail_attachment>;
 
 export type { Zero };

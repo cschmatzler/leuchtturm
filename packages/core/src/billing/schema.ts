@@ -41,7 +41,7 @@ export const BillingOrderBillingReason = Schema.Literals([
 ]);
 export type BillingOrderBillingReason = typeof BillingOrderBillingReason.Type;
 
-export const BillingCustomerSnapshotRow = Schema.Struct({
+export const BillingCustomerSnapshot = Schema.Struct({
 	userId: UserId,
 	polarCustomerId: Schema.String,
 	email: Email,
@@ -55,9 +55,9 @@ export const BillingCustomerSnapshotRow = Schema.Struct({
 	syncedAt: Schema.Date,
 });
 
-export type BillingCustomerSnapshotRow = typeof BillingCustomerSnapshotRow.Type;
+export type BillingCustomerSnapshot = typeof BillingCustomerSnapshot.Type;
 
-export const BillingSubscriptionSnapshotRow = Schema.Struct({
+export const BillingSubscriptionSnapshot = Schema.Struct({
 	id: Schema.String,
 	userId: UserId,
 	polarCustomerId: Schema.String,
@@ -81,9 +81,9 @@ export const BillingSubscriptionSnapshotRow = Schema.Struct({
 	syncedAt: Schema.Date,
 });
 
-export type BillingSubscriptionSnapshotRow = typeof BillingSubscriptionSnapshotRow.Type;
+export type BillingSubscriptionSnapshot = typeof BillingSubscriptionSnapshot.Type;
 
-export const BillingOrderSnapshotRow = Schema.Struct({
+export const BillingOrderSnapshot = Schema.Struct({
 	id: Schema.String,
 	userId: NullableUserId,
 	polarCustomerId: Schema.String,
@@ -106,4 +106,4 @@ export const BillingOrderSnapshotRow = Schema.Struct({
 	syncedAt: Schema.Date,
 });
 
-export type BillingOrderSnapshotRow = typeof BillingOrderSnapshotRow.Type;
+export type BillingOrderSnapshot = typeof BillingOrderSnapshot.Type;
