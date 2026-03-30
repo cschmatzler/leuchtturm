@@ -1450,6 +1450,10 @@ async function deleteMessageByProviderRefImpl(
 		.from(mailMessageParticipant)
 		.where(eq(mailMessageParticipant.messageId, message.id));
 
+	await db
+		.update(mailConversation)
+		.set({ latestMessageId: null, updatedAt: new Date() })
+		.where(eq(mailConversation.latestMessageId, message.id));
 	await db.delete(mailMessage).where(eq(mailMessage.id, message.id));
 	await db
 		.delete(mailProviderState)

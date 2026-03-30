@@ -1,4 +1,14 @@
-import { boolean, char, index, integer, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import {
+	boolean,
+	char,
+	foreignKey,
+	index,
+	integer,
+	pgTable,
+	text,
+	timestamp,
+	unique,
+} from "drizzle-orm/pg-core";
 
 import { user } from "@chevrotain/core/auth/auth.sql";
 
@@ -21,6 +31,7 @@ export const billingCustomer = pgTable(
 	},
 	(table) => [
 		index("billing_customer_has_active_subscription_idx").on(table.hasActiveSubscription),
+		unique("billing_customer_user_polar_customer_uniq").on(table.userId, table.polarCustomerId),
 	],
 );
 
@@ -54,6 +65,12 @@ export const billingSubscription = pgTable(
 	(table) => [
 		index("billing_subscription_user_id_idx").on(table.userId),
 		index("billing_subscription_status_idx").on(table.status),
+		unique("billing_subscription_id_user_id_uniq").on(table.id, table.userId),
+		foreignKey({
+			name: "billing_subscription_customer_fkey",
+			columns: [table.userId, table.polarCustomerId],
+			foreignColumns: [billingCustomer.userId, billingCustomer.polarCustomerId],
+		}).onDelete("cascade"),
 	],
 );
 
@@ -84,5 +101,15 @@ export const billingOrder = pgTable(
 	(table) => [
 		index("billing_order_user_id_idx").on(table.userId),
 		index("billing_order_subscription_id_idx").on(table.subscriptionId),
+		foreignKey({
+			name: "billing_order_customer_fkey",
+			columns: [table.userId, table.polarCustomerId],
+			foreignColumns: [billingCustomer.userId, billingCustomer.polarCustomerId],
+		}),
+		foreignKey({
+			name: "billing_order_subscription_user_fkey",
+			columns: [table.subscriptionId, table.userId],
+			foreignColumns: [billingSubscription.id, billingSubscription.userId],
+		}),
 	],
 );

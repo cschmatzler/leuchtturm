@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
 	boolean,
 	char,
@@ -12,6 +13,7 @@ import {
 	text,
 	timestamp,
 	unique,
+	uniqueIndex,
 } from "drizzle-orm/pg-core";
 
 import { session, user } from "@chevrotain/core/auth/auth.sql";
@@ -109,6 +111,12 @@ export const mailIdentity = pgTable(
 		index("mail_identity_user_id_idx").on(table.userId),
 		index("mail_identity_account_id_idx").on(table.accountId),
 		unique("mail_identity_account_address_uniq").on(table.accountId, table.address),
+		uniqueIndex("mail_identity_account_primary_uniq")
+			.on(table.accountId)
+			.where(sql`${table.isPrimary} = true`),
+		uniqueIndex("mail_identity_account_default_send_as_uniq")
+			.on(table.accountId)
+			.where(sql`${table.isDefaultSendAs} = true`),
 		foreignKey({
 			name: "mail_identity_account_user_fkey",
 			columns: [table.accountId, table.userId],
@@ -214,7 +222,7 @@ export const mailConversation = pgTable(
 		providerConversationRef: text("provider_conversation_ref").notNull(),
 		subject: text("subject"),
 		snippet: text("snippet"),
-		latestMessageAt: timestamp("latest_message_at"),
+		latestMessageAt: timestamp("latest_message_at").notNull(),
 		latestMessageId: char("latest_message_id", { length: 30 }),
 		latestSender: jsonb("latest_sender"),
 		participantsPreview: jsonb("participants_preview"),
@@ -243,10 +251,10 @@ export const mailConversation = pgTable(
 			foreignColumns: [mailAccount.id, mailAccount.userId],
 		}).onDelete("cascade"),
 		foreignKey({
-			name: "mail_conversation_latest_message_id_mail_message_id_fkey",
-			columns: [table.latestMessageId],
-			foreignColumns: [mailMessage.id],
-		}).onDelete("set null"),
+			name: "mail_conversation_latest_message_scope_fkey",
+			columns: [table.latestMessageId, table.accountId, table.userId],
+			foreignColumns: [mailMessage.id, mailMessage.accountId, mailMessage.userId],
+		}),
 		index("mail_conversation_list_idx").on(table.userId, table.accountId, table.latestMessageAt),
 	],
 );

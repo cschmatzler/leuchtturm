@@ -1,15 +1,50 @@
 import { Schema } from "effect";
 
 import { UserId } from "@chevrotain/core/auth/schema";
+import { Email } from "@chevrotain/core/schema";
 
 const NullableString = Schema.NullOr(Schema.String);
 const NullableDate = Schema.NullOr(Schema.Date);
 const NullableUserId = Schema.NullOr(UserId);
 
+export const BillingCurrency = Schema.String.check(Schema.isPattern(/^[A-Z]{3}$/));
+export type BillingCurrency = typeof BillingCurrency.Type;
+
+export const BillingSubscriptionStatus = Schema.Literals([
+	"incomplete",
+	"incomplete_expired",
+	"trialing",
+	"active",
+	"past_due",
+	"canceled",
+	"unpaid",
+]);
+export type BillingSubscriptionStatus = typeof BillingSubscriptionStatus.Type;
+
+export const BillingRecurringInterval = Schema.Literals(["day", "week", "month", "year"]);
+export type BillingRecurringInterval = typeof BillingRecurringInterval.Type;
+
+export const BillingOrderStatus = Schema.Literals([
+	"pending",
+	"paid",
+	"refunded",
+	"partially_refunded",
+	"void",
+]);
+export type BillingOrderStatus = typeof BillingOrderStatus.Type;
+
+export const BillingOrderBillingReason = Schema.Literals([
+	"purchase",
+	"subscription_create",
+	"subscription_cycle",
+	"subscription_update",
+]);
+export type BillingOrderBillingReason = typeof BillingOrderBillingReason.Type;
+
 export const BillingCustomerSnapshotRow = Schema.Struct({
 	userId: UserId,
 	polarCustomerId: Schema.String,
-	email: Schema.String,
+	email: Email,
 	name: NullableString,
 	deletedAt: NullableDate,
 	activeSubscriptionsCount: Schema.Number,
@@ -27,10 +62,10 @@ export const BillingSubscriptionSnapshotRow = Schema.Struct({
 	userId: UserId,
 	polarCustomerId: Schema.String,
 	productId: Schema.String,
-	status: Schema.String,
+	status: BillingSubscriptionStatus,
 	amount: Schema.Number,
-	currency: Schema.String,
-	recurringInterval: Schema.String,
+	currency: BillingCurrency,
+	recurringInterval: BillingRecurringInterval,
 	currentPeriodStart: Schema.Date,
 	currentPeriodEnd: Schema.Date,
 	trialStart: NullableDate,
@@ -54,10 +89,10 @@ export const BillingOrderSnapshotRow = Schema.Struct({
 	polarCustomerId: Schema.String,
 	productId: NullableString,
 	subscriptionId: NullableString,
-	status: Schema.String,
-	billingReason: Schema.String,
+	status: BillingOrderStatus,
+	billingReason: BillingOrderBillingReason,
 	paid: Schema.Boolean,
-	currency: Schema.String,
+	currency: BillingCurrency,
 	subtotalAmount: Schema.Number,
 	discountAmount: Schema.Number,
 	netAmount: Schema.Number,

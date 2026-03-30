@@ -53,6 +53,167 @@ function decodeBillingOrderSnapshot(values: unknown): BillingOrderSnapshotRow {
 	}
 }
 
+function hasActiveSubscriptionStatus(status: string) {
+	switch (status) {
+		case "trialing":
+		case "active":
+		case "past_due":
+		case "unpaid":
+			return true;
+		default:
+			return false;
+	}
+}
+
+function buildBillingCustomerSnapshot(values: {
+	userId: string;
+	polarCustomerId: string;
+	email: string;
+	name: string | null;
+	deletedAt: Date | null;
+	activeSubscriptionsCount: number;
+	hasActiveSubscription: boolean;
+	snapshot: unknown;
+	remoteCreatedAt: Date;
+	remoteModifiedAt: Date | null;
+}): BillingCustomerSnapshotRow {
+	return decodeBillingCustomerSnapshot({
+		userId: values.userId,
+		polarCustomerId: values.polarCustomerId,
+		email: values.email,
+		name: values.name,
+		deletedAt: values.deletedAt,
+		activeSubscriptionsCount: values.activeSubscriptionsCount,
+		hasActiveSubscription: values.hasActiveSubscription,
+		snapshotJson: serializeSnapshot(values.snapshot),
+		remoteCreatedAt: values.remoteCreatedAt,
+		remoteModifiedAt: values.remoteModifiedAt,
+		syncedAt: new Date(),
+	});
+}
+
+function buildBillingSubscriptionSnapshot(values: {
+	id: string;
+	userId: string;
+	polarCustomerId: string;
+	productId: string;
+	status: string;
+	amount: number;
+	currency: string;
+	recurringInterval: string;
+	currentPeriodStart: Date;
+	currentPeriodEnd: Date;
+	trialStart: Date | null;
+	trialEnd: Date | null;
+	cancelAtPeriodEnd: boolean;
+	canceledAt: Date | null;
+	startedAt: Date | null;
+	endsAt: Date | null;
+	endedAt: Date | null;
+	snapshot: unknown;
+	remoteCreatedAt: Date;
+	remoteModifiedAt: Date | null;
+}): BillingSubscriptionSnapshotRow {
+	return decodeBillingSubscriptionSnapshot({
+		id: values.id,
+		userId: values.userId,
+		polarCustomerId: values.polarCustomerId,
+		productId: values.productId,
+		status: values.status,
+		amount: values.amount,
+		currency: values.currency,
+		recurringInterval: values.recurringInterval,
+		currentPeriodStart: values.currentPeriodStart,
+		currentPeriodEnd: values.currentPeriodEnd,
+		trialStart: values.trialStart,
+		trialEnd: values.trialEnd,
+		cancelAtPeriodEnd: values.cancelAtPeriodEnd,
+		canceledAt: values.canceledAt,
+		startedAt: values.startedAt,
+		endsAt: values.endsAt,
+		endedAt: values.endedAt,
+		snapshotJson: serializeSnapshot(values.snapshot),
+		remoteCreatedAt: values.remoteCreatedAt,
+		remoteModifiedAt: values.remoteModifiedAt,
+		syncedAt: new Date(),
+	});
+}
+
+function buildBillingOrderSnapshot(values: {
+	id: string;
+	userId: string | null;
+	polarCustomerId: string;
+	productId: string | null;
+	subscriptionId: string | null;
+	status: string;
+	billingReason: string;
+	paid: boolean;
+	currency: string;
+	subtotalAmount: number;
+	discountAmount: number;
+	netAmount: number;
+	taxAmount: number;
+	totalAmount: number;
+	refundedAmount: number;
+	dueAmount: number;
+	snapshot: unknown;
+	remoteCreatedAt: Date;
+	remoteModifiedAt: Date | null;
+}): BillingOrderSnapshotRow {
+	return decodeBillingOrderSnapshot({
+		id: values.id,
+		userId: values.userId,
+		polarCustomerId: values.polarCustomerId,
+		productId: values.productId,
+		subscriptionId: values.subscriptionId,
+		status: values.status,
+		billingReason: values.billingReason,
+		paid: values.paid,
+		currency: values.currency,
+		subtotalAmount: values.subtotalAmount,
+		discountAmount: values.discountAmount,
+		netAmount: values.netAmount,
+		taxAmount: values.taxAmount,
+		totalAmount: values.totalAmount,
+		refundedAmount: values.refundedAmount,
+		dueAmount: values.dueAmount,
+		snapshotJson: serializeSnapshot(values.snapshot),
+		remoteCreatedAt: values.remoteCreatedAt,
+		remoteModifiedAt: values.remoteModifiedAt,
+		syncedAt: new Date(),
+	});
+}
+
+async function ensureBillingCustomerSnapshot(
+	db: DatabaseExecutor,
+	values: Parameters<typeof buildBillingCustomerSnapshot>[0],
+) {
+	const persistedValues = buildBillingCustomerSnapshot(values);
+	await db.insert(billingCustomer).values(persistedValues).onConflictDoNothing();
+}
+
+async function upsertBillingCustomerSnapshot(
+	db: DatabaseExecutor,
+	values: Parameters<typeof buildBillingCustomerSnapshot>[0],
+) {
+	const persistedValues = buildBillingCustomerSnapshot(values);
+	await db.insert(billingCustomer).values(persistedValues).onConflictDoUpdate({
+		target: billingCustomer.userId,
+		set: persistedValues,
+	});
+}
+
+async function upsertBillingSubscriptionSnapshot(
+	db: DatabaseExecutor,
+	values: Parameters<typeof buildBillingSubscriptionSnapshot>[0],
+) {
+	const persistedValues = buildBillingSubscriptionSnapshot(values);
+	await db.insert(billingSubscription).values(persistedValues).onConflictDoUpdate({
+		target: billingSubscription.id,
+		set: persistedValues,
+	});
+}
+
 export function assertPolarCustomer(
 	resource: string,
 	externalId: string | null | undefined,
@@ -111,7 +272,7 @@ export function makePolarWebhookHandlers(
 			await getKnownUserId(state.externalId),
 		);
 
-		const nextValues = {
+		await upsertBillingCustomerSnapshot(db, {
 			userId,
 			polarCustomerId: state.id,
 			email: state.email,
@@ -119,17 +280,9 @@ export function makePolarWebhookHandlers(
 			deletedAt: state.deletedAt,
 			activeSubscriptionsCount: state.activeSubscriptions.length,
 			hasActiveSubscription: state.activeSubscriptions.length > 0,
-			snapshotJson: serializeSnapshot(state),
+			snapshot: state,
 			remoteCreatedAt: state.createdAt,
 			remoteModifiedAt: state.modifiedAt,
-			syncedAt: new Date(),
-		};
-
-		const persistedValues = decodeBillingCustomerSnapshot(nextValues);
-
-		await db.insert(billingCustomer).values(persistedValues).onConflictDoUpdate({
-			target: billingCustomer.userId,
-			set: persistedValues,
 		});
 	}
 
@@ -140,7 +293,20 @@ export function makePolarWebhookHandlers(
 			await getKnownUserId(subscription.customer.externalId),
 		);
 
-		const nextValues = {
+		await ensureBillingCustomerSnapshot(db, {
+			userId,
+			polarCustomerId: subscription.customerId,
+			email: subscription.customer.email,
+			name: subscription.customer.name,
+			deletedAt: subscription.customer.deletedAt,
+			activeSubscriptionsCount: hasActiveSubscriptionStatus(subscription.status) ? 1 : 0,
+			hasActiveSubscription: hasActiveSubscriptionStatus(subscription.status),
+			snapshot: subscription.customer,
+			remoteCreatedAt: subscription.customer.createdAt,
+			remoteModifiedAt: subscription.customer.modifiedAt,
+		});
+
+		await upsertBillingSubscriptionSnapshot(db, {
 			id: subscription.id,
 			userId,
 			polarCustomerId: subscription.customerId,
@@ -158,23 +324,97 @@ export function makePolarWebhookHandlers(
 			startedAt: subscription.startedAt,
 			endsAt: subscription.endsAt,
 			endedAt: subscription.endedAt,
-			snapshotJson: serializeSnapshot(subscription),
+			snapshot: subscription,
 			remoteCreatedAt: subscription.createdAt,
 			remoteModifiedAt: subscription.modifiedAt,
-			syncedAt: new Date(),
-		};
-
-		const persistedValues = decodeBillingSubscriptionSnapshot(nextValues);
-
-		await db.insert(billingSubscription).values(persistedValues).onConflictDoUpdate({
-			target: billingSubscription.id,
-			set: persistedValues,
 		});
 	}
 
 	async function upsertOrder(order: Order) {
 		const userId = await getKnownUserId(order.customer.externalId);
-		const nextValues = {
+
+		if (userId) {
+			await ensureBillingCustomerSnapshot(db, {
+				userId,
+				polarCustomerId: order.customerId,
+				email: order.customer.email,
+				name: order.customer.name,
+				deletedAt: order.customer.deletedAt,
+				activeSubscriptionsCount:
+					order.subscription && hasActiveSubscriptionStatus(order.subscription.status) ? 1 : 0,
+				hasActiveSubscription:
+					order.subscription !== null && hasActiveSubscriptionStatus(order.subscription.status),
+				snapshot: order.customer,
+				remoteCreatedAt: order.customer.createdAt,
+				remoteModifiedAt: order.customer.modifiedAt,
+			});
+
+			if (order.subscriptionId) {
+				const [existingSubscription] = await db
+					.select({
+						id: billingSubscription.id,
+						polarCustomerId: billingSubscription.polarCustomerId,
+						userId: billingSubscription.userId,
+					})
+					.from(billingSubscription)
+					.where(eq(billingSubscription.id, order.subscriptionId))
+					.limit(1);
+
+				if (existingSubscription) {
+					if (
+						existingSubscription.userId !== userId ||
+						existingSubscription.polarCustomerId !== order.customerId
+					) {
+						throw new BillingError({
+							message: `Polar order ${order.id} references subscription ${order.subscriptionId} with mismatched local ownership`,
+						});
+					}
+				} else {
+					if (!order.subscription) {
+						throw new BillingError({
+							message: `Polar order ${order.id} references subscription ${order.subscriptionId} before its snapshot is available`,
+						});
+					}
+
+					if (order.subscription.id !== order.subscriptionId) {
+						throw new BillingError({
+							message: `Polar order ${order.id} embeds subscription ${order.subscription.id} but references ${order.subscriptionId}`,
+						});
+					}
+
+					if (order.subscription.customerId !== order.customerId) {
+						throw new BillingError({
+							message: `Polar order ${order.id} subscription customer ${order.subscription.customerId} does not match order customer ${order.customerId}`,
+						});
+					}
+
+					await upsertBillingSubscriptionSnapshot(db, {
+						id: order.subscription.id,
+						userId,
+						polarCustomerId: order.subscription.customerId,
+						productId: order.subscription.productId,
+						status: order.subscription.status,
+						amount: order.subscription.amount,
+						currency: order.subscription.currency,
+						recurringInterval: order.subscription.recurringInterval,
+						currentPeriodStart: order.subscription.currentPeriodStart,
+						currentPeriodEnd: order.subscription.currentPeriodEnd,
+						trialStart: order.subscription.trialStart,
+						trialEnd: order.subscription.trialEnd,
+						cancelAtPeriodEnd: order.subscription.cancelAtPeriodEnd,
+						canceledAt: order.subscription.canceledAt,
+						startedAt: order.subscription.startedAt,
+						endsAt: order.subscription.endsAt,
+						endedAt: order.subscription.endedAt,
+						snapshot: order.subscription,
+						remoteCreatedAt: order.subscription.createdAt,
+						remoteModifiedAt: order.subscription.modifiedAt,
+					});
+				}
+			}
+		}
+
+		const persistedValues = buildBillingOrderSnapshot({
 			id: order.id,
 			userId,
 			polarCustomerId: order.customerId,
@@ -191,13 +431,10 @@ export function makePolarWebhookHandlers(
 			totalAmount: order.totalAmount,
 			refundedAmount: order.refundedAmount,
 			dueAmount: order.dueAmount,
-			snapshotJson: serializeSnapshot(order),
+			snapshot: order,
 			remoteCreatedAt: order.createdAt,
 			remoteModifiedAt: order.modifiedAt,
-			syncedAt: new Date(),
-		};
-
-		const persistedValues = decodeBillingOrderSnapshot(nextValues);
+		});
 
 		await db.insert(billingOrder).values(persistedValues).onConflictDoUpdate({
 			target: billingOrder.id,
