@@ -26,8 +26,11 @@ import {
 import {
 	buildMailParticipantInputs,
 	buildMailSearchDocumentValues,
+	buildMessageParticipantViews,
 	collectConversationParticipants,
 	createProviderPayloadDigest,
+	type MessageParticipantViews,
+	type PersistedMessageParticipant,
 } from "@chevrotain/core/mail/ingest";
 import {
 	mailAccount,
@@ -138,6 +141,72 @@ function runInTransaction<T>(
 	callback: (tx: SyncDatabaseClient) => Promise<T>,
 ): Promise<T> {
 	return db.transaction(async (tx) => callback(tx as unknown as SyncDatabaseClient));
+}
+
+interface PersistedMessageParticipantRow extends PersistedMessageParticipant {
+	readonly messageId: string;
+}
+
+function emptyMessageParticipantViews(): MessageParticipantViews {
+	return {
+		bccRecipients: [],
+		ccRecipients: [],
+		replyTo: [],
+		sender: null,
+		toRecipients: [],
+	};
+}
+
+async function loadMessageParticipantViews(
+	db: SyncDatabaseClient,
+	messageIds: readonly string[],
+): Promise<Map<string, MessageParticipantViews>> {
+	const participantViewsByMessageId = new Map<string, MessageParticipantViews>();
+
+	if (messageIds.length === 0) {
+		return participantViewsByMessageId;
+	}
+
+	const uniqueMessageIds = [...new Set(messageIds)];
+	const participantRows = await db
+		.select({
+			messageId: mailMessageParticipant.messageId,
+			role: mailMessageParticipant.role,
+			ordinal: mailMessageParticipant.ordinal,
+			normalizedAddress: mailParticipant.normalizedAddress,
+			displayName: mailParticipant.displayName,
+		})
+		.from(mailMessageParticipant)
+		.innerJoin(
+			mailParticipant,
+			and(
+				eq(mailMessageParticipant.participantId, mailParticipant.id),
+				eq(mailMessageParticipant.userId, mailParticipant.userId),
+			),
+		)
+		.where(inArray(mailMessageParticipant.messageId, uniqueMessageIds));
+
+	const participantsByMessageId = new Map<string, PersistedMessageParticipant[]>();
+
+	for (const participantRow of participantRows as PersistedMessageParticipantRow[]) {
+		const participants = participantsByMessageId.get(participantRow.messageId) ?? [];
+		participants.push({
+			displayName: participantRow.displayName,
+			normalizedAddress: participantRow.normalizedAddress,
+			ordinal: participantRow.ordinal,
+			role: participantRow.role,
+		});
+		participantsByMessageId.set(participantRow.messageId, participants);
+	}
+
+	for (const messageId of uniqueMessageIds) {
+		participantViewsByMessageId.set(
+			messageId,
+			buildMessageParticipantViews(participantsByMessageId.get(messageId) ?? []),
+		);
+	}
+
+	return participantViewsByMessageId;
 }
 
 // ---------------------------------------------------------------------------
@@ -684,7 +753,6 @@ async function recomputeConversationStats(
 	const messages = await db
 		.select({
 			accountId: mailMessage.accountId,
-			ccRecipients: mailMessage.ccRecipients,
 			createdAt: mailMessage.createdAt,
 			id: mailMessage.id,
 			hasAttachments: mailMessage.hasAttachments,
@@ -692,10 +760,8 @@ async function recomputeConversationStats(
 			isStarred: mailMessage.isStarred,
 			isUnread: mailMessage.isUnread,
 			receivedAt: mailMessage.receivedAt,
-			sender: mailMessage.sender,
 			snippet: mailMessage.snippet,
 			subject: mailMessage.subject,
-			toRecipients: mailMessage.toRecipients,
 			userId: mailMessage.userId,
 		})
 		.from(mailMessage)
@@ -707,43 +773,44 @@ async function recomputeConversationStats(
 		return;
 	}
 
+	const participantViewsByMessageId = await loadMessageParticipantViews(
+		db,
+		messages.map((message) => message.id),
+	);
 	const latestMessage = messages[0]!;
+	const latestMessageParticipants =
+		participantViewsByMessageId.get(latestMessage.id) ?? emptyMessageParticipantViews();
 	const participantsPreview = collectConversationParticipants(
-		messages.map(
-			(message) =>
-				({
-					attachments: [],
-					bccRecipients: [],
-					bodyParts: [],
-					...(message.ccRecipients
-						? {
-								ccRecipients: message.ccRecipients as Array<{
-									address: string;
-									name?: string;
-								}>,
-							}
-						: {}),
-					isDraft: message.isDraft,
-					isStarred: message.isStarred,
-					isUnread: message.isUnread,
-					providerRef: message.id,
-					...(message.sender
-						? {
-								sender: message.sender as { address: string; name?: string },
-							}
-						: {}),
-					...(message.snippet ? { snippet: message.snippet } : {}),
-					...(message.subject ? { subject: message.subject } : {}),
-					...(message.toRecipients
-						? {
-								toRecipients: message.toRecipients as Array<{
-									address: string;
-									name?: string;
-								}>,
-							}
-						: {}),
-				}) as ProviderMessage,
-		),
+		messages.map((message) => {
+			const participantViews =
+				participantViewsByMessageId.get(message.id) ?? emptyMessageParticipantViews();
+
+			return {
+				attachments: [],
+				bodyParts: [],
+				...(participantViews.ccRecipients.length > 0
+					? {
+							ccRecipients: participantViews.ccRecipients,
+						}
+					: {}),
+				isDraft: message.isDraft,
+				isStarred: message.isStarred,
+				isUnread: message.isUnread,
+				providerRef: message.id,
+				...(participantViews.sender
+					? {
+							sender: participantViews.sender,
+						}
+					: {}),
+				...(message.snippet ? { snippet: message.snippet } : {}),
+				...(message.subject ? { subject: message.subject } : {}),
+				...(participantViews.toRecipients.length > 0
+					? {
+							toRecipients: participantViews.toRecipients,
+						}
+					: {}),
+			} as ProviderMessage;
+		}),
 	);
 	const conversationValues = assertMailConversationValues({
 		draftCount: messages.filter((message) => message.isDraft).length,
@@ -751,7 +818,7 @@ async function recomputeConversationStats(
 		isStarred: messages.some((message) => message.isStarred),
 		latestMessageAt: latestMessage.receivedAt ?? latestMessage.createdAt,
 		latestMessageId: latestMessage.id,
-		latestSender: latestMessage.sender,
+		latestSender: latestMessageParticipants.sender,
 		messageCount: messages.length,
 		participantsPreview,
 		snippet: latestMessage.snippet ?? null,
@@ -1161,14 +1228,10 @@ async function rebuildSearchDocumentForMessage(
 	const [persistedMessage] = await db
 		.select({
 			accountId: mailMessage.accountId,
-			bccRecipients: mailMessage.bccRecipients,
-			ccRecipients: mailMessage.ccRecipients,
 			conversationId: mailMessage.conversationId,
 			id: mailMessage.id,
-			sender: mailMessage.sender,
 			snippet: mailMessage.snippet,
 			subject: mailMessage.subject,
-			toRecipients: mailMessage.toRecipients,
 			userId: mailMessage.userId,
 		})
 		.from(mailMessage)
@@ -1178,6 +1241,10 @@ async function rebuildSearchDocumentForMessage(
 	if (!persistedMessage) {
 		return;
 	}
+
+	const messageParticipants =
+		(await loadMessageParticipantViews(db, [messageId])).get(messageId) ??
+		emptyMessageParticipantViews();
 
 	const bodyParts = await db
 		.select({ content: mailMessageBodyPart.content, contentType: mailMessageBodyPart.contentType })
@@ -1193,19 +1260,16 @@ async function rebuildSearchDocumentForMessage(
 		.where(eq(mailMessageMailbox.messageId, messageId));
 
 	const searchValues = buildMailSearchDocumentValues({
-		bccRecipients: persistedMessage.bccRecipients as Array<{
-			address: string;
-			name?: string;
-		}> | null,
+		bccRecipients: messageParticipants.bccRecipients,
 		bodyParts: bodyParts as Array<{
 			content: string;
 			contentType: "text/html" | "text/plain";
 		}>,
-		ccRecipients: persistedMessage.ccRecipients as Array<{ address: string; name?: string }> | null,
-		sender: persistedMessage.sender as { address: string; name?: string } | null,
+		ccRecipients: messageParticipants.ccRecipients,
+		sender: messageParticipants.sender,
 		snippet: persistedMessage.snippet,
 		subject: persistedMessage.subject,
-		toRecipients: persistedMessage.toRecipients as Array<{ address: string; name?: string }> | null,
+		toRecipients: messageParticipants.toRecipients,
 	});
 
 	const now = new Date();
@@ -1283,10 +1347,6 @@ async function upsertMessageImpl(
 		internetMessageId: validatedMessage.internetMessageId ?? null,
 		subject: validatedMessage.subject ?? null,
 		snippet: validatedMessage.snippet ?? null,
-		sender: validatedMessage.sender ?? null,
-		toRecipients: validatedMessage.toRecipients ?? null,
-		ccRecipients: validatedMessage.ccRecipients ?? null,
-		bccRecipients: validatedMessage.bccRecipients ?? null,
 		sentAt: validatedMessage.sentAt ?? null,
 		receivedAt: validatedMessage.receivedAt ?? null,
 		isUnread: validatedMessage.isUnread,

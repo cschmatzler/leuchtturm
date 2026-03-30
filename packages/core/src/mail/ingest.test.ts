@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vite-plus/test";
 
 import {
+	buildMessageParticipantViews,
 	buildMailParticipantInputs,
 	buildMailSearchDocumentValues,
 	collectConversationParticipants,
@@ -103,5 +104,54 @@ describe("mail ingest helpers", () => {
 		expect(digestA.json).toBe('{"id":"msg_123","value":1}');
 		expect(digestA.byteSize).toBeGreaterThan(0);
 		expect(digestA.contentSha256).toBe(digestB.contentSha256);
+	});
+
+	it("reconstructs structured addresses from persisted participant rows", () => {
+		expect(
+			buildMessageParticipantViews([
+				{
+					displayName: null,
+					normalizedAddress: "second@example.com",
+					ordinal: 1,
+					role: "to",
+				},
+				{
+					displayName: "Ada Lovelace",
+					normalizedAddress: "ada@example.com",
+					ordinal: 0,
+					role: "from",
+				},
+				{
+					displayName: null,
+					normalizedAddress: "first@example.com",
+					ordinal: 0,
+					role: "to",
+				},
+				{
+					displayName: "Grace Hopper",
+					normalizedAddress: "grace@example.com",
+					ordinal: 0,
+					role: "cc",
+				},
+				{
+					displayName: null,
+					normalizedAddress: "audit@example.com",
+					ordinal: 0,
+					role: "bcc",
+				},
+				{
+					displayName: null,
+					normalizedAddress: "reply@example.com",
+					ordinal: 0,
+					role: "reply_to",
+				},
+			]),
+		).toEqual({
+			bccRecipients: [{ address: "audit@example.com" }],
+			ccRecipients: [{ address: "grace@example.com", name: "Grace Hopper" }],
+			replyTo: [{ address: "reply@example.com" }],
+			sender: { address: "ada@example.com", name: "Ada Lovelace" },
+			toRecipients: [{ address: "first@example.com" }, { address: "second@example.com" }],
+		});
 	});
 });

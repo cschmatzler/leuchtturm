@@ -14,6 +14,21 @@ export interface MailParticipantInput {
 	readonly role: MailParticipantRole;
 }
 
+export interface PersistedMessageParticipant {
+	readonly displayName: string | null;
+	readonly normalizedAddress: string;
+	readonly ordinal: number;
+	readonly role: MailParticipantRole;
+}
+
+export interface MessageParticipantViews {
+	readonly bccRecipients: ProviderEmailAddress[];
+	readonly ccRecipients: ProviderEmailAddress[];
+	readonly replyTo: ProviderEmailAddress[];
+	readonly sender: ProviderEmailAddress | null;
+	readonly toRecipients: ProviderEmailAddress[];
+}
+
 export interface MailSearchDocumentValues {
 	readonly bodyText: string | null;
 	readonly mirroredCoverageKind: MailMirroredCoverageKind;
@@ -106,6 +121,13 @@ function appendParticipants(
 	}
 }
 
+function toProviderEmailAddress(participant: PersistedMessageParticipant): ProviderEmailAddress {
+	return {
+		address: participant.normalizedAddress,
+		...(participant.displayName ? { name: participant.displayName } : {}),
+	};
+}
+
 function uniqueConversationAddresses(
 	addresses: Array<ProviderEmailAddress | undefined>,
 ): ProviderEmailAddress[] {
@@ -148,6 +170,38 @@ export function buildMailParticipantInputs(message: ProviderMessage): MailPartic
 	appendParticipants(participants, "reply_to", message.headers?.replyTo ?? []);
 
 	return participants;
+}
+
+export function buildMessageParticipantViews(
+	participants: readonly PersistedMessageParticipant[],
+): MessageParticipantViews {
+	const participantsByRole: Record<MailParticipantRole, PersistedMessageParticipant[]> = {
+		from: [],
+		to: [],
+		cc: [],
+		bcc: [],
+		reply_to: [],
+	};
+
+	for (const participant of participants) {
+		participantsByRole[participant.role].push(participant);
+	}
+
+	const toOrderedAddresses = (role: MailParticipantRole) =>
+		participantsByRole[role]
+			.slice()
+			.sort((left, right) => left.ordinal - right.ordinal)
+			.map(toProviderEmailAddress);
+
+	const senders = toOrderedAddresses("from");
+
+	return {
+		bccRecipients: toOrderedAddresses("bcc"),
+		ccRecipients: toOrderedAddresses("cc"),
+		replyTo: toOrderedAddresses("reply_to"),
+		sender: senders[0] ?? null,
+		toRecipients: toOrderedAddresses("to"),
+	};
 }
 
 export function collectConversationParticipants(
