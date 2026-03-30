@@ -5,6 +5,7 @@ import {
 	index,
 	integer,
 	jsonb,
+	type PgTableExtraConfigValue,
 	pgTable,
 	primaryKey,
 	smallint,
@@ -227,7 +228,7 @@ export const mailConversation = pgTable(
 			.$onUpdate(() => new Date())
 			.notNull(),
 	},
-	(table) => [
+	(table): PgTableExtraConfigValue[] => [
 		index("mail_conversation_user_id_idx").on(table.userId),
 		index("mail_conversation_account_id_idx").on(table.accountId),
 		index("mail_conversation_latest_message_at_idx").on(table.latestMessageAt),
@@ -241,6 +242,11 @@ export const mailConversation = pgTable(
 			columns: [table.accountId, table.userId],
 			foreignColumns: [mailAccount.id, mailAccount.userId],
 		}).onDelete("cascade"),
+		foreignKey({
+			name: "mail_conversation_latest_message_id_mail_message_id_fkey",
+			columns: [table.latestMessageId],
+			foreignColumns: [mailMessage.id],
+		}).onDelete("set null"),
 		index("mail_conversation_list_idx").on(table.userId, table.accountId, table.latestMessageAt),
 	],
 );
@@ -342,7 +348,7 @@ export const mailMessage = pgTable(
 			.$onUpdate(() => new Date())
 			.notNull(),
 	},
-	(table) => [
+	(table): PgTableExtraConfigValue[] => [
 		index("mail_message_user_id_idx").on(table.userId),
 		index("mail_message_account_id_idx").on(table.accountId),
 		index("mail_message_conversation_id_idx").on(table.conversationId),
@@ -662,12 +668,11 @@ export const mailMessageParticipant = pgTable(
 export const mailSearchDocument = pgTable(
 	"mail_search_document",
 	{
-		messageId: char("message_id", { length: 30 })
-			.primaryKey()
-			.references(() => mailMessage.id, { onDelete: "cascade" }),
-		accountId: char("account_id", { length: 30 })
+		messageId: char("message_id", { length: 30 }).primaryKey(),
+		userId: char("user_id", { length: 30 })
 			.notNull()
-			.references(() => mailAccount.id, { onDelete: "cascade" }),
+			.references(() => user.id, { onDelete: "cascade" }),
+		accountId: char("account_id", { length: 30 }).notNull(),
 		conversationId: char("conversation_id", { length: 30 }),
 		folderIds: jsonb("folder_ids"),
 		labelIds: jsonb("label_ids"),
@@ -684,7 +689,23 @@ export const mailSearchDocument = pgTable(
 	},
 	(table) => [
 		index("mail_search_document_account_id_idx").on(table.accountId),
+		index("mail_search_document_user_id_idx").on(table.userId),
 		index("mail_search_document_conversation_id_idx").on(table.conversationId),
+		foreignKey({
+			name: "mail_search_document_message_scope_fkey",
+			columns: [table.messageId, table.accountId, table.userId],
+			foreignColumns: [mailMessage.id, mailMessage.accountId, mailMessage.userId],
+		}).onDelete("cascade"),
+		foreignKey({
+			name: "mail_search_document_account_user_fkey",
+			columns: [table.accountId, table.userId],
+			foreignColumns: [mailAccount.id, mailAccount.userId],
+		}).onDelete("cascade"),
+		foreignKey({
+			name: "mail_search_document_conversation_scope_fkey",
+			columns: [table.conversationId, table.accountId, table.userId],
+			foreignColumns: [mailConversation.id, mailConversation.accountId, mailConversation.userId],
+		}),
 	],
 );
 

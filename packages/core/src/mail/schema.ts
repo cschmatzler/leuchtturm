@@ -248,6 +248,59 @@ export const CreateMailOAuthStateInput = Schema.Struct({
 });
 export type CreateMailOAuthStateInput = typeof CreateMailOAuthStateInput.Type;
 
+const mailConversationValueFields = {
+	subject: NullableString,
+	snippet: NullableString,
+	latestMessageAt: Schema.Date,
+	latestMessageId: Schema.NullOr(MailMessageId),
+	latestSender: Schema.NullOr(EmailAddress),
+	participantsPreview: Schema.NullOr(Schema.Array(EmailAddress)),
+	messageCount: Schema.Number,
+	unreadCount: Schema.Number,
+	hasAttachments: Schema.Boolean,
+	isStarred: Schema.Boolean,
+	draftCount: Schema.Number,
+	updatedAt: Schema.Date,
+} as const;
+
+export const MailConversationValues = Schema.Struct(mailConversationValueFields);
+export type MailConversationValues = typeof MailConversationValues.Type;
+
+export const MailConversationRow = Schema.Struct({
+	id: MailConversationId,
+	userId: UserId,
+	accountId: MailAccountId,
+	providerConversationRef: Schema.String,
+	...mailConversationValueFields,
+	createdAt: Schema.Date,
+});
+export type MailConversationRow = typeof MailConversationRow.Type;
+
+const mailSearchDocumentValueFields = {
+	conversationId: Schema.NullOr(MailConversationId),
+	folderIds: Schema.NullOr(Schema.Array(MailFolderId)),
+	labelIds: Schema.NullOr(Schema.Array(MailLabelId)),
+	subjectText: NullableString,
+	senderText: NullableString,
+	recipientText: NullableString,
+	bodyText: NullableString,
+	snippetText: NullableString,
+	mirroredCoverageKind: MailMirroredCoverageKind,
+	updatedAt: Schema.Date,
+} as const;
+
+export const MailSearchDocumentValues = Schema.Struct(mailSearchDocumentValueFields);
+export type MailSearchDocumentValues = typeof MailSearchDocumentValues.Type;
+
+export const MailSearchDocumentRow = Schema.Struct({
+	messageId: MailMessageId,
+	userId: UserId,
+	accountId: MailAccountId,
+	...mailSearchDocumentValueFields,
+	createdAt: Schema.Date,
+});
+export type MailSearchDocumentRow = typeof MailSearchDocumentRow.Type;
+
 /** Provider capability matrix (§10) */
 export interface ProviderCapabilities {
 	readonly supportsThreads: boolean;

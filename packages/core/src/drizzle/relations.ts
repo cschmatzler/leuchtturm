@@ -200,6 +200,10 @@ export const allRelations = defineRelationsPart(
 				from: r.mailConversation.accountId,
 				to: r.mailAccount.id,
 			}),
+			latestMessage: r.one.mailMessage({
+				from: r.mailConversation.latestMessageId,
+				to: r.mailMessage.id,
+			}),
 			messages: r.many.mailMessage({
 				from: r.mailConversation.id,
 				to: r.mailMessage.conversationId,
@@ -309,6 +313,7 @@ export const allRelations = defineRelationsPart(
 				from: r.mailSearchDocument.messageId,
 				to: r.mailMessage.id,
 			}),
+			user: r.one.user({ from: r.mailSearchDocument.userId, to: r.user.id }),
 			account: r.one.mailAccount({
 				from: r.mailSearchDocument.accountId,
 				to: r.mailAccount.id,

@@ -3,7 +3,12 @@ import { ulid } from "ulid";
 import { describe, expect, it } from "vite-plus/test";
 
 import { ProviderMessage } from "@chevrotain/core/mail/provider";
-import { CreateMailAccountInput, MailAccountStatus } from "@chevrotain/core/mail/schema";
+import {
+	CreateMailAccountInput,
+	MailAccountStatus,
+	MailConversationRow,
+	MailSearchDocumentRow,
+} from "@chevrotain/core/mail/schema";
 
 const now = new Date();
 
@@ -26,6 +31,51 @@ describe("mail persisted write schemas", () => {
 
 	it("rejects an invalid mail account status", () => {
 		const result = Schema.decodeUnknownOption(MailAccountStatus)("broken");
+
+		expect(Option.isNone(result)).toBe(true);
+	});
+
+	it("accepts a valid conversation row projection", () => {
+		const result = Schema.decodeUnknownOption(MailConversationRow)({
+			id: `mcv_${ulid()}`,
+			userId: `usr_${ulid()}`,
+			accountId: `mac_${ulid()}`,
+			providerConversationRef: "thread_123",
+			subject: "Quarterly update",
+			snippet: null,
+			latestMessageAt: now,
+			latestMessageId: null,
+			latestSender: { address: "ada@example.com", name: "Ada" },
+			participantsPreview: [{ address: "team@example.com" }],
+			messageCount: 2,
+			unreadCount: 1,
+			hasAttachments: true,
+			isStarred: false,
+			draftCount: 0,
+			createdAt: now,
+			updatedAt: now,
+		});
+
+		expect(Option.isSome(result)).toBe(true);
+	});
+
+	it("rejects invalid scoped ids in search documents", () => {
+		const result = Schema.decodeUnknownOption(MailSearchDocumentRow)({
+			messageId: "not-a-mail-message-id",
+			userId: `usr_${ulid()}`,
+			accountId: `mac_${ulid()}`,
+			conversationId: null,
+			folderIds: [],
+			labelIds: [],
+			subjectText: "Quarterly update",
+			senderText: "Ada <ada@example.com>",
+			recipientText: "team@example.com",
+			bodyText: "Hello world",
+			snippetText: "Latest numbers attached",
+			mirroredCoverageKind: "full_thread",
+			createdAt: now,
+			updatedAt: now,
+		});
 
 		expect(Option.isNone(result)).toBe(true);
 	});

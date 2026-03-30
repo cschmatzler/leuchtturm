@@ -64,6 +64,8 @@ import {
 	createMailFolderId,
 	createMailFolderSyncStateId,
 	createMailLabelId,
+	MailConversationRow,
+	MailConversationValues,
 	createMailMessageBodyPartId,
 	createMailMessageId,
 	createMailMessageMailboxId,
@@ -71,6 +73,7 @@ import {
 	createMailMessageSourceId,
 	createMailParticipantId,
 	createMailProviderStateId,
+	MailSearchDocumentRow,
 } from "@chevrotain/core/mail/schema";
 
 type SyncDatabaseClient = DatabaseExecutor;
@@ -87,8 +90,23 @@ const GMAIL_PROVIDER_MESSAGE_OBJECT = "gmail_message";
 const decodeProviderFolders = Schema.decodeUnknownSync(Schema.Array(ProviderFolder));
 const decodeProviderHistoryChange = Schema.decodeUnknownSync(ProviderHistoryChange);
 const decodeProviderLabels = Schema.decodeUnknownSync(Schema.Array(ProviderLabel));
+const decodeMailConversationRow = Schema.decodeUnknownSync(MailConversationRow);
+const decodeMailConversationValues = Schema.decodeUnknownSync(MailConversationValues);
+const decodeMailSearchDocumentRow = Schema.decodeUnknownSync(MailSearchDocumentRow);
 const decodeProviderMessage = Schema.decodeUnknownSync(ProviderMessage);
 const decodeProviderThreads = Schema.decodeUnknownSync(Schema.Array(ProviderThread));
+
+function assertMailConversationRow<T>(row: T): T {
+	return decodeMailConversationRow(row) as T;
+}
+
+function assertMailConversationValues<T>(values: T): T {
+	return decodeMailConversationValues(values) as T;
+}
+
+function assertMailSearchDocumentRow<T>(row: T): T {
+	return decodeMailSearchDocumentRow(row) as T;
+}
 
 function assertProviderFolders<T extends readonly GmailProviderFolder[]>(folders: T): T {
 	decodeProviderFolders(folders);
@@ -563,10 +581,11 @@ async function syncThreadImpl(
 	const subject = messages[0]?.subject ?? null;
 	const participantsPreview = collectConversationParticipants(messages);
 
-	const conversationValues = {
+	const conversationValues = assertMailConversationValues({
 		subject,
 		snippet: latestMessage.snippet ?? null,
 		latestMessageAt: latestMessage.receivedAt ?? now,
+		latestMessageId: null,
 		latestSender: latestMessage.sender ?? null,
 		participantsPreview,
 		messageCount: messages.length,
@@ -575,18 +594,19 @@ async function syncThreadImpl(
 		isStarred: messages.some((message) => message.isStarred),
 		draftCount: messages.filter((message) => message.isDraft).length,
 		updatedAt: now,
-	};
+	});
+	const conversationRow = assertMailConversationRow({
+		id: conversationId,
+		userId,
+		accountId,
+		providerConversationRef: thread.providerRef,
+		...conversationValues,
+		createdAt: now,
+	});
 
 	const [conversation] = await db
 		.insert(mailConversation)
-		.values({
-			id: conversationId,
-			userId,
-			accountId,
-			providerConversationRef: thread.providerRef,
-			...conversationValues,
-			createdAt: now,
-		})
+		.values(conversationRow)
 		.onConflictDoUpdate({
 			target: [mailConversation.accountId, mailConversation.providerConversationRef],
 			targetWhere: and(
@@ -618,33 +638,39 @@ async function ensureConversationForMessage(
 
 	const now = new Date();
 	const conversationId = createMailConversationId();
+	const participantsPreview = collectConversationParticipants([message]);
+	const conversationValues = assertMailConversationValues({
+		subject: message.subject ?? null,
+		snippet: message.snippet ?? null,
+		latestMessageAt: message.receivedAt ?? now,
+		latestMessageId: null,
+		latestSender: message.sender ?? null,
+		participantsPreview,
+		messageCount: 0,
+		unreadCount: 0,
+		hasAttachments: false,
+		isStarred: false,
+		draftCount: 0,
+		updatedAt: now,
+	});
+	const conversationRow = assertMailConversationRow({
+		id: conversationId,
+		userId,
+		accountId,
+		providerConversationRef: message.threadRef,
+		...conversationValues,
+		createdAt: now,
+	});
 	const [conversation] = await db
 		.insert(mailConversation)
-		.values({
-			id: conversationId,
-			userId,
-			accountId,
-			providerConversationRef: message.threadRef,
-			subject: message.subject ?? null,
-			snippet: message.snippet ?? null,
-			latestMessageAt: message.receivedAt ?? now,
-			messageCount: 0,
-			unreadCount: 0,
-			createdAt: now,
-			updatedAt: now,
-		})
+		.values(conversationRow)
 		.onConflictDoUpdate({
 			target: [mailConversation.accountId, mailConversation.providerConversationRef],
 			targetWhere: and(
 				eq(mailConversation.accountId, accountId),
 				eq(mailConversation.providerConversationRef, message.threadRef),
 			),
-			set: {
-				subject: message.subject ?? null,
-				snippet: message.snippet ?? null,
-				latestMessageAt: message.receivedAt ?? now,
-				updatedAt: now,
-			},
+			set: conversationValues,
 		})
 		.returning({ id: mailConversation.id });
 
@@ -719,23 +745,24 @@ async function recomputeConversationStats(
 				}) as ProviderMessage,
 		),
 	);
+	const conversationValues = assertMailConversationValues({
+		draftCount: messages.filter((message) => message.isDraft).length,
+		hasAttachments: messages.some((message) => message.hasAttachments),
+		isStarred: messages.some((message) => message.isStarred),
+		latestMessageAt: latestMessage.receivedAt ?? latestMessage.createdAt,
+		latestMessageId: latestMessage.id,
+		latestSender: latestMessage.sender,
+		messageCount: messages.length,
+		participantsPreview,
+		snippet: latestMessage.snippet ?? null,
+		subject: latestMessage.subject ?? null,
+		unreadCount: messages.filter((message) => message.isUnread).length,
+		updatedAt: new Date(),
+	});
 
 	await db
 		.update(mailConversation)
-		.set({
-			draftCount: messages.filter((message) => message.isDraft).length,
-			hasAttachments: messages.some((message) => message.hasAttachments),
-			isStarred: messages.some((message) => message.isStarred),
-			latestMessageAt: latestMessage.receivedAt ?? latestMessage.createdAt,
-			latestMessageId: latestMessage.id,
-			latestSender: latestMessage.sender,
-			messageCount: messages.length,
-			participantsPreview,
-			snippet: latestMessage.snippet ?? null,
-			subject: latestMessage.subject ?? null,
-			unreadCount: messages.filter((message) => message.isUnread).length,
-			updatedAt: new Date(),
-		})
+		.set(conversationValues)
 		.where(eq(mailConversation.id, conversationId));
 
 	await recomputeConversationProjections(
@@ -1142,6 +1169,7 @@ async function rebuildSearchDocumentForMessage(
 			snippet: mailMessage.snippet,
 			subject: mailMessage.subject,
 			toRecipients: mailMessage.toRecipients,
+			userId: mailMessage.userId,
 		})
 		.from(mailMessage)
 		.where(eq(mailMessage.id, messageId))
@@ -1181,28 +1209,26 @@ async function rebuildSearchDocumentForMessage(
 	});
 
 	const now = new Date();
+	const searchDocumentValues = {
+		userId: persistedMessage.userId,
+		accountId: persistedMessage.accountId,
+		conversationId: persistedMessage.conversationId,
+		folderIds: folderRows.map((row) => row.folderId),
+		labelIds: labelRows.map((row) => row.labelId),
+		...searchValues,
+		updatedAt: now,
+	};
+	const searchDocumentRow = assertMailSearchDocumentRow({
+		messageId: persistedMessage.id,
+		...searchDocumentValues,
+		createdAt: now,
+	});
 	await db
 		.insert(mailSearchDocument)
-		.values({
-			messageId: persistedMessage.id,
-			accountId: persistedMessage.accountId,
-			conversationId: persistedMessage.conversationId,
-			folderIds: folderRows.map((row) => row.folderId),
-			labelIds: labelRows.map((row) => row.labelId),
-			...searchValues,
-			createdAt: now,
-			updatedAt: now,
-		})
+		.values(searchDocumentRow)
 		.onConflictDoUpdate({
 			target: [mailSearchDocument.messageId],
-			set: {
-				accountId: persistedMessage.accountId,
-				conversationId: persistedMessage.conversationId,
-				folderIds: folderRows.map((row) => row.folderId),
-				labelIds: labelRows.map((row) => row.labelId),
-				...searchValues,
-				updatedAt: now,
-			},
+			set: searchDocumentValues,
 		});
 }
 
