@@ -21,7 +21,7 @@ import {
 	upsertPolarCustomerState,
 	upsertPolarOrder,
 	upsertPolarSubscription,
-} from "@chevrotain/core/billing/webhooks";
+} from "@chevrotain/core/billing/queries";
 import { CoreConfig } from "@chevrotain/core/config";
 import { Database } from "@chevrotain/core/drizzle/index";
 import { Email } from "@chevrotain/core/email";
@@ -175,8 +175,6 @@ export namespace Auth {
 				},
 			});
 
-			const decodeSessionData = Schema.decodeUnknownEffect(SessionData);
-
 			const handle = Effect.fn("Auth.handle")(function* (request: Request) {
 				return yield* Effect.tryPromise({
 					try: () => auth.handler(request),
@@ -200,7 +198,7 @@ export namespace Auth {
 					return null;
 				}
 
-				return yield* decodeSessionData(session).pipe(
+				return yield* Schema.decodeUnknownEffect(SessionData)(session).pipe(
 					Effect.mapError(
 						(error) =>
 							new AuthError({

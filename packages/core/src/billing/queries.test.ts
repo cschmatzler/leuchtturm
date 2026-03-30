@@ -5,7 +5,7 @@ import {
 	assertPolarCustomer,
 	buildBillingCustomerSnapshotFromState,
 	buildBillingSubscriptionSnapshotFromState,
-} from "@chevrotain/core/billing/webhooks";
+} from "@chevrotain/core/billing/queries";
 
 const now = new Date("2026-03-30T12:00:00.000Z");
 
