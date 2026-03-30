@@ -1,6 +1,7 @@
 # Workflow
 
 - Never try to generate migrations yourself. Tell the user to.
+- "Commit" means `jj commit`, not just `jj desc`.
 
 # Vite+ Toolchain
 
