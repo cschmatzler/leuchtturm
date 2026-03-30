@@ -10,16 +10,8 @@ export const AnalyticsEvent = Schema.Struct({
 });
 export type AnalyticsEvent = typeof AnalyticsEvent.Type;
 
-export const AnalyticsPayload = Schema.Struct({
-	events: Schema.Array(AnalyticsEvent),
-});
-export type AnalyticsPayload = typeof AnalyticsPayload.Type;
-
-export const ErrorSource = Schema.Literals(["api", "web"]);
-export type ErrorSource = typeof ErrorSource.Type;
-
 export const ErrorEvent = Schema.Struct({
-	source: Schema.optional(ErrorSource),
+	source: Schema.optional(Schema.Literals(["api", "web"])),
 	errorType: Schema.String,
 	message: TrimmedNonEmptyString,
 	userId: Schema.optional(Schema.String),
@@ -39,8 +31,3 @@ export const ErrorEvent = Schema.Struct({
 	properties: Schema.optional(Schema.Record(Schema.String, Schema.Unknown)),
 });
 export type ErrorEvent = typeof ErrorEvent.Type;
-
-export const ErrorPayload = Schema.Struct({
-	errors: Schema.Array(ErrorEvent),
-});
-export type ErrorPayload = typeof ErrorPayload.Type;

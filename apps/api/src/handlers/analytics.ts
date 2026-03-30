@@ -12,7 +12,6 @@ import {
 } from "@chevrotain/api/metrics";
 import { CurrentUser } from "@chevrotain/api/middleware/auth";
 import { Analytics } from "@chevrotain/core/analytics/index";
-import type { AnalyticsPayload, ErrorPayload } from "@chevrotain/core/analytics/schema";
 import { RateLimit } from "@chevrotain/core/rate-limit";
 
 const TRUSTED_PROXY_PEERS = new Set(["127.0.0.1", "::1", "::ffff:127.0.0.1"]);
@@ -76,11 +75,7 @@ export const getReportErrorsRateLimitKey = (request: HttpServerRequest.HttpServe
 	return getForwardedClientIp(request) ?? peerAddress;
 };
 
-const handleIngestEvents = Effect.fn("analytics.ingestEvents")(function* ({
-	payload,
-}: {
-	payload: AnalyticsPayload;
-}) {
+const handleIngestEvents = Effect.fn("analytics.ingestEvents")(function* ({ payload }) {
 	const analytics = yield* Analytics.Service;
 
 	yield* Effect.annotateCurrentSpan({
@@ -128,11 +123,7 @@ const handleIngestEvents = Effect.fn("analytics.ingestEvents")(function* ({
 	return { success: true as const };
 });
 
-const handleReportErrors = Effect.fn("analytics.reportErrors")(function* ({
-	payload,
-}: {
-	payload: ErrorPayload;
-}) {
+const handleReportErrors = Effect.fn("analytics.reportErrors")(function* ({ payload }) {
 	const analytics = yield* Analytics.Service;
 	const rateLimit = yield* RateLimit.Service;
 
