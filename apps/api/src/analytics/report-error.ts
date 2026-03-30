@@ -8,6 +8,7 @@ import {
 } from "@chevrotain/api/metrics";
 import { RequestContext } from "@chevrotain/api/middleware/request-context";
 import { Analytics } from "@chevrotain/core/analytics/index";
+import { Config } from "@chevrotain/core/config";
 
 const API_SERVICE_NAMESPACE = "chevrotain";
 const API_SERVICE_NAME = "api";
@@ -62,6 +63,13 @@ function getRequestId(request: HttpServerRequest.HttpServerRequest): string | un
 	return getNonEmptyString(requestId);
 }
 
+const deploymentEnvironment = Effect.runSync(
+	Effect.gen(function* () {
+		const config = yield* Config;
+		return config.observability.deploymentEnvironment;
+	}).pipe(Effect.orElseSucceed(() => undefined)),
+);
+
 export function reportApiError(
 	analytics: Analytics.Interface | null,
 	{
@@ -103,7 +111,6 @@ export function reportApiError(
 			onNone: () => undefined,
 			onSome: (span) => span.spanId,
 		});
-		const deploymentEnvironment = getNonEmptyString(process.env.NODE_ENV);
 		const startedAt = performance.now();
 
 		const exit = yield* Effect.exit(

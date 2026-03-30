@@ -7,6 +7,7 @@ import { resourceFromAttributes } from "@opentelemetry/resources";
 import { BatchSpanProcessor } from "@opentelemetry/sdk-trace-base";
 import { NodeTracerProvider } from "@opentelemetry/sdk-trace-node";
 import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from "@opentelemetry/semantic-conventions";
+import { Config, ConfigProvider, Effect, Option } from "effect";
 
 type TracingBootstrap = {
 	provider: NodeTracerProvider;
@@ -51,24 +52,36 @@ function parseResourceAttributes(input: string | undefined): Record<string, stri
 	);
 }
 
+const TelemetryPreloadConfig = Config.all({
+	otlpEndpoint: Config.option(Config.string("OTEL_EXPORTER_OTLP_ENDPOINT")),
+	otlpTracesEndpoint: Config.option(Config.string("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT")),
+	otlpTracesExporter: Config.option(Config.string("OTEL_TRACES_EXPORTER")),
+	resourceAttributes: Config.option(Config.string("OTEL_RESOURCE_ATTRIBUTES")),
+	serviceName: Config.option(Config.string("OTEL_SERVICE_NAME")),
+	serviceVersion: Config.option(Config.string("OTEL_SERVICE_VERSION")),
+});
+
 function makeTracingBootstrap(): TracingBootstrap | undefined {
+	const config = Effect.runSync(TelemetryPreloadConfig.parse(ConfigProvider.fromEnv()));
 	const tracesEnabled =
-		process.env.OTEL_EXPORTER_OTLP_ENDPOINT !== undefined ||
-		process.env.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT !== undefined ||
-		hasOtlpExporter(process.env.OTEL_TRACES_EXPORTER);
+		Option.isSome(config.otlpEndpoint) ||
+		Option.isSome(config.otlpTracesEndpoint) ||
+		hasOtlpExporter(Option.getOrUndefined(config.otlpTracesExporter));
 
 	if (!tracesEnabled) {
 		return undefined;
 	}
 
-	const resourceAttributes = parseResourceAttributes(process.env.OTEL_RESOURCE_ATTRIBUTES);
+	const resourceAttributes = parseResourceAttributes(
+		Option.getOrUndefined(config.resourceAttributes),
+	);
 
-	if (process.env.OTEL_SERVICE_NAME) {
-		resourceAttributes[ATTR_SERVICE_NAME] = process.env.OTEL_SERVICE_NAME;
+	if (Option.isSome(config.serviceName)) {
+		resourceAttributes[ATTR_SERVICE_NAME] = config.serviceName.value;
 	}
 
-	if (process.env.OTEL_SERVICE_VERSION) {
-		resourceAttributes[ATTR_SERVICE_VERSION] = process.env.OTEL_SERVICE_VERSION;
+	if (Option.isSome(config.serviceVersion)) {
+		resourceAttributes[ATTR_SERVICE_VERSION] = config.serviceVersion.value;
 	}
 
 	const provider = new NodeTracerProvider({

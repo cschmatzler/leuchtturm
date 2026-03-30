@@ -1,38 +1,46 @@
-import { Config, Option, Schema } from "effect";
+import { Config as EffectConfig, Option, Schema } from "effect";
 
-const PolarServerConfig = Config.schema(
-	Schema.Literals(["sandbox", "production"]),
-	"POLAR_SERVER",
-).pipe(Config.withDefault("sandbox"));
+import { TrimmedNonEmptyString } from "@chevrotain/core/schema";
 
-export const CoreConfig = Config.all({
-	baseUrl: Config.string("BASE_URL"),
-	analytics: Config.all({
-		clickhouseUrl: Config.string("CLICKHOUSE_URL"),
+export const Config = EffectConfig.all({
+	api: EffectConfig.all({
+		baseUrl: EffectConfig.string("BASE_URL"),
+		port: EffectConfig.number("PORT"),
 	}),
-	auth: Config.all({
-		authBaseUrl: Config.option(Config.string("AUTH_BASE_URL")),
-		githubClientId: Config.string("GITHUB_CLIENT_ID"),
-		githubClientSecret: Config.redacted("GITHUB_CLIENT_SECRET"),
+	analytics: EffectConfig.all({
+		clickhouseUrl: EffectConfig.string("CLICKHOUSE_URL"),
 	}),
-	billing: Config.all({
-		accessToken: Config.redacted("POLAR_ACCESS_TOKEN"),
-		server: PolarServerConfig,
-		successUrl: Config.string("POLAR_SUCCESS_URL"),
-		webhookSecret: Config.redacted("POLAR_WEBHOOK_SECRET"),
+	auth: EffectConfig.all({
+		authBaseUrl: EffectConfig.option(EffectConfig.string("AUTH_BASE_URL")),
+		githubClientId: EffectConfig.string("GITHUB_CLIENT_ID"),
+		githubClientSecret: EffectConfig.redacted("GITHUB_CLIENT_SECRET"),
 	}),
-	email: Config.all({
-		resendApiKey: Config.redacted("RESEND_API_KEY"),
+	billing: EffectConfig.all({
+		accessToken: EffectConfig.redacted("POLAR_ACCESS_TOKEN"),
+		server: EffectConfig.schema(Schema.Literals(["sandbox", "production"]), "POLAR_SERVER").pipe(
+			EffectConfig.withDefault("sandbox"),
+		),
+		successUrl: EffectConfig.string("POLAR_SUCCESS_URL"),
+		webhookSecret: EffectConfig.redacted("POLAR_WEBHOOK_SECRET"),
+	}),
+	email: EffectConfig.all({
+		resendApiKey: EffectConfig.redacted("RESEND_API_KEY"),
+	}),
+	observability: EffectConfig.all({
+		deploymentEnvironment: EffectConfig.option(
+			EffectConfig.schema(TrimmedNonEmptyString, "NODE_ENV"),
+		).pipe(EffectConfig.map(Option.getOrUndefined)),
 	}),
 }).pipe(
-	Config.map(({ baseUrl, analytics, auth, billing, email }) => ({
-		baseUrl,
+	EffectConfig.map(({ api, analytics, auth, billing, email, observability }) => ({
+		api,
 		analytics,
 		auth: {
 			...auth,
-			authBaseUrl: Option.getOrElse(auth.authBaseUrl, () => baseUrl),
+			authBaseUrl: Option.getOrElse(auth.authBaseUrl, () => api.baseUrl),
 		},
 		billing,
 		email,
+		observability,
 	})),
 );

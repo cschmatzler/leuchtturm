@@ -2,7 +2,6 @@ import { Effect, Layer } from "effect";
 import { HttpMiddleware, HttpRouter, HttpServer } from "effect/unstable/http";
 import { HttpApiBuilder } from "effect/unstable/httpapi";
 
-import { ApiConfig } from "@chevrotain/api/config";
 import { ChevrotainApi } from "@chevrotain/api/contract";
 import { AnalyticsHandlerLive } from "@chevrotain/api/handlers/analytics";
 import { AuthHandlerLive } from "@chevrotain/api/handlers/auth";
@@ -15,6 +14,7 @@ import { AuthMiddlewareLive } from "@chevrotain/api/middleware/auth-live";
 import { ApiErrorReportingMiddleware } from "@chevrotain/api/middleware/error-reporting";
 import { RequestContextMiddleware } from "@chevrotain/api/middleware/request-context";
 import { AppLayer } from "@chevrotain/api/runtime";
+import { Config } from "@chevrotain/core/config";
 
 const HandlersLive = Layer.mergeAll(
 	HealthHandlerLive,
@@ -44,7 +44,8 @@ const HttpTracingLive = Layer.mergeAll(
 
 export const ServerLive = Layer.unwrap(
 	Effect.gen(function* () {
-		const { baseUrl } = yield* ApiConfig;
+		const config = yield* Config;
+		const { baseUrl } = config.api;
 		const corsMiddleware = HttpMiddleware.cors({
 			allowedOrigins: [baseUrl],
 			exposedHeaders: ["Content-Length", "X-Request-Id"],

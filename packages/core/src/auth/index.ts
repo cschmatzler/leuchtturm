@@ -22,7 +22,7 @@ import {
 	upsertPolarOrder,
 	upsertPolarSubscription,
 } from "@chevrotain/core/billing/queries";
-import { CoreConfig } from "@chevrotain/core/config";
+import { Config } from "@chevrotain/core/config";
 import { Database } from "@chevrotain/core/drizzle/index";
 import { Email } from "@chevrotain/core/email";
 import { sendPasswordResetEmail } from "@chevrotain/email/password-reset";
@@ -48,7 +48,7 @@ export namespace Auth {
 
 	export const layer = Layer.effect(Service)(
 		Effect.gen(function* () {
-			const config = yield* CoreConfig;
+			const config = yield* Config;
 			const { db } = yield* Database.Service;
 			const polarClient = new Polar({
 				accessToken: Redacted.value(config.billing.accessToken),
@@ -56,7 +56,7 @@ export namespace Auth {
 			});
 			const auth = betterAuth({
 				baseURL: `${config.auth.authBaseUrl}/api/auth`,
-				trustedOrigins: [config.baseUrl, config.auth.authBaseUrl],
+				trustedOrigins: [config.api.baseUrl, config.auth.authBaseUrl],
 				database: drizzleAdapter(db, {
 					provider: "pg",
 					schema: sql,
@@ -101,11 +101,11 @@ export namespace Auth {
 									},
 								],
 								successUrl: config.billing.successUrl,
-								returnUrl: `${config.baseUrl}/app/settings/billing`,
+								returnUrl: `${config.api.baseUrl}/app/settings/billing`,
 								authenticatedUsersOnly: true,
 							}),
 							portal({
-								returnUrl: `${config.baseUrl}/app/settings/billing`,
+								returnUrl: `${config.api.baseUrl}/app/settings/billing`,
 							}),
 							webhooks({
 								secret: Redacted.value(config.billing.webhookSecret),

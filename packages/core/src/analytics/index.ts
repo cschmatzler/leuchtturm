@@ -3,7 +3,7 @@ import { Effect, Layer, Schema, ServiceMap } from "effect";
 import { ulid } from "ulid";
 
 import type { AnalyticsEvent, ErrorEvent } from "@chevrotain/core/analytics/schema";
-import { CoreConfig } from "@chevrotain/core/config";
+import { Config } from "@chevrotain/core/config";
 
 export namespace Analytics {
 	export class Error extends Schema.TaggedErrorClass<Error>()(
@@ -25,7 +25,7 @@ export namespace Analytics {
 
 	export const layer = Layer.effect(Service)(
 		Effect.gen(function* () {
-			const config = yield* CoreConfig;
+			const config = yield* Config;
 			const clickhouseUrl = config.analytics.clickhouseUrl;
 
 			yield* Effect.logInfo("Analytics initializing").pipe(
