@@ -1,5 +1,6 @@
 # Workflow
 
+- Talk to the user. Do not go ahead on your own. Make sure the requirements are abundantly clear.
 - Never try to generate migrations yourself. Tell the user to.
 - "Commit" means `jj commit`, not just `jj desc`.
 

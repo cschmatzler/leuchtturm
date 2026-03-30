@@ -5,6 +5,7 @@
 	"exports": {
 		".": "./src/index.ts",
 		"./no-direct-fetch": "./src/no-direct-fetch.ts",
+		"./no-process-env": "./src/no-process-env.ts",
 		"./no-vi-mock": "./src/no-vi-mock.ts",
 		"./no-relative-imports": "./src/no-relative-imports.ts",
 		"./types": "./src/types.ts"

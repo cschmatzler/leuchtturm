@@ -18,6 +18,7 @@ export default defineConfig({
 		},
 		jsPlugins: [
 			"./packages/oxlint-plugins/src/no-direct-fetch.ts",
+			"./packages/oxlint-plugins/src/no-process-env.ts",
 			"./packages/oxlint-plugins/src/no-relative-imports.ts",
 			"./packages/oxlint-plugins/src/no-vi-mock.ts",
 			"@effect/eslint-plugin",
@@ -30,6 +31,7 @@ export default defineConfig({
 			"packages/oxlint-plugins/**",
 		],
 		rules: {
+			"no-process-env/no-process-env": "error",
 			"no-relative-imports/no-relative-imports": "error",
 			"no-vi-mock/no-vi-mock": "error",
 			"@typescript-eslint/no-floating-promises": "off",

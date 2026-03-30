@@ -1,8 +1,8 @@
 {
 	"version": "8",
 	"dialect": "postgres",
-	"id": "32cd9808-e4af-471f-aa02-7646b1223b1c",
-	"prevIds": ["8357ce9c-496d-4c6a-ab66-eb04b69b50af"],
+	"id": "0174ab7f-7fb8-4e04-be20-6c7b20b8a3f7",
+	"prevIds": ["00000000-0000-0000-0000-000000000000"],
 	"ddl": [
 		{
 			"isRlsEnabled": false,
@@ -2014,7 +2014,7 @@
 		{
 			"type": "timestamp",
 			"typeSchema": null,
-			"notNull": false,
+			"notNull": true,
 			"dimensions": 0,
 			"default": null,
 			"generated": null,
@@ -3060,58 +3060,6 @@
 			"generated": null,
 			"identity": null,
 			"name": "snippet",
-			"entityType": "columns",
-			"schema": "public",
-			"table": "mail_message"
-		},
-		{
-			"type": "jsonb",
-			"typeSchema": null,
-			"notNull": false,
-			"dimensions": 0,
-			"default": null,
-			"generated": null,
-			"identity": null,
-			"name": "sender",
-			"entityType": "columns",
-			"schema": "public",
-			"table": "mail_message"
-		},
-		{
-			"type": "jsonb",
-			"typeSchema": null,
-			"notNull": false,
-			"dimensions": 0,
-			"default": null,
-			"generated": null,
-			"identity": null,
-			"name": "to_recipients",
-			"entityType": "columns",
-			"schema": "public",
-			"table": "mail_message"
-		},
-		{
-			"type": "jsonb",
-			"typeSchema": null,
-			"notNull": false,
-			"dimensions": 0,
-			"default": null,
-			"generated": null,
-			"identity": null,
-			"name": "cc_recipients",
-			"entityType": "columns",
-			"schema": "public",
-			"table": "mail_message"
-		},
-		{
-			"type": "jsonb",
-			"typeSchema": null,
-			"notNull": false,
-			"dimensions": 0,
-			"default": null,
-			"generated": null,
-			"identity": null,
-			"name": "bcc_recipients",
 			"entityType": "columns",
 			"schema": "public",
 			"table": "mail_message"
@@ -4255,6 +4203,19 @@
 			"default": null,
 			"generated": null,
 			"identity": null,
+			"name": "user_id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "mail_search_document"
+		},
+		{
+			"type": "char(30)",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
 			"name": "account_id",
 			"entityType": "columns",
 			"schema": "public",
@@ -5030,6 +4991,48 @@
 			"nameExplicit": true,
 			"columns": [
 				{
+					"value": "account_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": true,
+			"where": "\"is_primary\" = true",
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "mail_identity_account_primary_uniq",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "mail_identity"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
+					"value": "account_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": true,
+			"where": "\"is_default_send_as\" = true",
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "mail_identity_account_default_send_as_uniq",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "mail_identity"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
 					"value": "user_id",
 					"isExpression": false,
 					"asc": true,
@@ -5611,6 +5614,27 @@
 			"nameExplicit": true,
 			"columns": [
 				{
+					"value": "user_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "mail_search_document_user_id_idx",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "mail_search_document"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
 					"value": "conversation_id",
 					"isExpression": false,
 					"asc": true,
@@ -5681,6 +5705,32 @@
 			"table": "billing_order"
 		},
 		{
+			"nameExplicit": true,
+			"columns": ["user_id", "polar_customer_id"],
+			"schemaTo": "public",
+			"tableTo": "billing_customer",
+			"columnsTo": ["user_id", "polar_customer_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"name": "billing_order_customer_fkey",
+			"entityType": "fks",
+			"schema": "public",
+			"table": "billing_order"
+		},
+		{
+			"nameExplicit": true,
+			"columns": ["subscription_id", "user_id"],
+			"schemaTo": "public",
+			"tableTo": "billing_subscription",
+			"columnsTo": ["id", "user_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"name": "billing_order_subscription_user_fkey",
+			"entityType": "fks",
+			"schema": "public",
+			"table": "billing_order"
+		},
+		{
 			"nameExplicit": false,
 			"columns": ["user_id"],
 			"schemaTo": "public",
@@ -5689,6 +5739,19 @@
 			"onUpdate": "NO ACTION",
 			"onDelete": "CASCADE",
 			"name": "billing_subscription_user_id_user_id_fkey",
+			"entityType": "fks",
+			"schema": "public",
+			"table": "billing_subscription"
+		},
+		{
+			"nameExplicit": true,
+			"columns": ["user_id", "polar_customer_id"],
+			"schemaTo": "public",
+			"tableTo": "billing_customer",
+			"columnsTo": ["user_id", "polar_customer_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"name": "billing_subscription_customer_fkey",
 			"entityType": "fks",
 			"schema": "public",
 			"table": "billing_subscription"
@@ -5780,6 +5843,19 @@
 			"onUpdate": "NO ACTION",
 			"onDelete": "CASCADE",
 			"name": "mail_conversation_account_user_fkey",
+			"entityType": "fks",
+			"schema": "public",
+			"table": "mail_conversation"
+		},
+		{
+			"nameExplicit": true,
+			"columns": ["latest_message_id", "account_id", "user_id"],
+			"schemaTo": "public",
+			"tableTo": "mail_message",
+			"columnsTo": ["id", "account_id", "user_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"name": "mail_conversation_latest_message_scope_fkey",
 			"entityType": "fks",
 			"schema": "public",
 			"table": "mail_conversation"
@@ -6267,26 +6343,52 @@
 		},
 		{
 			"nameExplicit": false,
-			"columns": ["message_id"],
+			"columns": ["user_id"],
 			"schemaTo": "public",
-			"tableTo": "mail_message",
+			"tableTo": "user",
 			"columnsTo": ["id"],
 			"onUpdate": "NO ACTION",
 			"onDelete": "CASCADE",
-			"name": "mail_search_document_message_id_mail_message_id_fkey",
+			"name": "mail_search_document_user_id_user_id_fkey",
 			"entityType": "fks",
 			"schema": "public",
 			"table": "mail_search_document"
 		},
 		{
-			"nameExplicit": false,
-			"columns": ["account_id"],
+			"nameExplicit": true,
+			"columns": ["message_id", "account_id", "user_id"],
 			"schemaTo": "public",
-			"tableTo": "mail_account",
-			"columnsTo": ["id"],
+			"tableTo": "mail_message",
+			"columnsTo": ["id", "account_id", "user_id"],
 			"onUpdate": "NO ACTION",
 			"onDelete": "CASCADE",
-			"name": "mail_search_document_account_id_mail_account_id_fkey",
+			"name": "mail_search_document_message_scope_fkey",
+			"entityType": "fks",
+			"schema": "public",
+			"table": "mail_search_document"
+		},
+		{
+			"nameExplicit": true,
+			"columns": ["account_id", "user_id"],
+			"schemaTo": "public",
+			"tableTo": "mail_account",
+			"columnsTo": ["id", "user_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"name": "mail_search_document_account_user_fkey",
+			"entityType": "fks",
+			"schema": "public",
+			"table": "mail_search_document"
+		},
+		{
+			"nameExplicit": true,
+			"columns": ["conversation_id", "account_id", "user_id"],
+			"schemaTo": "public",
+			"tableTo": "mail_conversation",
+			"columnsTo": ["id", "account_id", "user_id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"name": "mail_search_document_conversation_scope_fkey",
 			"entityType": "fks",
 			"schema": "public",
 			"table": "mail_search_document"
@@ -6540,6 +6642,24 @@
 			"entityType": "uniques",
 			"schema": "public",
 			"table": "verification"
+		},
+		{
+			"nameExplicit": true,
+			"columns": ["user_id", "polar_customer_id"],
+			"nullsNotDistinct": false,
+			"name": "billing_customer_user_polar_customer_uniq",
+			"entityType": "uniques",
+			"schema": "public",
+			"table": "billing_customer"
+		},
+		{
+			"nameExplicit": true,
+			"columns": ["id", "user_id"],
+			"nullsNotDistinct": false,
+			"name": "billing_subscription_id_user_id_uniq",
+			"entityType": "uniques",
+			"schema": "public",
+			"table": "billing_subscription"
 		},
 		{
 			"nameExplicit": true,
