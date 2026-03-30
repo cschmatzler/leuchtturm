@@ -1,5 +1,5 @@
 /**
- * Gmail API adapter (§13).
+ * Gmail API adapter.
  *
  * Uses the Gmail REST API directly with OAuth2 tokens.
  * Handles thread listing, message fetching, label sync, and history-based
@@ -18,6 +18,10 @@ import type {
 	ProviderThread,
 } from "@chevrotain/core/mail/provider";
 import type { MailFolderKind, MailLabelKind } from "@chevrotain/core/mail/schema";
+
+// ---------------------------------------------------------------------------
+// Provider-specific types
+// ---------------------------------------------------------------------------
 
 export interface GmailProviderLabel extends ProviderLabel {
 	readonly providerStatePayload: GmailLabel;
@@ -40,27 +44,17 @@ export interface GmailProviderThread extends ProviderThread {
 }
 
 export interface GmailProviderHistoryChange {
-	readonly labelsAdded: Array<{
-		readonly labelRefs: string[];
-		readonly messageRef: string;
-	}>;
-	readonly labelsRemoved: Array<{
-		readonly labelRefs: string[];
-		readonly messageRef: string;
-	}>;
+	readonly labelsAdded: Array<{ readonly labelRefs: string[]; readonly messageRef: string }>;
+	readonly labelsRemoved: Array<{ readonly labelRefs: string[]; readonly messageRef: string }>;
 	readonly messagesAdded: GmailProviderMessage[];
 	readonly messagesDeleted: string[];
 }
 
 // ---------------------------------------------------------------------------
-// Constants
+// Gmail API types (subset we care about)
 // ---------------------------------------------------------------------------
 
 const GMAIL_API_BASE = "https://gmail.googleapis.com/gmail/v1/users/me";
-
-// ---------------------------------------------------------------------------
-// Gmail API types (subset we care about)
-// ---------------------------------------------------------------------------
 
 interface GmailLabel {
 	id: string;
@@ -103,7 +97,7 @@ interface GmailHistoryRecord {
 }
 
 // ---------------------------------------------------------------------------
-// Gmail label → folder kind mapping (§25.1)
+// Gmail label → folder kind mapping
 // ---------------------------------------------------------------------------
 
 const GMAIL_LABEL_FOLDER_MAP: Record<string, MailFolderKind> = {
@@ -129,10 +123,9 @@ function getHeader(part: GmailMessagePart, name: string): string | undefined {
 function parseEmailAddress(raw: string | undefined): ProviderEmailAddress | undefined {
 	if (!raw) return undefined;
 	const match = raw.match(/^(?:"?([^"]*)"?\s)?<?([^\s>]+@[^\s>]+)>?$/);
-	if (match) {
-		return { name: match[1]?.trim() || undefined, address: match[2]! };
-	}
-	return { address: raw.trim() };
+	return match
+		? { name: match[1]?.trim() || undefined, address: match[2]! }
+		: { address: raw.trim() };
 }
 
 function parseEmailAddresses(raw: string | undefined): ProviderEmailAddress[] {
@@ -144,12 +137,17 @@ function parseEmailAddresses(raw: string | undefined): ProviderEmailAddress[] {
 }
 
 function decodeBase64Url(data: string): string {
-	const padded = data.replace(/-/g, "+").replace(/_/g, "/");
-	return Buffer.from(padded, "base64").toString("utf-8");
+	return Buffer.from(data.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf-8");
+}
+
+function parseDate(raw: string | undefined): Date | undefined {
+	if (!raw) return undefined;
+	const d = new Date(raw);
+	return Number.isNaN(d.getTime()) ? undefined : d;
 }
 
 // ---------------------------------------------------------------------------
-// Extract body parts and attachments from Gmail message payload
+// Message normalization
 // ---------------------------------------------------------------------------
 
 function extractParts(
@@ -172,11 +170,7 @@ function extractParts(
 	}
 
 	if ((mime === "text/plain" || mime === "text/html") && part.body?.data) {
-		const decoded = decodeBase64Url(part.body.data);
-		bodyParts.push({
-			contentType: mime,
-			content: decoded,
-		});
+		bodyParts.push({ contentType: mime, content: decodeBase64Url(part.body.data) });
 		return;
 	}
 
@@ -187,23 +181,15 @@ function extractParts(
 	}
 }
 
-// ---------------------------------------------------------------------------
-// Convert Gmail message to provider-normalized message
-// ---------------------------------------------------------------------------
-
 function extractHeaders(payload: GmailMessagePart): ProviderMessageHeaders {
-	const replyToRaw = getHeader(payload, "Reply-To");
-	const inReplyTo = getHeader(payload, "In-Reply-To");
-	const references = getHeader(payload, "References");
-	const listUnsubscribe = getHeader(payload, "List-Unsubscribe");
-	const listUnsubscribePost = getHeader(payload, "List-Unsubscribe-Post");
-
 	return {
-		replyTo: replyToRaw ? parseEmailAddresses(replyToRaw) : undefined,
-		inReplyTo: inReplyTo?.trim(),
-		references: references?.trim(),
-		listUnsubscribe: listUnsubscribe?.trim(),
-		listUnsubscribePost: listUnsubscribePost?.trim(),
+		replyTo: getHeader(payload, "Reply-To")
+			? parseEmailAddresses(getHeader(payload, "Reply-To"))
+			: undefined,
+		inReplyTo: getHeader(payload, "In-Reply-To")?.trim(),
+		references: getHeader(payload, "References")?.trim(),
+		listUnsubscribe: getHeader(payload, "List-Unsubscribe")?.trim(),
+		listUnsubscribePost: getHeader(payload, "List-Unsubscribe-Post")?.trim(),
 	};
 }
 
@@ -211,10 +197,7 @@ function normalizeGmailMessage(msg: GmailMessage): GmailProviderMessage {
 	const payload = msg.payload;
 	const bodyParts: ProviderBodyPart[] = [];
 	const attachments: ProviderAttachment[] = [];
-
-	if (payload) {
-		extractParts(payload, bodyParts, attachments);
-	}
+	if (payload) extractParts(payload, bodyParts, attachments);
 
 	const labelIds = msg.labelIds ?? [];
 
@@ -241,47 +224,47 @@ function normalizeGmailMessage(msg: GmailMessage): GmailProviderMessage {
 	};
 }
 
-function parseDate(raw: string | undefined): Date | undefined {
-	if (!raw) return undefined;
-	const d = new Date(raw);
-	return Number.isNaN(d.getTime()) ? undefined : d;
-}
-
 // ---------------------------------------------------------------------------
-// Gmail adapter implementation
+// Gmail adapter
 // ---------------------------------------------------------------------------
 
 export class GmailAdapter implements MailProviderAdapter {
 	constructor(private readonly accessToken: string) {}
 
-	private async gmailFetch<T>(path: string, params?: Record<string, string>): Promise<T> {
+	private async gmailRequest<T>(
+		path: string,
+		options?: { params?: Record<string, string>; body?: unknown },
+	): Promise<T> {
 		const url = new URL(`${GMAIL_API_BASE}${path}`);
-		if (params) {
-			for (const [key, value] of Object.entries(params)) {
+		if (options?.params) {
+			for (const [key, value] of Object.entries(options.params)) {
 				url.searchParams.set(key, value);
 			}
 		}
 
-		const response = await fetch(url.toString(), {
-			headers: { Authorization: `Bearer ${this.accessToken}` },
-		});
+		const headers: Record<string, string> = {
+			Authorization: `Bearer ${this.accessToken}`,
+		};
+		const init: RequestInit = { headers };
 
+		if (options?.body !== undefined) {
+			init.method = "POST";
+			headers["Content-Type"] = "application/json";
+			init.body = JSON.stringify(options.body);
+		}
+
+		const response = await fetch(url.toString(), init);
 		if (!response.ok) {
-			const body = await response.text();
-			throw new Error(`Gmail API error ${response.status}: ${body}`);
+			const text = await response.text();
+			throw new Error(`Gmail API error ${response.status}: ${text}`);
 		}
 
 		return response.json() as Promise<T>;
 	}
 
-	// -----------------------------------------------------------------------
-	// Labels
-	// -----------------------------------------------------------------------
-
 	async listLabels(): Promise<GmailProviderLabel[]> {
-		const data = await this.gmailFetch<{ labels: GmailLabel[] }>("/labels");
+		const data = await this.gmailRequest<{ labels: GmailLabel[] }>("/labels");
 		return (data.labels ?? []).map((label) => {
-			// Gmail nested labels use "/" as delimiter: "Projects/Alpha"
 			const hasHierarchy = label.name.includes("/");
 			return {
 				providerRef: label.id,
@@ -295,42 +278,34 @@ export class GmailAdapter implements MailProviderAdapter {
 		});
 	}
 
-	// -----------------------------------------------------------------------
-	// Thread listing for bootstrap (§13, §25.2)
-	// -----------------------------------------------------------------------
-
 	async listRecentThreads(cutoff: Date): Promise<GmailProviderThread[]> {
-		const epochSeconds = Math.floor(cutoff.getTime() / 1000);
-		const query = `after:${epochSeconds}`;
+		const query = `after:${Math.floor(cutoff.getTime() / 1000)}`;
 		const threadIds: string[] = [];
 		let pageToken: string | undefined;
 
-		// Paginate through thread list
 		do {
 			const params: Record<string, string> = { q: query, maxResults: "500" };
 			if (pageToken) params.pageToken = pageToken;
 
-			const data = await this.gmailFetch<{
+			const data = await this.gmailRequest<{
 				threads?: Array<{ id: string }>;
 				nextPageToken?: string;
-			}>("/threads", params);
+			}>("/threads", { params });
 
-			if (data.threads) {
-				threadIds.push(...data.threads.map((t) => t.id));
-			}
+			if (data.threads) threadIds.push(...data.threads.map((t) => t.id));
 			pageToken = data.nextPageToken;
 		} while (pageToken);
 
-		// Fetch full thread details (batch in groups to respect rate limits)
 		const threads: GmailProviderThread[] = [];
-		const batchSize = 10;
+		const BATCH_SIZE = 10;
 
-		for (let i = 0; i < threadIds.length; i += batchSize) {
-			const batch = threadIds.slice(i, i + batchSize);
+		for (let i = 0; i < threadIds.length; i += BATCH_SIZE) {
+			const batch = threadIds.slice(i, i + BATCH_SIZE);
 			const results = await Promise.all(
-				batch.map((id) => this.gmailFetch<GmailThread>(`/threads/${id}`, { format: "full" })),
+				batch.map((id) =>
+					this.gmailRequest<GmailThread>(`/threads/${id}`, { params: { format: "full" } }),
+				),
 			);
-
 			for (const thread of results) {
 				threads.push({
 					providerRef: thread.id,
@@ -341,10 +316,6 @@ export class GmailAdapter implements MailProviderAdapter {
 
 		return threads;
 	}
-
-	// -----------------------------------------------------------------------
-	// Incremental sync via history (§13)
-	// -----------------------------------------------------------------------
 
 	async getHistoryChanges(startHistoryId: string): Promise<{
 		changes: GmailProviderHistoryChange;
@@ -370,37 +341,30 @@ export class GmailAdapter implements MailProviderAdapter {
 				};
 				if (pageToken) params.pageToken = pageToken;
 
-				const data = await this.gmailFetch<{
+				const data = await this.gmailRequest<{
 					history?: GmailHistoryRecord[];
 					historyId: string;
 					nextPageToken?: string;
-				}>("/history", params);
+				}>("/history", { params });
 
 				latestHistoryId = data.historyId;
 
 				for (const record of data.history ?? []) {
 					if (record.messagesAdded) {
 						for (const added of record.messagesAdded) {
-							const fullMessage = await this.getMessage(added.message.id);
-							changes.messagesAdded.push(fullMessage);
+							changes.messagesAdded.push(await this.getMessage(added.message.id));
 						}
 					}
-
 					if (record.messagesDeleted) {
 						for (const deleted of record.messagesDeleted) {
 							changes.messagesDeleted.push(deleted.message.id);
 						}
 					}
-
 					if (record.labelsAdded) {
 						for (const added of record.labelsAdded) {
-							changes.labelsAdded.push({
-								messageRef: added.message.id,
-								labelRefs: added.labelIds,
-							});
+							changes.labelsAdded.push({ messageRef: added.message.id, labelRefs: added.labelIds });
 						}
 					}
-
 					if (record.labelsRemoved) {
 						for (const removed of record.labelsRemoved) {
 							changes.labelsRemoved.push({
@@ -423,29 +387,32 @@ export class GmailAdapter implements MailProviderAdapter {
 		return { changes, newCursor: latestHistoryId, cursorExpired: false };
 	}
 
-	// -----------------------------------------------------------------------
-	// Single message fetch
-	// -----------------------------------------------------------------------
-
 	async getMessage(providerRef: string): Promise<GmailProviderMessage> {
-		const msg = await this.gmailFetch<GmailMessage>(`/messages/${providerRef}`, {
-			format: "full",
+		const msg = await this.gmailRequest<GmailMessage>(`/messages/${providerRef}`, {
+			params: { format: "full" },
 		});
 		return normalizeGmailMessage(msg);
 	}
 
-	// -----------------------------------------------------------------------
-	// Latest cursor (historyId from profile)
-	// -----------------------------------------------------------------------
-
 	async getLatestCursor(): Promise<string> {
-		const profile = await this.gmailFetch<{ historyId: string }>("/profile");
+		const profile = await this.gmailRequest<{ historyId: string }>("/profile");
 		return profile.historyId;
+	}
+
+	async watch(topicName: string): Promise<{ historyId: string; expiration: number }> {
+		const data = await this.gmailRequest<{ historyId: string; expiration: string }>("/watch", {
+			body: { topicName, labelFilterBehavior: "INCLUDE" },
+		});
+		return { historyId: data.historyId, expiration: Number(data.expiration) };
+	}
+
+	async stopWatch(): Promise<void> {
+		await this.gmailRequest("/stop", { body: {} });
 	}
 }
 
 // ---------------------------------------------------------------------------
-// Export folder mapping for sync layer
+// Folder mapping for sync layer
 // ---------------------------------------------------------------------------
 
 export function getGmailFolders(labels: readonly GmailProviderLabel[]): GmailProviderFolder[] {

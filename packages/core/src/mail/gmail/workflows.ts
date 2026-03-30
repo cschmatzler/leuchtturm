@@ -1,24 +1,24 @@
 /**
- * Gmail durable workflow.
+ * Gmail durable workflows.
  *
- * Single GmailSyncWorkflow handles both bootstrap (first sync for a new
- * account) and incremental sync. The sync.ts layer already falls back to
- * bootstrap when no cursor exists, so the workflow just needs a valid
- * access token.
+ * BootstrapWorkflow — triggered once after OAuth callback. Imports 30 days
+ * of mail and registers a Pub/Sub watch so Gmail pushes future changes.
  *
- * When `accessToken` is provided in the payload the workflow uses it
- * directly (OAuth callback just exchanged a code). Otherwise it resolves
- * credentials from the encrypted secret store and refreshes if needed.
+ * DeltaWorkflow — triggered by Pub/Sub push notifications. Applies the
+ * history delta since the last cursor and renews the watch if expiring.
+ *
+ * Both workflows resolve access tokens from the encrypted secret store
+ * and refresh them when expired.
  */
 
-import { Effect, Schema } from "effect";
+import { Config, Effect, Layer, Schema } from "effect";
 import { Workflow } from "effect/unstable/workflow";
 
 import type { DatabaseClient } from "@chevrotain/core/drizzle/index";
 import { Database } from "@chevrotain/core/drizzle/index";
 import { MailEncryption } from "@chevrotain/core/mail/encryption";
 import { GmailOAuth } from "@chevrotain/core/mail/gmail/oauth";
-import { incrementalGmailSync } from "@chevrotain/core/mail/gmail/sync";
+import { bootstrapGmailAccount, syncGmailDelta } from "@chevrotain/core/mail/gmail/sync";
 import {
 	getMailAccountSecret,
 	updateMailAccountSecret,
@@ -33,42 +33,72 @@ function toErrorString(error: unknown): string {
 }
 
 // ---------------------------------------------------------------------------
-// Workflow definition
+// Workflow definitions
 // ---------------------------------------------------------------------------
 
-const SyncWorkflow = Workflow.make({
-	name: "GmailSync",
+const BootstrapWorkflow = Workflow.make({
+	name: "GmailBootstrap",
 	payload: {
 		accountId: Schema.String,
 		accessToken: Schema.optional(Schema.String),
 	},
-	idempotencyKey: ({ accountId }) => `gmail-sync-${accountId}`,
+	idempotencyKey: ({ accountId }) => `gmail-bootstrap-${accountId}`,
+	error: Schema.String,
+});
+
+const DeltaWorkflow = Workflow.make({
+	name: "GmailDelta",
+	payload: {
+		accountId: Schema.String,
+	},
+	idempotencyKey: ({ accountId }) => `gmail-delta-${accountId}`,
 	error: Schema.String,
 });
 
 // ---------------------------------------------------------------------------
-// Workflow implementation
+// Workflow layers — config resolved at construction time
 // ---------------------------------------------------------------------------
 
-const SyncWorkflowLive = SyncWorkflow.toLayer(({ accountId, accessToken }) =>
+const BootstrapWorkflowLive = Layer.unwrap(
 	Effect.gen(function* () {
-		const token = accessToken ?? (yield* resolveAccessToken(accountId));
+		const topicName = yield* Config.string("GMAIL_PUBSUB_TOPIC");
 
-		yield* Effect.catch(incrementalGmailSync(accountId, token), (error) =>
+		return BootstrapWorkflow.toLayer(({ accountId, accessToken }) =>
 			Effect.gen(function* () {
-				if (!(error instanceof Error && error.message.includes("Gmail API error 401:"))) {
-					return yield* Effect.fail(error);
-				}
-				const refreshed = yield* refreshStoredToken(accountId);
-				return yield* incrementalGmailSync(accountId, refreshed);
-			}),
+				const token = accessToken ?? (yield* resolveAccessToken(accountId));
+				yield* bootstrapGmailAccount(accountId, token, topicName);
+			}).pipe(Effect.mapError(toErrorString)),
 		);
-	}).pipe(Effect.mapError(toErrorString)),
+	}),
+);
+
+const DeltaWorkflowLive = Layer.unwrap(
+	Effect.gen(function* () {
+		const topicName = yield* Config.string("GMAIL_PUBSUB_TOPIC");
+
+		return DeltaWorkflow.toLayer(({ accountId }) =>
+			Effect.gen(function* () {
+				const token = yield* resolveAccessToken(accountId);
+
+				yield* Effect.catch(syncGmailDelta(accountId, token, topicName), (error) =>
+					Effect.gen(function* () {
+						if (!(error instanceof Error && error.message.includes("Gmail API error 401:"))) {
+							return yield* Effect.fail(error);
+						}
+						const refreshed = yield* refreshStoredToken(accountId);
+						return yield* syncGmailDelta(accountId, refreshed, topicName);
+					}),
+				);
+			}).pipe(Effect.mapError(toErrorString)),
+		);
+	}),
 );
 
 export const Gmail = {
-	SyncWorkflow,
-	SyncWorkflowLive,
+	BootstrapWorkflow,
+	BootstrapWorkflowLive,
+	DeltaWorkflow,
+	DeltaWorkflowLive,
 } as const;
 
 // ---------------------------------------------------------------------------

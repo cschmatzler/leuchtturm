@@ -176,6 +176,14 @@ export async function consumeMailOAuthState(
 	return row;
 }
 
+export async function getMailAccountByEmail(
+	db: DatabaseExecutor,
+	email: string,
+): Promise<typeof mailAccount.$inferSelect | undefined> {
+	const [row] = await db.select().from(mailAccount).where(eq(mailAccount.email, email)).limit(1);
+	return row;
+}
+
 export async function disconnectMailAccount(
 	db: DatabaseExecutor,
 	accountId: string,

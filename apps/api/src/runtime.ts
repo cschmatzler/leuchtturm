@@ -31,4 +31,6 @@ const BaseLive = Layer.mergeAll(
 	WorkflowEngine.layerMemory,
 );
 
-export const AppLayer = Gmail.SyncWorkflowLive.pipe(Layer.provideMerge(BaseLive));
+export const AppLayer = Layer.mergeAll(Gmail.BootstrapWorkflowLive, Gmail.DeltaWorkflowLive).pipe(
+	Layer.provideMerge(BaseLive),
+);

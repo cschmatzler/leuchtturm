@@ -1,6 +1,8 @@
 /**
- * Gmail OAuth2 connection flow, account disconnection.
- * Sync orchestration is delegated to durable workflows.
+ * Gmail OAuth2 connection flow, account disconnection, and Pub/Sub webhook.
+ *
+ * Bootstrap sync is triggered after OAuth callback.
+ * Incremental sync is driven by Gmail Pub/Sub push notifications.
  */
 
 import { Effect } from "effect";
@@ -19,6 +21,7 @@ import {
 	createMailAccountSecret,
 	createMailOAuthState,
 	disconnectMailAccount,
+	getMailAccountByEmail,
 	getMailAccountForUser,
 } from "@chevrotain/core/mail/queries";
 import { createMailAccountId, createMailOAuthStateId } from "@chevrotain/core/mail/schema";
@@ -135,36 +138,12 @@ export const MailHandlerLive = HttpApiBuilder.group(ChevrotainApi, "mail", (hand
 					catch: (error) => toDatabaseError("Failed to store mail credentials", error),
 				});
 
-				yield* Gmail.SyncWorkflow.execute(
+				yield* Gmail.BootstrapWorkflow.execute(
 					{ accountId, accessToken: tokens.accessToken },
 					{ discard: true },
 				);
 
 				return { accountId };
-			}),
-		)
-
-		// -------------------------------------------------------------------
-		// POST /api/mail/sync
-		// -------------------------------------------------------------------
-		.handle(
-			"mailSync",
-			Effect.fn("mail.sync")(function* ({ payload }) {
-				const { user } = yield* CurrentUser;
-				const { db } = yield* Database.Service;
-
-				const account = yield* Effect.tryPromise({
-					try: () => getMailAccountForUser(db, payload.accountId, user.id),
-					catch: (error) => toDatabaseError("Failed to fetch account", error),
-				});
-
-				if (!account) {
-					return yield* Effect.fail(new DatabaseError({ message: "Account not found" }));
-				}
-
-				yield* Gmail.SyncWorkflow.execute({ accountId: payload.accountId }, { discard: true });
-
-				return { success: true as const };
 			}),
 		)
 
@@ -194,4 +173,43 @@ export const MailHandlerLive = HttpApiBuilder.group(ChevrotainApi, "mail", (hand
 				return { success: true as const };
 			}),
 		),
+);
+
+// ---------------------------------------------------------------------------
+// Webhook handler (no auth — receives Google Pub/Sub push notifications)
+// ---------------------------------------------------------------------------
+
+export const WebhookHandlerLive = HttpApiBuilder.group(ChevrotainApi, "webhook", (handlers) =>
+	handlers.handle(
+		"gmailPush",
+		Effect.fn("webhook.gmailPush")(function* ({ payload }) {
+			const raw = payload.message?.data;
+			if (!raw) {
+				return { success: true as const };
+			}
+
+			const decoded = JSON.parse(Buffer.from(raw, "base64").toString("utf-8")) as {
+				emailAddress?: string;
+			};
+
+			if (!decoded.emailAddress) {
+				return { success: true as const };
+			}
+
+			const { db } = yield* Database.Service;
+			const account = yield* Effect.tryPromise({
+				try: () => getMailAccountByEmail(db, decoded.emailAddress!),
+				catch: (error) => toDatabaseError("Failed to look up account", error),
+			});
+
+			if (!account) {
+				// Unknown email — ack without processing
+				return { success: true as const };
+			}
+
+			yield* Gmail.DeltaWorkflow.execute({ accountId: account.id }, { discard: true });
+
+			return { success: true as const };
+		}),
+	),
 );

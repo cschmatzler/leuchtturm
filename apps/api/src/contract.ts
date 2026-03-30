@@ -63,13 +63,6 @@ const mailGroup = HttpApiGroup.make("mail")
 		}),
 	)
 	.add(
-		HttpApiEndpoint.post("mailSync", "/mail/sync", {
-			payload: Schema.Struct({ accountId: MailAccountId }),
-			success: Schema.Struct({ success: Schema.Literal(true) }),
-			error: ProtectedRouteError,
-		}),
-	)
-	.add(
 		HttpApiEndpoint.post("mailDisconnect", "/mail/disconnect", {
 			payload: Schema.Struct({ accountId: MailAccountId }),
 			success: SuccessResponse,
@@ -78,11 +71,28 @@ const mailGroup = HttpApiGroup.make("mail")
 	)
 	.middleware(AuthMiddleware);
 
+const GmailPushPayload = Schema.Struct({
+	message: Schema.optional(
+		Schema.Struct({
+			data: Schema.optional(Schema.String),
+		}),
+	),
+});
+
+const webhookGroup = HttpApiGroup.make("webhook").add(
+	HttpApiEndpoint.post("gmailPush", "/webhook/gmail", {
+		payload: GmailPushPayload,
+		success: SuccessResponse,
+		error: DatabaseError,
+	}),
+);
+
 export class ChevrotainWebApi extends HttpApi.make("chevrotain-web")
 	.add(analyticsGroup)
 	.add(mailGroup)
+	.add(webhookGroup)
 	.prefix("/api") {}
 
 export class ChevrotainApi extends HttpApi.make("chevrotain")
-	.add(healthGroup, metricsGroup, analyticsGroup, zeroGroup, authGroup, mailGroup)
+	.add(healthGroup, metricsGroup, analyticsGroup, zeroGroup, authGroup, mailGroup, webhookGroup)
 	.prefix("/api") {}

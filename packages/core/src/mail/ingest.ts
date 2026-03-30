@@ -128,8 +128,8 @@ function toProviderEmailAddress(participant: PersistedMessageParticipant): Provi
 	};
 }
 
-function uniqueConversationAddresses(
-	addresses: Array<ProviderEmailAddress | undefined>,
+export function uniqueConversationAddresses(
+	addresses: Array<ProviderEmailAddress | null | undefined>,
 ): ProviderEmailAddress[] {
 	const seen = new Set<string>();
 	const unique: ProviderEmailAddress[] = [];
