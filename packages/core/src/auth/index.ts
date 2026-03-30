@@ -92,7 +92,7 @@ export namespace Auth {
 				accessToken: Redacted.value(config.billing.accessToken),
 				server: config.billing.server,
 			});
-			const polarWebhookHandlers = makePolarWebhookHandlers(db);
+			const polarWebhookHandlers = makePolarWebhookHandlers(db, polarClient);
 			const auth = betterAuth({
 				baseURL: `${config.auth.authBaseUrl}/api/auth`,
 				trustedOrigins: [config.baseUrl, config.auth.authBaseUrl],
