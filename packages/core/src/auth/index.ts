@@ -6,7 +6,7 @@ import { multiSession } from "better-auth/plugins";
 import { Effect, Layer, Redacted, Schema, ServiceMap } from "effect";
 import { ulid } from "ulid";
 
-import * as schema from "@chevrotain/core/auth/auth.sql";
+import * as sql from "@chevrotain/core/auth/auth.sql";
 import {
 	AccountId,
 	PASSWORD_MIN_LENGTH,
@@ -17,57 +17,23 @@ import {
 	VerificationId,
 } from "@chevrotain/core/auth/schema";
 import { POLAR_PRO_PRODUCT_ID, POLAR_PRO_PRODUCT_SLUG } from "@chevrotain/core/billing/products";
-import { makePolarWebhookHandlers } from "@chevrotain/core/billing/webhooks";
+import {
+	upsertPolarCustomerState,
+	upsertPolarOrder,
+	upsertPolarSubscription,
+} from "@chevrotain/core/billing/webhooks";
 import { CoreConfig } from "@chevrotain/core/config";
 import { Database } from "@chevrotain/core/drizzle/index";
 import { Email } from "@chevrotain/core/email";
 import { sendPasswordResetEmail } from "@chevrotain/email/password-reset";
 
-function isIpAddress(hostname: string) {
-	return /^\d{1,3}(?:\.\d{1,3}){3}$/.test(hostname) || hostname.includes(":");
-}
-
-function getParentDomain(hostname: string) {
-	const labels = hostname.split(".").filter(Boolean);
-
-	if (hostname === "localhost" || isIpAddress(hostname) || labels.length < 3) {
-		return null;
-	}
-
-	return labels.slice(1).join(".");
-}
-
-export function deriveCrossSubDomainCookieDomain(baseUrl: string, authBaseUrl: string) {
-	const baseHost = new URL(baseUrl).hostname;
-	const authHost = new URL(authBaseUrl).hostname;
-
-	if (baseHost === authHost) {
-		return null;
-	}
-
-	const baseParentDomain = getParentDomain(baseHost);
-	const authParentDomain = getParentDomain(authHost);
-
-	if (baseParentDomain && baseParentDomain === authParentDomain) {
-		return baseParentDomain;
-	}
-
-	if (baseParentDomain && authHost === baseParentDomain) {
-		return baseParentDomain;
-	}
-
-	if (authParentDomain && baseHost === authParentDomain) {
-		return authParentDomain;
-	}
-
-	return null;
-}
-
 export namespace Auth {
-	export interface SessionData {
-		readonly user: User;
-		readonly session: Session;
-	}
+	export const SessionData = Schema.Struct({
+		user: User,
+		session: Session,
+	});
+
+	export type SessionData = typeof SessionData.Type;
 
 	export class AuthError extends Schema.TaggedErrorClass<AuthError>()("AuthError", {
 		message: Schema.String,
@@ -84,21 +50,16 @@ export namespace Auth {
 		Effect.gen(function* () {
 			const config = yield* CoreConfig;
 			const { db } = yield* Database.Service;
-			const crossSubDomainCookieDomain = deriveCrossSubDomainCookieDomain(
-				config.baseUrl,
-				config.auth.authBaseUrl,
-			);
 			const polarClient = new Polar({
 				accessToken: Redacted.value(config.billing.accessToken),
 				server: config.billing.server,
 			});
-			const polarWebhookHandlers = makePolarWebhookHandlers(db, polarClient);
 			const auth = betterAuth({
 				baseURL: `${config.auth.authBaseUrl}/api/auth`,
 				trustedOrigins: [config.baseUrl, config.auth.authBaseUrl],
 				database: drizzleAdapter(db, {
 					provider: "pg",
-					schema,
+					schema: sql,
 				}),
 				emailAndPassword: {
 					enabled: true,
@@ -148,7 +109,42 @@ export namespace Auth {
 							}),
 							webhooks({
 								secret: Redacted.value(config.billing.webhookSecret),
-								...polarWebhookHandlers,
+								onPayload: async (payload) => {
+									console.info(`[polar.webhook] ${payload.type}`);
+								},
+								onCustomerStateChanged: async (payload) => {
+									await upsertPolarCustomerState(db, payload.data);
+								},
+								onOrderCreated: async (payload) => {
+									await upsertPolarOrder(db, polarClient, payload.data);
+								},
+								onOrderPaid: async (payload) => {
+									await upsertPolarOrder(db, polarClient, payload.data);
+								},
+								onOrderRefunded: async (payload) => {
+									await upsertPolarOrder(db, polarClient, payload.data);
+								},
+								onOrderUpdated: async (payload) => {
+									await upsertPolarOrder(db, polarClient, payload.data);
+								},
+								onSubscriptionCreated: async (payload) => {
+									await upsertPolarSubscription(db, polarClient, payload.data);
+								},
+								onSubscriptionUpdated: async (payload) => {
+									await upsertPolarSubscription(db, polarClient, payload.data);
+								},
+								onSubscriptionActive: async (payload) => {
+									await upsertPolarSubscription(db, polarClient, payload.data);
+								},
+								onSubscriptionCanceled: async (payload) => {
+									await upsertPolarSubscription(db, polarClient, payload.data);
+								},
+								onSubscriptionRevoked: async (payload) => {
+									await upsertPolarSubscription(db, polarClient, payload.data);
+								},
+								onSubscriptionUncanceled: async (payload) => {
+									await upsertPolarSubscription(db, polarClient, payload.data);
+								},
 							}),
 						],
 					}),
@@ -160,14 +156,6 @@ export namespace Auth {
 					},
 				},
 				advanced: {
-					...(crossSubDomainCookieDomain
-						? {
-								crossSubDomainCookies: {
-									enabled: true,
-									domain: crossSubDomainCookieDomain,
-								},
-							}
-						: {}),
 					database: {
 						generateId: ({ model }) => {
 							switch (model) {
@@ -187,18 +175,7 @@ export namespace Auth {
 				},
 			});
 
-			const decodeSessionData = (sessionData: { user: unknown; session: unknown }) =>
-				Effect.all({
-					user: Schema.decodeUnknownEffect(User)(sessionData.user),
-					session: Schema.decodeUnknownEffect(Session)(sessionData.session),
-				}).pipe(
-					Effect.mapError(
-						(error) =>
-							new AuthError({
-								message: `Invalid auth session payload: ${error.message}`,
-							}),
-					),
-				);
+			const decodeSessionData = Schema.decodeUnknownEffect(SessionData);
 
 			const handle = Effect.fn("Auth.handle")(function* (request: Request) {
 				return yield* Effect.tryPromise({
@@ -223,10 +200,14 @@ export namespace Auth {
 					return null;
 				}
 
-				return yield* decodeSessionData({
-					user: session.user,
-					session: session.session,
-				});
+				return yield* decodeSessionData(session).pipe(
+					Effect.mapError(
+						(error) =>
+							new AuthError({
+								message: `Invalid auth session payload: ${error.message}`,
+							}),
+					),
+				);
 			});
 
 			return Service.of({ handle, getSession });

@@ -1,4 +1,3 @@
-import type { WebhooksOptions } from "@polar-sh/better-auth";
 import type { Polar } from "@polar-sh/sdk";
 import type { CustomerState } from "@polar-sh/sdk/models/components/customerstate";
 import type { Order } from "@polar-sh/sdk/models/components/order";
@@ -330,235 +329,179 @@ export function assertPolarCustomer(
 	});
 }
 
-export function makePolarWebhookHandlers(
+async function getKnownUserId(db: DatabaseExecutor, externalId: string | null | undefined) {
+	if (!externalId) {
+		return null;
+	}
+
+	const rows = await db.select({ id: user.id }).from(user).where(eq(user.id, externalId)).limit(1);
+
+	return rows[0]?.id ?? null;
+}
+
+export async function upsertPolarCustomerState(db: DatabaseExecutor, state: CustomerState) {
+	const userId = assertPolarCustomer(
+		"customer state",
+		state.externalId,
+		await getKnownUserId(db, state.externalId),
+	);
+
+	await db.transaction(async (tx) => {
+		await syncBillingCustomerState(tx, {
+			userId,
+			state,
+		});
+	});
+}
+
+export async function upsertPolarSubscription(
 	db: DatabaseExecutor,
 	polarClient: BillingPolarClient,
-): Pick<
-	WebhooksOptions,
-	| "onPayload"
-	| "onCustomerStateChanged"
-	| "onOrderCreated"
-	| "onOrderPaid"
-	| "onOrderRefunded"
-	| "onOrderUpdated"
-	| "onSubscriptionCreated"
-	| "onSubscriptionUpdated"
-	| "onSubscriptionActive"
-	| "onSubscriptionCanceled"
-	| "onSubscriptionRevoked"
-	| "onSubscriptionUncanceled"
-> {
-	async function getKnownUserId(externalId: string | null | undefined) {
-		if (!externalId) {
-			return null;
-		}
+	subscription: Subscription,
+) {
+	const userId = assertPolarCustomer(
+		"subscription",
+		subscription.customer.externalId,
+		await getKnownUserId(db, subscription.customer.externalId),
+	);
+	const customerState = await loadPolarCustomerState(polarClient, subscription.customerId);
 
-		const rows = await db
-			.select({ id: user.id })
-			.from(user)
-			.where(eq(user.id, externalId))
-			.limit(1);
-
-		return rows[0]?.id ?? null;
-	}
-
-	async function upsertCustomerState(state: CustomerState) {
-		const userId = assertPolarCustomer(
-			"customer state",
-			state.externalId,
-			await getKnownUserId(state.externalId),
-		);
-
-		await db.transaction(async (tx) => {
-			await syncBillingCustomerState(tx, {
-				userId,
-				state,
-			});
+	await db.transaction(async (tx) => {
+		await syncBillingCustomerState(tx, {
+			userId,
+			state: customerState,
 		});
-	}
 
-	async function upsertSubscription(subscription: Subscription) {
-		const userId = assertPolarCustomer(
-			"subscription",
-			subscription.customer.externalId,
-			await getKnownUserId(subscription.customer.externalId),
-		);
-		const customerState = await loadPolarCustomerState(polarClient, subscription.customerId);
+		await upsertBillingSubscriptionSnapshot(tx, {
+			id: subscription.id,
+			userId,
+			polarCustomerId: subscription.customerId,
+			productId: subscription.productId,
+			status: subscription.status,
+			amount: subscription.amount,
+			currency: subscription.currency,
+			recurringInterval: subscription.recurringInterval,
+			currentPeriodStart: subscription.currentPeriodStart,
+			currentPeriodEnd: subscription.currentPeriodEnd,
+			trialStart: subscription.trialStart,
+			trialEnd: subscription.trialEnd,
+			cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+			canceledAt: subscription.canceledAt,
+			startedAt: subscription.startedAt,
+			endsAt: subscription.endsAt,
+			endedAt: subscription.endedAt,
+			snapshot: subscription,
+			remoteCreatedAt: subscription.createdAt,
+			remoteModifiedAt: subscription.modifiedAt,
+		});
+	});
+}
 
-		await db.transaction(async (tx) => {
+export async function upsertPolarOrder(
+	db: DatabaseExecutor,
+	polarClient: BillingPolarClient,
+	order: Order,
+) {
+	const userId = await getKnownUserId(db, order.customer.externalId);
+	const customerState = userId ? await loadPolarCustomerState(polarClient, order.customerId) : null;
+
+	await db.transaction(async (tx) => {
+		if (userId && customerState) {
 			await syncBillingCustomerState(tx, {
 				userId,
 				state: customerState,
 			});
 
-			await upsertBillingSubscriptionSnapshot(tx, {
-				id: subscription.id,
-				userId,
-				polarCustomerId: subscription.customerId,
-				productId: subscription.productId,
-				status: subscription.status,
-				amount: subscription.amount,
-				currency: subscription.currency,
-				recurringInterval: subscription.recurringInterval,
-				currentPeriodStart: subscription.currentPeriodStart,
-				currentPeriodEnd: subscription.currentPeriodEnd,
-				trialStart: subscription.trialStart,
-				trialEnd: subscription.trialEnd,
-				cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
-				canceledAt: subscription.canceledAt,
-				startedAt: subscription.startedAt,
-				endsAt: subscription.endsAt,
-				endedAt: subscription.endedAt,
-				snapshot: subscription,
-				remoteCreatedAt: subscription.createdAt,
-				remoteModifiedAt: subscription.modifiedAt,
-			});
-		});
-	}
+			if (order.subscriptionId) {
+				const [existingSubscription] = await tx
+					.select({
+						id: billingSubscription.id,
+						polarCustomerId: billingSubscription.polarCustomerId,
+						userId: billingSubscription.userId,
+					})
+					.from(billingSubscription)
+					.where(eq(billingSubscription.id, order.subscriptionId))
+					.limit(1);
 
-	async function upsertOrder(order: Order) {
-		const userId = await getKnownUserId(order.customer.externalId);
-		const customerState = userId
-			? await loadPolarCustomerState(polarClient, order.customerId)
-			: null;
-
-		await db.transaction(async (tx) => {
-			if (userId && customerState) {
-				await syncBillingCustomerState(tx, {
-					userId,
-					state: customerState,
-				});
-
-				if (order.subscriptionId) {
-					const [existingSubscription] = await tx
-						.select({
-							id: billingSubscription.id,
-							polarCustomerId: billingSubscription.polarCustomerId,
-							userId: billingSubscription.userId,
-						})
-						.from(billingSubscription)
-						.where(eq(billingSubscription.id, order.subscriptionId))
-						.limit(1);
-
-					if (existingSubscription) {
-						if (
-							existingSubscription.userId !== userId ||
-							existingSubscription.polarCustomerId !== order.customerId
-						) {
-							throw new BillingError({
-								message: `Polar order ${order.id} references subscription ${order.subscriptionId} with mismatched local ownership`,
-							});
-						}
-					} else {
-						if (!order.subscription) {
-							throw new BillingError({
-								message: `Polar order ${order.id} references subscription ${order.subscriptionId} before its snapshot is available`,
-							});
-						}
-
-						if (order.subscription.id !== order.subscriptionId) {
-							throw new BillingError({
-								message: `Polar order ${order.id} embeds subscription ${order.subscription.id} but references ${order.subscriptionId}`,
-							});
-						}
-
-						if (order.subscription.customerId !== order.customerId) {
-							throw new BillingError({
-								message: `Polar order ${order.id} subscription customer ${order.subscription.customerId} does not match order customer ${order.customerId}`,
-							});
-						}
-
-						await upsertBillingSubscriptionSnapshot(tx, {
-							id: order.subscription.id,
-							userId,
-							polarCustomerId: order.subscription.customerId,
-							productId: order.subscription.productId,
-							status: order.subscription.status,
-							amount: order.subscription.amount,
-							currency: order.subscription.currency,
-							recurringInterval: order.subscription.recurringInterval,
-							currentPeriodStart: order.subscription.currentPeriodStart,
-							currentPeriodEnd: order.subscription.currentPeriodEnd,
-							trialStart: order.subscription.trialStart,
-							trialEnd: order.subscription.trialEnd,
-							cancelAtPeriodEnd: order.subscription.cancelAtPeriodEnd,
-							canceledAt: order.subscription.canceledAt,
-							startedAt: order.subscription.startedAt,
-							endsAt: order.subscription.endsAt,
-							endedAt: order.subscription.endedAt,
-							snapshot: order.subscription,
-							remoteCreatedAt: order.subscription.createdAt,
-							remoteModifiedAt: order.subscription.modifiedAt,
+				if (existingSubscription) {
+					if (
+						existingSubscription.userId !== userId ||
+						existingSubscription.polarCustomerId !== order.customerId
+					) {
+						throw new BillingError({
+							message: `Polar order ${order.id} references subscription ${order.subscriptionId} with mismatched local ownership`,
 						});
 					}
+				} else {
+					if (!order.subscription) {
+						throw new BillingError({
+							message: `Polar order ${order.id} references subscription ${order.subscriptionId} before its snapshot is available`,
+						});
+					}
+
+					if (order.subscription.id !== order.subscriptionId) {
+						throw new BillingError({
+							message: `Polar order ${order.id} embeds subscription ${order.subscription.id} but references ${order.subscriptionId}`,
+						});
+					}
+
+					if (order.subscription.customerId !== order.customerId) {
+						throw new BillingError({
+							message: `Polar order ${order.id} subscription customer ${order.subscription.customerId} does not match order customer ${order.customerId}`,
+						});
+					}
+
+					await upsertBillingSubscriptionSnapshot(tx, {
+						id: order.subscription.id,
+						userId,
+						polarCustomerId: order.subscription.customerId,
+						productId: order.subscription.productId,
+						status: order.subscription.status,
+						amount: order.subscription.amount,
+						currency: order.subscription.currency,
+						recurringInterval: order.subscription.recurringInterval,
+						currentPeriodStart: order.subscription.currentPeriodStart,
+						currentPeriodEnd: order.subscription.currentPeriodEnd,
+						trialStart: order.subscription.trialStart,
+						trialEnd: order.subscription.trialEnd,
+						cancelAtPeriodEnd: order.subscription.cancelAtPeriodEnd,
+						canceledAt: order.subscription.canceledAt,
+						startedAt: order.subscription.startedAt,
+						endsAt: order.subscription.endsAt,
+						endedAt: order.subscription.endedAt,
+						snapshot: order.subscription,
+						remoteCreatedAt: order.subscription.createdAt,
+						remoteModifiedAt: order.subscription.modifiedAt,
+					});
 				}
 			}
+		}
 
-			const persistedValues = buildBillingOrderSnapshot({
-				id: order.id,
-				userId,
-				polarCustomerId: order.customerId,
-				productId: order.productId,
-				subscriptionId: order.subscriptionId,
-				status: order.status,
-				billingReason: order.billingReason,
-				paid: order.paid,
-				currency: order.currency,
-				subtotalAmount: order.subtotalAmount,
-				discountAmount: order.discountAmount,
-				netAmount: order.netAmount,
-				taxAmount: order.taxAmount,
-				totalAmount: order.totalAmount,
-				refundedAmount: order.refundedAmount,
-				dueAmount: order.dueAmount,
-				snapshot: order,
-				remoteCreatedAt: order.createdAt,
-				remoteModifiedAt: order.modifiedAt,
-			});
-
-			await tx.insert(billingOrder).values(persistedValues).onConflictDoUpdate({
-				target: billingOrder.id,
-				set: persistedValues,
-			});
+		const persistedValues = buildBillingOrderSnapshot({
+			id: order.id,
+			userId,
+			polarCustomerId: order.customerId,
+			productId: order.productId,
+			subscriptionId: order.subscriptionId,
+			status: order.status,
+			billingReason: order.billingReason,
+			paid: order.paid,
+			currency: order.currency,
+			subtotalAmount: order.subtotalAmount,
+			discountAmount: order.discountAmount,
+			netAmount: order.netAmount,
+			taxAmount: order.taxAmount,
+			totalAmount: order.totalAmount,
+			refundedAmount: order.refundedAmount,
+			dueAmount: order.dueAmount,
+			snapshot: order,
+			remoteCreatedAt: order.createdAt,
+			remoteModifiedAt: order.modifiedAt,
 		});
-	}
 
-	return {
-		onPayload: async (payload) => {
-			console.info(`[polar.webhook] ${payload.type}`);
-		},
-		onCustomerStateChanged: async (payload) => {
-			await upsertCustomerState(payload.data);
-		},
-		onOrderCreated: async (payload) => {
-			await upsertOrder(payload.data);
-		},
-		onOrderPaid: async (payload) => {
-			await upsertOrder(payload.data);
-		},
-		onOrderRefunded: async (payload) => {
-			await upsertOrder(payload.data);
-		},
-		onOrderUpdated: async (payload) => {
-			await upsertOrder(payload.data);
-		},
-		onSubscriptionCreated: async (payload) => {
-			await upsertSubscription(payload.data);
-		},
-		onSubscriptionUpdated: async (payload) => {
-			await upsertSubscription(payload.data);
-		},
-		onSubscriptionActive: async (payload) => {
-			await upsertSubscription(payload.data);
-		},
-		onSubscriptionCanceled: async (payload) => {
-			await upsertSubscription(payload.data);
-		},
-		onSubscriptionRevoked: async (payload) => {
-			await upsertSubscription(payload.data);
-		},
-		onSubscriptionUncanceled: async (payload) => {
-			await upsertSubscription(payload.data);
-		},
-	};
+		await tx.insert(billingOrder).values(persistedValues).onConflictDoUpdate({
+			target: billingOrder.id,
+			set: persistedValues,
+		});
+	});
 }
