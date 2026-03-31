@@ -3,7 +3,6 @@ import type { CreateEmailResponseSuccess } from "resend";
 import { Resend } from "resend";
 
 import { Config } from "@chevrotain/core/config";
-import { makeRunPromise } from "@chevrotain/core/effect/run-service";
 import type { SendParams } from "@chevrotain/core/email/schema";
 
 export namespace Email {
@@ -49,10 +48,4 @@ export namespace Email {
 	);
 
 	export const defaultLayer = layer;
-
-	const runPromise = makeRunPromise(Service, defaultLayer);
-
-	export async function send(params: SendParams) {
-		return runPromise((service) => service.send(params));
-	}
 }

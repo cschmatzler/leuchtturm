@@ -154,15 +154,22 @@ function decryptSecret(
 	encryption: MailEncryption.Interface,
 	secret: { encryptedPayload: string; encryptedDek: string },
 ) {
-	return Effect.try({
-		try: () => {
-			const raw = encryption.decrypt({
+	return Effect.gen(function* () {
+		const raw = yield* encryption
+			.decrypt({
 				encryptedPayload: secret.encryptedPayload,
 				encryptedDek: secret.encryptedDek,
-			});
-			return Schema.decodeUnknownSync(StoredMailOAuthSecret)(JSON.parse(raw));
-		},
-		catch: (error) => new Error(`Failed to decode credentials: ${toErrorString(error)}`),
+			})
+			.pipe(
+				Effect.mapError(
+					(error) => new Error(`Failed to decrypt credentials: ${toErrorString(error)}`),
+				),
+			);
+
+		return yield* Effect.try({
+			try: () => Schema.decodeUnknownSync(StoredMailOAuthSecret)(JSON.parse(raw)),
+			catch: (error) => new Error(`Failed to decode credentials: ${toErrorString(error)}`),
+		});
 	});
 }
 
@@ -196,10 +203,11 @@ function refreshAccessToken(
 		}
 
 		const refreshed = yield* Effect.catch(
-			Effect.tryPromise({
-				try: () => oauth.refreshAccessToken(secret.refreshToken!),
-				catch: (error) => new Error(`Token refresh failed: ${toErrorString(error)}`),
-			}),
+			oauth
+				.refreshAccessToken(secret.refreshToken!)
+				.pipe(
+					Effect.mapError((error) => new Error(`Token refresh failed: ${toErrorString(error)}`)),
+				),
 			(error) =>
 				Effect.gen(function* () {
 					yield* Effect.tryPromise({
@@ -216,7 +224,13 @@ function refreshAccessToken(
 			expiresAt: Date.now() + refreshed.expiresIn * 1000,
 		};
 
-		const encrypted = encryption.encrypt(JSON.stringify(nextSecret));
+		const encrypted = yield* encryption
+			.encrypt(JSON.stringify(nextSecret))
+			.pipe(
+				Effect.mapError(
+					(error) => new Error(`Failed to encrypt credentials: ${toErrorString(error)}`),
+				),
+			);
 		yield* Effect.tryPromise({
 			try: () => updateMailAccountSecret(db, accountId, encrypted),
 			catch: (error) => new Error(`Failed to persist token: ${toErrorString(error)}`),

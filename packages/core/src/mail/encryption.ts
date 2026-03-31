@@ -5,7 +5,7 @@
  * Algorithm: AES-256-GCM
  */
 
-import { Config, Effect, Layer, Redacted, ServiceMap } from "effect";
+import { Config, Effect, Layer, Redacted, Schema, ServiceMap } from "effect";
 import { randomBytes, createCipheriv, createDecipheriv } from "node:crypto";
 
 const ALGORITHM = "aes-256-gcm" as const;
@@ -23,7 +23,9 @@ function parseMailKek(raw: string): Buffer {
 		return utf8;
 	}
 
-	throw new Error("MAIL_KEK must be either a 64-character hex string or a 32-byte raw string");
+	throw new globalThis.Error(
+		"MAIL_KEK must be either a 64-character hex string or a 32-byte raw string",
+	);
 }
 
 function encryptRaw(key: Buffer, plaintext: Buffer): string {
@@ -63,9 +65,15 @@ function envelopeDecrypt(kek: Buffer, encrypted: EncryptedSecret): string {
 }
 
 export namespace MailEncryption {
+	export class Error extends Schema.TaggedErrorClass<Error>()(
+		"MailEncryptionError",
+		{ message: Schema.String },
+		{ httpApiStatus: 500 },
+	) {}
+
 	export interface Interface {
-		readonly encrypt: (payload: string) => EncryptedSecret;
-		readonly decrypt: (encrypted: EncryptedSecret) => string;
+		readonly encrypt: (payload: string) => Effect.Effect<EncryptedSecret, Error>;
+		readonly decrypt: (encrypted: EncryptedSecret) => Effect.Effect<string, Error>;
 	}
 
 	export class Service extends ServiceMap.Service<Service, Interface>()(
@@ -77,12 +85,35 @@ export namespace MailEncryption {
 			const kekHex = yield* Config.redacted("MAIL_KEK");
 			const kek = yield* Effect.try({
 				try: () => parseMailKek(Redacted.value(kekHex)),
-				catch: (error) => (error instanceof Error ? error : new Error(String(error))),
+				catch: (error) =>
+					new Error({
+						message: error instanceof globalThis.Error ? error.message : String(error),
+					}),
+			});
+
+			const encrypt = Effect.fn("MailEncryption.encrypt")(function* (payload: string) {
+				return yield* Effect.try({
+					try: () => envelopeEncrypt(kek, payload),
+					catch: (error) =>
+						new Error({
+							message: error instanceof globalThis.Error ? error.message : String(error),
+						}),
+				});
+			});
+
+			const decrypt = Effect.fn("MailEncryption.decrypt")(function* (encrypted: EncryptedSecret) {
+				return yield* Effect.try({
+					try: () => envelopeDecrypt(kek, encrypted),
+					catch: (error) =>
+						new Error({
+							message: error instanceof globalThis.Error ? error.message : String(error),
+						}),
+				});
 			});
 
 			return Service.of({
-				encrypt: (payload) => envelopeEncrypt(kek, payload),
-				decrypt: (encrypted) => envelopeDecrypt(kek, encrypted),
+				encrypt,
+				decrypt,
 			});
 		}),
 	);

@@ -62,7 +62,11 @@ export const MailHandlerLive = HttpApiBuilder.group(ChevrotainApi, "mail", (hand
 					catch: (error) => toDatabaseError("Failed to create OAuth state", error),
 				});
 
-				return { url: oauth.getAuthUrl(state) };
+				const url = yield* oauth
+					.getAuthUrl(state)
+					.pipe(Effect.mapError((error) => toDatabaseError("Failed to build OAuth URL", error)));
+
+				return { url };
 			}),
 		)
 
@@ -95,15 +99,15 @@ export const MailHandlerLive = HttpApiBuilder.group(ChevrotainApi, "mail", (hand
 					);
 				}
 
-				const tokens = yield* Effect.tryPromise({
-					try: () => oauth.exchangeCode(payload.code),
-					catch: (error) => toDatabaseError("OAuth code exchange failed", error),
-				});
+				const tokens = yield* oauth
+					.exchangeCode(payload.code)
+					.pipe(Effect.mapError((error) => toDatabaseError("OAuth code exchange failed", error)));
 
-				const userInfo = yield* Effect.tryPromise({
-					try: () => oauth.getUserInfo(tokens.accessToken),
-					catch: (error) => toDatabaseError("Failed to fetch Google user info", error),
-				});
+				const userInfo = yield* oauth
+					.getUserInfo(tokens.accessToken)
+					.pipe(
+						Effect.mapError((error) => toDatabaseError("Failed to fetch Google user info", error)),
+					);
 
 				const accountId = createMailAccountId();
 				yield* Effect.tryPromise({
@@ -119,13 +123,19 @@ export const MailHandlerLive = HttpApiBuilder.group(ChevrotainApi, "mail", (hand
 					catch: (error) => toDatabaseError("Failed to create mail account", error),
 				});
 
-				const encrypted = encryption.encrypt(
-					JSON.stringify({
-						accessToken: tokens.accessToken,
-						refreshToken: tokens.refreshToken,
-						expiresAt: Date.now() + tokens.expiresIn * 1000,
-					}),
-				);
+				const encrypted = yield* encryption
+					.encrypt(
+						JSON.stringify({
+							accessToken: tokens.accessToken,
+							refreshToken: tokens.refreshToken,
+							expiresAt: Date.now() + tokens.expiresIn * 1000,
+						}),
+					)
+					.pipe(
+						Effect.mapError((error) =>
+							toDatabaseError("Failed to encrypt mail credentials", error),
+						),
+					);
 
 				yield* Effect.tryPromise({
 					try: () =>

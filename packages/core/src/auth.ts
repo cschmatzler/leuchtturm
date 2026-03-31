@@ -27,9 +27,11 @@ export namespace Auth {
 	export const SessionData = SessionDataSchema;
 	export type SessionData = typeof SessionData.Type;
 
-	export class Error extends Schema.TaggedErrorClass<Error>()("AuthError", {
-		message: Schema.String,
-	}) {}
+	export class Error extends Schema.TaggedErrorClass<Error>()(
+		"AuthError",
+		{ message: Schema.String },
+		{ httpApiStatus: 500 },
+	) {}
 
 	export interface Interface {
 		readonly handle: (request: Request) => Effect.Effect<Response, Error>;
@@ -42,6 +44,8 @@ export namespace Auth {
 		Effect.gen(function* () {
 			const config = yield* Config;
 			const { db } = yield* Database.Service;
+			const runBillingPromise = makeRunPromise(Billing.Service, Billing.defaultLayer);
+			const runEmailPromise = makeRunPromise(Email.Service, Email.defaultLayer);
 			const polarClient = new Polar({
 				accessToken: Redacted.value(config.billing.accessToken),
 				server: config.billing.server,
@@ -60,7 +64,7 @@ export namespace Auth {
 						sendPasswordResetEmail({
 							email: user.email,
 							resetUrl: url,
-							send: Email.send,
+							send: (params) => runEmailPromise((service) => service.send(params)),
 							userName: user.name,
 						}),
 				},
@@ -102,73 +106,44 @@ export namespace Auth {
 							webhooks({
 								secret: Redacted.value(config.billing.webhookSecret),
 								onPayload: async (payload) => {
-									console.info(`[polar.webhook] ${payload.type}`);
+									await Effect.runPromise(
+										Effect.logInfo("Polar webhook received").pipe(
+											Effect.annotateLogs("type", payload.type),
+										),
+									);
 								},
 								onCustomerStateChanged: async (payload) => {
-									await makeRunPromise(
-										Billing.Service,
-										Billing.defaultLayer,
-									)((s) => s.upsertCustomerState(payload.data));
+									await runBillingPromise((service) => service.upsertCustomerState(payload.data));
 								},
 								onOrderCreated: async (payload) => {
-									await makeRunPromise(
-										Billing.Service,
-										Billing.defaultLayer,
-									)((s) => s.upsertOrder(payload.data));
+									await runBillingPromise((service) => service.upsertOrder(payload.data));
 								},
 								onOrderPaid: async (payload) => {
-									await makeRunPromise(
-										Billing.Service,
-										Billing.defaultLayer,
-									)((s) => s.upsertOrder(payload.data));
+									await runBillingPromise((service) => service.upsertOrder(payload.data));
 								},
 								onOrderRefunded: async (payload) => {
-									await makeRunPromise(
-										Billing.Service,
-										Billing.defaultLayer,
-									)((s) => s.upsertOrder(payload.data));
+									await runBillingPromise((service) => service.upsertOrder(payload.data));
 								},
 								onOrderUpdated: async (payload) => {
-									await makeRunPromise(
-										Billing.Service,
-										Billing.defaultLayer,
-									)((s) => s.upsertOrder(payload.data));
+									await runBillingPromise((service) => service.upsertOrder(payload.data));
 								},
 								onSubscriptionCreated: async (payload) => {
-									await makeRunPromise(
-										Billing.Service,
-										Billing.defaultLayer,
-									)((s) => s.upsertSubscription(payload.data));
+									await runBillingPromise((service) => service.upsertSubscription(payload.data));
 								},
 								onSubscriptionUpdated: async (payload) => {
-									await makeRunPromise(
-										Billing.Service,
-										Billing.defaultLayer,
-									)((s) => s.upsertSubscription(payload.data));
+									await runBillingPromise((service) => service.upsertSubscription(payload.data));
 								},
 								onSubscriptionActive: async (payload) => {
-									await makeRunPromise(
-										Billing.Service,
-										Billing.defaultLayer,
-									)((s) => s.upsertSubscription(payload.data));
+									await runBillingPromise((service) => service.upsertSubscription(payload.data));
 								},
 								onSubscriptionCanceled: async (payload) => {
-									await makeRunPromise(
-										Billing.Service,
-										Billing.defaultLayer,
-									)((s) => s.upsertSubscription(payload.data));
+									await runBillingPromise((service) => service.upsertSubscription(payload.data));
 								},
 								onSubscriptionRevoked: async (payload) => {
-									await makeRunPromise(
-										Billing.Service,
-										Billing.defaultLayer,
-									)((s) => s.upsertSubscription(payload.data));
+									await runBillingPromise((service) => service.upsertSubscription(payload.data));
 								},
 								onSubscriptionUncanceled: async (payload) => {
-									await makeRunPromise(
-										Billing.Service,
-										Billing.defaultLayer,
-									)((s) => s.upsertSubscription(payload.data));
+									await runBillingPromise((service) => service.upsertSubscription(payload.data));
 								},
 							}),
 						],
