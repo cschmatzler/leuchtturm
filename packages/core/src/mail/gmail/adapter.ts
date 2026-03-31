@@ -1,11 +1,3 @@
-/**
- * Gmail API adapter.
- *
- * Uses the Gmail REST API directly with OAuth2 tokens.
- * Handles thread listing, message fetching, label sync, and history-based
- * incremental sync.
- */
-
 import type {
 	MailProviderAdapter,
 	ProviderAttachment,
@@ -18,10 +10,6 @@ import type {
 	ProviderThread,
 } from "@chevrotain/core/mail/provider";
 import type { MailFolderKind, MailLabelKind } from "@chevrotain/core/mail/schema";
-
-// ---------------------------------------------------------------------------
-// Provider-specific types
-// ---------------------------------------------------------------------------
 
 export interface GmailProviderLabel extends ProviderLabel {
 	readonly providerStatePayload: GmailLabel;
@@ -49,10 +37,6 @@ export interface GmailProviderHistoryChange {
 	readonly messagesAdded: GmailProviderMessage[];
 	readonly messagesDeleted: string[];
 }
-
-// ---------------------------------------------------------------------------
-// Gmail API types (subset we care about)
-// ---------------------------------------------------------------------------
 
 const GMAIL_API_BASE = "https://gmail.googleapis.com/gmail/v1/users/me";
 
@@ -96,10 +80,6 @@ interface GmailHistoryRecord {
 	labelsRemoved?: Array<{ message: { id: string; labelIds?: string[] }; labelIds: string[] }>;
 }
 
-// ---------------------------------------------------------------------------
-// Gmail label → folder kind mapping
-// ---------------------------------------------------------------------------
-
 const GMAIL_LABEL_FOLDER_MAP: Record<string, MailFolderKind> = {
 	INBOX: "inbox",
 	SENT: "sent",
@@ -111,10 +91,6 @@ const GMAIL_LABEL_FOLDER_MAP: Record<string, MailFolderKind> = {
 function gmailLabelKind(type: string): MailLabelKind {
 	return type === "system" ? "system" : "user";
 }
-
-// ---------------------------------------------------------------------------
-// Parse helpers
-// ---------------------------------------------------------------------------
 
 function getHeader(part: GmailMessagePart, name: string): string | undefined {
 	return part.headers?.find((h) => h.name.toLowerCase() === name.toLowerCase())?.value;
@@ -145,10 +121,6 @@ function parseDate(raw: string | undefined): Date | undefined {
 	const d = new Date(raw);
 	return Number.isNaN(d.getTime()) ? undefined : d;
 }
-
-// ---------------------------------------------------------------------------
-// Message normalization
-// ---------------------------------------------------------------------------
 
 function extractParts(
 	part: GmailMessagePart,
@@ -223,10 +195,6 @@ function normalizeGmailMessage(msg: GmailMessage): GmailProviderMessage {
 		providerStatePayload: msg,
 	};
 }
-
-// ---------------------------------------------------------------------------
-// Gmail adapter
-// ---------------------------------------------------------------------------
 
 export class GmailAdapter implements MailProviderAdapter {
 	constructor(private readonly accessToken: string) {}
@@ -410,10 +378,6 @@ export class GmailAdapter implements MailProviderAdapter {
 		await this.gmailRequest("/stop", { body: {} });
 	}
 }
-
-// ---------------------------------------------------------------------------
-// Folder mapping for sync layer
-// ---------------------------------------------------------------------------
 
 export function getGmailFolders(labels: readonly GmailProviderLabel[]): GmailProviderFolder[] {
 	const folders: GmailProviderFolder[] = [];

@@ -1,14 +1,6 @@
-/**
- * Provider adapter boundary (§3.1, §9).
- */
-
 import { Schema } from "effect";
 
 import { EmailAddress, MailFolderKind, MailLabelKind } from "@chevrotain/core/mail/schema";
-
-// ---------------------------------------------------------------------------
-// Normalized types returned by provider adapters
-// ---------------------------------------------------------------------------
 
 export const ProviderEmailAddress = EmailAddress;
 export type ProviderEmailAddress = typeof ProviderEmailAddress.Type;
@@ -86,10 +78,6 @@ export const ProviderThread = Schema.Struct({
 });
 export type ProviderThread = typeof ProviderThread.Type;
 
-// ---------------------------------------------------------------------------
-// Incremental sync changes
-// ---------------------------------------------------------------------------
-
 export const ProviderHistoryChange = Schema.Struct({
 	messagesAdded: Schema.Array(ProviderMessage),
 	messagesDeleted: Schema.Array(Schema.String),
@@ -108,39 +96,18 @@ export const ProviderHistoryChange = Schema.Struct({
 });
 export type ProviderHistoryChange = typeof ProviderHistoryChange.Type;
 
-// ---------------------------------------------------------------------------
-// Provider adapter interface
-// ---------------------------------------------------------------------------
-
 export interface MailProviderAdapter {
-	/**
-	 * Fetch all labels/folders from the provider.
-	 */
 	listLabels(): Promise<ProviderLabel[]>;
 
-	/**
-	 * Fetch threads with recent activity (for bootstrap).
-	 * For Gmail: threads with at least one message after cutoff.
-	 */
 	listRecentThreads(cutoff: Date): Promise<ProviderThread[]>;
 
-	/**
-	 * Fetch incremental changes since a cursor.
-	 * For Gmail: history.list since startHistoryId.
-	 */
 	getHistoryChanges(cursor: string): Promise<{
 		changes: ProviderHistoryChange;
 		newCursor: string;
 		cursorExpired: boolean;
 	}>;
 
-	/**
-	 * Fetch full message details by provider ref.
-	 */
 	getMessage(providerRef: string): Promise<ProviderMessage>;
 
-	/**
-	 * Get the latest sync cursor (e.g. Gmail historyId after a full sync).
-	 */
 	getLatestCursor(): Promise<string>;
 }

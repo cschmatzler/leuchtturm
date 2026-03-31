@@ -1,7 +1,3 @@
-/**
- * All Drizzle access centralized here so apps/api never imports drizzle-orm directly.
- */
-
 import { and, eq, gt, inArray } from "drizzle-orm";
 import { Schema } from "effect";
 

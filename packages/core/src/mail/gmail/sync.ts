@@ -1,12 +1,3 @@
-/**
- * Gmail sync service.
- *
- * Handles:
- * - Bootstrap sync (30-day import with full qualifying threads)
- * - Incremental sync via Gmail history API
- * - Bounded resync on cursor expiration
- */
-
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { Effect } from "effect";
 
@@ -66,10 +57,6 @@ import {
 	createMailProviderStateId,
 } from "@chevrotain/core/mail/schema";
 
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
 type Db = Database.Executor;
 
 const PROVIDER = "gmail";
@@ -92,10 +79,6 @@ const EMPTY_PARTICIPANT_VIEWS: MessageParticipantViews = {
 	sender: null,
 	toRecipients: [],
 };
-
-// ---------------------------------------------------------------------------
-// Lookup helpers
-// ---------------------------------------------------------------------------
 
 async function labelRefMap(db: Db, accountId: string) {
 	const rows = await db
@@ -197,10 +180,6 @@ async function renewWatchIfNeeded(
 	}
 }
 
-// ---------------------------------------------------------------------------
-// Participant loading
-// ---------------------------------------------------------------------------
-
 async function loadParticipantViews(
 	db: Db,
 	messageIds: readonly string[],
@@ -240,14 +219,6 @@ async function loadParticipantViews(
 	return result;
 }
 
-// ---------------------------------------------------------------------------
-// Sync entry points
-// ---------------------------------------------------------------------------
-
-/**
- * Bootstrap a new Gmail account: 30-day import + register Pub/Sub watch.
- * Called once after OAuth callback.
- */
 export function bootstrapGmailAccount(accountId: string, accessToken: string, topicName: string) {
 	return Effect.gen(function* () {
 		const { db } = yield* Database.Service;
@@ -255,10 +226,6 @@ export function bootstrapGmailAccount(accountId: string, accessToken: string, to
 	});
 }
 
-/**
- * Apply a Gmail history delta triggered by a Pub/Sub push notification.
- * Falls back to bootstrap if no cursor exists (e.g. after data loss).
- */
 export function syncGmailDelta(accountId: string, accessToken: string, topicName: string) {
 	return Effect.gen(function* () {
 		const { db } = yield* Database.Service;
@@ -310,7 +277,6 @@ function bootstrapAccount(db: Db, accountId: string, accessToken: string, topicN
 			}),
 		);
 
-		// Register Pub/Sub watch — non-fatal so bootstrap data is preserved on failure
 		yield* Effect.catch(
 			Effect.tryPromise(() => registerWatch(db, accountId, adapter, topicName)),
 			() => Effect.logWarning(`Watch registration failed for ${accountId}`),
@@ -406,7 +372,6 @@ function applyDelta(db: Db, accountId: string, accessToken: string, topicName: s
 			}),
 		);
 
-		// Renew Pub/Sub watch if expiring within 24h
 		yield* Effect.catch(
 			Effect.tryPromise(() => renewWatchIfNeeded(db, accountId, adapter, topicName)),
 			() => Effect.logWarning(`Watch renewal failed for ${accountId}`),
@@ -442,10 +407,6 @@ async function boundedResync(
 			.where(eq(mailAccount.id, accountId));
 	});
 }
-
-// ---------------------------------------------------------------------------
-// Entity sync — labels & folders
-// ---------------------------------------------------------------------------
 
 async function syncLabels(
 	db: Db,
@@ -499,7 +460,6 @@ async function syncLabels(
 		);
 	}
 
-	// Resolve parent IDs from path hierarchy
 	const dbLabels = await db
 		.select({ id: mailLabel.id, path: mailLabel.path, ref: mailLabel.providerLabelRef })
 		.from(mailLabel)
@@ -520,7 +480,6 @@ async function syncLabels(
 		await db.update(mailLabel).set({ parentId, updatedAt: now }).where(eq(mailLabel.id, labelId));
 	}
 
-	// Delete stale labels
 	const currentRefs = new Set(labels.map((l) => l.providerRef));
 	const stale = dbLabels.filter((l) => !currentRefs.has(l.ref));
 
@@ -593,7 +552,6 @@ async function syncFolders(
 		);
 	}
 
-	// Upsert folder sync state + detect stale folders in one query
 	const dbFolders = await db
 		.select({ id: mailFolder.id, ref: mailFolder.providerFolderRef })
 		.from(mailFolder)
@@ -625,10 +583,6 @@ async function syncFolders(
 			);
 	}
 }
-
-// ---------------------------------------------------------------------------
-// Thread sync
-// ---------------------------------------------------------------------------
 
 async function syncThread(
 	db: Db,
@@ -685,10 +639,6 @@ async function syncThread(
 	}
 	await recomputeProjections(db, userId, accountId, resolvedId);
 }
-
-// ---------------------------------------------------------------------------
-// Conversation management
-// ---------------------------------------------------------------------------
 
 async function ensureConversation(
 	db: Db,
@@ -852,10 +802,6 @@ async function recomputeProjections(
 		});
 	}
 }
-
-// ---------------------------------------------------------------------------
-// Message operations
-// ---------------------------------------------------------------------------
 
 async function upsertMessage(
 	db: Db,
@@ -1122,10 +1068,6 @@ async function syncParticipants(
 	);
 }
 
-// ---------------------------------------------------------------------------
-// Label & folder membership
-// ---------------------------------------------------------------------------
-
 async function getCurrentLabelRefs(db: Db, messageId: string): Promise<string[]> {
 	const rows = await db
 		.select({ ref: mailLabel.providerLabelRef })
@@ -1301,10 +1243,6 @@ async function deleteMessageByRef(db: Db, accountId: string, providerRef: string
 	}
 }
 
-// ---------------------------------------------------------------------------
-// Provider state & sources
-// ---------------------------------------------------------------------------
-
 async function upsertProviderState(
 	db: Db,
 	accountId: string,
@@ -1411,10 +1349,6 @@ async function upsertMessageSource(
 		});
 }
 
-// ---------------------------------------------------------------------------
-// Search documents
-// ---------------------------------------------------------------------------
-
 async function rebuildSearchDocument(db: Db, messageId: string): Promise<void> {
 	const [msg] = await db
 		.select({
@@ -1484,10 +1418,6 @@ async function rebuildSearchDocumentsForAccount(db: Db, accountId: string): Prom
 		await rebuildSearchDocument(db, msg.id);
 	}
 }
-
-// ---------------------------------------------------------------------------
-// Sync cursor
-// ---------------------------------------------------------------------------
 
 async function upsertSyncCursor(db: Db, accountId: string, historyId: string): Promise<void> {
 	const now = new Date();

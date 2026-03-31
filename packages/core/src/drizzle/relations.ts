@@ -64,7 +64,6 @@ export const allRelations = defineRelationsPart(
 		mailProviderState,
 	},
 	(r) => ({
-		// Auth relations
 		user: {
 			sessions: r.many.session({ from: r.user.id, to: r.session.userId }),
 			accounts: r.many.account({ from: r.user.id, to: r.account.userId }),
@@ -132,7 +131,6 @@ export const allRelations = defineRelationsPart(
 			}),
 		},
 
-		// Mail relations
 		mailAccount: {
 			user: r.one.user({ from: r.mailAccount.userId, to: r.user.id }),
 			secret: r.one.mailAccountSecret({

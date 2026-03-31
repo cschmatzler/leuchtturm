@@ -301,7 +301,6 @@ export const MailSearchDocument = Schema.Struct({
 });
 export type MailSearchDocument = typeof MailSearchDocument.Type;
 
-/** Provider capability matrix (§10) */
 export interface ProviderCapabilities {
 	readonly supportsThreads: boolean;
 	readonly supportsLabels: boolean;
@@ -335,7 +334,6 @@ export function getProviderCapabilities(provider: MailProvider): ProviderCapabil
 	}
 }
 
-/** Gmail label → folder mapping (§25.1) */
 const GMAIL_SYSTEM_LABEL_TO_FOLDER_KIND: Partial<Record<string, MailFolderKind>> = {
 	INBOX: "inbox",
 	SENT: "sent",

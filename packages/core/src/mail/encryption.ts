@@ -1,10 +1,3 @@
-/**
- * Envelope encryption for mail account secrets (§11.2, §36).
- * Each row gets a random DEK that encrypts the payload; the DEK itself is encrypted with a KEK from env.
- * Format: base64(nonce[12] + ciphertext + authTag[16])
- * Algorithm: AES-256-GCM
- */
-
 import { Config, Effect, Layer, Redacted, Schema, ServiceMap } from "effect";
 import { randomBytes, createCipheriv, createDecipheriv } from "node:crypto";
 

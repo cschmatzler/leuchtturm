@@ -1,16 +1,3 @@
-/**
- * Gmail durable workflows.
- *
- * BootstrapWorkflow — triggered once after OAuth callback. Imports 30 days
- * of mail and registers a Pub/Sub watch so Gmail pushes future changes.
- *
- * DeltaWorkflow — triggered by Pub/Sub push notifications. Applies the
- * history delta since the last cursor and renews the watch if expiring.
- *
- * Both workflows resolve access tokens from the encrypted secret store
- * and refresh them when expired.
- */
-
 import { Config, Effect, Layer, Schema } from "effect";
 import { Workflow } from "effect/unstable/workflow";
 
@@ -31,10 +18,6 @@ function toErrorString(error: unknown): string {
 	return error instanceof Error ? error.message : String(error);
 }
 
-// ---------------------------------------------------------------------------
-// Workflow definitions
-// ---------------------------------------------------------------------------
-
 const BootstrapWorkflow = Workflow.make({
 	name: "GmailBootstrap",
 	payload: {
@@ -53,10 +36,6 @@ const DeltaWorkflow = Workflow.make({
 	idempotencyKey: ({ accountId }) => `gmail-delta-${accountId}`,
 	error: Schema.String,
 });
-
-// ---------------------------------------------------------------------------
-// Workflow layers — config resolved at construction time
-// ---------------------------------------------------------------------------
 
 const BootstrapWorkflowLive = Layer.unwrap(
 	Effect.gen(function* () {
@@ -100,10 +79,6 @@ export const Gmail = {
 	DeltaWorkflowLive,
 } as const;
 
-// ---------------------------------------------------------------------------
-// Token resolution
-// ---------------------------------------------------------------------------
-
 function resolveAccessToken(accountId: string) {
 	return Effect.gen(function* () {
 		const { db } = yield* Database.Service;
@@ -145,10 +120,6 @@ function refreshStoredToken(accountId: string) {
 		return refreshed.accessToken;
 	});
 }
-
-// ---------------------------------------------------------------------------
-// Token helpers
-// ---------------------------------------------------------------------------
 
 function decryptSecret(
 	encryption: MailEncryption.Interface,

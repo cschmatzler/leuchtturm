@@ -18,7 +18,6 @@ import {
 
 import { session, user } from "@chevrotain/core/auth/auth.sql";
 
-/** §11.1 */
 export const mailAccount = pgTable(
 	"mail_account",
 	{
@@ -54,7 +53,6 @@ export const mailAccount = pgTable(
 	],
 );
 
-/** §11.2 backend-only */
 export const mailAccountSecret = pgTable("mail_account_secret", {
 	accountId: char("account_id", { length: 30 })
 		.primaryKey()
@@ -68,7 +66,6 @@ export const mailAccountSecret = pgTable("mail_account_secret", {
 		.notNull(),
 });
 
-/** §11.2a backend-only */
 export const mailOAuthState = pgTable(
 	"mail_oauth_state",
 	{
@@ -88,7 +85,6 @@ export const mailOAuthState = pgTable(
 	],
 );
 
-/** §11.2b */
 export const mailIdentity = pgTable(
 	"mail_identity",
 	{
@@ -125,7 +121,6 @@ export const mailIdentity = pgTable(
 	],
 );
 
-/** §11.3 */
 export const mailFolder = pgTable(
 	"mail_folder",
 	{
@@ -168,7 +163,6 @@ export const mailFolder = pgTable(
 	],
 );
 
-/** §11.4 */
 export const mailLabel = pgTable(
 	"mail_label",
 	{
@@ -210,7 +204,6 @@ export const mailLabel = pgTable(
 	],
 );
 
-/** §11.5 */
 export const mailConversation = pgTable(
 	"mail_conversation",
 	{
@@ -259,7 +252,6 @@ export const mailConversation = pgTable(
 	],
 );
 
-/** §11.5a derived projection */
 export const mailConversationLabel = pgTable(
 	"mail_conversation_label",
 	{
@@ -292,7 +284,6 @@ export const mailConversationLabel = pgTable(
 	],
 );
 
-/** §11.5b derived projection */
 export const mailConversationFolder = pgTable(
 	"mail_conversation_folder",
 	{
@@ -325,7 +316,6 @@ export const mailConversationFolder = pgTable(
 	],
 );
 
-/** §11.6 */
 export const mailMessage = pgTable(
 	"mail_message",
 	{
@@ -378,7 +368,6 @@ export const mailMessage = pgTable(
 	],
 );
 
-/** §11.6a */
 export const mailMessageHeader = pgTable(
 	"mail_message_header",
 	{
@@ -405,7 +394,6 @@ export const mailMessageHeader = pgTable(
 	],
 );
 
-/** §11.7 */
 export const mailMessageBodyPart = pgTable(
 	"mail_message_body_part",
 	{
@@ -437,7 +425,6 @@ export const mailMessageBodyPart = pgTable(
 	],
 );
 
-/** §11.8 */
 export const mailMessageLabel = pgTable(
 	"mail_message_label",
 	{
@@ -470,7 +457,6 @@ export const mailMessageLabel = pgTable(
 	],
 );
 
-/** §11.9 */
 export const mailMessageMailbox = pgTable(
 	"mail_message_mailbox",
 	{
@@ -515,7 +501,6 @@ export const mailMessageMailbox = pgTable(
 	],
 );
 
-/** §11.10 */
 export const mailAttachment = pgTable(
 	"mail_attachment",
 	{
@@ -546,7 +531,6 @@ export const mailAttachment = pgTable(
 	],
 );
 
-/** §11.11 backend-only */
 export const mailAccountSyncState = pgTable(
 	"mail_account_sync_state",
 	{
@@ -572,7 +556,6 @@ export const mailAccountSyncState = pgTable(
 	],
 );
 
-/** §11.11a backend-only */
 export const mailFolderSyncState = pgTable(
 	"mail_folder_sync_state",
 	{
@@ -609,7 +592,6 @@ export const mailFolderSyncState = pgTable(
 	],
 );
 
-/** §11.10 */
 export const mailParticipant = pgTable(
 	"mail_participant",
 	{
@@ -633,7 +615,6 @@ export const mailParticipant = pgTable(
 	],
 );
 
-/** §11.10a */
 export const mailMessageParticipant = pgTable(
 	"mail_message_participant",
 	{
@@ -668,7 +649,6 @@ export const mailMessageParticipant = pgTable(
 	],
 );
 
-/** §11.10b backend-only */
 export const mailSearchDocument = pgTable(
 	"mail_search_document",
 	{
@@ -713,7 +693,6 @@ export const mailSearchDocument = pgTable(
 	],
 );
 
-/** §11.10b backend-only */
 export const mailMessageSource = pgTable(
 	"mail_message_source",
 	{
@@ -740,7 +719,6 @@ export const mailMessageSource = pgTable(
 	],
 );
 
-/** §11.12 backend-only */
 export const mailProviderState = pgTable(
 	"mail_provider_state",
 	{
