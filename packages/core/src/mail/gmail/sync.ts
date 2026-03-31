@@ -10,8 +10,7 @@
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { Effect } from "effect";
 
-import { Database } from "@chevrotain/core/drizzle/index";
-import type { DatabaseExecutor } from "@chevrotain/core/drizzle/index";
+import { Database } from "@chevrotain/core/drizzle";
 import {
 	getGmailFolders,
 	GmailAdapter,
@@ -71,7 +70,7 @@ import {
 // Constants
 // ---------------------------------------------------------------------------
 
-type Db = DatabaseExecutor;
+type Db = Database.Executor;
 
 const PROVIDER = "gmail";
 const FOLDER_SYNC_STATE_KIND = "gmail_folder_projection";

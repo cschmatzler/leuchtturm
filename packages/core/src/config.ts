@@ -1,7 +1,5 @@
 import { Config as EffectConfig, Option, Schema } from "effect";
 
-import { TrimmedNonEmptyString } from "@chevrotain/core/schema";
-
 export const Config = EffectConfig.all({
 	api: EffectConfig.all({
 		baseUrl: EffectConfig.string("BASE_URL"),
@@ -26,13 +24,8 @@ export const Config = EffectConfig.all({
 	email: EffectConfig.all({
 		resendApiKey: EffectConfig.redacted("RESEND_API_KEY"),
 	}),
-	observability: EffectConfig.all({
-		deploymentEnvironment: EffectConfig.option(
-			EffectConfig.schema(TrimmedNonEmptyString, "NODE_ENV"),
-		).pipe(EffectConfig.map(Option.getOrUndefined)),
-	}),
 }).pipe(
-	EffectConfig.map(({ api, analytics, auth, billing, email, observability }) => ({
+	EffectConfig.map(({ api, analytics, auth, billing, email }) => ({
 		api,
 		analytics,
 		auth: {
@@ -41,6 +34,5 @@ export const Config = EffectConfig.all({
 		},
 		billing,
 		email,
-		observability,
 	})),
 );

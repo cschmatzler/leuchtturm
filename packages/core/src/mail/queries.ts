@@ -5,7 +5,7 @@
 import { and, eq, gt, inArray } from "drizzle-orm";
 import { Schema } from "effect";
 
-import type { DatabaseExecutor } from "@chevrotain/core/drizzle/index";
+import { Database } from "@chevrotain/core/drizzle";
 import {
 	mailAccount,
 	mailAccountSecret,
@@ -39,7 +39,7 @@ const decodeMailAccountStatus = Schema.decodeUnknownSync(MailAccountStatus);
 const decodeUpdateMailAccountSecretInput = Schema.decodeUnknownSync(UpdateMailAccountSecretInput);
 
 export async function createMailAccount(
-	db: DatabaseExecutor,
+	db: Database.Executor,
 	values: {
 		id: string;
 		userId: string;
@@ -61,7 +61,7 @@ export async function createMailAccount(
 }
 
 export async function getMailAccountForUser(
-	db: DatabaseExecutor,
+	db: Database.Executor,
 	accountId: string,
 	userId: string,
 ): Promise<typeof mailAccount.$inferSelect | undefined> {
@@ -74,7 +74,7 @@ export async function getMailAccountForUser(
 }
 
 export async function updateMailAccountStatus(
-	db: DatabaseExecutor,
+	db: Database.Executor,
 	accountId: string,
 	status: string,
 ): Promise<void> {
@@ -87,7 +87,7 @@ export async function updateMailAccountStatus(
 }
 
 export async function createMailAccountSecret(
-	db: DatabaseExecutor,
+	db: Database.Executor,
 	values: {
 		accountId: string;
 		authKind: string;
@@ -105,7 +105,7 @@ export async function createMailAccountSecret(
 }
 
 export async function getMailAccountSecret(
-	db: DatabaseExecutor,
+	db: Database.Executor,
 	accountId: string,
 ): Promise<typeof mailAccountSecret.$inferSelect | undefined> {
 	const [row] = await db
@@ -117,7 +117,7 @@ export async function getMailAccountSecret(
 }
 
 export async function updateMailAccountSecret(
-	db: DatabaseExecutor,
+	db: Database.Executor,
 	accountId: string,
 	values: {
 		encryptedPayload: string;
@@ -138,7 +138,7 @@ export async function updateMailAccountSecret(
 }
 
 export async function createMailOAuthState(
-	db: DatabaseExecutor,
+	db: Database.Executor,
 	values: {
 		id: string;
 		userId: string;
@@ -154,7 +154,7 @@ export async function createMailOAuthState(
 }
 
 export async function consumeMailOAuthState(
-	db: DatabaseExecutor,
+	db: Database.Executor,
 	values: {
 		id: string;
 		userId: string;
@@ -177,7 +177,7 @@ export async function consumeMailOAuthState(
 }
 
 export async function getMailAccountByEmail(
-	db: DatabaseExecutor,
+	db: Database.Executor,
 	email: string,
 ): Promise<typeof mailAccount.$inferSelect | undefined> {
 	const [row] = await db.select().from(mailAccount).where(eq(mailAccount.email, email)).limit(1);
@@ -185,7 +185,7 @@ export async function getMailAccountByEmail(
 }
 
 export async function disconnectMailAccount(
-	db: DatabaseExecutor,
+	db: Database.Executor,
 	accountId: string,
 ): Promise<void> {
 	const [account] = await db

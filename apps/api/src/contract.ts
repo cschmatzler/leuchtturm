@@ -2,7 +2,7 @@ import { Schema } from "effect";
 import { HttpApi, HttpApiEndpoint, HttpApiGroup } from "effect/unstable/httpapi";
 
 import { AuthMiddleware } from "@chevrotain/api/middleware/auth";
-import { AnalyticsEvent, ErrorEvent } from "@chevrotain/core/analytics/schema";
+import { Error, Event } from "@chevrotain/core/analytics/schema";
 import {
 	AuthServiceError,
 	DatabaseError,
@@ -27,13 +27,13 @@ const metricsGroup = HttpApiGroup.make("metrics").add(HttpApiEndpoint.get("metri
 const analyticsGroup = HttpApiGroup.make("analytics")
 	.add(
 		HttpApiEndpoint.post("ingestEvents", "/t/e", {
-			payload: Schema.Struct({ events: Schema.Array(AnalyticsEvent) }),
+			payload: Schema.Struct({ events: Schema.Array(Event) }),
 			success: SuccessResponse,
 		}).middleware(AuthMiddleware),
 	)
 	.add(
 		HttpApiEndpoint.post("reportErrors", "/t/r", {
-			payload: Schema.Struct({ errors: Schema.Array(ErrorEvent) }),
+			payload: Schema.Struct({ errors: Schema.Array(Error) }),
 			success: SuccessResponse,
 			error: RateLimitError,
 		}),

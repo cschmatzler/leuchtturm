@@ -10,7 +10,7 @@ import { HttpApiBuilder } from "effect/unstable/httpapi";
 
 import { ChevrotainApi } from "@chevrotain/api/contract";
 import { CurrentUser } from "@chevrotain/api/middleware/auth";
-import { Database } from "@chevrotain/core/drizzle/index";
+import { Database } from "@chevrotain/core/drizzle";
 import { DatabaseError, ValidationError } from "@chevrotain/core/errors";
 import { MailEncryption } from "@chevrotain/core/mail/encryption";
 import { GmailOAuth } from "@chevrotain/core/mail/gmail/oauth";

@@ -7,11 +7,7 @@ import {
 	routeLabelFromUrl,
 } from "@chevrotain/api/metrics";
 import { RequestContext } from "@chevrotain/api/middleware/request-context";
-import { Analytics } from "@chevrotain/core/analytics/index";
-import { Config } from "@chevrotain/core/config";
-
-const API_SERVICE_NAMESPACE = "chevrotain";
-const API_SERVICE_NAME = "api";
+import { Analytics } from "@chevrotain/core/analytics";
 
 type ApiErrorDetails = {
 	errorType: string;
@@ -62,13 +58,6 @@ function getRequestId(request: HttpServerRequest.HttpServerRequest): string | un
 	const requestId = Headers.get(request.headers, "x-request-id").pipe(Option.getOrUndefined);
 	return getNonEmptyString(requestId);
 }
-
-const deploymentEnvironment = Effect.runSync(
-	Effect.gen(function* () {
-		const config = yield* Config;
-		return config.observability.deploymentEnvironment;
-	}).pipe(Effect.orElseSucceed(() => undefined)),
-);
 
 export function reportApiError(
 	analytics: Analytics.Interface | null,
@@ -128,9 +117,6 @@ export function reportApiError(
 					...(route ? { route } : {}),
 					...(traceId ? { traceId } : {}),
 					...(spanId ? { spanId } : {}),
-					serviceNamespace: API_SERVICE_NAMESPACE,
-					serviceName: API_SERVICE_NAME,
-					...(deploymentEnvironment ? { deploymentEnvironment } : {}),
 				},
 			]),
 		);

@@ -3,8 +3,8 @@ import { HttpServerRequest, HttpServerResponse } from "effect/unstable/http";
 
 import { reportApiError } from "@chevrotain/api/analytics/report-error";
 import { AuthMiddleware, CurrentUser } from "@chevrotain/api/middleware/auth";
-import { Analytics } from "@chevrotain/core/analytics/index";
-import { Auth } from "@chevrotain/core/auth/index";
+import { Analytics } from "@chevrotain/core/analytics";
+import { Auth } from "@chevrotain/core/auth";
 import { AuthServiceError } from "@chevrotain/core/errors";
 
 export { AuthMiddleware, CurrentUser };

@@ -8,14 +8,11 @@ export const RATE_LIMIT_MAX_KEYS = 10_000;
 
 export namespace RateLimit {
 	export interface Interface {
-		/** Check whether a key is rate-limited. Fails with RateLimitError if the limit is exceeded. */
 		readonly check: (key: string, message?: string) => Effect.Effect<void, RateLimitError>;
 	}
 
-	/** In-memory rate limiting service with automatic cleanup of stale entries. */
 	export class Service extends ServiceMap.Service<Service, Interface>()("@chevrotain/RateLimit") {}
 
-	/** Layer that provides RateLimit with a scoped cleanup interval. */
 	export const layer = Layer.effect(Service)(
 		Effect.gen(function* () {
 			const requestCounts = new Map<string, { count: number; resetAt: number }>();

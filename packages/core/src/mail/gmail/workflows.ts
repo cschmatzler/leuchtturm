@@ -14,8 +14,7 @@
 import { Config, Effect, Layer, Schema } from "effect";
 import { Workflow } from "effect/unstable/workflow";
 
-import type { DatabaseClient } from "@chevrotain/core/drizzle/index";
-import { Database } from "@chevrotain/core/drizzle/index";
+import { Database } from "@chevrotain/core/drizzle";
 import { MailEncryption } from "@chevrotain/core/mail/encryption";
 import { GmailOAuth } from "@chevrotain/core/mail/gmail/oauth";
 import { bootstrapGmailAccount, syncGmailDelta } from "@chevrotain/core/mail/gmail/sync";
@@ -168,7 +167,7 @@ function decryptSecret(
 }
 
 function ensureFreshToken(
-	db: DatabaseClient,
+	db: Database.Client,
 	oauth: GmailOAuth.Interface,
 	encryption: MailEncryption.Interface,
 	accountId: string,
@@ -181,7 +180,7 @@ function ensureFreshToken(
 }
 
 function refreshAccessToken(
-	db: DatabaseClient,
+	db: Database.Client,
 	oauth: GmailOAuth.Interface,
 	encryption: MailEncryption.Interface,
 	accountId: string,

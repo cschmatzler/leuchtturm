@@ -17,32 +17,19 @@ import {
 	BillingSubscriptionSnapshot,
 } from "@chevrotain/core/billing/schema";
 import { Config } from "@chevrotain/core/config";
-import { Database, type DatabaseExecutor } from "@chevrotain/core/drizzle/index";
-import { BillingError } from "@chevrotain/core/errors";
+import { Database } from "@chevrotain/core/drizzle";
 
 export namespace Billing {
-	export const assertCustomer = Effect.fn("Billing.assertCustomer")(function* (
-		resource: string,
-		externalId: string | null | undefined,
-		userId: string | null,
-	) {
-		if (userId) return userId;
-
-		if (!externalId) {
-			return yield* new BillingError({
-				message: `Polar ${resource} webhook payload is missing an external user id`,
-			});
-		}
-
-		return yield* new BillingError({
-			message: `Polar ${resource} webhook references unknown local user: ${externalId}`,
-		});
-	});
+	export class Error extends Schema.TaggedErrorClass<Error>()(
+		"BillingError",
+		{ message: Schema.String },
+		{ httpApiStatus: 500 },
+	) {}
 
 	export interface Interface {
-		readonly upsertCustomerState: (state: CustomerState) => Effect.Effect<void, BillingError>;
-		readonly upsertSubscription: (subscription: Subscription) => Effect.Effect<void, BillingError>;
-		readonly upsertOrder: (order: Order) => Effect.Effect<void, BillingError>;
+		readonly upsertCustomerState: (state: CustomerState) => Effect.Effect<void, Error>;
+		readonly upsertSubscription: (subscription: Subscription) => Effect.Effect<void, Error>;
+		readonly upsertOrder: (order: Order) => Effect.Effect<void, Error>;
 	}
 
 	export class Service extends ServiceMap.Service<Service, Interface>()("@chevrotain/Billing") {}
@@ -56,8 +43,15 @@ export namespace Billing {
 				server: config.billing.server,
 			});
 
+			function buildSubscriptionSnapshot(values: Record<string, unknown>) {
+				return Schema.decodeUnknownSync(BillingSubscriptionSnapshot)({
+					...values,
+					syncedAt: new Date(),
+				});
+			}
+
 			async function syncCustomerState(
-				tx: DatabaseExecutor,
+				tx: Database.Executor,
 				values: { userId: string; state: CustomerState },
 			) {
 				const customerSnapshot = Schema.decodeUnknownSync(BillingCustomerSnapshot)({
@@ -79,29 +73,28 @@ export namespace Billing {
 					set: customerSnapshot,
 				});
 
-				for (const sub of values.state.activeSubscriptions) {
-					const subscriptionSnapshot = Schema.decodeUnknownSync(BillingSubscriptionSnapshot)({
-						id: sub.id,
+				for (const subscription of values.state.activeSubscriptions) {
+					const subscriptionSnapshot = buildSubscriptionSnapshot({
+						id: subscription.id,
 						userId: values.userId,
 						polarCustomerId: values.state.id,
-						productId: sub.productId,
-						status: sub.status,
-						amount: sub.amount,
-						currency: sub.currency,
-						recurringInterval: sub.recurringInterval,
-						currentPeriodStart: sub.currentPeriodStart,
-						currentPeriodEnd: sub.currentPeriodEnd,
-						trialStart: sub.trialStart,
-						trialEnd: sub.trialEnd,
-						cancelAtPeriodEnd: sub.cancelAtPeriodEnd,
-						canceledAt: sub.canceledAt,
-						startedAt: sub.startedAt,
-						endsAt: sub.endsAt,
+						productId: subscription.productId,
+						status: subscription.status,
+						amount: subscription.amount,
+						currency: subscription.currency,
+						recurringInterval: subscription.recurringInterval,
+						currentPeriodStart: subscription.currentPeriodStart,
+						currentPeriodEnd: subscription.currentPeriodEnd,
+						trialStart: subscription.trialStart,
+						trialEnd: subscription.trialEnd,
+						cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+						canceledAt: subscription.canceledAt,
+						startedAt: subscription.startedAt,
+						endsAt: subscription.endsAt,
 						endedAt: null,
-						snapshotJson: JSON.stringify(sub),
-						remoteCreatedAt: sub.createdAt,
-						remoteModifiedAt: sub.modifiedAt,
-						syncedAt: new Date(),
+						snapshotJson: JSON.stringify(subscription),
+						remoteCreatedAt: subscription.createdAt,
+						remoteModifiedAt: subscription.modifiedAt,
 					});
 
 					await tx.insert(billingSubscription).values(subscriptionSnapshot).onConflictDoUpdate({
@@ -111,14 +104,32 @@ export namespace Billing {
 				}
 			}
 
+			const assertCustomer = Effect.fn("Billing.assertCustomer")(function* (
+				resource: string,
+				externalId: string | null | undefined,
+				userId: string | null,
+			) {
+				if (userId) return userId;
+
+				if (!externalId) {
+					return yield* new Error({
+						message: `Polar ${resource} webhook payload is missing an external user id`,
+					});
+				}
+
+				return yield* new Error({
+					message: `Polar ${resource} webhook references unknown local user: ${externalId}`,
+				});
+			});
+
 			const loadCustomerState = Effect.fn("Billing.loadCustomerState")(function* (
 				customerId: string,
 			) {
 				return yield* Effect.tryPromise({
 					try: () => polarClient.customers.getState({ id: customerId }),
 					catch: (error) =>
-						new BillingError({
-							message: `Unable to load Polar customer state for ${customerId}: ${error instanceof Error ? error.message : String(error)}`,
+						new Error({
+							message: `Unable to load Polar customer state for ${customerId}: ${error instanceof globalThis.Error ? error.message : String(error)}`,
 						}),
 				});
 			});
@@ -131,8 +142,8 @@ export namespace Billing {
 				const rows = yield* Effect.tryPromise({
 					try: () => db.select({ id: user.id }).from(user).where(eq(user.id, externalId)).limit(1),
 					catch: (error) =>
-						new BillingError({
-							message: `Failed to look up user ${externalId}: ${error instanceof Error ? error.message : String(error)}`,
+						new Error({
+							message: `Failed to look up user ${externalId}: ${error instanceof globalThis.Error ? error.message : String(error)}`,
 						}),
 				});
 
@@ -154,8 +165,8 @@ export namespace Billing {
 							await syncCustomerState(tx, { userId, state });
 						}),
 					catch: (error) =>
-						new BillingError({
-							message: `Failed to upsert customer state: ${error instanceof Error ? error.message : String(error)}`,
+						new Error({
+							message: `Failed to upsert customer state: ${error instanceof globalThis.Error ? error.message : String(error)}`,
 						}),
 				});
 			});
@@ -178,7 +189,7 @@ export namespace Billing {
 								state: customerState,
 							});
 
-							const subscriptionSnapshot = Schema.decodeUnknownSync(BillingSubscriptionSnapshot)({
+							const subscriptionSnapshot = buildSubscriptionSnapshot({
 								id: subscription.id,
 								userId,
 								polarCustomerId: subscription.customerId,
@@ -199,7 +210,6 @@ export namespace Billing {
 								snapshotJson: JSON.stringify(subscription),
 								remoteCreatedAt: subscription.createdAt,
 								remoteModifiedAt: subscription.modifiedAt,
-								syncedAt: new Date(),
 							});
 
 							await tx.insert(billingSubscription).values(subscriptionSnapshot).onConflictDoUpdate({
@@ -208,8 +218,8 @@ export namespace Billing {
 							});
 						}),
 					catch: (error) =>
-						new BillingError({
-							message: `Failed to upsert subscription: ${error instanceof Error ? error.message : String(error)}`,
+						new Error({
+							message: `Failed to upsert subscription: ${error instanceof globalThis.Error ? error.message : String(error)}`,
 						}),
 				});
 			});
@@ -243,32 +253,30 @@ export namespace Billing {
 											existingSubscription.userId !== userId ||
 											existingSubscription.polarCustomerId !== order.customerId
 										) {
-											throw new BillingError({
+											throw new Error({
 												message: `Polar order ${order.id} references subscription ${order.subscriptionId} with mismatched local ownership`,
 											});
 										}
 									} else {
 										if (!order.subscription) {
-											throw new BillingError({
+											throw new Error({
 												message: `Polar order ${order.id} references subscription ${order.subscriptionId} before its snapshot is available`,
 											});
 										}
 
 										if (order.subscription.id !== order.subscriptionId) {
-											throw new BillingError({
+											throw new Error({
 												message: `Polar order ${order.id} embeds subscription ${order.subscription.id} but references ${order.subscriptionId}`,
 											});
 										}
 
 										if (order.subscription.customerId !== order.customerId) {
-											throw new BillingError({
+											throw new Error({
 												message: `Polar order ${order.id} subscription customer ${order.subscription.customerId} does not match order customer ${order.customerId}`,
 											});
 										}
 
-										const subscriptionSnapshot = Schema.decodeUnknownSync(
-											BillingSubscriptionSnapshot,
-										)({
+										const subscriptionSnapshot = buildSubscriptionSnapshot({
 											id: order.subscription.id,
 											userId,
 											polarCustomerId: order.subscription.customerId,
@@ -289,7 +297,6 @@ export namespace Billing {
 											snapshotJson: JSON.stringify(order.subscription),
 											remoteCreatedAt: order.subscription.createdAt,
 											remoteModifiedAt: order.subscription.modifiedAt,
-											syncedAt: new Date(),
 										});
 
 										await tx
@@ -332,9 +339,9 @@ export namespace Billing {
 							});
 						}),
 					catch: (error) => {
-						if (error instanceof BillingError) return error;
-						return new BillingError({
-							message: `Failed to upsert order: ${error instanceof Error ? error.message : String(error)}`,
+						if (error instanceof Error) return error;
+						return new Error({
+							message: `Failed to upsert order: ${error instanceof globalThis.Error ? error.message : String(error)}`,
 						});
 					},
 				});

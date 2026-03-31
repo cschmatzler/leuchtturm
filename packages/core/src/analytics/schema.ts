@@ -2,16 +2,16 @@ import { Schema } from "effect";
 
 import { TrimmedNonEmptyString } from "@chevrotain/core/schema";
 
-export const AnalyticsEvent = Schema.Struct({
+export const Event = Schema.Struct({
 	eventType: TrimmedNonEmptyString,
 	url: Schema.String,
 	referrer: Schema.String,
 	properties: Schema.optional(Schema.Record(Schema.String, Schema.Unknown)),
 });
-export type AnalyticsEvent = typeof AnalyticsEvent.Type;
+export type Event = typeof Event.Type;
 
-export const ErrorEvent = Schema.Struct({
-	source: Schema.optional(Schema.Literals(["api", "web"])),
+export const Error = Schema.Struct({
+	source: Schema.Literals(["api", "web"]),
 	errorType: Schema.String,
 	message: TrimmedNonEmptyString,
 	userId: Schema.optional(Schema.String),
@@ -25,9 +25,6 @@ export const ErrorEvent = Schema.Struct({
 	traceId: Schema.optional(Schema.String),
 	spanId: Schema.optional(Schema.String),
 	route: Schema.optional(Schema.String),
-	serviceNamespace: Schema.optional(Schema.String),
-	serviceName: Schema.optional(Schema.String),
-	deploymentEnvironment: Schema.optional(Schema.String),
 	properties: Schema.optional(Schema.Record(Schema.String, Schema.Unknown)),
 });
-export type ErrorEvent = typeof ErrorEvent.Type;
+export type Error = typeof Error.Type;

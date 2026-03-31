@@ -2,7 +2,7 @@ import { createClient } from "@clickhouse/client";
 import { Effect, Layer, Schema, ServiceMap } from "effect";
 import { ulid } from "ulid";
 
-import type { AnalyticsEvent, ErrorEvent } from "@chevrotain/core/analytics/schema";
+import type { Event, Error as ErrorEvent } from "@chevrotain/core/analytics/schema";
 import { Config } from "@chevrotain/core/config";
 
 export namespace Analytics {
@@ -14,7 +14,7 @@ export namespace Analytics {
 
 	export interface Interface {
 		readonly insertEvents: (
-			events: AnalyticsEvent[],
+			events: Event[],
 			userId: string,
 			sessionId: string,
 		) => Effect.Effect<void, Error>;
@@ -26,16 +26,11 @@ export namespace Analytics {
 	export const layer = Layer.effect(Service)(
 		Effect.gen(function* () {
 			const config = yield* Config;
-			const clickhouseUrl = config.analytics.clickhouseUrl;
-
-			yield* Effect.logInfo("Analytics initializing").pipe(
-				Effect.annotateLogs("url", clickhouseUrl),
-			);
 
 			const client = yield* Effect.acquireRelease(
 				Effect.sync(() =>
 					createClient({
-						url: clickhouseUrl,
+						url: config.analytics.clickhouseUrl,
 						clickhouse_settings: { async_insert: 1, wait_end_of_query: 1 },
 					}),
 				),
@@ -43,7 +38,7 @@ export namespace Analytics {
 			);
 
 			const insertEvents = Effect.fn("Analytics.insertEvents")(function* (
-				events: AnalyticsEvent[],
+				events: Event[],
 				userId: string,
 				sessionId: string,
 			) {
@@ -78,7 +73,7 @@ export namespace Analytics {
 							values: errors.map((error) => ({
 								timestamp: new Date(),
 								errorId: ulid(),
-								source: error.source ?? "api",
+								source: error.source,
 								userId: error.userId ?? "",
 								sessionId: error.sessionId ?? "",
 								errorType: error.errorType,
@@ -92,9 +87,6 @@ export namespace Analytics {
 								traceId: error.traceId ?? "",
 								spanId: error.spanId ?? "",
 								route: error.route ?? "",
-								serviceNamespace: error.serviceNamespace ?? "",
-								serviceName: error.serviceName ?? "",
-								deploymentEnvironment: error.deploymentEnvironment ?? "",
 								properties: error.properties ?? {},
 							})),
 							format: "JSONEachRow",

@@ -3,7 +3,7 @@ import { HttpMiddleware, HttpServerRequest } from "effect/unstable/http";
 
 import { reportApiError } from "@chevrotain/api/analytics/report-error";
 import { statusFromCause } from "@chevrotain/api/metrics";
-import { Analytics } from "@chevrotain/core/analytics/index";
+import { Analytics } from "@chevrotain/core/analytics";
 
 export const ApiErrorReportingMiddleware = HttpMiddleware.make((app) =>
 	Effect.gen(function* () {

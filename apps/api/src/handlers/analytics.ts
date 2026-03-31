@@ -11,8 +11,8 @@ import {
 	recordRateLimitCheck,
 } from "@chevrotain/api/metrics";
 import { CurrentUser } from "@chevrotain/api/middleware/auth";
-import { Analytics } from "@chevrotain/core/analytics/index";
-import type { ErrorEvent } from "@chevrotain/core/analytics/schema";
+import { Analytics } from "@chevrotain/core/analytics";
+import type { Error as AnalyticsErrorEvent } from "@chevrotain/core/analytics/schema";
 import { RateLimit } from "@chevrotain/core/rate-limit";
 
 const TRUSTED_PROXY_PEERS = new Set(["127.0.0.1", "::1", "::ffff:127.0.0.1"]);
@@ -159,7 +159,7 @@ const handleReportErrors = Effect.fn("analytics.reportErrors")(function* ({ payl
 	const startedAt = performance.now();
 	const insertExit = yield* Effect.exit(
 		analytics.insertErrors(
-			payload.errors.map((error: ErrorEvent) => ({
+			payload.errors.map((error: AnalyticsErrorEvent) => ({
 				...error,
 				source: "web" as const,
 				userAgent,

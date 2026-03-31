@@ -84,3 +84,10 @@ export const Verification = Schema.Struct({
 });
 
 export type Verification = typeof Verification.Type;
+
+export const SessionData = Schema.Struct({
+	user: User,
+	session: Session,
+});
+
+export type SessionData = typeof SessionData.Type;

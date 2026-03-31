@@ -1,13 +1,13 @@
-import { ConfigProvider, Effect } from "effect";
+import { Effect } from "effect";
 import { HttpServerRequest } from "effect/unstable/http";
 import { describe, expect, it, vi } from "vite-plus/test";
 
 import { reportApiError } from "@chevrotain/api/analytics/report-error";
 import { RequestContext } from "@chevrotain/api/middleware/request-context";
-import { Analytics } from "@chevrotain/core/analytics/index";
-import type { ErrorEvent } from "@chevrotain/core/analytics/schema";
+import { Analytics } from "@chevrotain/core/analytics";
+import type { Error as AnalyticsErrorEvent } from "@chevrotain/core/analytics/schema";
 
-const mockInsertErrors = vi.fn<(errors: ErrorEvent[]) => void>();
+const mockInsertErrors = vi.fn<(errors: AnalyticsErrorEvent[]) => void>();
 
 const AnalyticsMock: Analytics.Interface = {
 	insertEvents: () => Effect.void,
@@ -16,23 +16,6 @@ const AnalyticsMock: Analytics.Interface = {
 		return Effect.void;
 	},
 };
-
-const TestConfigLayer = ConfigProvider.layer(
-	ConfigProvider.fromEnv({
-		env: {
-			BASE_URL: "https://app.example.com",
-			CLICKHOUSE_URL: "https://clickhouse.example.com",
-			DATABASE_URL: "postgres://postgres:postgres@localhost:5432/chevrotain",
-			GITHUB_CLIENT_ID: "github-client-id",
-			GITHUB_CLIENT_SECRET: "github-client-secret",
-			POLAR_ACCESS_TOKEN: "polar-access-token",
-			POLAR_SUCCESS_URL: "https://app.example.com/billing/success",
-			POLAR_WEBHOOK_SECRET: "polar-webhook-secret",
-			PORT: "3000",
-			RESEND_API_KEY: "resend-api-key",
-		},
-	}),
-);
 
 describe("reportApiError", () => {
 	it("includes request context and span correlation fields for API errors", async () => {
@@ -54,7 +37,6 @@ describe("reportApiError", () => {
 				requestId: "req_test_123",
 				route: "/api/query",
 			}),
-			Effect.provide(TestConfigLayer),
 			Effect.withSpan("test.request"),
 		);
 
@@ -70,8 +52,6 @@ describe("reportApiError", () => {
 			method: "POST",
 			requestId: "req_test_123",
 			route: "/api/query",
-			serviceNamespace: "chevrotain",
-			serviceName: "api",
 			userAgent: "vitest",
 		});
 		expect(errors[0]?.traceId).toBeTruthy();
@@ -93,7 +73,7 @@ describe("reportApiError", () => {
 				request,
 				statusCode: 500,
 				error: { _tag: "AuthServiceError", message: "auth broke" },
-			}).pipe(Effect.provide(TestConfigLayer)),
+			}),
 		);
 
 		const [errors] = mockInsertErrors.mock.calls[0]!;

@@ -1,118 +1,125 @@
-import type { ExtensionAPI, ExtensionContext } from "@mariozechner/pi-coding-agent";
-import { spawn } from "node:child_process";
-
-type UiContext = Pick<ExtensionContext, "cwd" | "hasUI" | "ui">;
+import type { ExtensionAPI, ExtensionContext, ExecResult } from "@mariozechner/pi-coding-agent";
 
 const statusKey = "cog-auto-index";
 const maxOutputTail = 4000;
+const indexingTools = new Set(["edit", "write"]);
 
-let running = false;
-let queuedRuns = 0;
+type UiContext = Pick<ExtensionContext, "cwd" | "hasUI" | "ui">;
+
 let latestContext: UiContext | undefined;
-let currentChild: ReturnType<typeof spawn> | undefined;
+let runQueued = false;
+let runningIndex: Promise<void> | undefined;
+let abortController: AbortController | undefined;
 
-function appendTail(current: string, chunk: Buffer | string): string {
-	const next = current + chunk.toString();
-	return next.length <= maxOutputTail ? next : next.slice(-maxOutputTail);
+function rememberContext(ctx: UiContext): void {
+	latestContext = ctx;
+	setStatus();
 }
 
 function setStatus(): void {
 	const ctx = latestContext;
 	if (!ctx?.hasUI) return;
 
-	if (running) {
-		const queued = queuedRuns > 0 ? ` (+${queuedRuns} queued)` : "";
-		ctx.ui.setStatus(statusKey, `cog code:index${queued}`);
+	if (runningIndex) {
+		ctx.ui.setStatus(statusKey, runQueued ? "cog code:index (queued)" : "cog code:index");
 		return;
 	}
 
-	if (queuedRuns > 0) {
-		ctx.ui.setStatus(statusKey, `cog code:index queued (${queuedRuns})`);
-		return;
-	}
+	ctx.ui.setStatus(statusKey, runQueued ? "cog code:index queued" : undefined);
+}
 
-	ctx.ui.setStatus(statusKey, undefined);
+function getOutputTail(result: ExecResult): string {
+	const text = [result.stderr.trim(), result.stdout.trim()].filter(Boolean).join("\n").trim();
+	return text.length <= maxOutputTail ? text : text.slice(-maxOutputTail);
 }
 
 function reportFailure(message: string): void {
-	const ctx = latestContext;
-	if (ctx?.hasUI) {
-		ctx.ui.notify(message, "warning");
+	if (latestContext?.hasUI) {
+		latestContext.ui.notify(message, "warning");
 	}
 	process.stderr.write(`[${statusKey}] ${message}\n`);
 }
 
-function startNextRun(): void {
-	if (running || queuedRuns === 0 || !latestContext) return;
+async function runIndex(pi: ExtensionAPI): Promise<void> {
+	const ctx = latestContext;
+	if (!ctx) return;
 
-	running = true;
-	queuedRuns -= 1;
+	const controller = new AbortController();
+	abortController = controller;
+
+	try {
+		const result = await pi.exec("cog", ["code:index"], {
+			cwd: ctx.cwd,
+			signal: controller.signal,
+		});
+
+		if (controller.signal.aborted || result.killed) return;
+		if (result.code === 0) return;
+
+		const details = getOutputTail(result);
+		reportFailure(
+			details.length > 0
+				? `cog code:index exited with code ${result.code}: ${details}`
+				: `cog code:index exited with code ${result.code}`,
+		);
+	} catch (error) {
+		if (controller.signal.aborted) return;
+
+		const message = error instanceof Error ? error.message : String(error);
+		reportFailure(`Failed to run cog code:index: ${message}`);
+	} finally {
+		if (abortController === controller) {
+			abortController = undefined;
+		}
+	}
+}
+
+function queueIndex(pi: ExtensionAPI): void {
+	runQueued = true;
 	setStatus();
 
-	let stdout = "";
-	let stderr = "";
+	if (runningIndex) return;
 
-	currentChild = spawn("cog", ["code:index"], {
-		cwd: latestContext.cwd,
-		env: process.env,
-		stdio: ["ignore", "pipe", "pipe"],
-	});
-
-	currentChild.stdout?.on("data", (chunk) => {
-		stdout = appendTail(stdout, chunk);
-	});
-
-	currentChild.stderr?.on("data", (chunk) => {
-		stderr = appendTail(stderr, chunk);
-	});
-
-	currentChild.on("error", (error) => {
-		currentChild = undefined;
-		running = false;
-		setStatus();
-		reportFailure(`Failed to start cog code:index: ${error.message}`);
-		startNextRun();
-	});
-
-	currentChild.on("close", (code, signal) => {
-		currentChild = undefined;
-		running = false;
-		setStatus();
-
-		if (code !== 0 && signal !== "SIGTERM") {
-			const details = [stderr.trim(), stdout.trim()].filter(Boolean).join("\n").trim();
-			reportFailure(
-				details.length > 0
-					? `cog code:index exited with code ${code}: ${details}`
-					: `cog code:index exited with code ${code}`,
-			);
+	runningIndex = (async () => {
+		while (runQueued) {
+			runQueued = false;
+			setStatus();
+			await runIndex(pi);
 		}
-
-		startNextRun();
-	});
+	})()
+		.catch((error) => {
+			const message = error instanceof Error ? error.message : String(error);
+			reportFailure(`Unexpected cog code:index failure: ${message}`);
+		})
+		.finally(() => {
+			runningIndex = undefined;
+			setStatus();
+		});
 }
 
 export default function (pi: ExtensionAPI) {
 	pi.on("session_start", async (_event, ctx) => {
-		latestContext = ctx;
-		setStatus();
+		rememberContext(ctx);
+	});
+
+	pi.on("session_switch", async (_event, ctx) => {
+		rememberContext(ctx);
 	});
 
 	pi.on("tool_execution_end", async (event, ctx) => {
-		latestContext = ctx;
+		rememberContext(ctx);
 
-		if (event.isError || (event.toolName !== "edit" && event.toolName !== "write")) return;
+		if (event.isError || !indexingTools.has(event.toolName)) return;
 
-		queuedRuns += 1;
-		setStatus();
-		startNextRun();
+		queueIndex(pi);
 	});
 
-	pi.on("session_shutdown", async () => {
-		queuedRuns = 0;
-		running = false;
-		currentChild?.kill("SIGTERM");
-		currentChild = undefined;
+	pi.on("session_shutdown", async (_event, ctx) => {
+		rememberContext(ctx);
+		runQueued = false;
+		abortController?.abort();
+		await runningIndex?.catch(() => undefined);
+		runningIndex = undefined;
 		setStatus();
 	});
 }

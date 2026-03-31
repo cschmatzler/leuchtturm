@@ -2,9 +2,9 @@ import { Effect, Layer } from "effect";
 import { WorkflowEngine } from "effect/unstable/workflow";
 
 import { registerDatabasePoolMetrics } from "@chevrotain/api/metrics";
-import { Analytics } from "@chevrotain/core/analytics/index";
-import { Auth } from "@chevrotain/core/auth/index";
-import { Database } from "@chevrotain/core/drizzle/index";
+import { Analytics } from "@chevrotain/core/analytics";
+import { Auth } from "@chevrotain/core/auth";
+import { Database } from "@chevrotain/core/drizzle";
 import { Email } from "@chevrotain/core/email";
 import { MailEncryption } from "@chevrotain/core/mail/encryption";
 import { GmailOAuth } from "@chevrotain/core/mail/gmail/oauth";

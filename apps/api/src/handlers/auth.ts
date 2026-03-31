@@ -5,8 +5,8 @@ import { HttpApiBuilder } from "effect/unstable/httpapi";
 import { reportApiError } from "@chevrotain/api/analytics/report-error";
 import { ChevrotainApi } from "@chevrotain/api/contract";
 import { recordAuthRequest, routeLabelFromUrl } from "@chevrotain/api/metrics";
-import { Analytics } from "@chevrotain/core/analytics/index";
-import { Auth } from "@chevrotain/core/auth/index";
+import { Analytics } from "@chevrotain/core/analytics";
+import { Auth } from "@chevrotain/core/auth";
 import { AuthServiceError } from "@chevrotain/core/errors";
 
 const authPassthroughErrorResponse = (message: string) =>

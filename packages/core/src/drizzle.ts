@@ -4,15 +4,15 @@ import { Pool } from "pg";
 
 import { allRelations } from "@chevrotain/core/drizzle/relations";
 
-export type DatabaseClient = NodePgDatabase<Record<string, never>, typeof allRelations> & {
-	$client: Pool;
-};
-
-export type DatabaseExecutor = Omit<DatabaseClient, "$client">;
-
 export namespace Database {
+	export type Client = NodePgDatabase<Record<string, never>, typeof allRelations> & {
+		$client: Pool;
+	};
+
+	export type Executor = Omit<Client, "$client">;
+
 	export interface Interface {
-		readonly db: DatabaseClient;
+		readonly db: Client;
 	}
 
 	export class Service extends ServiceMap.Service<Service, Interface>()("@chevrotain/Database") {}

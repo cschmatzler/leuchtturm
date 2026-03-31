@@ -4,14 +4,7 @@ import { Resend } from "resend";
 
 import { Config } from "@chevrotain/core/config";
 import { makeRunPromise } from "@chevrotain/core/effect/run-service";
-
-export interface SendParams {
-	readonly from: string;
-	readonly to: string;
-	readonly subject: string;
-	readonly html: string;
-	readonly text: string;
-}
+import type { SendParams } from "@chevrotain/core/email/schema";
 
 export namespace Email {
 	export class Error extends Schema.TaggedErrorClass<Error>()(

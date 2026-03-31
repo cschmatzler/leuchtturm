@@ -62,9 +62,3 @@ export class DatabaseError extends Schema.TaggedErrorClass<DatabaseError>()(
 	{ message: Schema.String },
 	{ httpApiStatus: 500 },
 ) {}
-
-export class BillingError extends Schema.TaggedErrorClass<BillingError>()(
-	"BillingError",
-	{ message: Schema.String },
-	{ httpApiStatus: 500 },
-) {}

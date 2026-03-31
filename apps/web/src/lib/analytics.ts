@@ -1,6 +1,9 @@
 import { Effect } from "effect";
 
-import type { AnalyticsEvent, ErrorEvent } from "@chevrotain/core/analytics/schema";
+import type {
+	Error as AnalyticsErrorEvent,
+	Event as AnalyticsEvent,
+} from "@chevrotain/core/analytics/schema";
 import { apiClient } from "@chevrotain/web/clients/api";
 
 type AnalyticsLocation = {
@@ -15,7 +18,7 @@ const ERROR_FLUSH_DELAY_MS = 1000;
 const ERROR_DEDUP_WINDOW_MS = 60_000;
 
 let buffer: AnalyticsEvent[] = [];
-let errorBuffer: ErrorEvent[] = [];
+let errorBuffer: AnalyticsErrorEvent[] = [];
 let errorFlushTimer: ReturnType<typeof setTimeout> | null = null;
 const reportedErrors = new Map<string, number>();
 let isInitialized = false;
@@ -40,12 +43,8 @@ function pushEvent(
 
 async function sendBatch(events: AnalyticsEvent[]): Promise<void> {
 	try {
-		await Effect.runPromise(
-			Effect.gen(function* () {
-				const client = yield* apiClient;
-				yield* client.analytics.ingestEvents({ payload: { events } });
-			}),
-		);
+		const client = await Effect.runPromise(apiClient);
+		await Effect.runPromise(client.analytics.ingestEvents({ payload: { events } }));
 	} catch (error) {
 		console.error("[API] ingestEvents failed", error);
 	}
@@ -136,12 +135,8 @@ async function flushErrors(): Promise<void> {
 	errorBuffer = [];
 
 	try {
-		await Effect.runPromise(
-			Effect.gen(function* () {
-				const client = yield* apiClient;
-				yield* client.analytics.reportErrors({ payload: { errors } });
-			}),
-		);
+		const client = await Effect.runPromise(apiClient);
+		await Effect.runPromise(client.analytics.reportErrors({ payload: { errors } }));
 	} catch (error) {
 		console.error("Failed to flush error events", error);
 	}
@@ -162,6 +157,7 @@ export function sendErrorEvent(
 	}
 
 	errorBuffer.push({
+		source: "web",
 		errorType,
 		message,
 		stackTrace,

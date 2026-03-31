@@ -4,7 +4,7 @@ import { describe, expect, it } from "vite-plus/test";
 
 import { handleAuthPassthrough } from "@chevrotain/api/handlers/auth";
 import { applyHttpAuth } from "@chevrotain/api/middleware/auth-live";
-import { Auth } from "@chevrotain/core/auth/index";
+import { Auth } from "@chevrotain/core/auth";
 
 const TEST_SESSION: Auth.SessionData = {
 	user: {

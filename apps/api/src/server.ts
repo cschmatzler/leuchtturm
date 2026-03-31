@@ -25,4 +25,4 @@ const AppLive = Layer.unwrap(
 	}),
 );
 
-NodeRuntime.runMain(AppLive.pipe(Layer.launch));
+NodeRuntime.runMain(AppLive.pipe(Layer.launch, Effect.scoped));

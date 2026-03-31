@@ -6,32 +6,25 @@ import { multiSession } from "better-auth/plugins";
 import { Effect, Layer, Redacted, Schema, ServiceMap } from "effect";
 import { ulid } from "ulid";
 
-import * as sql from "@chevrotain/core/auth/auth.sql";
+import { account, session, user, verification } from "@chevrotain/core/auth/auth.sql";
 import {
 	AccountId,
 	PASSWORD_MIN_LENGTH,
-	Session,
+	SessionData as SessionDataSchema,
 	SessionId,
-	User,
 	UserId,
 	VerificationId,
 } from "@chevrotain/core/auth/schema";
 import { Billing } from "@chevrotain/core/billing";
 import { POLAR_PRO_PRODUCT_ID, POLAR_PRO_PRODUCT_SLUG } from "@chevrotain/core/billing/products";
 import { Config } from "@chevrotain/core/config";
-import { Database } from "@chevrotain/core/drizzle/index";
+import { Database } from "@chevrotain/core/drizzle";
 import { makeRunPromise } from "@chevrotain/core/effect/run-service";
 import { Email } from "@chevrotain/core/email";
 import { sendPasswordResetEmail } from "@chevrotain/email/password-reset";
 
-const runBilling = makeRunPromise(Billing.Service, Billing.defaultLayer);
-
 export namespace Auth {
-	export const SessionData = Schema.Struct({
-		user: User,
-		session: Session,
-	});
-
+	export const SessionData = SessionDataSchema;
 	export type SessionData = typeof SessionData.Type;
 
 	export class Error extends Schema.TaggedErrorClass<Error>()("AuthError", {
@@ -58,7 +51,7 @@ export namespace Auth {
 				trustedOrigins: [config.api.baseUrl, config.auth.authBaseUrl],
 				database: drizzleAdapter(db, {
 					provider: "pg",
-					schema: sql,
+					schema: { account, session, user, verification },
 				}),
 				emailAndPassword: {
 					enabled: true,
@@ -112,37 +105,70 @@ export namespace Auth {
 									console.info(`[polar.webhook] ${payload.type}`);
 								},
 								onCustomerStateChanged: async (payload) => {
-									await runBilling((s) => s.upsertCustomerState(payload.data));
+									await makeRunPromise(
+										Billing.Service,
+										Billing.defaultLayer,
+									)((s) => s.upsertCustomerState(payload.data));
 								},
 								onOrderCreated: async (payload) => {
-									await runBilling((s) => s.upsertOrder(payload.data));
+									await makeRunPromise(
+										Billing.Service,
+										Billing.defaultLayer,
+									)((s) => s.upsertOrder(payload.data));
 								},
 								onOrderPaid: async (payload) => {
-									await runBilling((s) => s.upsertOrder(payload.data));
+									await makeRunPromise(
+										Billing.Service,
+										Billing.defaultLayer,
+									)((s) => s.upsertOrder(payload.data));
 								},
 								onOrderRefunded: async (payload) => {
-									await runBilling((s) => s.upsertOrder(payload.data));
+									await makeRunPromise(
+										Billing.Service,
+										Billing.defaultLayer,
+									)((s) => s.upsertOrder(payload.data));
 								},
 								onOrderUpdated: async (payload) => {
-									await runBilling((s) => s.upsertOrder(payload.data));
+									await makeRunPromise(
+										Billing.Service,
+										Billing.defaultLayer,
+									)((s) => s.upsertOrder(payload.data));
 								},
 								onSubscriptionCreated: async (payload) => {
-									await runBilling((s) => s.upsertSubscription(payload.data));
+									await makeRunPromise(
+										Billing.Service,
+										Billing.defaultLayer,
+									)((s) => s.upsertSubscription(payload.data));
 								},
 								onSubscriptionUpdated: async (payload) => {
-									await runBilling((s) => s.upsertSubscription(payload.data));
+									await makeRunPromise(
+										Billing.Service,
+										Billing.defaultLayer,
+									)((s) => s.upsertSubscription(payload.data));
 								},
 								onSubscriptionActive: async (payload) => {
-									await runBilling((s) => s.upsertSubscription(payload.data));
+									await makeRunPromise(
+										Billing.Service,
+										Billing.defaultLayer,
+									)((s) => s.upsertSubscription(payload.data));
 								},
 								onSubscriptionCanceled: async (payload) => {
-									await runBilling((s) => s.upsertSubscription(payload.data));
+									await makeRunPromise(
+										Billing.Service,
+										Billing.defaultLayer,
+									)((s) => s.upsertSubscription(payload.data));
 								},
 								onSubscriptionRevoked: async (payload) => {
-									await runBilling((s) => s.upsertSubscription(payload.data));
+									await makeRunPromise(
+										Billing.Service,
+										Billing.defaultLayer,
+									)((s) => s.upsertSubscription(payload.data));
 								},
 								onSubscriptionUncanceled: async (payload) => {
-									await runBilling((s) => s.upsertSubscription(payload.data));
+									await makeRunPromise(
+										Billing.Service,
+										Billing.defaultLayer,
+									)((s) => s.upsertSubscription(payload.data));
 								},
 							}),
 						],
@@ -197,7 +223,7 @@ export namespace Auth {
 					return null;
 				}
 
-				return yield* Schema.decodeUnknownEffect(SessionData)(session).pipe(
+				return yield* Schema.decodeUnknownEffect(SessionDataSchema)(session).pipe(
 					Effect.mapError(
 						(error) =>
 							new Error({
