@@ -21,6 +21,7 @@
 	languages.javascript.enable = true;
 	languages.javascript.package = pkgs.nodejs_25;
 	languages.javascript.pnpm.enable = true;
+	languages.javascript.pnpm.package = pkgs.pnpm_10;
 	# Required for Zero native extension
 	languages.python.enable = true;
 	languages.cplusplus.enable = true;

@@ -47,14 +47,14 @@ export namespace Analytics {
 						client.insert({
 							table: "analytics_events",
 							values: events.map((event) => ({
-								timestamp: new Date(),
+								timestamp: new Date().toISOString(),
 								eventId: ulid(),
 								sessionId,
 								userId,
 								eventType: event.eventType,
 								url: event.url,
 								referrer: event.referrer,
-								properties: event.properties,
+								properties: JSON.stringify(event.properties ?? {}),
 							})),
 							format: "JSONEachRow",
 						}),
@@ -71,7 +71,7 @@ export namespace Analytics {
 						client.insert({
 							table: "error_events",
 							values: errors.map((error) => ({
-								timestamp: new Date(),
+								timestamp: new Date().toISOString(),
 								errorId: ulid(),
 								source: error.source,
 								userId: error.userId ?? "",
@@ -87,7 +87,7 @@ export namespace Analytics {
 								traceId: error.traceId ?? "",
 								spanId: error.spanId ?? "",
 								route: error.route ?? "",
-								properties: error.properties ?? {},
+								properties: JSON.stringify(error.properties ?? {}),
 							})),
 							format: "JSONEachRow",
 						}),

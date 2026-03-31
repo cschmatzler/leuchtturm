@@ -201,12 +201,21 @@ export class GmailAdapter implements MailProviderAdapter {
 
 	private async gmailRequest<T>(
 		path: string,
-		options?: { params?: Record<string, string>; body?: unknown },
+		options?: { params?: Record<string, string | readonly string[]>; body?: unknown },
 	): Promise<T> {
 		const url = new URL(`${GMAIL_API_BASE}${path}`);
 		if (options?.params) {
 			for (const [key, value] of Object.entries(options.params)) {
-				url.searchParams.set(key, value);
+				if (typeof value === "string") {
+					url.searchParams.set(key, value);
+					continue;
+				}
+
+				if (Array.isArray(value)) {
+					for (const item of value) {
+						url.searchParams.append(key, item);
+					}
+				}
 			}
 		}
 
@@ -302,9 +311,9 @@ export class GmailAdapter implements MailProviderAdapter {
 
 		try {
 			do {
-				const params: Record<string, string> = {
+				const params: Record<string, string | readonly string[]> = {
 					startHistoryId,
-					historyTypes: "messageAdded,messageDeleted,labelAdded,labelRemoved",
+					historyTypes: ["messageAdded", "messageDeleted", "labelAdded", "labelRemoved"],
 					maxResults: "500",
 				};
 				if (pageToken) params.pageToken = pageToken;
