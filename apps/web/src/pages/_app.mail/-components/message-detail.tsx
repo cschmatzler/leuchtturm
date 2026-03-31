@@ -7,8 +7,6 @@ import { sanitizeEmailHtml } from "@chevrotain/web/lib/sanitize-html";
 import { queries } from "@chevrotain/zero/queries";
 import type { MailMessage } from "@chevrotain/zero/schema";
 
-type EmailAddress = { name?: string; address: string };
-
 interface MessageDetailProps {
 	messageId: string;
 }
@@ -62,21 +60,11 @@ function SanitizedHtml({ html }: { html: string }) {
 
 export function MessageHeader({ message }: { message: MailMessage }) {
 	const { t } = useTranslation();
-	const sender = message.sender as EmailAddress | null | undefined;
-	const toRecipients = (message.toRecipients as EmailAddress[] | null) ?? [];
 
 	return (
 		<div className="flex flex-col gap-1">
 			<div className="flex items-center justify-between">
-				<div className="flex items-center gap-2">
-					<div className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
-						{(sender?.name ?? sender?.address ?? "?").charAt(0).toUpperCase()}
-					</div>
-					<div>
-						<p className="text-sm font-medium">{sender?.name ?? sender?.address ?? t("Unknown")}</p>
-						{sender?.name && <p className="text-xs text-muted-foreground">{sender.address}</p>}
-					</div>
-				</div>
+				<p className="text-sm font-medium">{t("Message")}</p>
 				{message.receivedAt && (
 					<time className="text-xs text-muted-foreground">
 						{new Date(message.receivedAt).toLocaleString(undefined, {
@@ -88,11 +76,6 @@ export function MessageHeader({ message }: { message: MailMessage }) {
 					</time>
 				)}
 			</div>
-			{toRecipients.length > 0 && (
-				<p className="text-xs text-muted-foreground">
-					{t("To")}: {toRecipients.map((r) => r.name ?? r.address).join(", ")}
-				</p>
-			)}
 			{message.hasAttachments && (
 				<div className="flex items-center gap-1 text-xs text-muted-foreground">
 					<PaperclipIcon className="size-3" />

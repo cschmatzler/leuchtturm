@@ -4,8 +4,6 @@ import { useTranslation } from "react-i18next";
 import { cn } from "@chevrotain/web/lib/cn";
 import type { MailMessage } from "@chevrotain/zero/schema";
 
-type EmailAddress = { name?: string; address: string };
-
 interface MessageListProps {
 	messages: readonly MailMessage[];
 	onSelect: (messageId: string) => void;
@@ -26,8 +24,7 @@ export function MessageList({ messages, onSelect }: MessageListProps) {
 	return (
 		<div className="flex min-w-0 flex-col divide-y divide-border overflow-y-auto overflow-x-hidden">
 			{messages.map((message) => {
-				const sender = message.sender as EmailAddress | null | undefined;
-				const senderDisplay = sender?.name ?? sender?.address ?? t("Unknown");
+				const senderDisplay = t("Unknown");
 
 				return (
 					<button
