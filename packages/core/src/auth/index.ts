@@ -16,11 +16,7 @@ import {
 	UserId,
 	VerificationId,
 } from "@chevrotain/core/auth/schema";
-import {
-	upsertPolarCustomerState,
-	upsertPolarOrder,
-	upsertPolarSubscription,
-} from "@chevrotain/core/billing";
+import { Billing } from "@chevrotain/core/billing";
 import { POLAR_PRO_PRODUCT_ID, POLAR_PRO_PRODUCT_SLUG } from "@chevrotain/core/billing/products";
 import { Config } from "@chevrotain/core/config";
 import { Database } from "@chevrotain/core/drizzle/index";
@@ -113,37 +109,37 @@ export namespace Auth {
 									console.info(`[polar.webhook] ${payload.type}`);
 								},
 								onCustomerStateChanged: async (payload) => {
-									await upsertPolarCustomerState(db, payload.data);
+									await Billing.upsertCustomerState(payload.data);
 								},
 								onOrderCreated: async (payload) => {
-									await upsertPolarOrder(db, polarClient, payload.data);
+									await Billing.upsertOrder(payload.data);
 								},
 								onOrderPaid: async (payload) => {
-									await upsertPolarOrder(db, polarClient, payload.data);
+									await Billing.upsertOrder(payload.data);
 								},
 								onOrderRefunded: async (payload) => {
-									await upsertPolarOrder(db, polarClient, payload.data);
+									await Billing.upsertOrder(payload.data);
 								},
 								onOrderUpdated: async (payload) => {
-									await upsertPolarOrder(db, polarClient, payload.data);
+									await Billing.upsertOrder(payload.data);
 								},
 								onSubscriptionCreated: async (payload) => {
-									await upsertPolarSubscription(db, polarClient, payload.data);
+									await Billing.upsertSubscription(payload.data);
 								},
 								onSubscriptionUpdated: async (payload) => {
-									await upsertPolarSubscription(db, polarClient, payload.data);
+									await Billing.upsertSubscription(payload.data);
 								},
 								onSubscriptionActive: async (payload) => {
-									await upsertPolarSubscription(db, polarClient, payload.data);
+									await Billing.upsertSubscription(payload.data);
 								},
 								onSubscriptionCanceled: async (payload) => {
-									await upsertPolarSubscription(db, polarClient, payload.data);
+									await Billing.upsertSubscription(payload.data);
 								},
 								onSubscriptionRevoked: async (payload) => {
-									await upsertPolarSubscription(db, polarClient, payload.data);
+									await Billing.upsertSubscription(payload.data);
 								},
 								onSubscriptionUncanceled: async (payload) => {
-									await upsertPolarSubscription(db, polarClient, payload.data);
+									await Billing.upsertSubscription(payload.data);
 								},
 							}),
 						],

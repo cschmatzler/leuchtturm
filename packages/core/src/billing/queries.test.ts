@@ -1,20 +1,29 @@
+import { Effect } from "effect";
 import { describe, expect, it } from "vite-plus/test";
 
-import { assertPolarCustomer } from "@chevrotain/core/billing";
+import { Billing } from "@chevrotain/core/billing";
 
-describe("assertPolarCustomer", () => {
+describe("Billing.assertCustomer", () => {
 	it("returns the local user id when the webhook references a known user", () => {
-		expect(assertPolarCustomer("subscription", "usr_known", "usr_known")).toBe("usr_known");
+		expect(Effect.runSync(Billing.assertCustomer("subscription", "usr_known", "usr_known"))).toBe(
+			"usr_known",
+		);
 	});
 
-	it("throws when the webhook payload omits the external user id", () => {
-		expect(() => assertPolarCustomer("customer state", null, null)).toThrow(
+	it("fails when the webhook payload omits the external user id", () => {
+		const error = Effect.runSync(
+			Billing.assertCustomer("customer state", null, null).pipe(Effect.flip),
+		);
+		expect(error.message).toBe(
 			"Polar customer state webhook payload is missing an external user id",
 		);
 	});
 
-	it("throws when the webhook references an unknown local user", () => {
-		expect(() => assertPolarCustomer("subscription", "usr_missing", null)).toThrow(
+	it("fails when the webhook references an unknown local user", () => {
+		const error = Effect.runSync(
+			Billing.assertCustomer("subscription", "usr_missing", null).pipe(Effect.flip),
+		);
+		expect(error.message).toBe(
 			"Polar subscription webhook references unknown local user: usr_missing",
 		);
 	});
