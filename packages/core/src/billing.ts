@@ -18,7 +18,6 @@ import {
 } from "@chevrotain/core/billing/schema";
 import { Config } from "@chevrotain/core/config";
 import { Database, type DatabaseExecutor } from "@chevrotain/core/drizzle/index";
-import { makeRunPromise } from "@chevrotain/core/effect/run-service";
 import { BillingError } from "@chevrotain/core/errors";
 
 export namespace Billing {
@@ -350,18 +349,4 @@ export namespace Billing {
 	);
 
 	export const defaultLayer = layer.pipe(Layer.provide(Database.defaultLayer));
-
-	const runPromise = makeRunPromise(Service, defaultLayer);
-
-	export async function upsertCustomerState(state: CustomerState) {
-		return runPromise((service) => service.upsertCustomerState(state));
-	}
-
-	export async function upsertSubscription(subscription: Subscription) {
-		return runPromise((service) => service.upsertSubscription(subscription));
-	}
-
-	export async function upsertOrder(order: Order) {
-		return runPromise((service) => service.upsertOrder(order));
-	}
 }

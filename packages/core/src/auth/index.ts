@@ -20,8 +20,11 @@ import { Billing } from "@chevrotain/core/billing";
 import { POLAR_PRO_PRODUCT_ID, POLAR_PRO_PRODUCT_SLUG } from "@chevrotain/core/billing/products";
 import { Config } from "@chevrotain/core/config";
 import { Database } from "@chevrotain/core/drizzle/index";
+import { makeRunPromise } from "@chevrotain/core/effect/run-service";
 import { Email } from "@chevrotain/core/email";
 import { sendPasswordResetEmail } from "@chevrotain/email/password-reset";
+
+const runBilling = makeRunPromise(Billing.Service, Billing.defaultLayer);
 
 export namespace Auth {
 	export const SessionData = Schema.Struct({
@@ -109,37 +112,37 @@ export namespace Auth {
 									console.info(`[polar.webhook] ${payload.type}`);
 								},
 								onCustomerStateChanged: async (payload) => {
-									await Billing.upsertCustomerState(payload.data);
+									await runBilling((s) => s.upsertCustomerState(payload.data));
 								},
 								onOrderCreated: async (payload) => {
-									await Billing.upsertOrder(payload.data);
+									await runBilling((s) => s.upsertOrder(payload.data));
 								},
 								onOrderPaid: async (payload) => {
-									await Billing.upsertOrder(payload.data);
+									await runBilling((s) => s.upsertOrder(payload.data));
 								},
 								onOrderRefunded: async (payload) => {
-									await Billing.upsertOrder(payload.data);
+									await runBilling((s) => s.upsertOrder(payload.data));
 								},
 								onOrderUpdated: async (payload) => {
-									await Billing.upsertOrder(payload.data);
+									await runBilling((s) => s.upsertOrder(payload.data));
 								},
 								onSubscriptionCreated: async (payload) => {
-									await Billing.upsertSubscription(payload.data);
+									await runBilling((s) => s.upsertSubscription(payload.data));
 								},
 								onSubscriptionUpdated: async (payload) => {
-									await Billing.upsertSubscription(payload.data);
+									await runBilling((s) => s.upsertSubscription(payload.data));
 								},
 								onSubscriptionActive: async (payload) => {
-									await Billing.upsertSubscription(payload.data);
+									await runBilling((s) => s.upsertSubscription(payload.data));
 								},
 								onSubscriptionCanceled: async (payload) => {
-									await Billing.upsertSubscription(payload.data);
+									await runBilling((s) => s.upsertSubscription(payload.data));
 								},
 								onSubscriptionRevoked: async (payload) => {
-									await Billing.upsertSubscription(payload.data);
+									await runBilling((s) => s.upsertSubscription(payload.data));
 								},
 								onSubscriptionUncanceled: async (payload) => {
-									await Billing.upsertSubscription(payload.data);
+									await runBilling((s) => s.upsertSubscription(payload.data));
 								},
 							}),
 						],
