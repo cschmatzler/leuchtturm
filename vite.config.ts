@@ -28,6 +28,7 @@ export default defineConfig({
 			"**/node_modules/**",
 			"**/dist/**",
 			"**/*.gen.ts",
+			".opencode/**",
 			"packages/oxlint-plugins/**",
 		],
 		rules: {

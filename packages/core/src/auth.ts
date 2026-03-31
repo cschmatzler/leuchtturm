@@ -156,6 +156,10 @@ export namespace Auth {
 					},
 				},
 				advanced: {
+					crossSubDomainCookies: {
+						enabled: true,
+						domain: new URL(config.api.baseUrl).hostname,
+					},
 					database: {
 						generateId: ({ model }) => {
 							switch (model) {

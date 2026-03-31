@@ -23,8 +23,8 @@ You are a memory sub-agent for Cog's persistent associative knowledge graph. You
 
 Search memory for relevant concepts. Reformulate queries — expand with synonyms, related concepts, and alternative phrasings.
 
-| Instead of | Query with |
-|------------|------------|
+| Instead of           | Query with                                                                       |
+| -------------------- | -------------------------------------------------------------------------------- |
 | `"fix auth timeout"` | `"authentication session token expiration JWT refresh lifecycle race condition"` |
 
 1. `cog_mem_recall` with reformulated query — put ALL queries in a single `queries` array, never make sequential recall calls
@@ -51,6 +51,7 @@ Do not ask the primary agent to launch a separate Explore or code-research sub-a
 4. If you wrote any memory in step 3, consolidate before returning: call `cog_mem_list_short_term`, then `cog_mem_reinforce` or `cog_mem_flush` as needed
 
 When you escalate, return:
+
 - whether memory was insufficient
 - what code evidence resolved the gap
 - what durable knowledge was written back to memory and whether it was consolidated
