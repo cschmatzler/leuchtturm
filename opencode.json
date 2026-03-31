@@ -1,31 +1,21 @@
 {
-  "$schema": "https://opencode.ai/config.json",
-  "mcp": {
-    "cog": {
-      "type": "local",
-      "command": [
-        "cog",
-        "mcp"
-      ]
-    }
-  },
-  "plugin": [
-    "cog-override",
-    "cog-memory",
-    "cog-debug",
-    "block-sops",
-    "cog-auto-index"
-  ],
-  "permission": {
-    "cog_*": "allow",
-    "glob": "deny",
-    "grep": "deny"
-  },
-  "agent": {
-    "general": {
-      "permission": {
-        "cog_*": "allow"
-      }
-    }
-  }
+	"$schema": "https://opencode.ai/config.json",
+	"mcp": {
+		"cog": {
+			"type": "local",
+			"command": ["cog", "mcp"]
+		}
+	},
+	"permission": {
+		"cog_*": "allow",
+		"glob": "deny",
+		"grep": "deny"
+	},
+	"agent": {
+		"general": {
+			"permission": {
+				"cog_*": "allow"
+			}
+		}
+	}
 }

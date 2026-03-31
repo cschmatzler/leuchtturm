@@ -27,7 +27,6 @@ export default defineConfig({
 		ignorePatterns: [
 			"**/node_modules/**",
 			"**/dist/**",
-			"**/.pi/**",
 			"**/*.gen.ts",
 			"packages/oxlint-plugins/**",
 		],
@@ -54,14 +53,6 @@ export default defineConfig({
 	test: {
 		silent: "passed-only",
 		projects: [
-			{
-				extends: true,
-				test: {
-					name: "pi",
-					root: ".",
-					include: [".pi/extensions/**/*.test.ts"],
-				},
-			},
 			{
 				extends: true,
 				test: {
