@@ -3,9 +3,7 @@
 .devenv/
 .direnv/
 .env.keys
-.opencode/
 .tanstack/
-.turbo/
 dist/
 node_modules/
 result
