@@ -66,6 +66,46 @@ describe("mail ingest helpers", () => {
 		]);
 	});
 
+	it("skips blank participant addresses while keeping per-role ordinals", () => {
+		expect(
+			buildMailParticipantInputs({
+				...providerMessage,
+				sender: { name: " Ada Lovelace ", address: " ADA@example.com " },
+				toRecipients: [{ address: "   " }, { name: " Team ", address: " TEAM@example.com " }],
+				ccRecipients: [{ address: "   " }, { address: "cc@example.com" }],
+				bccRecipients: [],
+				headers: {
+					replyTo: [{ address: "   " }, { address: "reply@example.com" }],
+				},
+			}),
+		).toEqual([
+			{
+				displayName: "Ada Lovelace",
+				normalizedAddress: "ada@example.com",
+				ordinal: 0,
+				role: "from",
+			},
+			{
+				displayName: "Team",
+				normalizedAddress: "team@example.com",
+				ordinal: 1,
+				role: "to",
+			},
+			{
+				displayName: null,
+				normalizedAddress: "cc@example.com",
+				ordinal: 1,
+				role: "cc",
+			},
+			{
+				displayName: null,
+				normalizedAddress: "reply@example.com",
+				ordinal: 1,
+				role: "reply_to",
+			},
+		]);
+	});
+
 	it("collects unique conversation participants from senders and visible recipients", () => {
 		expect(
 			collectConversationParticipants([
@@ -91,6 +131,34 @@ describe("mail ingest helpers", () => {
 			bodyText: "Hello world Hello world",
 			mirroredCoverageKind: "full_thread",
 			recipientText: "team@example.com Grace Hopper <grace@example.com> audit@example.com",
+			senderText: "Ada Lovelace <ada@example.com>",
+			snippetText: "Latest numbers attached",
+			subjectText: "Quarterly update",
+		});
+	});
+
+	it("strips non-searchable html content and collapses normalized search fields", () => {
+		expect(
+			buildMailSearchDocumentValues({
+				bodyParts: [
+					{
+						contentType: "text/html",
+						content:
+							"<style>.hidden { display: none; }</style><script>ignore()</script><p>&nbsp;Hello &amp; <strong>world</strong></p>",
+					},
+					{ contentType: "text/plain", content: "  \n\t  " },
+				],
+				sender: { name: " Ada Lovelace ", address: " ADA@example.com " },
+				toRecipients: [],
+				ccRecipients: [],
+				bccRecipients: [],
+				snippet: "  Latest\n numbers attached  ",
+				subject: "  Quarterly\n update  ",
+			}),
+		).toEqual({
+			bodyText: "Hello & world",
+			mirroredCoverageKind: "full_thread",
+			recipientText: null,
 			senderText: "Ada Lovelace <ada@example.com>",
 			snippetText: "Latest numbers attached",
 			subjectText: "Quarterly update",
