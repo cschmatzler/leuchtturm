@@ -1,10 +1,14 @@
 import { Effect } from "effect";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
-import { RATE_LIMIT_MAX_KEYS, RATE_LIMIT_WINDOW_MS, RateLimit } from "@chevrotain/core/rate-limit";
+import { RATE_LIMIT_WINDOW_MS, RateLimit } from "@chevrotain/core/rate-limit";
 
-const runWithRateLimit = <A, E>(effect: Effect.Effect<A, E, RateLimit.Service>) =>
-	Effect.runPromise(effect.pipe(Effect.provide(RateLimit.layer)));
+const TEST_RATE_LIMIT_MAX_KEYS = 3;
+
+const runWithRateLimit = <A, E>(
+	effect: Effect.Effect<A, E, RateLimit.Service>,
+	options?: RateLimit.Options,
+) => Effect.runPromise(effect.pipe(Effect.provide(RateLimit.makeLayer(options))));
 
 describe("RateLimit", () => {
 	beforeEach(() => {
@@ -26,15 +30,16 @@ describe("RateLimit", () => {
 						Effect.catchTag("RateLimitError", () => Effect.succeed(false)),
 					);
 
-				for (let i = 0; i < RATE_LIMIT_MAX_KEYS; i++) {
+				for (let i = 0; i < TEST_RATE_LIMIT_MAX_KEYS; i++) {
 					yield* rateLimit.check(`key-${i}`);
 				}
 
 				const existingKeyAllowed = yield* checkAllowed("key-0");
-				const newKeyAllowed = yield* checkAllowed(`key-${RATE_LIMIT_MAX_KEYS}`);
+				const newKeyAllowed = yield* checkAllowed(`key-${TEST_RATE_LIMIT_MAX_KEYS}`);
 
 				return { existingKeyAllowed, newKeyAllowed };
 			}),
+			{ maxKeys: TEST_RATE_LIMIT_MAX_KEYS },
 		);
 
 		expect(result.existingKeyAllowed).toBe(true);
@@ -46,17 +51,18 @@ describe("RateLimit", () => {
 			Effect.gen(function* () {
 				const rateLimit = yield* RateLimit.Service;
 
-				for (let i = 0; i < RATE_LIMIT_MAX_KEYS; i++) {
+				for (let i = 0; i < TEST_RATE_LIMIT_MAX_KEYS; i++) {
 					yield* rateLimit.check(`key-${i}`);
 				}
 
 				vi.setSystemTime(new Date(RATE_LIMIT_WINDOW_MS + 1));
 
-				return yield* rateLimit.check(`key-${RATE_LIMIT_MAX_KEYS}`).pipe(
+				return yield* rateLimit.check(`key-${TEST_RATE_LIMIT_MAX_KEYS}`).pipe(
 					Effect.as(true),
 					Effect.catchTag("RateLimitError", () => Effect.succeed(false)),
 				);
 			}),
+			{ maxKeys: TEST_RATE_LIMIT_MAX_KEYS },
 		);
 
 		expect(result).toBe(true);
