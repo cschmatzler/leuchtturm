@@ -181,21 +181,3 @@ Before writing your response to the user, verify:
 
 If none apply, respond directly. Do not mention this checklist to the user.
 </cog>
-
-<!-- intent-skills:start -->
-
-# Skill mappings - when working in these areas, load the linked skill file into context.
-
-skills:
-
-- task: "general dev workflow / build / lint / test / Vite+ commands"
-  load: "node_modules/vite-plus/skills/vite-plus/SKILL.md"
-- task: "routing, protected routes, login/signup flows, auth guards"
-  load: "node_modules/.pnpm/@tanstack+router-core@1.168.3/node_modules/@tanstack/router-core/skills/router-core/auth-and-guards/SKILL.md"
-- task: "route loaders, page data fetching, pending states, route-level data dependencies"
-  load: "node_modules/.pnpm/@tanstack+router-core@1.168.3/node_modules/@tanstack/router-core/skills/router-core/data-loading/SKILL.md"
-- task: "URL search params, table filters, filter state in the URL"
-  load: "node_modules/.pnpm/@tanstack+router-core@1.168.3/node_modules/@tanstack/router-core/skills/router-core/search-params/SKILL.md"
-- task: "TanStack Router config, route generation, code splitting, Vite router plugin setup"
-load: "node_modules/@tanstack/router-plugin/skills/router-plugin/SKILL.md"
-<!-- intent-skills:end -->
