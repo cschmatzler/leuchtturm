@@ -1,21 +1,14 @@
 # Workflow
 
-- Talk to the user. Do not go ahead on your own. Make sure the requirements are abundantly clear.
+- Talk to the user. Do not go ahead on your own. Make sure the requirements are abundantly clear before editing files. Use the questions tool a lot.
 - Never try to generate migrations yourself. Tell the user to.
-- "Commit" means `jj commit`, not just `jj desc`.
 
 # Vite+ Toolchain
 
-Unified toolchain (Vite + Rolldown + Vitest + Oxlint + Oxfmt):
-
 ```bash
-vp dev          # Development server
-vp build        # Production build
 vp lint         # Lint code
 vp test         # Run tests
 vp fmt          # Format code
-vp install      # Install dependencies
-vp add <pkg>    # Add dependency
 vp check        # Lint + type check
 ```
 
