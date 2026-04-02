@@ -9,6 +9,12 @@ const defineQueries = defineQueriesWithType<Schema>();
 export const queries = defineQueries({
 	currentUser: defineQuery(({ ctx }) => zql.user.where("id", ctx?.userId ?? "").one()),
 
+	featureFlags: defineQuery(() => zql.feature_flag.orderBy("key", "asc")),
+
+	currentUserFeatureFlagOverrides: defineQuery(({ ctx }) =>
+		zql.feature_flag_user_override.where("userId", ctx?.userId ?? ""),
+	),
+
 	mailAccounts: defineQuery(({ ctx }) =>
 		zql.mail_account
 			.where("userId", ctx?.userId ?? "")

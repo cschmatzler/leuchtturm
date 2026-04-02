@@ -24,6 +24,26 @@ const user = table("user")
 	})
 	.primaryKey("id");
 
+const featureFlag = table("feature_flag")
+	.columns({
+		key: string(),
+		description: string().optional(),
+		rolloutPercentage: number().from("rollout_percentage"),
+		createdAt: number().from("created_at"),
+		updatedAt: number().from("updated_at"),
+	})
+	.primaryKey("key");
+
+const featureFlagUserOverride = table("feature_flag_user_override")
+	.columns({
+		featureFlagKey: string().from("feature_flag_key"),
+		userId: string().from("user_id"),
+		enabled: boolean(),
+		createdAt: number().from("created_at"),
+		updatedAt: number().from("updated_at"),
+	})
+	.primaryKey("featureFlagKey", "userId");
+
 const mailAccount = table("mail_account")
 	.columns({
 		id: string(),
@@ -268,11 +288,37 @@ const mailAttachment = table("mail_attachment")
 	})
 	.primaryKey("id");
 
-const userMailAccounts = relationships(user, ({ many }) => ({
+const userRelationships = relationships(user, ({ many }) => ({
+	featureFlagOverrides: many({
+		sourceField: ["id"],
+		destField: ["userId"],
+		destSchema: featureFlagUserOverride,
+	}),
 	mailAccounts: many({
 		sourceField: ["id"],
 		destField: ["userId"],
 		destSchema: mailAccount,
+	}),
+}));
+
+const featureFlagRelationships = relationships(featureFlag, ({ many }) => ({
+	userOverrides: many({
+		sourceField: ["key"],
+		destField: ["featureFlagKey"],
+		destSchema: featureFlagUserOverride,
+	}),
+}));
+
+const featureFlagUserOverrideRelationships = relationships(featureFlagUserOverride, ({ one }) => ({
+	flag: one({
+		sourceField: ["featureFlagKey"],
+		destField: ["key"],
+		destSchema: featureFlag,
+	}),
+	user: one({
+		sourceField: ["userId"],
+		destField: ["id"],
+		destSchema: user,
 	}),
 }));
 
@@ -537,6 +583,8 @@ const mailAttachmentRelationships = relationships(mailAttachment, ({ one }) => (
 export const schema = createSchema({
 	tables: [
 		user,
+		featureFlag,
+		featureFlagUserOverride,
 		mailAccount,
 		mailIdentity,
 		mailFolder,
@@ -554,7 +602,9 @@ export const schema = createSchema({
 		mailAttachment,
 	],
 	relationships: [
-		userMailAccounts,
+		userRelationships,
+		featureFlagRelationships,
+		featureFlagUserOverrideRelationships,
 		mailAccountRelationships,
 		mailIdentityRelationships,
 		mailFolderRelationships,
@@ -587,6 +637,8 @@ declare module "@rocicorp/zero" {
 }
 
 export type User = Row<typeof schema.tables.user>;
+export type FeatureFlag = Row<typeof schema.tables.feature_flag>;
+export type FeatureFlagUserOverride = Row<typeof schema.tables.feature_flag_user_override>;
 export type MailAccount = Row<typeof schema.tables.mail_account>;
 export type MailIdentity = Row<typeof schema.tables.mail_identity>;
 export type MailFolder = Row<typeof schema.tables.mail_folder>;

@@ -19,7 +19,7 @@ import { Billing } from "@chevrotain/core/billing";
 import { POLAR_PRO_PRODUCT_ID, POLAR_PRO_PRODUCT_SLUG } from "@chevrotain/core/billing/products";
 import { Config } from "@chevrotain/core/config";
 import { Database } from "@chevrotain/core/drizzle";
-import { makeRunPromise } from "@chevrotain/core/effect/run-service";
+import { makeRuntime } from "@chevrotain/core/effect/run-service";
 import { Email } from "@chevrotain/core/email";
 import { sendPasswordResetEmail } from "@chevrotain/email/password-reset";
 
@@ -44,8 +44,8 @@ export namespace Auth {
 		Effect.gen(function* () {
 			const config = yield* Config;
 			const { db } = yield* Database.Service;
-			const runBillingPromise = makeRunPromise(Billing.Service, Billing.defaultLayer);
-			const runEmailPromise = makeRunPromise(Email.Service, Email.defaultLayer);
+			const billingRuntime = makeRuntime(Billing.Service, Billing.defaultLayer);
+			const emailRuntime = makeRuntime(Email.Service, Email.defaultLayer);
 			const polarClient = new Polar({
 				accessToken: Redacted.value(config.billing.accessToken),
 				server: config.billing.server,
@@ -64,7 +64,7 @@ export namespace Auth {
 						sendPasswordResetEmail({
 							email: user.email,
 							resetUrl: url,
-							send: (params) => runEmailPromise((service) => service.send(params)),
+							send: (params) => emailRuntime.runPromise((service) => service.send(params)),
 							userName: user.name,
 						}),
 				},
@@ -113,37 +113,51 @@ export namespace Auth {
 									);
 								},
 								onCustomerStateChanged: async (payload) => {
-									await runBillingPromise((service) => service.upsertCustomerState(payload.data));
+									await billingRuntime.runPromise((service) =>
+										service.upsertCustomerState(payload.data),
+									);
 								},
 								onOrderCreated: async (payload) => {
-									await runBillingPromise((service) => service.upsertOrder(payload.data));
+									await billingRuntime.runPromise((service) => service.upsertOrder(payload.data));
 								},
 								onOrderPaid: async (payload) => {
-									await runBillingPromise((service) => service.upsertOrder(payload.data));
+									await billingRuntime.runPromise((service) => service.upsertOrder(payload.data));
 								},
 								onOrderRefunded: async (payload) => {
-									await runBillingPromise((service) => service.upsertOrder(payload.data));
+									await billingRuntime.runPromise((service) => service.upsertOrder(payload.data));
 								},
 								onOrderUpdated: async (payload) => {
-									await runBillingPromise((service) => service.upsertOrder(payload.data));
+									await billingRuntime.runPromise((service) => service.upsertOrder(payload.data));
 								},
 								onSubscriptionCreated: async (payload) => {
-									await runBillingPromise((service) => service.upsertSubscription(payload.data));
+									await billingRuntime.runPromise((service) =>
+										service.upsertSubscription(payload.data),
+									);
 								},
 								onSubscriptionUpdated: async (payload) => {
-									await runBillingPromise((service) => service.upsertSubscription(payload.data));
+									await billingRuntime.runPromise((service) =>
+										service.upsertSubscription(payload.data),
+									);
 								},
 								onSubscriptionActive: async (payload) => {
-									await runBillingPromise((service) => service.upsertSubscription(payload.data));
+									await billingRuntime.runPromise((service) =>
+										service.upsertSubscription(payload.data),
+									);
 								},
 								onSubscriptionCanceled: async (payload) => {
-									await runBillingPromise((service) => service.upsertSubscription(payload.data));
+									await billingRuntime.runPromise((service) =>
+										service.upsertSubscription(payload.data),
+									);
 								},
 								onSubscriptionRevoked: async (payload) => {
-									await runBillingPromise((service) => service.upsertSubscription(payload.data));
+									await billingRuntime.runPromise((service) =>
+										service.upsertSubscription(payload.data),
+									);
 								},
 								onSubscriptionUncanceled: async (payload) => {
-									await runBillingPromise((service) => service.upsertSubscription(payload.data));
+									await billingRuntime.runPromise((service) =>
+										service.upsertSubscription(payload.data),
+									);
 								},
 							}),
 						],

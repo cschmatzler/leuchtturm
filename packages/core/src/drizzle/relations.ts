@@ -7,6 +7,10 @@ import {
 	billingSubscription,
 } from "@chevrotain/core/billing/billing.sql";
 import {
+	featureFlag,
+	featureFlagUserOverride,
+} from "@chevrotain/core/feature-flags/feature-flags.sql";
+import {
 	mailAccount,
 	mailAccountSecret,
 	mailAccountSyncState,
@@ -40,6 +44,8 @@ export const allRelations = defineRelationsPart(
 		billingCustomer,
 		billingSubscription,
 		billingOrder,
+		featureFlag,
+		featureFlagUserOverride,
 		mailAccount,
 		mailAccountSecret,
 		mailOAuthState,
@@ -76,6 +82,10 @@ export const allRelations = defineRelationsPart(
 				to: r.billingSubscription.userId,
 			}),
 			billingOrders: r.many.billingOrder({ from: r.user.id, to: r.billingOrder.userId }),
+			featureFlagOverrides: r.many.featureFlagUserOverride({
+				from: r.user.id,
+				to: r.featureFlagUserOverride.userId,
+			}),
 			mailAccounts: r.many.mailAccount({ from: r.user.id, to: r.mailAccount.userId }),
 			mailOAuthStates: r.many.mailOAuthState({
 				from: r.user.id,
@@ -129,6 +139,19 @@ export const allRelations = defineRelationsPart(
 				from: [r.billingOrder.subscriptionId, r.billingOrder.userId],
 				to: [r.billingSubscription.id, r.billingSubscription.userId],
 			}),
+		},
+		featureFlag: {
+			userOverrides: r.many.featureFlagUserOverride({
+				from: r.featureFlag.key,
+				to: r.featureFlagUserOverride.featureFlagKey,
+			}),
+		},
+		featureFlagUserOverride: {
+			flag: r.one.featureFlag({
+				from: r.featureFlagUserOverride.featureFlagKey,
+				to: r.featureFlag.key,
+			}),
+			user: r.one.user({ from: r.featureFlagUserOverride.userId, to: r.user.id }),
 		},
 
 		mailAccount: {

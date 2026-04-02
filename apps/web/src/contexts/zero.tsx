@@ -36,7 +36,11 @@ export function ZeroProvider({ session, children }: { session: SessionData; chil
 				router.invalidate();
 			}
 
-			await zero.preload(queries.currentUser()).complete;
+			await Promise.all([
+				zero.preload(queries.currentUser()).complete,
+				zero.preload(queries.featureFlags()).complete,
+				zero.preload(queries.currentUserFeatureFlagOverrides()).complete,
+			]);
 			setReady(true);
 		},
 		[router],
