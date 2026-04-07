@@ -22,6 +22,7 @@
 	languages.javascript.package = pkgs.nodejs_25;
 	languages.javascript.pnpm.enable = true;
 	languages.javascript.pnpm.package = pkgs.pnpm_10;
+	languages.javascript.bun.enable = true;
 	# Required for Zero native extension
 	languages.python.enable = true;
 	languages.cplusplus.enable = true;
@@ -37,11 +38,6 @@
 			};
 			settings = {
 				formatter = {
-					caddy = {
-						command = "caddy";
-						includes = ["*/Caddyfile"];
-						options = ["fmt" "--overwrite"];
-					};
 					vp-fmt = {
 						command = "vp";
 						includes = [
@@ -105,17 +101,12 @@
 		];
 	};
 
-	services.clickhouse = {
-		enable = true;
-		httpPort = 34602;
-		port = 34603;
-	};
-
 	# Environment
 	# -----------
 
 	env.CFLAGS = "-D_GNU_SOURCE";
 	env.PORT = "3005";
+	env.SST_BUN_PATH = "${config.languages.javascript.bun.package}/bin/bun";
 
 	# App
 	env.BASE_URL = "http://localhost:34600";
@@ -125,7 +116,6 @@
 
 	# Database
 	env.DATABASE_URL = "postgres://postgres:postgres@localhost:34601/chevrotain";
-	env.CLICKHOUSE_URL = "http://localhost:34602";
 
 	# Auth
 	env.BETTER_AUTH_SECRET = "alberta-germany-gallons-outright-intubate-sake-verity";

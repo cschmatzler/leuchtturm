@@ -4,6 +4,7 @@
 .direnv/
 .env.keys
 .tanstack/
+.sst/
 dist/
 node_modules/
 result

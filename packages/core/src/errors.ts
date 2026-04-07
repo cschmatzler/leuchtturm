@@ -45,12 +45,6 @@ export class NotFoundError extends Schema.TaggedErrorClass<NotFoundError>()(
 	{ httpApiStatus: 404 },
 ) {}
 
-export class RateLimitError extends Schema.TaggedErrorClass<RateLimitError>()(
-	"RateLimitError",
-	{ message: Schema.optional(Schema.String) },
-	{ httpApiStatus: 429 },
-) {}
-
 export class AuthServiceError extends Schema.TaggedErrorClass<AuthServiceError>()(
 	"AuthServiceError",
 	{ message: Schema.String },

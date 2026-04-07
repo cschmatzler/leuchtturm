@@ -3,10 +3,7 @@ import { Config as EffectConfig, Option, Schema } from "effect";
 export const Config = EffectConfig.all({
 	api: EffectConfig.all({
 		baseUrl: EffectConfig.string("BASE_URL"),
-		port: EffectConfig.number("PORT"),
-	}),
-	analytics: EffectConfig.all({
-		clickhouseUrl: EffectConfig.string("CLICKHOUSE_URL"),
+		port: EffectConfig.number("PORT").pipe(EffectConfig.withDefault(3005)),
 	}),
 	auth: EffectConfig.all({
 		authBaseUrl: EffectConfig.option(EffectConfig.string("AUTH_BASE_URL")),
@@ -25,9 +22,8 @@ export const Config = EffectConfig.all({
 		resendApiKey: EffectConfig.redacted("RESEND_API_KEY"),
 	}),
 }).pipe(
-	EffectConfig.map(({ api, analytics, auth, billing, email }) => ({
+	EffectConfig.map(({ api, auth, billing, email }) => ({
 		api,
-		analytics,
 		auth: {
 			...auth,
 			authBaseUrl: Option.getOrElse(auth.authBaseUrl, () => api.baseUrl),

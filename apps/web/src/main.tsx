@@ -4,19 +4,10 @@ import { RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
-import { trackPageView } from "@chevrotain/web/lib/analytics";
 import { createRouter, type RouterContext } from "@chevrotain/web/router";
 
 const queryClient = new QueryClient();
 const router = createRouter();
-
-router.subscribe("onResolved", (event) => {
-	if (!event.pathChanged && !event.hrefChanged) {
-		return;
-	}
-
-	trackPageView(event.toLocation.href, event.fromLocation?.href ?? "");
-});
 
 createRoot(document.getElementById("root")!).render(<Router />);
 

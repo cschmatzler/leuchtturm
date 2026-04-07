@@ -2,11 +2,9 @@ import { Schema } from "effect";
 import { HttpApi, HttpApiEndpoint, HttpApiGroup } from "effect/unstable/httpapi";
 
 import { AuthMiddleware } from "@chevrotain/api/middleware/auth";
-import { Error, Event } from "@chevrotain/core/analytics/schema";
 import {
 	AuthServiceError,
 	DatabaseError,
-	RateLimitError,
 	UnauthorizedError,
 	ValidationError,
 } from "@chevrotain/core/errors";
@@ -21,23 +19,6 @@ const healthGroup = HttpApiGroup.make("health").add(
 		success: SuccessResponse,
 	}),
 );
-
-const metricsGroup = HttpApiGroup.make("metrics").add(HttpApiEndpoint.get("metrics", "/metrics"));
-
-const analyticsGroup = HttpApiGroup.make("analytics")
-	.add(
-		HttpApiEndpoint.post("ingestEvents", "/t/e", {
-			payload: Schema.Struct({ events: Schema.Array(Event) }),
-			success: SuccessResponse,
-		}).middleware(AuthMiddleware),
-	)
-	.add(
-		HttpApiEndpoint.post("reportErrors", "/t/r", {
-			payload: Schema.Struct({ errors: Schema.Array(Error) }),
-			success: SuccessResponse,
-			error: RateLimitError,
-		}),
-	);
 
 const zeroGroup = HttpApiGroup.make("zero")
 	.add(HttpApiEndpoint.post("query", "/query", { error: ProtectedRouteError }))
@@ -87,12 +68,13 @@ const webhookGroup = HttpApiGroup.make("webhook").add(
 	}),
 );
 
+const webGroups = [mailGroup, webhookGroup] as const;
+const serverOnlyGroups = [healthGroup, zeroGroup, authGroup] as const;
+
 export class ChevrotainWebApi extends HttpApi.make("chevrotain-web")
-	.add(analyticsGroup)
-	.add(mailGroup)
-	.add(webhookGroup)
+	.add(...webGroups)
 	.prefix("/api") {}
 
 export class ChevrotainApi extends HttpApi.make("chevrotain")
-	.add(healthGroup, metricsGroup, analyticsGroup, zeroGroup, authGroup, mailGroup, webhookGroup)
+	.add(...serverOnlyGroups, ...webGroups)
 	.prefix("/api") {}

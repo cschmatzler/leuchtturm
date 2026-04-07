@@ -35,4 +35,25 @@ describe("request context middleware", () => {
 		expect(webResponse.headers.get("x-request-id")).toBe("req_from_proxy");
 		expect(webResponse.status).toBe(500);
 	});
+
+	it("keeps gateway request ids when the runtime has no peer address", async () => {
+		const request = HttpServerRequest.fromWeb(
+			new Request("http://example.com/api/query", {
+				headers: {
+					"x-request-id": "req_gateway_123",
+				},
+				method: "POST",
+			}),
+		);
+
+		const response = await Effect.runPromise(
+			RequestContextMiddleware(Effect.fail(new Error("boom"))).pipe(
+				Effect.provideService(HttpServerRequest.HttpServerRequest, request),
+			),
+		);
+		const webResponse = HttpServerResponse.toWeb(response);
+
+		expect(webResponse.headers.get("x-request-id")).toBe("req_gateway_123");
+		expect(webResponse.status).toBe(500);
+	});
 });
