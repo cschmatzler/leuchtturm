@@ -16,7 +16,7 @@ import { Tailwind } from "@react-email/tailwind";
 import { tailwindConfig } from "@chevrotain/email/tailwind";
 
 const preheaderText = "Reset your Chevrotain password.";
-const defaultFrom = "Chevrotain <no-reply@chevrotain.schmatzler.com>";
+const defaultFrom = "Chevrotain <no-reply@leuchtturm.dev>";
 const defaultSubject = "Reset your Chevrotain password";
 
 export interface PasswordResetEmailParams {

@@ -1,5 +1,6 @@
-import { Config, Effect, Layer, Redacted, Schema, ServiceMap } from "effect";
+import { Effect, Layer, Schema, ServiceMap } from "effect";
 import { randomBytes, createCipheriv, createDecipheriv } from "node:crypto";
+import { Resource } from "sst";
 
 const ALGORITHM = "aes-256-gcm" as const;
 const NONCE_LENGTH = 12;
@@ -75,9 +76,8 @@ export namespace MailEncryption {
 
 	export const layer = Layer.effect(Service)(
 		Effect.gen(function* () {
-			const kekHex = yield* Config.redacted("MAIL_KEK");
 			const kek = yield* Effect.try({
-				try: () => parseMailKek(Redacted.value(kekHex)),
+				try: () => parseMailKek(Resource.MailKek.value),
 				catch: (error) =>
 					new Error({
 						message: error instanceof globalThis.Error ? error.message : String(error),

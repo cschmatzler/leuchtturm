@@ -1,4 +1,4 @@
 {
 	"extends": "../../tsconfig.node.json",
-	"include": ["migrations", "src", "drizzle.config.ts"]
+	"include": ["migrations", "src", "drizzle.config.ts", "sst-env.d.ts"]
 }

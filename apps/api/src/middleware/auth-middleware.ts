@@ -10,7 +10,7 @@ export { AuthMiddleware, CurrentUser };
 const authHttpErrorResponse = (status: 401 | 500, tag: string, message: string) =>
 	HttpServerResponse.jsonUnsafe({ _tag: tag, message }, { status });
 
-export const applyHttpAuth = Effect.fn("auth.middleware.http")(function* <E, R>(
+const runHttpAuth = Effect.fn("auth.middleware.run")(function* <E, R>(
 	auth: Auth.Interface,
 	request: HttpServerRequest.HttpServerRequest,
 	httpApp: Effect.Effect<HttpServerResponse.HttpServerResponse, E, R>,
@@ -18,7 +18,7 @@ export const applyHttpAuth = Effect.fn("auth.middleware.http")(function* <E, R>(
 	// Pass headers directly instead of calling toWeb(), which would create a
 	// ReadableStream from the request body and prevent downstream handlers
 	// (e.g. Zero) from reading it.
-	const currentUserResult = yield* auth
+	const currentUser = yield* auth
 		.getSession(new Headers(request.headers as Record<string, string>))
 		.pipe(
 			Effect.mapError(
@@ -30,21 +30,8 @@ export const applyHttpAuth = Effect.fn("auth.middleware.http")(function* <E, R>(
 			Effect.withSpan("auth.session.lookup", {
 				attributes: { "auth.flow": "http" },
 			}),
-			Effect.match({
-				onFailure: (error) => ({ _tag: "error" as const, error }),
-				onSuccess: (currentUser) => ({ _tag: "success" as const, currentUser }),
-			}),
 		);
 
-	if (currentUserResult._tag === "error") {
-		return authHttpErrorResponse(
-			500,
-			currentUserResult.error._tag,
-			currentUserResult.error.message,
-		);
-	}
-
-	const currentUser = currentUserResult.currentUser;
 	if (!currentUser) {
 		yield* Effect.logWarning("Auth middleware rejected unauthenticated request");
 		return authHttpErrorResponse(401, "UnauthorizedError", "Unauthorized");
@@ -53,7 +40,20 @@ export const applyHttpAuth = Effect.fn("auth.middleware.http")(function* <E, R>(
 	return yield* httpApp.pipe(Effect.provideService(CurrentUser, currentUser));
 });
 
-export const AuthMiddlewareLive = Layer.effect(AuthMiddleware)(
+export const applyHttpAuth = Effect.fn("auth.middleware.http")(function* <E, R>(
+	auth: Auth.Interface,
+	request: HttpServerRequest.HttpServerRequest,
+	httpApp: Effect.Effect<HttpServerResponse.HttpServerResponse, E, R>,
+) {
+	return yield* runHttpAuth(auth, request, httpApp).pipe(
+		Effect.catchIf(
+			(error) => error instanceof AuthServiceError,
+			(error) => Effect.succeed(authHttpErrorResponse(500, error._tag, error.message)),
+		),
+	);
+});
+
+export const authMiddlewareLayer = Layer.effect(AuthMiddleware)(
 	Effect.gen(function* () {
 		const auth = yield* Auth.Service;
 

@@ -4,6 +4,7 @@ import type { Session, User } from "better-auth";
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { Loading } from "@chevrotain/web/components/app/loading";
+import { getSyncUrl } from "@chevrotain/web/runtime";
 import { mutators } from "@chevrotain/zero/mutators";
 import { queries } from "@chevrotain/zero/queries";
 import { schema, type Zero } from "@chevrotain/zero/schema";
@@ -49,7 +50,7 @@ export function ZeroProvider({ session, children }: { session: SessionData; chil
 	return (
 		<ZeroProviderPrimitive
 			schema={schema}
-			cacheURL={import.meta.env.VITE_SYNC_URL}
+			cacheURL={getSyncUrl()}
 			userID={userId}
 			context={context}
 			mutators={mutators}

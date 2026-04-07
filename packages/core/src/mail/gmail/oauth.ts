@@ -1,4 +1,5 @@
-import { Config, Effect, Layer, Redacted, Schema, ServiceMap } from "effect";
+import { Effect, Layer, Redacted, Schema, ServiceMap } from "effect";
+import { Resource } from "sst";
 
 const GMAIL_SCOPES = [
 	"https://www.googleapis.com/auth/gmail.readonly",
@@ -34,10 +35,10 @@ export namespace GmailOAuth {
 	export class Service extends ServiceMap.Service<Service, Interface>()("@chevrotain/GmailOAuth") {}
 
 	export const layer = Layer.effect(Service)(
-		Effect.gen(function* () {
-			const clientId = yield* Config.string("GMAIL_OAUTH_CLIENT_ID");
-			const clientSecret = yield* Config.redacted("GMAIL_OAUTH_CLIENT_SECRET");
-			const redirectUri = yield* Config.string("GMAIL_OAUTH_REDIRECT_URI");
+		Effect.sync(() => {
+			const clientId = Resource.GmailOauthClientId.value;
+			const clientSecret = Redacted.make(Resource.GmailOauthClientSecret.value);
+			const redirectUri = Resource.GmailOauthRedirectUri.value;
 
 			const exchangeToken = Effect.fn("GmailOAuth.exchangeToken")(function* (
 				body: URLSearchParams,

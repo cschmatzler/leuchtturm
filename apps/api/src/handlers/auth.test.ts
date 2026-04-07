@@ -3,7 +3,7 @@ import { HttpServerRequest, HttpServerResponse } from "effect/unstable/http";
 import { describe, expect, it } from "vite-plus/test";
 
 import { handleAuthPassthrough } from "@chevrotain/api/handlers/auth";
-import { applyHttpAuth } from "@chevrotain/api/middleware/auth-live";
+import { applyHttpAuth } from "@chevrotain/api/middleware/auth-middleware";
 import { Auth } from "@chevrotain/core/auth";
 
 const TEST_SESSION: Auth.SessionData = {

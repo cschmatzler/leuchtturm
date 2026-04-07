@@ -1,4 +1,3 @@
-import { Effect } from "effect";
 import { InboxIcon, PlusIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -19,12 +18,7 @@ export function MailAccountsCard() {
 	const [accounts] = useZeroQuery(queries.mailAccounts());
 
 	const handleConnectGmail = async () => {
-		const data = await Effect.runPromise(
-			Effect.gen(function* () {
-				const api = yield* apiClient;
-				return yield* api.mail.mailOAuthUrl();
-			}),
-		);
+		const data = await apiClient.mail.mailOAuthUrl();
 		window.location.href = data.url;
 	};
 

@@ -3,6 +3,6 @@ import { HttpApiBuilder } from "effect/unstable/httpapi";
 
 import { ChevrotainApi } from "@chevrotain/api/contract";
 
-export const HealthHandlerLive = HttpApiBuilder.group(ChevrotainApi, "health", (handlers) =>
-	handlers.handle("healthCheck", () => Effect.succeed({ success: true as const })),
+export const HealthHandler = HttpApiBuilder.group(ChevrotainApi, "health", (handlers) =>
+	handlers.handle("healthCheck", () => Effect.sync(() => ({ success: true as const }))),
 );

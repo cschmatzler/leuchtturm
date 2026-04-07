@@ -11,6 +11,9 @@ importers:
 
   .:
     devDependencies:
+      '@chevrotain/infra':
+        specifier: workspace:*
+        version: link:infra
       '@effect/eslint-plugin':
         specifier: ^0.3.2
         version: 0.3.2
@@ -47,13 +50,10 @@ importers:
       effect:
         specifier: 4.0.0-beta.34
         version: 4.0.0-beta.34
-      srvx:
-        specifier: ^0.11.15
-        version: 0.11.15
+      sst:
+        specifier: 4.6.11
+        version: 4.6.11
     devDependencies:
-      '@types/aws-lambda':
-        specifier: ^8.10.161
-        version: 8.10.161
       typescript:
         specifier: 6.0.2
         version: 6.0.2
@@ -214,6 +214,8 @@ importers:
       '@rocicorp/zero':
         specifier: 1.0.0
         version: 1.0.0(@opentelemetry/core@2.6.1(@opentelemetry/api@1.9.1))
+
+  infra: {}
 
   packages/core:
     dependencies:
@@ -3497,9 +3499,6 @@ packages:
   '@types/aws-lambda@8.10.152':
     resolution: {integrity: sha512-soT/c2gYBnT5ygwiHPmd9a1bftj462NWVk2tKCc1PYHSIacB2UwbTS2zYG4jzag1mRDuzg/OjtxQjQ2NKRB6Rw==}
 
-  '@types/aws-lambda@8.10.161':
-    resolution: {integrity: sha512-rUYdp+MQwSFocxIOcSsYSF3YYYC/uUpMbCY/mbO21vGqfrEYvNSoPyKYDj6RhXXpPfS0KstW9RwG3qXh9sL7FQ==}
-
   '@types/basic-auth@1.1.8':
     resolution: {integrity: sha512-dKcUeixGuZn8pBjcUrf1N7x5K6lWuKuwHHitM2IZ4vwZUDWEhhNtwCWiba8jTA9zn0GQQ+fTFkWpKx8pOU/enw==}
 
@@ -6141,11 +6140,6 @@ packages:
   sqlstring@2.3.3:
     resolution: {integrity: sha512-qC9iz2FlN7DQl3+wjwn3802RTyjCx7sDvfQEXchwa6CWOx07/WVfh91gBmQ9fahw8snwGEWU3xGzOt4tFyHLxg==}
     engines: {node: '>= 0.6'}
-
-  srvx@0.11.15:
-    resolution: {integrity: sha512-iXsux0UcOjdvs0LCMa2Ws3WwcDUozA3JN3BquNXkaFPP7TpRqgunKdEgoZ/uwb1J6xaYHfxtz9Twlh6yzwM6Tg==}
-    engines: {node: '>=20.16.0'}
-    hasBin: true
 
   sst-darwin-arm64@4.6.11:
     resolution: {integrity: sha512-FUnvogAL7iQYjcfF9Ne3YT9Ku0a8f3dd+5N/I4FP6PaqHYdHsOvS/tMU2xyokLuiZdbQ8kzh8JYZTCtZfbGe9A==}
@@ -9295,7 +9289,7 @@ snapshots:
     dependencies:
       react: 19.2.4
 
-  '@reduxjs/toolkit@2.11.2(react-redux@9.2.0(@types/react@19.2.14)(react@19.2.4)(redux@5.0.1))(react@19.2.4)':
+  '@reduxjs/toolkit@2.11.2(react-redux@9.2.0(@types/react@19.2.14)(react@19.2.4))(react@19.2.4)':
     dependencies:
       '@standard-schema/spec': 1.1.0
       '@standard-schema/utils': 0.3.0
@@ -9887,8 +9881,6 @@ snapshots:
   '@types/aria-query@5.0.4': {}
 
   '@types/aws-lambda@8.10.152': {}
-
-  '@types/aws-lambda@8.10.161': {}
 
   '@types/basic-auth@1.1.8':
     dependencies:
@@ -12291,7 +12283,7 @@ snapshots:
 
   recharts@3.8.1(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react-is@19.2.4)(react@19.2.4)(redux@5.0.1):
     dependencies:
-      '@reduxjs/toolkit': 2.11.2(react-redux@9.2.0(@types/react@19.2.14)(react@19.2.4)(redux@5.0.1))(react@19.2.4)
+      '@reduxjs/toolkit': 2.11.2(react-redux@9.2.0(@types/react@19.2.14)(react@19.2.4))(react@19.2.4)
       clsx: 2.1.1
       decimal.js-light: 2.5.1
       es-toolkit: 1.45.1
@@ -12535,8 +12527,6 @@ snapshots:
 
   sqlstring@2.3.3:
     optional: true
-
-  srvx@0.11.15: {}
 
   sst-darwin-arm64@4.6.11:
     optional: true

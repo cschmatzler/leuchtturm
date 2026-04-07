@@ -3,7 +3,8 @@ import { Polar } from "@polar-sh/sdk";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { multiSession } from "better-auth/plugins";
-import { Effect, Layer, Redacted, Schema, ServiceMap } from "effect";
+import { Effect, Layer, Schema, ServiceMap } from "effect";
+import { Resource } from "sst";
 import { ulid } from "ulid";
 
 import { account, session, user, verification } from "@chevrotain/core/auth/auth.sql";
@@ -17,9 +18,7 @@ import {
 } from "@chevrotain/core/auth/schema";
 import { Billing } from "@chevrotain/core/billing";
 import { POLAR_PRO_PRODUCT_ID, POLAR_PRO_PRODUCT_SLUG } from "@chevrotain/core/billing/products";
-import { Config } from "@chevrotain/core/config";
 import { Database } from "@chevrotain/core/drizzle";
-import { makeRuntime } from "@chevrotain/core/effect/run-service";
 import { Email } from "@chevrotain/core/email";
 import { sendPasswordResetEmail } from "@chevrotain/email/password-reset";
 
@@ -42,17 +41,61 @@ export namespace Auth {
 
 	export const layer = Layer.effect(Service)(
 		Effect.gen(function* () {
-			const config = yield* Config;
 			const { db } = yield* Database.Service;
-			const billingRuntime = makeRuntime(Billing.Service, Billing.defaultLayer);
-			const emailRuntime = makeRuntime(Email.Service, Email.defaultLayer);
+			const billing = yield* Billing.Service;
+			const email = yield* Email.Service;
+
+			const runCallback = <A, E>(effect: Effect.Effect<A, E>) => Effect.runPromise(effect);
+
+			const logWebhook = Effect.fn("Auth.logWebhook")(function* (type: string) {
+				yield* Effect.logInfo("Polar webhook received").pipe(Effect.annotateLogs("type", type));
+			});
+
+			const upsertCustomerState = Effect.fn("Auth.upsertCustomerState")(function* (payload: {
+				data: Parameters<Billing.Interface["upsertCustomerState"]>[0];
+			}) {
+				yield* billing.upsertCustomerState(payload.data);
+			});
+
+			const upsertOrder = Effect.fn("Auth.upsertOrder")(function* (payload: {
+				data: Parameters<Billing.Interface["upsertOrder"]>[0];
+			}) {
+				yield* billing.upsertOrder(payload.data);
+			});
+
+			const upsertSubscription = Effect.fn("Auth.upsertSubscription")(function* (payload: {
+				data: Parameters<Billing.Interface["upsertSubscription"]>[0];
+			}) {
+				yield* billing.upsertSubscription(payload.data);
+			});
+
+			const sendResetPassword = Effect.fn("Auth.sendResetPassword")(function* (params: {
+				readonly user: { readonly email: string; readonly name: string };
+				readonly url: string;
+			}) {
+				yield* Effect.tryPromise({
+					try: () =>
+						sendPasswordResetEmail({
+							email: params.user.email,
+							resetUrl: params.url,
+							send: (emailParams) => runCallback(email.send(emailParams)),
+							userName: params.user.name,
+						}),
+					catch: (error) =>
+						new Error({
+							message: `Failed to send password reset email: ${error instanceof globalThis.Error ? error.message : String(error)}`,
+						}),
+				});
+			});
+
 			const polarClient = new Polar({
-				accessToken: Redacted.value(config.billing.accessToken),
-				server: config.billing.server,
+				accessToken: Resource.PolarAccessToken.value,
+				server: Resource.ApiConfig.POLAR_SERVER as "production" | "sandbox",
 			});
 			const auth = betterAuth({
-				baseURL: `${config.auth.authBaseUrl}/api/auth`,
-				trustedOrigins: [config.api.baseUrl, config.auth.authBaseUrl],
+				baseURL: `${Resource.ApiConfig.BASE_URL}/api/auth`,
+				secret: Resource.BetterAuthSecret.value,
+				trustedOrigins: [Resource.ApiConfig.BASE_URL, Resource.ApiConfig.BASE_URL],
 				database: drizzleAdapter(db, {
 					provider: "pg",
 					schema: { account, session, user, verification },
@@ -60,13 +103,8 @@ export namespace Auth {
 				emailAndPassword: {
 					enabled: true,
 					minPasswordLength: PASSWORD_MIN_LENGTH,
-					sendResetPassword: async ({ user, url }, _request) =>
-						sendPasswordResetEmail({
-							email: user.email,
-							resetUrl: url,
-							send: (params) => emailRuntime.runPromise((service) => service.send(params)),
-							userName: user.name,
-						}),
+					sendResetPassword: ({ user, url }, _request) =>
+						runCallback(sendResetPassword({ user, url })),
 				},
 				user: {
 					additionalFields: {
@@ -79,8 +117,8 @@ export namespace Auth {
 				},
 				socialProviders: {
 					github: {
-						clientId: config.auth.githubClientId,
-						clientSecret: Redacted.value(config.auth.githubClientSecret),
+						clientId: Resource.GitHubClientId.value,
+						clientSecret: Resource.GitHubClientSecret.value,
 					},
 				},
 				plugins: [
@@ -96,69 +134,27 @@ export namespace Auth {
 										slug: POLAR_PRO_PRODUCT_SLUG,
 									},
 								],
-								successUrl: config.billing.successUrl,
-								returnUrl: `${config.api.baseUrl}/app/settings/billing`,
+								successUrl: Resource.PolarSuccessUrl.value,
+								returnUrl: `${Resource.ApiConfig.BASE_URL}/app/settings/billing`,
 								authenticatedUsersOnly: true,
 							}),
 							portal({
-								returnUrl: `${config.api.baseUrl}/app/settings/billing`,
+								returnUrl: `${Resource.ApiConfig.BASE_URL}/app/settings/billing`,
 							}),
 							webhooks({
-								secret: Redacted.value(config.billing.webhookSecret),
-								onPayload: async (payload) => {
-									await Effect.runPromise(
-										Effect.logInfo("Polar webhook received").pipe(
-											Effect.annotateLogs("type", payload.type),
-										),
-									);
-								},
-								onCustomerStateChanged: async (payload) => {
-									await billingRuntime.runPromise((service) =>
-										service.upsertCustomerState(payload.data),
-									);
-								},
-								onOrderCreated: async (payload) => {
-									await billingRuntime.runPromise((service) => service.upsertOrder(payload.data));
-								},
-								onOrderPaid: async (payload) => {
-									await billingRuntime.runPromise((service) => service.upsertOrder(payload.data));
-								},
-								onOrderRefunded: async (payload) => {
-									await billingRuntime.runPromise((service) => service.upsertOrder(payload.data));
-								},
-								onOrderUpdated: async (payload) => {
-									await billingRuntime.runPromise((service) => service.upsertOrder(payload.data));
-								},
-								onSubscriptionCreated: async (payload) => {
-									await billingRuntime.runPromise((service) =>
-										service.upsertSubscription(payload.data),
-									);
-								},
-								onSubscriptionUpdated: async (payload) => {
-									await billingRuntime.runPromise((service) =>
-										service.upsertSubscription(payload.data),
-									);
-								},
-								onSubscriptionActive: async (payload) => {
-									await billingRuntime.runPromise((service) =>
-										service.upsertSubscription(payload.data),
-									);
-								},
-								onSubscriptionCanceled: async (payload) => {
-									await billingRuntime.runPromise((service) =>
-										service.upsertSubscription(payload.data),
-									);
-								},
-								onSubscriptionRevoked: async (payload) => {
-									await billingRuntime.runPromise((service) =>
-										service.upsertSubscription(payload.data),
-									);
-								},
-								onSubscriptionUncanceled: async (payload) => {
-									await billingRuntime.runPromise((service) =>
-										service.upsertSubscription(payload.data),
-									);
-								},
+								secret: Resource.PolarWebhookSecret.value,
+								onPayload: (payload) => runCallback(logWebhook(payload.type)),
+								onCustomerStateChanged: (payload) => runCallback(upsertCustomerState(payload)),
+								onOrderCreated: (payload) => runCallback(upsertOrder(payload)),
+								onOrderPaid: (payload) => runCallback(upsertOrder(payload)),
+								onOrderRefunded: (payload) => runCallback(upsertOrder(payload)),
+								onOrderUpdated: (payload) => runCallback(upsertOrder(payload)),
+								onSubscriptionCreated: (payload) => runCallback(upsertSubscription(payload)),
+								onSubscriptionUpdated: (payload) => runCallback(upsertSubscription(payload)),
+								onSubscriptionActive: (payload) => runCallback(upsertSubscription(payload)),
+								onSubscriptionCanceled: (payload) => runCallback(upsertSubscription(payload)),
+								onSubscriptionRevoked: (payload) => runCallback(upsertSubscription(payload)),
+								onSubscriptionUncanceled: (payload) => runCallback(upsertSubscription(payload)),
 							}),
 						],
 					}),
@@ -172,7 +168,7 @@ export namespace Auth {
 				advanced: {
 					crossSubDomainCookies: {
 						enabled: true,
-						domain: new URL(config.api.baseUrl).hostname,
+						domain: new URL(Resource.ApiConfig.BASE_URL).hostname,
 					},
 					database: {
 						generateId: ({ model }) => {
@@ -230,5 +226,8 @@ export namespace Auth {
 		}),
 	);
 
-	export const defaultLayer = layer.pipe(Layer.provide(Database.defaultLayer));
+	export const defaultLayer = Layer.provide(
+		layer,
+		Layer.mergeAll(Billing.defaultLayer, Email.defaultLayer),
+	);
 }

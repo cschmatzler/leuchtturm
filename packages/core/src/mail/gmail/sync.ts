@@ -283,16 +283,22 @@ function bootstrapAccount(db: Db, accountId: string, accessToken: string, topicN
 		);
 	}).pipe(
 		Effect.tapError((error) =>
-			Effect.tryPromise(() =>
-				db
-					.update(mailAccount)
-					.set({
-						status: "degraded",
-						lastErrorCode: "bootstrap_failed",
-						lastErrorMessage: error instanceof Error ? error.message : String(error),
-						degradedReason: "Bootstrap sync failed",
-					})
-					.where(eq(mailAccount.id, accountId)),
+			Effect.catch(
+				Effect.tryPromise(() =>
+					db
+						.update(mailAccount)
+						.set({
+							status: "degraded",
+							lastErrorCode: "bootstrap_failed",
+							lastErrorMessage: error instanceof Error ? error.message : String(error),
+							degradedReason: "Bootstrap sync failed",
+						})
+						.where(eq(mailAccount.id, accountId)),
+				),
+				(statusError) =>
+					Effect.logWarning(
+						`Failed to persist degraded bootstrap status for ${accountId}: ${statusError instanceof Error ? statusError.message : String(statusError)}`,
+					),
 			),
 		),
 	);

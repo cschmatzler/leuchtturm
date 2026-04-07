@@ -1,8 +1,11 @@
-import { Config, Effect, Layer, Schema } from "effect";
+import { Effect, Layer, Schema } from "effect";
+import { HttpServer } from "effect/unstable/http";
 import { Workflow } from "effect/unstable/workflow";
+import { Resource } from "sst";
 
 import { Database } from "@chevrotain/core/drizzle";
 import { MailEncryption } from "@chevrotain/core/mail/encryption";
+import { GmailApiError } from "@chevrotain/core/mail/gmail/adapter";
 import { GmailOAuth } from "@chevrotain/core/mail/gmail/oauth";
 import { bootstrapGmailAccount, syncGmailDelta } from "@chevrotain/core/mail/gmail/sync";
 import {
@@ -37,9 +40,9 @@ const DeltaWorkflow = Workflow.make({
 	error: Schema.String,
 });
 
-const BootstrapWorkflowLive = Layer.unwrap(
-	Effect.gen(function* () {
-		const topicName = yield* Config.string("GMAIL_PUBSUB_TOPIC");
+const BootstrapWorkflowLayer = Layer.unwrap(
+	Effect.sync(() => {
+		const topicName = Resource.GmailPubSubTopic.value;
 
 		return BootstrapWorkflow.toLayer(({ accountId, accessToken }) =>
 			Effect.gen(function* () {
@@ -50,9 +53,9 @@ const BootstrapWorkflowLive = Layer.unwrap(
 	}),
 );
 
-const DeltaWorkflowLive = Layer.unwrap(
-	Effect.gen(function* () {
-		const topicName = yield* Config.string("GMAIL_PUBSUB_TOPIC");
+const DeltaWorkflowLayer = Layer.unwrap(
+	Effect.sync(() => {
+		const topicName = Resource.GmailPubSubTopic.value;
 
 		return DeltaWorkflow.toLayer(({ accountId }) =>
 			Effect.gen(function* () {
@@ -60,7 +63,7 @@ const DeltaWorkflowLive = Layer.unwrap(
 
 				yield* Effect.catch(syncGmailDelta(accountId, token, topicName), (error) =>
 					Effect.gen(function* () {
-						if (!(error instanceof Error && error.message.includes("Gmail API error 401:"))) {
+						if (!(error instanceof GmailApiError && error.status === 401)) {
 							return yield* Effect.fail(error);
 						}
 						const refreshed = yield* refreshStoredToken(accountId);
@@ -74,9 +77,13 @@ const DeltaWorkflowLive = Layer.unwrap(
 
 export const Gmail = {
 	BootstrapWorkflow,
-	BootstrapWorkflowLive,
+	BootstrapWorkflowLayer,
 	DeltaWorkflow,
-	DeltaWorkflowLive,
+	DeltaWorkflowLayer,
+	layer: Layer.merge(
+		BootstrapWorkflowLayer,
+		Layer.merge(DeltaWorkflowLayer, HttpServer.layerServices),
+	),
 } as const;
 
 function resolveAccessToken(accountId: string) {

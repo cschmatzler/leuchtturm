@@ -3,9 +3,10 @@ import { FetchHttpClient } from "effect/unstable/http";
 import { HttpApiClient } from "effect/unstable/httpapi";
 
 import { ChevrotainWebApi } from "@chevrotain/api/contract";
+import { getApiBaseUrl } from "@chevrotain/web/runtime";
 
-export const apiClient = HttpApiClient.make(ChevrotainWebApi, {
-	baseUrl: import.meta.env.VITE_API_URL,
+const effectApiClient = HttpApiClient.make(ChevrotainWebApi, {
+	baseUrl: getApiBaseUrl(),
 }).pipe(
 	Effect.scoped,
 	Effect.provide(
@@ -18,3 +19,19 @@ export const apiClient = HttpApiClient.make(ChevrotainWebApi, {
 		),
 	),
 );
+
+const createApiClient = () => Effect.runPromise(effectApiClient);
+
+type ApiClient = Awaited<ReturnType<typeof createApiClient>>;
+
+async function runApi<A, E>(fn: (api: ApiClient) => Effect.Effect<A, E, never>) {
+	return Effect.runPromise(effectApiClient.pipe(Effect.flatMap(fn)));
+}
+
+export const apiClient = {
+	mail: {
+		mailOAuthUrl: () => runApi((api) => api.mail.mailOAuthUrl()),
+		mailOAuthCallback: (...args: Parameters<ApiClient["mail"]["mailOAuthCallback"]>) =>
+			runApi((api) => api.mail.mailOAuthCallback(...args)),
+	},
+};

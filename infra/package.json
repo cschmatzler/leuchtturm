@@ -1,0 +1,8 @@
+{
+	"name": "@chevrotain/infra",
+	"private": true,
+	"type": "module",
+	"exports": {
+		"./*": "./*.ts"
+	}
+}

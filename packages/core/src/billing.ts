@@ -3,7 +3,8 @@ import type { CustomerState } from "@polar-sh/sdk/models/components/customerstat
 import type { Order } from "@polar-sh/sdk/models/components/order";
 import type { Subscription } from "@polar-sh/sdk/models/components/subscription";
 import { eq } from "drizzle-orm";
-import { Effect, Layer, Redacted, Schema, ServiceMap } from "effect";
+import { Effect, Layer, Schema, ServiceMap } from "effect";
+import { Resource } from "sst";
 
 import { user } from "@chevrotain/core/auth/auth.sql";
 import {
@@ -16,7 +17,6 @@ import {
 	BillingOrderSnapshot,
 	BillingSubscriptionSnapshot,
 } from "@chevrotain/core/billing/schema";
-import { Config } from "@chevrotain/core/config";
 import { Database } from "@chevrotain/core/drizzle";
 
 export namespace Billing {
@@ -36,11 +36,10 @@ export namespace Billing {
 
 	export const layer = Layer.effect(Service)(
 		Effect.gen(function* () {
-			const config = yield* Config;
 			const { db } = yield* Database.Service;
 			const polarClient = new Polar({
-				accessToken: Redacted.value(config.billing.accessToken),
-				server: config.billing.server,
+				accessToken: Resource.PolarAccessToken.value,
+				server: Resource.ApiConfig.POLAR_SERVER as "production" | "sandbox",
 			});
 
 			function buildSubscriptionSnapshot(values: Record<string, unknown>) {
@@ -355,5 +354,5 @@ export namespace Billing {
 		}),
 	);
 
-	export const defaultLayer = layer.pipe(Layer.provide(Database.defaultLayer));
+	export const defaultLayer = layer;
 }

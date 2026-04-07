@@ -1,8 +1,8 @@
-import { Effect, Layer, Redacted, Schema, ServiceMap } from "effect";
+import { Effect, Layer, Schema, ServiceMap } from "effect";
 import type { CreateEmailResponseSuccess } from "resend";
 import { Resend } from "resend";
+import { Resource } from "sst";
 
-import { Config } from "@chevrotain/core/config";
 import type { SendParams } from "@chevrotain/core/email/schema";
 
 export namespace Email {
@@ -20,8 +20,7 @@ export namespace Email {
 
 	export const layer = Layer.effect(Service)(
 		Effect.gen(function* () {
-			const config = yield* Config;
-			const resend = new Resend(Redacted.value(config.email.resendApiKey));
+			const resend = new Resend(Resource.ResendApiKey.value);
 
 			yield* Effect.logInfo("Email initialized");
 

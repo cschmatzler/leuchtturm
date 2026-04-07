@@ -12,6 +12,20 @@ import type { FeatureFlag } from "@chevrotain/core/feature-flags/schema";
 export namespace FeatureFlags {
 	export type FlagLike = Pick<FeatureFlag, "key" | "rolloutPercentage">;
 
+	export interface Evaluator {
+		readonly getRolloutBucket: (key: string, userId: string) => number;
+		readonly evaluate: (options: {
+			readonly userId: string;
+			readonly flag: FlagLike | undefined;
+			readonly userOverride?: UserOverrideLike | undefined;
+		}) => boolean;
+		readonly evaluateMany: (options: {
+			readonly userId: string;
+			readonly flags: readonly FlagLike[];
+			readonly userOverrides?: readonly UserOverrideLike[];
+		}) => Record<string, boolean>;
+	}
+
 	export interface UserOverrideLike {
 		readonly featureFlagKey: string;
 		readonly userId: string;
@@ -24,18 +38,7 @@ export namespace FeatureFlags {
 		{ httpApiStatus: 500 },
 	) {}
 
-	export interface Interface {
-		readonly getRolloutBucket: (key: string, userId: string) => number;
-		readonly evaluate: (options: {
-			readonly userId: string;
-			readonly flag: FlagLike | undefined;
-			readonly userOverride?: UserOverrideLike | undefined;
-		}) => boolean;
-		readonly evaluateMany: (options: {
-			readonly userId: string;
-			readonly flags: readonly FlagLike[];
-			readonly userOverrides?: readonly UserOverrideLike[];
-		}) => Record<string, boolean>;
+	export interface Interface extends Evaluator {
 		readonly isEnabled: (key: string, userId: string) => Effect.Effect<boolean, Error>;
 		readonly listForUser: (userId: string) => Effect.Effect<Record<string, boolean>, Error>;
 	}
@@ -44,7 +47,7 @@ export namespace FeatureFlags {
 		"@chevrotain/FeatureFlags",
 	) {}
 
-	const make = (db?: Database.Executor): Interface => {
+	const makeEvaluator = (): Evaluator => {
 		const getRolloutBucket = (key: string, userId: string): number => {
 			let hash = 2_166_136_261;
 
@@ -84,16 +87,17 @@ export namespace FeatureFlags {
 			);
 		};
 
-		const databaseUnavailable = <A>(): Effect.Effect<A, Error> =>
-			Effect.fail(
-				new Error({
-					message: "FeatureFlags database access is unavailable in this runtime",
-				}),
-			);
+		return {
+			getRolloutBucket,
+			evaluate,
+			evaluateMany,
+		};
+	};
+
+	const make = (db: Database.Executor): Interface => {
+		const evaluator = makeEvaluator();
 
 		const isEnabled: Interface["isEnabled"] = (key, userId) => {
-			if (!db) return databaseUnavailable();
-
 			return Effect.gen(function* () {
 				const [flag, userOverride] = yield* Effect.tryPromise({
 					try: () =>
@@ -104,7 +108,7 @@ export namespace FeatureFlags {
 						}),
 				});
 
-				return evaluate({
+				return evaluator.evaluate({
 					userId,
 					flag,
 					userOverride,
@@ -113,8 +117,6 @@ export namespace FeatureFlags {
 		};
 
 		const listForUser: Interface["listForUser"] = (userId) => {
-			if (!db) return databaseUnavailable();
-
 			return Effect.gen(function* () {
 				const [flags, userOverrides] = yield* Effect.tryPromise({
 					try: () =>
@@ -125,7 +127,7 @@ export namespace FeatureFlags {
 						}),
 				});
 
-				return evaluateMany({
+				return evaluator.evaluateMany({
 					userId,
 					flags,
 					userOverrides,
@@ -134,15 +136,13 @@ export namespace FeatureFlags {
 		};
 
 		return {
-			getRolloutBucket,
-			evaluate,
-			evaluateMany,
+			...evaluator,
 			isEnabled,
 			listForUser,
 		};
 	};
 
-	export const pureLayer = Layer.succeed(Service)(make());
+	export const logic = makeEvaluator();
 
 	export const layer = Layer.effect(Service)(
 		Effect.gen(function* () {
@@ -152,5 +152,5 @@ export namespace FeatureFlags {
 		}),
 	);
 
-	export const defaultLayer = layer.pipe(Layer.provide(Database.defaultLayer));
+	export const defaultLayer = layer;
 }

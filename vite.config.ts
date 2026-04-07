@@ -3,6 +3,7 @@ import { defineConfig } from "vite-plus";
 export default defineConfig({
 	fmt: {
 		$schema: "./node_modules/oxfmt/configuration_schema.json",
+		ignorePatterns: ["**/*.gen.ts", "**/sst-env.d.ts"],
 		useTabs: true,
 		experimentalSortImports: {
 			internalPattern: ["@chevrotain/"],
@@ -18,6 +19,7 @@ export default defineConfig({
 		},
 		jsPlugins: [
 			"./packages/oxlint-plugins/src/no-direct-fetch.ts",
+			"./packages/oxlint-plugins/src/no-live-suffix.ts",
 			"./packages/oxlint-plugins/src/no-process-env.ts",
 			"./packages/oxlint-plugins/src/no-relative-imports.ts",
 			"./packages/oxlint-plugins/src/no-row-suffix.ts",
@@ -28,10 +30,12 @@ export default defineConfig({
 			"**/node_modules/**",
 			"**/dist/**",
 			"**/*.gen.ts",
+			"**/sst-env.d.ts",
 			".opencode/**",
 			"packages/oxlint-plugins/**",
 		],
 		rules: {
+			"no-live-suffix/no-live-suffix": "error",
 			"no-process-env/no-process-env": "error",
 			"no-relative-imports/no-relative-imports": "error",
 			"no-row-suffix/no-row-suffix": "error",

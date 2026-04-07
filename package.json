@@ -2,11 +2,13 @@
 	"name": "chevrotain",
 	"private": true,
 	"workspaces": [
+		"infra",
 		"apps/*",
 		"packages/*"
 	],
 	"type": "module",
 	"devDependencies": {
+		"@chevrotain/infra": "workspace:*",
 		"@effect/eslint-plugin": "^0.3.2",
 		"@effect/language-service": "^0.84.2",
 		"@types/node": "25.5.0",

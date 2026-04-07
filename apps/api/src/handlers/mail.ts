@@ -38,7 +38,7 @@ function toDatabaseError(context: string, error: unknown) {
 // Handler implementation
 // ---------------------------------------------------------------------------
 
-export const MailHandlerLive = HttpApiBuilder.group(ChevrotainApi, "mail", (handlers) =>
+export const MailHandler = HttpApiBuilder.group(ChevrotainApi, "mail", (handlers) =>
 	handlers
 		// -------------------------------------------------------------------
 		// GET /api/mail/oauth/url
@@ -189,7 +189,7 @@ export const MailHandlerLive = HttpApiBuilder.group(ChevrotainApi, "mail", (hand
 // Webhook handler (no auth — receives Google Pub/Sub push notifications)
 // ---------------------------------------------------------------------------
 
-export const WebhookHandlerLive = HttpApiBuilder.group(ChevrotainApi, "webhook", (handlers) =>
+export const WebhookHandler = HttpApiBuilder.group(ChevrotainApi, "webhook", (handlers) =>
 	handlers.handle(
 		"gmailPush",
 		Effect.fn("webhook.gmailPush")(function* ({ payload }) {

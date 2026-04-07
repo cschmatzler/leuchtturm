@@ -11,5 +11,5 @@
 		"moduleResolution": "nodenext",
 		"types": ["node"]
 	},
-	"include": ["scripts/**/*"]
+	"include": ["scripts/**/*", "infra/**/*", "sst.config.ts", ".sst/platform/config.d.ts"]
 }

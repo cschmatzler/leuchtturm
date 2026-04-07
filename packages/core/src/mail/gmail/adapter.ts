@@ -40,6 +40,16 @@ export interface GmailProviderHistoryChange {
 
 const GMAIL_API_BASE = "https://gmail.googleapis.com/gmail/v1/users/me";
 
+export class GmailApiError extends Error {
+	constructor(
+		readonly status: number,
+		readonly body: string,
+	) {
+		super(`Gmail API error ${status}: ${body}`);
+		this.name = "GmailApiError";
+	}
+}
+
 interface GmailLabel {
 	id: string;
 	name: string;
@@ -233,7 +243,7 @@ export class GmailAdapter implements MailProviderAdapter {
 		const response = await fetch(url.toString(), init);
 		if (!response.ok) {
 			const text = await response.text();
-			throw new Error(`Gmail API error ${response.status}: ${text}`);
+			throw new GmailApiError(response.status, text);
 		}
 
 		return response.json() as Promise<T>;
