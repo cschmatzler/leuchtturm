@@ -1,5 +1,5 @@
 {
-	"name": "@chevrotain/oxlint-plugins",
+	"name": "@leuchtturm/oxlint-plugins",
 	"private": true,
 	"type": "module",
 	"exports": {

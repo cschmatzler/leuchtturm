@@ -1,5 +1,5 @@
 {
-	"name": "chevrotain",
+	"name": "leuchtturm",
 	"private": true,
 	"workspaces": [
 		"infra",
@@ -8,14 +8,12 @@
 	],
 	"type": "module",
 	"devDependencies": {
-		"@chevrotain/infra": "workspace:*",
-		"@effect/eslint-plugin": "^0.3.2",
-		"@effect/language-service": "^0.84.2",
-		"@types/node": "25.5.0",
-		"@typescript-eslint/utils": "^8.58.0",
-		"sst": "4.6.11",
+		"@effect/language-service": "^0.85.1",
+		"@leuchtturm/infra": "workspace:*",
+		"@types/node": "25.6.0",
+		"sst": "4.7.1",
 		"typescript": "6.0.2",
-		"vite-plus": "0.1.15"
+		"vite-plus": "0.1.16"
 	},
 	"engines": {
 		"node": ">=25.0.0"

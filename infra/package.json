@@ -1,8 +1,11 @@
 {
-	"name": "@chevrotain/infra",
+	"name": "@leuchtturm/infra",
 	"private": true,
 	"type": "module",
 	"exports": {
 		"./*": "./*.ts"
+	},
+	"dependencies": {
+		"@pulumi/pulumi": "^3.230.0"
 	}
 }

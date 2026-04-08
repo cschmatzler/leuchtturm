@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from "react";
 
-import type { Action } from "@chevrotain/web/contexts/command-bar";
-import { useCommandBar } from "@chevrotain/web/hooks/use-command-bar";
+import type { Action } from "@leuchtturm/web/contexts/command-bar";
+import { useCommandBar } from "@leuchtturm/web/hooks/use-command-bar";
 
 export function useCommandProvider(
 	name: string,

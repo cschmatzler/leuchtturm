@@ -1,11 +1,9 @@
-import { polarClient } from "@polar-sh/better-auth";
+import { polarClient } from "@polar-sh/better-auth/client";
 import { multiSessionClient } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 
-import { getApiBaseUrl } from "@chevrotain/web/runtime";
-
 export const authClient = createAuthClient({
-	baseURL: `${getApiBaseUrl()}/api/auth`,
+	baseURL: `${location.origin}/api/auth`,
 	fetchOptions: {
 		credentials: "include",
 	},

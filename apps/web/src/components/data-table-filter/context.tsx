@@ -4,7 +4,7 @@ import type {
 	Column,
 	DataTableFilterActions,
 	FiltersState,
-} from "@chevrotain/web/components/data-table-filter/types";
+} from "@leuchtturm/web/components/data-table-filter/types";
 
 type DataTableFilterContextValue = {
 	filterColumns: Column<unknown>[];

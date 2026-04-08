@@ -2,11 +2,10 @@ import { Effect, Layer } from "effect";
 import { FetchHttpClient } from "effect/unstable/http";
 import { HttpApiClient } from "effect/unstable/httpapi";
 
-import { ChevrotainWebApi } from "@chevrotain/api/contract";
-import { getApiBaseUrl } from "@chevrotain/web/runtime";
+import { LeuchtturmApi } from "@leuchtturm/api/contract";
 
-const effectApiClient = HttpApiClient.make(ChevrotainWebApi, {
-	baseUrl: getApiBaseUrl(),
+const effectApiClient = HttpApiClient.make(LeuchtturmApi, {
+	baseUrl: location.origin,
 }).pipe(
 	Effect.scoped,
 	Effect.provide(

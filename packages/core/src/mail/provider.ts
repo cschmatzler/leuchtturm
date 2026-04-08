@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 
-import { EmailAddress, MailFolderKind, MailLabelKind } from "@chevrotain/core/mail/schema";
+import { EmailAddress, MailFolderKind, MailLabelKind } from "@leuchtturm/core/mail/schema";
 
 export const ProviderEmailAddress = EmailAddress;
 export type ProviderEmailAddress = typeof ProviderEmailAddress.Type;

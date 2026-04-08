@@ -1,10 +1,10 @@
-import "@chevrotain/web/index.css";
+import "@leuchtturm/web/index.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
-import { createRouter, type RouterContext } from "@chevrotain/web/router";
+import { createRouter, type RouterContext } from "@leuchtturm/web/router";
 
 const queryClient = new QueryClient();
 const router = createRouter();

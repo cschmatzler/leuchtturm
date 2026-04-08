@@ -1,6 +1,6 @@
 import type { ComponentProps } from "react";
 
-import { cn } from "@chevrotain/web/lib/cn";
+import { cn } from "@leuchtturm/web/lib/cn";
 
 function Textarea({ className, ...props }: ComponentProps<"textarea">) {
 	return (

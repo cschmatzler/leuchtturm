@@ -3,18 +3,18 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ExternalLinkIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { POLAR_PRO_PRODUCT_SLUG } from "@chevrotain/core/billing/products";
-import { authClient } from "@chevrotain/web/clients/auth";
-import { Button } from "@chevrotain/web/components/ui/button";
+import { POLAR_PRO_PRODUCT_SLUG } from "@leuchtturm/core/billing/products";
+import { authClient } from "@leuchtturm/web/clients/auth";
+import { Button } from "@leuchtturm/web/components/ui/button";
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle,
-} from "@chevrotain/web/components/ui/card";
-import { reportUiError } from "@chevrotain/web/lib/report-ui-error";
-import { customerStateQuery } from "@chevrotain/web/queries/billing";
+} from "@leuchtturm/web/components/ui/card";
+import { reportUiError } from "@leuchtturm/web/lib/report-ui-error";
+import { customerStateQuery } from "@leuchtturm/web/queries/billing";
 
 export const Route = createFileRoute("/_app/settings/billing")({
 	component: Page,
@@ -66,7 +66,7 @@ function Page() {
 
 			<Card className="gap-0 overflow-hidden p-0">
 				<CardHeader className="px-6 py-5">
-					<CardTitle className="text-base">{t("Chevrotain Pro")}</CardTitle>
+					<CardTitle className="text-base">{t("Leuchtturm Pro")}</CardTitle>
 					<CardDescription>{accessMessage}</CardDescription>
 				</CardHeader>
 				<CardContent className="border-t border-border px-6 py-5">

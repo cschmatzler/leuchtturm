@@ -10,7 +10,7 @@ import {
 	timestamp,
 } from "drizzle-orm/pg-core";
 
-import { user } from "@chevrotain/core/auth/auth.sql";
+import { user } from "@leuchtturm/core/auth/auth.sql";
 
 export const featureFlag = pgTable(
 	"feature_flag",

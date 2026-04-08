@@ -1,6 +1,6 @@
-import { ChartContainer, type ChartConfig } from "@chevrotain/web/components/ui/chart";
-import { RechartsBoundary, useRechartsModule } from "@chevrotain/web/components/ui/recharts";
-import { cn } from "@chevrotain/web/lib/cn";
+import { ChartContainer, type ChartConfig } from "@leuchtturm/web/components/ui/chart";
+import { RechartsBoundary, useRechartsModule } from "@leuchtturm/web/components/ui/recharts";
+import { cn } from "@leuchtturm/web/lib/cn";
 
 type SparklineProps = {
 	data: { value: number | null }[];

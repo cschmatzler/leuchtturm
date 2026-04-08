@@ -2,9 +2,9 @@ import { Effect } from "effect";
 import { HttpServerRequest, HttpServerResponse } from "effect/unstable/http";
 import { describe, expect, it } from "vite-plus/test";
 
-import { handleAuthPassthrough } from "@chevrotain/api/handlers/auth";
-import { applyHttpAuth } from "@chevrotain/api/middleware/auth-middleware";
-import { Auth } from "@chevrotain/core/auth";
+import { AuthMiddlewareServer } from "@leuchtturm/api/auth/http-auth-server";
+import { AuthHandler } from "@leuchtturm/api/handlers/auth";
+import { Auth } from "@leuchtturm/core/auth";
 
 const TEST_SESSION: Auth.SessionData = {
 	user: {
@@ -34,7 +34,7 @@ const AuthMock: Auth.Interface = {
 		switch (request.headers.get("x-auth-mode")) {
 			case "error":
 				return Effect.fail(
-					new Auth.Error({
+					new Auth.AuthError({
 						message: "auth backend unavailable",
 					}),
 				);
@@ -52,6 +52,14 @@ const AuthMock: Auth.Interface = {
 						},
 					),
 				);
+			case "read-json":
+				return Effect.promise(async () => {
+					const payload = (await request.json()) as { email: string };
+					return new Response(payload.email, {
+						headers: { "content-type": "text/plain" },
+						status: 200,
+					});
+				}) as never;
 			default:
 				return Effect.succeed(
 					new Response("ok", {
@@ -65,7 +73,7 @@ const AuthMock: Auth.Interface = {
 		switch (headers.get("x-session-mode")) {
 			case "error":
 				return Effect.fail(
-					new Auth.Error({
+					new Auth.AuthError({
 						message: "session store unavailable",
 					}),
 				);
@@ -80,9 +88,11 @@ const AuthMock: Auth.Interface = {
 const okResponse = Effect.succeed(HttpServerResponse.text("ok"));
 
 async function runResponse(
-	effect: Effect.Effect<HttpServerResponse.HttpServerResponse, never, never>,
+	effect: Effect.Effect<HttpServerResponse.HttpServerResponse, never, unknown>,
 ) {
-	const response = await Effect.runPromise(effect);
+	const response = await Effect.runPromise(
+		effect as Effect.Effect<HttpServerResponse.HttpServerResponse, never, never>,
+	);
 	return HttpServerResponse.toWeb(response);
 }
 
@@ -95,7 +105,7 @@ describe("auth handlers", () => {
 			}),
 		);
 
-		const response = await runResponse(applyHttpAuth(AuthMock, request, okResponse));
+		const response = await runResponse(AuthMiddlewareServer.apply(AuthMock, request, okResponse));
 
 		expect(response.status).toBe(500);
 		expect(await response.text()).toContain("AuthServiceError");
@@ -109,7 +119,7 @@ describe("auth handlers", () => {
 			}),
 		);
 
-		const response = await runResponse(applyHttpAuth(AuthMock, request, okResponse));
+		const response = await runResponse(AuthMiddlewareServer.apply(AuthMock, request, okResponse));
 
 		expect(response.status).toBe(401);
 		expect(await response.text()).toContain("UnauthorizedError");
@@ -122,7 +132,7 @@ describe("auth handlers", () => {
 			}),
 		);
 
-		const response = await runResponse(handleAuthPassthrough(AuthMock, request));
+		const response = await runResponse(AuthHandler.handlePassthrough(AuthMock, request));
 
 		expect(response.status).toBe(500);
 		expect(await response.text()).toContain("AuthServiceError");
@@ -135,9 +145,45 @@ describe("auth handlers", () => {
 			}),
 		);
 
-		const response = await runResponse(handleAuthPassthrough(AuthMock, request));
+		const response = await runResponse(AuthHandler.handlePassthrough(AuthMock, request));
 
 		expect(response.status).toBe(500);
 		expect(await response.text()).toContain("AuthServiceError");
+	});
+
+	it("passes Better Auth the original source request", async () => {
+		const sourceRequest = new Request("http://example.com/api/auth/sign-up/email", {
+			body: JSON.stringify({ email: "test@example.com" }),
+			headers: {
+				"content-type": "application/json",
+				"x-auth-mode": "read-json",
+			},
+			method: "POST",
+		});
+		const request = HttpServerRequest.fromWeb(sourceRequest);
+		const auth: Auth.Interface = {
+			handle: (incomingRequest) =>
+				Effect.tryPromise({
+					try: async () => {
+						expect(incomingRequest).toBe(sourceRequest);
+						const payload = (await incomingRequest.json()) as { email: string };
+						return new Response(payload.email, {
+							headers: { "content-type": "text/plain" },
+							status: 200,
+						});
+					},
+					catch: (error) =>
+						new Auth.AuthError({
+							message: error instanceof Error ? error.message : String(error),
+						}),
+				}),
+			getSession: AuthMock.getSession,
+		};
+
+		const response = await runResponse(AuthHandler.handlePassthrough(auth, request));
+
+		expect(response.status).toBe(200);
+		expect(await response.text()).toBe("test@example.com");
+		expect(sourceRequest.bodyUsed).toBe(true);
 	});
 });

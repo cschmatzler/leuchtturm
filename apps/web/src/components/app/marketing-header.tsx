@@ -2,10 +2,10 @@ import { Link } from "@tanstack/react-router";
 import { MailIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { Button } from "@chevrotain/web/components/ui/button";
-import { cn } from "@chevrotain/web/lib/cn";
-import { useReactQuery } from "@chevrotain/web/lib/query";
-import { sessionQuery } from "@chevrotain/web/queries/session";
+import { Button } from "@leuchtturm/web/components/ui/button";
+import { cn } from "@leuchtturm/web/lib/cn";
+import { useReactQuery } from "@leuchtturm/web/lib/query";
+import { sessionQuery } from "@leuchtturm/web/queries/session";
 
 type MarketingHeaderProps = {
 	variant?: "default" | "hero";
@@ -42,7 +42,7 @@ export function MarketingHeader({ variant = "default" }: MarketingHeaderProps) {
 							className={cn(variant === "default" && "size-4", variant === "hero" && "size-4")}
 						/>
 					</div>
-					<span className="text-base font-semibold">Chevrotain</span>
+					<span className="text-base font-semibold">Leuchtturm</span>
 				</Link>
 				{!isLoading && (
 					<div className="flex items-center gap-2">

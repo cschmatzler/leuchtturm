@@ -1,17 +1,17 @@
 import { InboxIcon, PlusIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { apiClient } from "@chevrotain/web/clients/api";
-import { Button } from "@chevrotain/web/components/ui/button";
+import { apiClient } from "@leuchtturm/web/clients/api";
+import { Button } from "@leuchtturm/web/components/ui/button";
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle,
-} from "@chevrotain/web/components/ui/card";
-import { useZeroQuery } from "@chevrotain/web/lib/query";
-import { queries } from "@chevrotain/zero/queries";
+} from "@leuchtturm/web/components/ui/card";
+import { useZeroQuery } from "@leuchtturm/web/lib/query";
+import { queries } from "@leuchtturm/zero/queries";
 
 export function MailAccountsCard() {
 	const { t } = useTranslation();

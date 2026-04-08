@@ -1,7 +1,7 @@
 import { ArrowBigUpIcon, OptionIcon } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
 
-import { cn } from "@chevrotain/web/lib/cn";
+import { cn } from "@leuchtturm/web/lib/cn";
 
 function Kbd({ className, ...props }: ComponentProps<"kbd">) {
 	return (

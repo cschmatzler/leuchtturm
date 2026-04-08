@@ -6,7 +6,7 @@ export default defineConfig({
 		ignorePatterns: ["**/*.gen.ts", "**/sst-env.d.ts"],
 		useTabs: true,
 		experimentalSortImports: {
-			internalPattern: ["@chevrotain/"],
+			internalPattern: ["@leuchtturm/"],
 			newlinesBetween: true,
 			groups: [["external", "builtin"], ["internal"], ["parent", "sibling", "index"]],
 		},
@@ -24,7 +24,6 @@ export default defineConfig({
 			"./packages/oxlint-plugins/src/no-relative-imports.ts",
 			"./packages/oxlint-plugins/src/no-row-suffix.ts",
 			"./packages/oxlint-plugins/src/no-vi-mock.ts",
-			"@effect/eslint-plugin",
 		],
 		ignorePatterns: [
 			"**/node_modules/**",

@@ -1,18 +1,18 @@
 import { useMemo, useState, type Dispatch, type SetStateAction } from "react";
 
-import { createFilterColumns } from "@chevrotain/web/components/data-table-filter/filters";
+import { createFilterColumns } from "@leuchtturm/web/components/data-table-filter/filters";
 import {
 	createDateFilterValue,
 	createNumberFilterValue,
 	isColumnOptionArray,
 	isColumnOptionMap,
 	isMinMaxTuple,
-} from "@chevrotain/web/components/data-table-filter/helpers";
+} from "@leuchtturm/web/components/data-table-filter/helpers";
 import {
 	dateFilterOperators,
 	DEFAULT_OPERATORS,
 	determineNewOperator,
-} from "@chevrotain/web/components/data-table-filter/operators";
+} from "@leuchtturm/web/components/data-table-filter/operators";
 import type {
 	ColumnConfig,
 	ColumnDataType,
@@ -24,8 +24,8 @@ import type {
 	NumberColumnIds,
 	OptionBasedColumnDataType,
 	OptionColumnIds,
-} from "@chevrotain/web/components/data-table-filter/types";
-import { addUniq, removeUniq, uniq } from "@chevrotain/web/lib/array";
+} from "@leuchtturm/web/components/data-table-filter/types";
+import { addUniq, removeUniq, uniq } from "@leuchtturm/web/lib/array";
 
 export interface DataTableFiltersOptions<
 	TData,

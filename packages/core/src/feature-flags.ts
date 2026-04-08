@@ -1,13 +1,13 @@
 import { Effect, Layer, Schema, ServiceMap } from "effect";
 
-import { Database } from "@chevrotain/core/drizzle";
+import { Database } from "@leuchtturm/core/drizzle";
 import {
 	getFeatureFlag,
 	getFeatureFlags,
 	getFeatureFlagUserOverride,
 	getFeatureFlagUserOverridesForUser,
-} from "@chevrotain/core/feature-flags/queries";
-import type { FeatureFlag } from "@chevrotain/core/feature-flags/schema";
+} from "@leuchtturm/core/feature-flags/queries";
+import type { FeatureFlag } from "@leuchtturm/core/feature-flags/schema";
 
 export namespace FeatureFlags {
 	export type FlagLike = Pick<FeatureFlag, "key" | "rolloutPercentage">;
@@ -32,19 +32,21 @@ export namespace FeatureFlags {
 		readonly enabled: boolean;
 	}
 
-	export class Error extends Schema.TaggedErrorClass<Error>()(
+	export class FeatureFlagsError extends Schema.TaggedErrorClass<FeatureFlagsError>()(
 		"FeatureFlagsError",
 		{ message: Schema.String },
 		{ httpApiStatus: 500 },
 	) {}
 
 	export interface Interface extends Evaluator {
-		readonly isEnabled: (key: string, userId: string) => Effect.Effect<boolean, Error>;
-		readonly listForUser: (userId: string) => Effect.Effect<Record<string, boolean>, Error>;
+		readonly isEnabled: (key: string, userId: string) => Effect.Effect<boolean, FeatureFlagsError>;
+		readonly listForUser: (
+			userId: string,
+		) => Effect.Effect<Record<string, boolean>, FeatureFlagsError>;
 	}
 
 	export class Service extends ServiceMap.Service<Service, Interface>()(
-		"@chevrotain/FeatureFlags",
+		"@leuchtturm/FeatureFlags",
 	) {}
 
 	const makeEvaluator = (): Evaluator => {
@@ -103,8 +105,8 @@ export namespace FeatureFlags {
 					try: () =>
 						Promise.all([getFeatureFlag(db, key), getFeatureFlagUserOverride(db, key, userId)]),
 					catch: (error) =>
-						new Error({
-							message: `Failed to evaluate feature flag ${key}: ${error instanceof globalThis.Error ? error.message : String(error)}`,
+						new FeatureFlagsError({
+							message: `Failed to evaluate feature flag ${key}: ${String(error)}`,
 						}),
 				});
 
@@ -122,8 +124,8 @@ export namespace FeatureFlags {
 					try: () =>
 						Promise.all([getFeatureFlags(db), getFeatureFlagUserOverridesForUser(db, userId)]),
 					catch: (error) =>
-						new Error({
-							message: `Failed to list feature flags for user ${userId}: ${error instanceof globalThis.Error ? error.message : String(error)}`,
+						new FeatureFlagsError({
+							message: `Failed to list feature flags for user ${userId}: ${String(error)}`,
 						}),
 				});
 

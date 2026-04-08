@@ -2,8 +2,8 @@ import { Dialog as BaseSheet } from "@base-ui/react/dialog";
 import { XIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 
-import { Button } from "@chevrotain/web/components/ui/button";
-import { cn } from "@chevrotain/web/lib/cn";
+import { Button } from "@leuchtturm/web/components/ui/button";
+import { cn } from "@leuchtturm/web/lib/cn";
 
 function Sheet({ ...props }: BaseSheet.Root.Props) {
 	return <BaseSheet.Root data-slot="sheet" {...props} />;

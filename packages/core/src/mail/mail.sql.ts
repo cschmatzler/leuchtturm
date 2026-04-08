@@ -16,7 +16,7 @@ import {
 	uniqueIndex,
 } from "drizzle-orm/pg-core";
 
-import { session, user } from "@chevrotain/core/auth/auth.sql";
+import { session, user } from "@leuchtturm/core/auth/auth.sql";
 
 export const mailAccount = pgTable(
 	"mail_account",

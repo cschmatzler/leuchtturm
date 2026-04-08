@@ -1,7 +1,7 @@
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
-import { Effect } from "effect";
+import { Effect, Layer, ServiceMap } from "effect";
 
-import { Database } from "@chevrotain/core/drizzle";
+import { Database } from "@leuchtturm/core/drizzle";
 import {
 	getGmailFolders,
 	GmailAdapter,
@@ -9,7 +9,7 @@ import {
 	type GmailProviderLabel,
 	type GmailProviderMessage,
 	type GmailProviderThread,
-} from "@chevrotain/core/mail/gmail/adapter";
+} from "@leuchtturm/core/mail/gmail/adapter";
 import {
 	buildMailParticipantInputs,
 	buildMailSearchDocumentValues,
@@ -19,7 +19,7 @@ import {
 	type MessageParticipantViews,
 	type PersistedMessageParticipant,
 	uniqueConversationAddresses,
-} from "@chevrotain/core/mail/ingest";
+} from "@leuchtturm/core/mail/ingest";
 import {
 	mailAccount,
 	mailAccountSyncState,
@@ -40,7 +40,7 @@ import {
 	mailParticipant,
 	mailProviderState,
 	mailSearchDocument,
-} from "@chevrotain/core/mail/mail.sql";
+} from "@leuchtturm/core/mail/mail.sql";
 import {
 	createMailAccountSyncStateId,
 	createMailAttachmentId,
@@ -55,9 +55,10 @@ import {
 	createMailMessageSourceId,
 	createMailParticipantId,
 	createMailProviderStateId,
-} from "@chevrotain/core/mail/schema";
+} from "@leuchtturm/core/mail/schema";
 
 type Db = Database.Executor;
+type MailAccountRecord = typeof mailAccount.$inferSelect;
 
 const PROVIDER = "gmail";
 const FOLDER_SYNC_STATE_KIND = "gmail_folder_projection";
@@ -120,6 +121,10 @@ function healthyAccountUpdate(now: Date) {
 		lastErrorMessage: null,
 		degradedReason: null,
 	};
+}
+
+function toSyncError(context: string, error: unknown): Error {
+	return new Error(`${context}: ${String(error)}`);
 }
 
 async function registerWatch(
@@ -219,199 +224,400 @@ async function loadParticipantViews(
 	return result;
 }
 
-export function bootstrapGmailAccount(accountId: string, accessToken: string, topicName: string) {
-	return Effect.gen(function* () {
-		const { db } = yield* Database.Service;
-		yield* bootstrapAccount(db, accountId, accessToken, topicName);
-	});
-}
+export namespace GmailSync {
+	export interface Interface {
+		readonly bootstrapAccount: (
+			accountId: string,
+			accessToken: string,
+			topicName: string,
+		) => Effect.Effect<void, Error>;
+		readonly syncDelta: (
+			accountId: string,
+			accessToken: string,
+			topicName: string,
+		) => Effect.Effect<void, Error>;
+	}
 
-export function syncGmailDelta(accountId: string, accessToken: string, topicName: string) {
-	return Effect.gen(function* () {
-		const { db } = yield* Database.Service;
-		yield* applyDelta(db, accountId, accessToken, topicName);
-	});
-}
+	export class Service extends ServiceMap.Service<Service, Interface>()("@leuchtturm/GmailSync") {}
 
-function bootstrapAccount(db: Db, accountId: string, accessToken: string, topicName: string) {
-	return Effect.gen(function* () {
-		const [account] = yield* Effect.tryPromise(() =>
-			db.select().from(mailAccount).where(eq(mailAccount.id, accountId)).limit(1),
-		);
-		if (!account) return yield* Effect.fail(new Error(`Account ${accountId} not found`));
+	export const layer = Layer.effect(Service)(
+		Effect.gen(function* () {
+			const { db } = yield* Database.Service;
 
-		const now = new Date();
-		const cutoff = new Date(Date.now() - THIRTY_DAYS_MS);
+			const loadAccount = Effect.fn("GmailSync.loadAccount")(function* (accountId: string) {
+				const [account] = yield* Effect.tryPromise({
+					try: () => db.select().from(mailAccount).where(eq(mailAccount.id, accountId)).limit(1),
+					catch: (error) => toSyncError(`Failed to load account ${accountId}`, error),
+				});
 
-		yield* Effect.tryPromise(() =>
-			db
-				.update(mailAccount)
-				.set({ status: "bootstrapping", bootstrapCutoffAt: cutoff, lastAttemptedSyncAt: now })
-				.where(eq(mailAccount.id, accountId)),
-		);
-
-		const adapter = new GmailAdapter(accessToken);
-		const labels = yield* Effect.tryPromise(() => adapter.listLabels());
-		const folders = getGmailFolders(labels);
-		const threads = yield* Effect.tryPromise(() => adapter.listRecentThreads(cutoff));
-		const cursor = yield* Effect.tryPromise(() => adapter.getLatestCursor());
-
-		yield* Effect.tryPromise(() =>
-			db.transaction(async (tx) => {
-				const txDb = tx as unknown as Db;
-				await syncLabels(txDb, account.userId, accountId, labels);
-				await syncFolders(txDb, account.userId, accountId, folders);
-				for (const thread of threads) {
-					await syncThread(txDb, account.userId, accountId, thread);
+				if (!account) {
+					return yield* Effect.fail(new Error(`Account ${accountId} not found`));
 				}
-				await upsertSyncCursor(txDb, accountId, cursor);
 
-				const completedAt = new Date();
-				await txDb
-					.update(mailAccount)
-					.set({
-						...healthyAccountUpdate(completedAt),
-						bootstrapCompletedAt: completedAt,
-					})
-					.where(eq(mailAccount.id, accountId));
-			}),
-		);
+				return account;
+			});
 
-		yield* Effect.catch(
-			Effect.tryPromise(() => registerWatch(db, accountId, adapter, topicName)),
-			() => Effect.logWarning(`Watch registration failed for ${accountId}`),
-		);
-	}).pipe(
-		Effect.tapError((error) =>
-			Effect.catch(
-				Effect.tryPromise(() =>
-					db
-						.update(mailAccount)
-						.set({
-							status: "degraded",
-							lastErrorCode: "bootstrap_failed",
-							lastErrorMessage: error instanceof Error ? error.message : String(error),
-							degradedReason: "Bootstrap sync failed",
-						})
-						.where(eq(mailAccount.id, accountId)),
-				),
-				(statusError) =>
-					Effect.logWarning(
-						`Failed to persist degraded bootstrap status for ${accountId}: ${statusError instanceof Error ? statusError.message : String(statusError)}`,
-					),
-			),
-		),
-	);
-}
+			const markBootstrapAttempt = Effect.fn("GmailSync.markBootstrapAttempt")(function* (
+				accountId: string,
+				cutoff: Date,
+				now: Date,
+			) {
+				yield* Effect.tryPromise({
+					try: () =>
+						db
+							.update(mailAccount)
+							.set({
+								status: "bootstrapping",
+								bootstrapCutoffAt: cutoff,
+								lastAttemptedSyncAt: now,
+							})
+							.where(eq(mailAccount.id, accountId)),
+					catch: (error) =>
+						toSyncError(`Failed to mark account ${accountId} as bootstrapping`, error),
+				});
+			});
 
-function applyDelta(db: Db, accountId: string, accessToken: string, topicName: string) {
-	return Effect.gen(function* () {
-		const [account] = yield* Effect.tryPromise(() =>
-			db.select().from(mailAccount).where(eq(mailAccount.id, accountId)).limit(1),
-		);
-		if (!account) return yield* Effect.fail(new Error(`Account ${accountId} not found`));
+			const listLabels = Effect.fn("GmailSync.listLabels")(function* (adapter: GmailAdapter) {
+				return yield* Effect.tryPromise({
+					try: () => adapter.listLabels(),
+					catch: (error) => toSyncError("Failed to list Gmail labels", error),
+				});
+			});
 
-		const adapter = new GmailAdapter(accessToken);
-		const [cursorRow] = yield* Effect.tryPromise(() =>
-			db
-				.select()
-				.from(mailAccountSyncState)
-				.where(
-					and(
-						eq(mailAccountSyncState.accountId, accountId),
-						eq(mailAccountSyncState.stateKind, HISTORY_SYNC_STATE_KIND),
-					),
-				)
-				.limit(1),
-		);
+			const listRecentThreads = Effect.fn("GmailSync.listRecentThreads")(function* (
+				adapter: GmailAdapter,
+				cutoff: Date,
+			) {
+				return yield* Effect.tryPromise({
+					try: () => adapter.listRecentThreads(cutoff),
+					catch: (error) => toSyncError("Failed to list recent Gmail threads", error),
+				});
+			});
 
-		if (!cursorRow) {
-			yield* bootstrapAccount(db, accountId, accessToken, topicName);
-			return;
-		}
+			const getLatestCursor = Effect.fn("GmailSync.getLatestCursor")(function* (
+				adapter: GmailAdapter,
+			) {
+				return yield* Effect.tryPromise({
+					try: () => adapter.getLatestCursor(),
+					catch: (error) => toSyncError("Failed to load latest Gmail cursor", error),
+				});
+			});
 
-		const startHistoryId = (cursorRow.payload as { historyId: string }).historyId;
-		const { changes, newCursor, cursorExpired } = yield* Effect.tryPromise(() =>
-			adapter.getHistoryChanges(startHistoryId),
-		);
+			const loadBootstrapSnapshot = Effect.fn("GmailSync.loadBootstrapSnapshot")(function* (
+				adapter: GmailAdapter,
+				cutoff: Date,
+			) {
+				const [labels, threads, cursor] = yield* Effect.all(
+					[listLabels(adapter), listRecentThreads(adapter, cutoff), getLatestCursor(adapter)],
+					{ concurrency: 3 },
+				);
 
-		if (cursorExpired) {
-			yield* Effect.tryPromise(() =>
-				db
-					.update(mailAccount)
-					.set({ status: "resyncing", lastAttemptedSyncAt: new Date() })
-					.where(eq(mailAccount.id, accountId)),
+				return {
+					cursor,
+					folders: getGmailFolders(labels),
+					labels,
+					threads,
+				};
+			});
+
+			const persistBootstrapSnapshot = Effect.fn("GmailSync.persistBootstrapSnapshot")(
+				function* (params: {
+					account: MailAccountRecord;
+					accountId: string;
+					cursor: string;
+					folders: readonly GmailProviderFolder[];
+					labels: readonly GmailProviderLabel[];
+					threads: readonly GmailProviderThread[];
+				}) {
+					yield* Effect.tryPromise({
+						try: () =>
+							db.transaction(async (tx) => {
+								const txDb = tx as unknown as Db;
+								await syncLabels(txDb, params.account.userId, params.accountId, params.labels);
+								await syncFolders(txDb, params.account.userId, params.accountId, params.folders);
+								for (const thread of params.threads) {
+									await syncThread(txDb, params.account.userId, params.accountId, thread);
+								}
+								await upsertSyncCursor(txDb, params.accountId, params.cursor);
+
+								const completedAt = new Date();
+								await txDb
+									.update(mailAccount)
+									.set({
+										...healthyAccountUpdate(completedAt),
+										bootstrapCompletedAt: completedAt,
+									})
+									.where(eq(mailAccount.id, params.accountId));
+							}),
+						catch: (error) =>
+							toSyncError(`Failed to persist bootstrap snapshot for ${params.accountId}`, error),
+					});
+				},
 			);
-			yield* Effect.tryPromise(() => boundedResync(db, account.userId, accountId, adapter));
-			return;
-		}
 
-		const labels = yield* Effect.tryPromise(() => adapter.listLabels());
-		const folders = getGmailFolders(labels);
+			const persistBootstrapFailure = Effect.fn("GmailSync.persistBootstrapFailure")(function* (
+				accountId: string,
+				error: unknown,
+			) {
+				yield* Effect.tryPromise({
+					try: () =>
+						db
+							.update(mailAccount)
+							.set({
+								status: "degraded",
+								lastErrorCode: "bootstrap_failed",
+								lastErrorMessage: String(error),
+								degradedReason: "Bootstrap sync failed",
+							})
+							.where(eq(mailAccount.id, accountId)),
+					catch: (statusError) =>
+						toSyncError(
+							`Failed to persist degraded bootstrap status for ${accountId}`,
+							statusError,
+						),
+				});
+			});
 
-		yield* Effect.tryPromise(() =>
-			db.transaction(async (tx) => {
-				const txDb = tx as unknown as Db;
+			const registerWatchEffect = Effect.fn("GmailSync.registerWatch")(function* (
+				accountId: string,
+				adapter: GmailAdapter,
+				topicName: string,
+			) {
+				yield* Effect.tryPromise({
+					try: () => registerWatch(db, accountId, adapter, topicName),
+					catch: (error) => toSyncError(`Failed to register Gmail watch for ${accountId}`, error),
+				});
+			});
 
-				for (const message of changes.messagesAdded) {
-					await upsertMessage(txDb, account.userId, accountId, message);
+			const registerWatchSafe = Effect.fn("GmailSync.registerWatchSafe")(function* (
+				accountId: string,
+				adapter: GmailAdapter,
+				topicName: string,
+			) {
+				yield* registerWatchEffect(accountId, adapter, topicName).pipe(
+					Effect.catch(() => Effect.logWarning(`Watch registration failed for ${accountId}`)),
+				);
+			});
+
+			const loadSyncCursor = Effect.fn("GmailSync.loadSyncCursor")(function* (accountId: string) {
+				const [cursorState] = yield* Effect.tryPromise({
+					try: () =>
+						db
+							.select()
+							.from(mailAccountSyncState)
+							.where(
+								and(
+									eq(mailAccountSyncState.accountId, accountId),
+									eq(mailAccountSyncState.stateKind, HISTORY_SYNC_STATE_KIND),
+								),
+							)
+							.limit(1),
+					catch: (error) => toSyncError(`Failed to load sync cursor for ${accountId}`, error),
+				});
+
+				return cursorState;
+			});
+
+			const loadHistoryChanges = Effect.fn("GmailSync.loadHistoryChanges")(function* (
+				adapter: GmailAdapter,
+				startHistoryId: string,
+			) {
+				return yield* Effect.tryPromise({
+					try: () => adapter.getHistoryChanges(startHistoryId),
+					catch: (error) =>
+						toSyncError(`Failed to load Gmail history from ${startHistoryId}`, error),
+				});
+			});
+
+			const markResyncing = Effect.fn("GmailSync.markResyncing")(function* (accountId: string) {
+				yield* Effect.tryPromise({
+					try: () =>
+						db
+							.update(mailAccount)
+							.set({ status: "resyncing", lastAttemptedSyncAt: new Date() })
+							.where(eq(mailAccount.id, accountId)),
+					catch: (error) => toSyncError(`Failed to mark account ${accountId} as resyncing`, error),
+				});
+			});
+
+			const persistResyncSnapshot = Effect.fn("GmailSync.persistResyncSnapshot")(
+				function* (params: {
+					account: MailAccountRecord;
+					accountId: string;
+					cursor: string;
+					folders: readonly GmailProviderFolder[];
+					labels: readonly GmailProviderLabel[];
+					threads: readonly GmailProviderThread[];
+				}) {
+					yield* Effect.tryPromise({
+						try: () =>
+							db.transaction(async (tx) => {
+								const txDb = tx as unknown as Db;
+								await syncLabels(txDb, params.account.userId, params.accountId, params.labels);
+								await syncFolders(txDb, params.account.userId, params.accountId, params.folders);
+								for (const thread of params.threads) {
+									await syncThread(txDb, params.account.userId, params.accountId, thread);
+								}
+								await rebuildSearchDocumentsForAccount(txDb, params.accountId);
+								await upsertSyncCursor(txDb, params.accountId, params.cursor);
+
+								await txDb
+									.update(mailAccount)
+									.set(healthyAccountUpdate(new Date()))
+									.where(eq(mailAccount.id, params.accountId));
+							}),
+						catch: (error) =>
+							toSyncError(`Failed to persist resync snapshot for ${params.accountId}`, error),
+					});
+				},
+			);
+
+			const resyncAccount = Effect.fn("GmailSync.resyncAccount")(function* (
+				account: MailAccountRecord,
+				accountId: string,
+				adapter: GmailAdapter,
+			) {
+				const cutoff = new Date(Date.now() - THIRTY_DAYS_MS);
+				const snapshot = yield* loadBootstrapSnapshot(adapter, cutoff);
+				yield* persistResyncSnapshot({ account, accountId, ...snapshot });
+			});
+
+			const persistDeltaChanges = Effect.fn("GmailSync.persistDeltaChanges")(function* (params: {
+				account: MailAccountRecord;
+				accountId: string;
+				changes: Awaited<ReturnType<GmailAdapter["getHistoryChanges"]>>["changes"];
+				folders: readonly GmailProviderFolder[];
+				labels: readonly GmailProviderLabel[];
+				newCursor: string;
+			}) {
+				yield* Effect.tryPromise({
+					try: () =>
+						db.transaction(async (tx) => {
+							const txDb = tx as unknown as Db;
+
+							for (const message of params.changes.messagesAdded) {
+								await upsertMessage(txDb, params.account.userId, params.accountId, message);
+							}
+							for (const deletedRef of params.changes.messagesDeleted) {
+								await deleteMessageByRef(txDb, params.accountId, deletedRef);
+							}
+							for (const { messageRef, labelRefs } of params.changes.labelsAdded) {
+								await addMessageLabels(
+									txDb,
+									params.account.userId,
+									params.accountId,
+									messageRef,
+									labelRefs,
+								);
+							}
+							for (const { messageRef, labelRefs } of params.changes.labelsRemoved) {
+								await removeMessageLabels(txDb, params.accountId, messageRef, labelRefs);
+							}
+
+							await syncLabels(txDb, params.account.userId, params.accountId, params.labels);
+							await syncFolders(txDb, params.account.userId, params.accountId, params.folders);
+							await rebuildSearchDocumentsForAccount(txDb, params.accountId);
+							await upsertSyncCursor(txDb, params.accountId, params.newCursor);
+
+							await txDb
+								.update(mailAccount)
+								.set(healthyAccountUpdate(new Date()))
+								.where(eq(mailAccount.id, params.accountId));
+						}),
+					catch: (error) =>
+						toSyncError(`Failed to persist delta changes for ${params.accountId}`, error),
+				});
+			});
+
+			const renewWatchIfNeededEffect = Effect.fn("GmailSync.renewWatchIfNeeded")(function* (
+				accountId: string,
+				adapter: GmailAdapter,
+				topicName: string,
+			) {
+				yield* Effect.tryPromise({
+					try: () => renewWatchIfNeeded(db, accountId, adapter, topicName),
+					catch: (error) => toSyncError(`Failed to renew Gmail watch for ${accountId}`, error),
+				});
+			});
+
+			const renewWatchIfNeededSafe = Effect.fn("GmailSync.renewWatchIfNeededSafe")(function* (
+				accountId: string,
+				adapter: GmailAdapter,
+				topicName: string,
+			) {
+				yield* renewWatchIfNeededEffect(accountId, adapter, topicName).pipe(
+					Effect.catch(() => Effect.logWarning(`Watch renewal failed for ${accountId}`)),
+				);
+			});
+
+			const bootstrapAccount = Effect.fn("GmailSync.bootstrapAccount")(
+				(accountId: string, accessToken: string, topicName: string) =>
+					Effect.gen(function* () {
+						const account = yield* loadAccount(accountId);
+						const cutoff = new Date(Date.now() - THIRTY_DAYS_MS);
+						yield* markBootstrapAttempt(accountId, cutoff, new Date());
+
+						const adapter = new GmailAdapter(accessToken);
+						const snapshot = yield* loadBootstrapSnapshot(adapter, cutoff);
+						yield* persistBootstrapSnapshot({ account, accountId, ...snapshot });
+						yield* registerWatchSafe(accountId, adapter, topicName);
+					}).pipe(
+						Effect.tapError((error) =>
+							persistBootstrapFailure(accountId, error).pipe(
+								Effect.catch((statusError) => Effect.logWarning(statusError.message)),
+							),
+						),
+					),
+			);
+
+			const syncDelta = Effect.fn("GmailSync.syncDelta")(function* (
+				accountId: string,
+				accessToken: string,
+				topicName: string,
+			) {
+				const account = yield* loadAccount(accountId);
+				const adapter = new GmailAdapter(accessToken);
+				const cursorState = yield* loadSyncCursor(accountId);
+
+				if (!cursorState) {
+					yield* bootstrapAccount(accountId, accessToken, topicName);
+					return;
 				}
-				for (const deletedRef of changes.messagesDeleted) {
-					await deleteMessageByRef(txDb, accountId, deletedRef);
+
+				const startHistoryId = (cursorState.payload as { historyId: string }).historyId;
+				const { changes, newCursor, cursorExpired } = yield* loadHistoryChanges(
+					adapter,
+					startHistoryId,
+				);
+
+				if (cursorExpired) {
+					yield* markResyncing(accountId);
+					yield* resyncAccount(account, accountId, adapter);
+					return;
 				}
-				for (const { messageRef, labelRefs } of changes.labelsAdded) {
-					await addMessageLabels(txDb, account.userId, accountId, messageRef, labelRefs);
-				}
-				for (const { messageRef, labelRefs } of changes.labelsRemoved) {
-					await removeMessageLabels(txDb, accountId, messageRef, labelRefs);
-				}
 
-				await syncLabels(txDb, account.userId, accountId, labels);
-				await syncFolders(txDb, account.userId, accountId, folders);
-				await rebuildSearchDocumentsForAccount(txDb, accountId);
-				await upsertSyncCursor(txDb, accountId, newCursor);
+				const labels = yield* listLabels(adapter);
+				const folders = getGmailFolders(labels);
 
-				await txDb
-					.update(mailAccount)
-					.set(healthyAccountUpdate(new Date()))
-					.where(eq(mailAccount.id, accountId));
-			}),
-		);
+				yield* persistDeltaChanges({
+					account,
+					accountId,
+					changes,
+					folders,
+					labels,
+					newCursor,
+				});
+				yield* renewWatchIfNeededSafe(accountId, adapter, topicName);
+			});
 
-		yield* Effect.catch(
-			Effect.tryPromise(() => renewWatchIfNeeded(db, accountId, adapter, topicName)),
-			() => Effect.logWarning(`Watch renewal failed for ${accountId}`),
-		);
-	});
-}
+			return Service.of({
+				bootstrapAccount,
+				syncDelta,
+			});
+		}),
+	);
 
-async function boundedResync(
-	db: Db,
-	userId: string,
-	accountId: string,
-	adapter: GmailAdapter,
-): Promise<void> {
-	const cutoff = new Date(Date.now() - THIRTY_DAYS_MS);
-	const labels = await adapter.listLabels();
-	const folders = getGmailFolders(labels);
-	const threads = await adapter.listRecentThreads(cutoff);
-	const cursor = await adapter.getLatestCursor();
-
-	await db.transaction(async (tx) => {
-		const txDb = tx as unknown as Db;
-		await syncLabels(txDb, userId, accountId, labels);
-		await syncFolders(txDb, userId, accountId, folders);
-		for (const thread of threads) {
-			await syncThread(txDb, userId, accountId, thread);
-		}
-		await rebuildSearchDocumentsForAccount(txDb, accountId);
-		await upsertSyncCursor(txDb, accountId, cursor);
-
-		await txDb
-			.update(mailAccount)
-			.set(healthyAccountUpdate(new Date()))
-			.where(eq(mailAccount.id, accountId));
-	});
+	export const defaultLayer = layer;
 }
 
 async function syncLabels(

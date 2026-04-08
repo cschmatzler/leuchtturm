@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vite-plus/test";
 
-import { sendPasswordResetEmail } from "@chevrotain/email/password-reset";
+import { sendPasswordResetEmail } from "@leuchtturm/email/password-reset";
 
 describe("sendPasswordResetEmail", () => {
 	it("passes the rendered password reset email to the provider", async () => {
@@ -8,7 +8,7 @@ describe("sendPasswordResetEmail", () => {
 
 		await sendPasswordResetEmail({
 			email: "user@example.com",
-			from: "Chevrotain <no-reply@leuchtturm.dev>",
+			from: "Leuchtturm <no-reply@leuchtturm.dev>",
 			resetUrl: "https://leuchtturm.dev/reset?token=abc123",
 			send,
 			subject: "Reset your password",
@@ -17,7 +17,7 @@ describe("sendPasswordResetEmail", () => {
 
 		expect(send).toHaveBeenCalledTimes(1);
 		expect(send).toHaveBeenCalledWith({
-			from: "Chevrotain <no-reply@leuchtturm.dev>",
+			from: "Leuchtturm <no-reply@leuchtturm.dev>",
 			to: "user@example.com",
 			subject: "Reset your password",
 			html: expect.stringContaining("Reset your password"),
@@ -32,7 +32,7 @@ describe("sendPasswordResetEmail", () => {
 		await expect(
 			sendPasswordResetEmail({
 				email: "user@example.com",
-				from: "Chevrotain <no-reply@leuchtturm.dev>",
+				from: "Leuchtturm <no-reply@leuchtturm.dev>",
 				resetUrl: "https://leuchtturm.dev/reset?token=abc123",
 				send,
 				subject: "Reset your password",

@@ -8,11 +8,11 @@ import {
 	getColumnValues,
 	getFacetedMinMaxValues,
 	getFacetedUniqueValues,
-} from "@chevrotain/web/components/data-table-filter/filters";
+} from "@leuchtturm/web/components/data-table-filter/filters";
 import type {
 	ColumnConfig,
 	ColumnOption,
-} from "@chevrotain/web/components/data-table-filter/types";
+} from "@leuchtturm/web/components/data-table-filter/types";
 
 type TestData = {
 	id: string;

@@ -1,8 +1,8 @@
 import { InboxIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { cn } from "@chevrotain/web/lib/cn";
-import type { MailMessage } from "@chevrotain/zero/schema";
+import { cn } from "@leuchtturm/web/lib/cn";
+import type { MailMessage } from "@leuchtturm/zero/schema";
 
 interface MessageListProps {
 	messages: readonly MailMessage[];

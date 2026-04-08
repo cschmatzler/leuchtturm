@@ -1,8 +1,8 @@
 import { Children, type ReactNode } from "react";
 
-import { Separator } from "@chevrotain/web/components/ui/separator";
-import { SidebarTrigger } from "@chevrotain/web/components/ui/sidebar";
-import { cn } from "@chevrotain/web/lib/cn";
+import { Separator } from "@leuchtturm/web/components/ui/separator";
+import { SidebarTrigger } from "@leuchtturm/web/components/ui/sidebar";
+import { cn } from "@leuchtturm/web/lib/cn";
 
 type HeaderProps = {
 	children?: ReactNode;

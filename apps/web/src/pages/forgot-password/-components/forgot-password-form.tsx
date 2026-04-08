@@ -4,11 +4,11 @@ import { Schema } from "effect";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
-import { User } from "@chevrotain/core/auth/schema";
-import { authClient } from "@chevrotain/web/clients/auth";
-import { Button } from "@chevrotain/web/components/ui/button";
-import { Field, FieldError, FieldGroup, FieldLabel } from "@chevrotain/web/components/ui/field";
-import { Input } from "@chevrotain/web/components/ui/input";
+import { User } from "@leuchtturm/core/auth/schema";
+import { authClient } from "@leuchtturm/web/clients/auth";
+import { Button } from "@leuchtturm/web/components/ui/button";
+import { Field, FieldError, FieldGroup, FieldLabel } from "@leuchtturm/web/components/ui/field";
+import { Input } from "@leuchtturm/web/components/ui/input";
 
 const forgotPasswordShape = Schema.Struct({
 	email: User.fields.email,

@@ -1,15 +1,15 @@
 import { defineRelationsPart } from "drizzle-orm";
 
-import { account, session, user, verification } from "@chevrotain/core/auth/auth.sql";
+import { account, session, user, verification } from "@leuchtturm/core/auth/auth.sql";
 import {
 	billingCustomer,
 	billingOrder,
 	billingSubscription,
-} from "@chevrotain/core/billing/billing.sql";
+} from "@leuchtturm/core/billing/billing.sql";
 import {
 	featureFlag,
 	featureFlagUserOverride,
-} from "@chevrotain/core/feature-flags/feature-flags.sql";
+} from "@leuchtturm/core/feature-flags/feature-flags.sql";
 import {
 	mailAccount,
 	mailAccountSecret,
@@ -33,7 +33,7 @@ import {
 	mailParticipant,
 	mailProviderState,
 	mailSearchDocument,
-} from "@chevrotain/core/mail/mail.sql";
+} from "@leuchtturm/core/mail/mail.sql";
 
 export const allRelations = defineRelationsPart(
 	{

@@ -6,13 +6,13 @@ import { MailIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
-import { PASSWORD_VALIDATION_MESSAGE, Password, User } from "@chevrotain/core/auth/schema";
-import { authClient } from "@chevrotain/web/clients/auth";
-import { AuthSidePanel } from "@chevrotain/web/components/app/auth-side-panel";
-import { Button } from "@chevrotain/web/components/ui/button";
-import { Field, FieldError, FieldGroup, FieldLabel } from "@chevrotain/web/components/ui/field";
-import { Input } from "@chevrotain/web/components/ui/input";
-import { sessionQuery } from "@chevrotain/web/queries/session";
+import { PASSWORD_VALIDATION_MESSAGE, Password, User } from "@leuchtturm/core/auth/schema";
+import { authClient } from "@leuchtturm/web/clients/auth";
+import { AuthSidePanel } from "@leuchtturm/web/components/app/auth-side-panel";
+import { Button } from "@leuchtturm/web/components/ui/button";
+import { Field, FieldError, FieldGroup, FieldLabel } from "@leuchtturm/web/components/ui/field";
+import { Input } from "@leuchtturm/web/components/ui/input";
+import { sessionQuery } from "@leuchtturm/web/queries/session";
 
 const loginShape = Schema.Struct({
 	email: User.fields.email,
@@ -61,9 +61,6 @@ function Page() {
 		},
 		onSubmit: ({ value }) => onSubmit(value),
 	});
-	const submitForm = async () => {
-		await form.handleSubmit();
-	};
 
 	return (
 		<div className="grid min-h-svh w-full lg:grid-cols-2">
@@ -76,12 +73,12 @@ function Page() {
 						<div className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
 							<MailIcon className="size-4" />
 						</div>
-						<span className="text-base font-semibold">Chevrotain</span>
+						<span className="text-base font-semibold">Leuchtturm</span>
 					</Link>
 				</div>
 				<div className="flex flex-1 items-center justify-center">
 					<div className="w-full max-w-md">
-						<form action={submitForm} className="flex flex-col gap-6">
+						<form action={() => form.handleSubmit()} className="flex flex-col gap-6">
 							<div className="flex flex-col gap-2 text-center">
 								<h1 className="text-2xl font-semibold tracking-tight">{t("Welcome back")}</h1>
 								<p className="text-balance text-muted-foreground">

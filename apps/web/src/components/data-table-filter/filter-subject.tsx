@@ -1,4 +1,4 @@
-import type { Column, ColumnDataType } from "@chevrotain/web/components/data-table-filter/types";
+import type { Column, ColumnDataType } from "@leuchtturm/web/components/data-table-filter/types";
 
 interface FilterSubjectProps<TData, TType extends ColumnDataType> {
 	column: Column<TData, TType>;

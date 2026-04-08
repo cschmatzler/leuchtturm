@@ -1,7 +1,7 @@
 import { Avatar as BaseAvatar } from "@base-ui/react/avatar";
 import type { ComponentProps } from "react";
 
-import { cn } from "@chevrotain/web/lib/cn";
+import { cn } from "@leuchtturm/web/lib/cn";
 
 function Avatar({
 	className,

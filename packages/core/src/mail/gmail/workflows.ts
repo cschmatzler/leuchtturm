@@ -1,24 +1,22 @@
 import { Effect, Layer, Schema } from "effect";
-import { HttpServer } from "effect/unstable/http";
-import { Workflow } from "effect/unstable/workflow";
+import { Workflow, WorkflowEngine } from "effect/unstable/workflow";
 import { Resource } from "sst";
 
-import { Database } from "@chevrotain/core/drizzle";
-import { MailEncryption } from "@chevrotain/core/mail/encryption";
-import { GmailApiError } from "@chevrotain/core/mail/gmail/adapter";
-import { GmailOAuth } from "@chevrotain/core/mail/gmail/oauth";
-import { bootstrapGmailAccount, syncGmailDelta } from "@chevrotain/core/mail/gmail/sync";
+import { Database } from "@leuchtturm/core/drizzle";
+import { MailEncryption } from "@leuchtturm/core/mail/encryption";
+import { GmailOAuth } from "@leuchtturm/core/mail/gmail/oauth";
+import { GmailSync } from "@leuchtturm/core/mail/gmail/sync";
 import {
 	getMailAccountSecret,
 	updateMailAccountSecret,
 	updateMailAccountStatus,
-} from "@chevrotain/core/mail/queries";
-import { StoredMailOAuthSecret } from "@chevrotain/core/mail/schema";
+} from "@leuchtturm/core/mail/queries";
+import { StoredMailOAuthSecret } from "@leuchtturm/core/mail/schema";
 
 const ACCESS_TOKEN_REFRESH_SKEW_MS = 60 * 1000;
 
 function toErrorString(error: unknown): string {
-	return error instanceof Error ? error.message : String(error);
+	return String(error);
 }
 
 const BootstrapWorkflow = Workflow.make({
@@ -46,8 +44,9 @@ const BootstrapWorkflowLayer = Layer.unwrap(
 
 		return BootstrapWorkflow.toLayer(({ accountId, accessToken }) =>
 			Effect.gen(function* () {
+				const sync = yield* GmailSync.Service;
 				const token = accessToken ?? (yield* resolveAccessToken(accountId));
-				yield* bootstrapGmailAccount(accountId, token, topicName);
+				yield* sync.bootstrapAccount(accountId, token, topicName);
 			}).pipe(Effect.mapError(toErrorString)),
 		);
 	}),
@@ -59,15 +58,20 @@ const DeltaWorkflowLayer = Layer.unwrap(
 
 		return DeltaWorkflow.toLayer(({ accountId }) =>
 			Effect.gen(function* () {
+				const sync = yield* GmailSync.Service;
 				const token = yield* resolveAccessToken(accountId);
 
-				yield* Effect.catch(syncGmailDelta(accountId, token, topicName), (error) =>
+				yield* Effect.catch(sync.syncDelta(accountId, token, topicName), (error) =>
 					Effect.gen(function* () {
-						if (!(error instanceof GmailApiError && error.status === 401)) {
+						const gmailError = error as {
+							readonly name?: unknown;
+							readonly status?: unknown;
+						};
+						if (gmailError.name !== "GmailApiError" || gmailError.status !== 401) {
 							return yield* Effect.fail(error);
 						}
 						const refreshed = yield* refreshStoredToken(accountId);
-						return yield* syncGmailDelta(accountId, refreshed, topicName);
+						return yield* sync.syncDelta(accountId, refreshed, topicName);
 					}),
 				);
 			}).pipe(Effect.mapError(toErrorString)),
@@ -75,15 +79,22 @@ const DeltaWorkflowLayer = Layer.unwrap(
 	}),
 );
 
+const GmailWorkflowsLayer = Layer.merge(BootstrapWorkflowLayer, DeltaWorkflowLayer);
+
+const GmailWorkflowDependencies = Layer.mergeAll(
+	MailEncryption.defaultLayer,
+	GmailOAuth.defaultLayer,
+	GmailSync.defaultLayer,
+	WorkflowEngine.layerMemory,
+);
+
 export const Gmail = {
 	BootstrapWorkflow,
 	BootstrapWorkflowLayer,
 	DeltaWorkflow,
 	DeltaWorkflowLayer,
-	layer: Layer.merge(
-		BootstrapWorkflowLayer,
-		Layer.merge(DeltaWorkflowLayer, HttpServer.layerServices),
-	),
+	layer: GmailWorkflowsLayer,
+	defaultLayer: GmailWorkflowsLayer.pipe(Layer.provideMerge(GmailWorkflowDependencies)),
 } as const;
 
 function resolveAccessToken(accountId: string) {

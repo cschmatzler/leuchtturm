@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { addUniq, isAnyOf, removeUniq, uniq } from "@chevrotain/web/lib/array";
+import { addUniq, isAnyOf, removeUniq, uniq } from "@leuchtturm/web/lib/array";
 
 describe("uniq", () => {
 	describe("primitives", () => {

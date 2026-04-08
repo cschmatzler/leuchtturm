@@ -1,7 +1,7 @@
 import { ulid } from "ulid";
 import { describe, expect, it } from "vite-plus/test";
 
-import { FeatureFlags } from "@chevrotain/core/feature-flags";
+import { FeatureFlags } from "@leuchtturm/core/feature-flags";
 
 const userId = `usr_${ulid()}`;
 

@@ -1,4 +1,4 @@
-export const secret = {
+export const secrets = {
 	planetScaleDatabaseId: new sst.Secret("PlanetScaleDatabaseId"),
 	planetScaleOrganization: new sst.Secret("PlanetScaleOrganization"),
 	betterAuthSecret: new sst.Secret("BetterAuthSecret"),
@@ -13,20 +13,23 @@ export const secret = {
 	polarSuccessUrl: new sst.Secret("PolarSuccessUrl"),
 	polarWebhookSecret: new sst.Secret("PolarWebhookSecret"),
 	resendApiKey: new sst.Secret("ResendApiKey"),
+	renderOwnerId: new sst.Secret("RenderOwnerId"),
 	zeroAdminPassword: new sst.Secret("ZeroAdminPassword"),
+	zeroDatabasePassword: new sst.Secret("ZeroDatabasePassword"),
+	zeroDatabaseUsername: new sst.Secret("ZeroDatabaseUsername"),
 };
 
 export const apiSecrets = [
-	secret.betterAuthSecret,
-	secret.gitHubClientId,
-	secret.gitHubClientSecret,
-	secret.gmailOauthClientId,
-	secret.gmailOauthClientSecret,
-	secret.gmailOauthRedirectUri,
-	secret.gmailPubSubTopic,
-	secret.mailKek,
-	secret.polarAccessToken,
-	secret.polarSuccessUrl,
-	secret.polarWebhookSecret,
-	secret.resendApiKey,
+	secrets.betterAuthSecret,
+	secrets.gitHubClientId,
+	secrets.gitHubClientSecret,
+	secrets.gmailOauthClientId,
+	secrets.gmailOauthClientSecret,
+	secrets.gmailOauthRedirectUri,
+	secrets.gmailPubSubTopic,
+	secrets.mailKek,
+	secrets.polarAccessToken,
+	secrets.polarSuccessUrl,
+	secrets.polarWebhookSecret,
+	secrets.resendApiKey,
 ];

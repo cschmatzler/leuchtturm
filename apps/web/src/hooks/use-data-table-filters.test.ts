@@ -3,12 +3,12 @@ import { Circle } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import { describe, expect, it } from "vite-plus/test";
 
-import { createFilterBuilder } from "@chevrotain/web/components/data-table-filter/filters";
+import { createFilterBuilder } from "@leuchtturm/web/components/data-table-filter/filters";
 import type {
 	ColumnOption,
 	FiltersState,
-} from "@chevrotain/web/components/data-table-filter/types";
-import { useDataTableFilters } from "@chevrotain/web/hooks/use-data-table-filters";
+} from "@leuchtturm/web/components/data-table-filter/types";
+import { useDataTableFilters } from "@leuchtturm/web/hooks/use-data-table-filters";
 
 type TestItem = {
 	id: string;

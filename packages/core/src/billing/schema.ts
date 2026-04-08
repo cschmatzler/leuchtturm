@@ -1,7 +1,7 @@
 import { Schema } from "effect";
 
-import { UserId } from "@chevrotain/core/auth/schema";
-import { Email } from "@chevrotain/core/schema";
+import { UserId } from "@leuchtturm/core/auth/schema";
+import { Email } from "@leuchtturm/core/schema";
 
 const NullableString = Schema.NullOr(Schema.String);
 const NullableDate = Schema.NullOr(Schema.Date);

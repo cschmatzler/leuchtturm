@@ -4,7 +4,7 @@ import type {
 	ColumnDataType,
 	FilterModel,
 	FiltersState,
-} from "@chevrotain/web/components/data-table-filter/types";
+} from "@leuchtturm/web/components/data-table-filter/types";
 
 const filterModelSchema = Schema.Struct({
 	columnId: Schema.String,
@@ -118,7 +118,7 @@ function splitValues(value: string): string[] {
 function encodeFilterValues(values: FilterModel["values"], type: ColumnDataType): string {
 	return values
 		.map((v) => {
-			if (type === "date" && v instanceof Date) {
+			if (type === "date" && Object.prototype.toString.call(v) === "[object Date]") {
 				return v.toISOString().split("T")[0];
 			}
 			return escapeValue(String(v));

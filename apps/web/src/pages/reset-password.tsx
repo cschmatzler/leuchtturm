@@ -2,8 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Schema } from "effect";
 import { MailIcon } from "lucide-react";
 
-import { AuthSidePanel } from "@chevrotain/web/components/app/auth-side-panel";
-import { ResetPasswordForm } from "@chevrotain/web/pages/reset-password/-components/reset-password-form";
+import { AuthSidePanel } from "@leuchtturm/web/components/app/auth-side-panel";
+import { ResetPasswordForm } from "@leuchtturm/web/pages/reset-password/-components/reset-password-form";
 
 const searchSchema = Schema.Struct({
 	token: Schema.String,
@@ -26,7 +26,7 @@ function Page() {
 						<div className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
 							<MailIcon className="size-4" />
 						</div>
-						<span className="text-base font-semibold">Chevrotain</span>
+						<span className="text-base font-semibold">Leuchtturm</span>
 					</Link>
 				</div>
 				<div className="flex flex-1 items-center justify-center">

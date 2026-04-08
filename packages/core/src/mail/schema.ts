@@ -1,8 +1,8 @@
 import { Schema } from "effect";
 import { ulid } from "ulid";
 
-import { SessionId, UserId } from "@chevrotain/core/auth/schema";
-import { Email, Ulid } from "@chevrotain/core/schema";
+import { SessionId, UserId } from "@leuchtturm/core/auth/schema";
+import { Email, Ulid } from "@leuchtturm/core/schema";
 
 const NullableString = Schema.NullOr(Schema.String);
 

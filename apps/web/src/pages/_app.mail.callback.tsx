@@ -1,8 +1,8 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Schema } from "effect";
 
-import { MailOAuthStateId } from "@chevrotain/core/mail/schema";
-import { apiClient } from "@chevrotain/web/clients/api";
+import { MailOAuthStateId } from "@leuchtturm/core/mail/schema";
+import { apiClient } from "@leuchtturm/web/clients/api";
 
 const searchSchema = Schema.Struct({
 	code: Schema.String,

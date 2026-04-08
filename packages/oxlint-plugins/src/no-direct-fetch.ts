@@ -76,11 +76,11 @@ const rule = {
 		type: "problem",
 		docs: {
 			description:
-				"Disallow direct fetch calls to the Chevrotain API. Use @chevrotain/web/clients/api instead.",
+				"Disallow direct fetch calls to the Leuchtturm API. Use @leuchtturm/web/clients/api instead.",
 		},
 		messages: {
 			banned:
-				"Do not call fetch() directly against the Chevrotain API. Use @chevrotain/web/clients/api instead.",
+				"Do not call fetch() directly against the Leuchtturm API. Use @leuchtturm/web/clients/api instead.",
 		},
 	},
 	create(context) {

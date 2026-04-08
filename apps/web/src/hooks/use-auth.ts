@@ -1,8 +1,8 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useRouter } from "@tanstack/react-router";
 
-import { authClient } from "@chevrotain/web/clients/auth";
-import { sessionQuery } from "@chevrotain/web/queries/session";
+import { authClient } from "@leuchtturm/web/clients/auth";
+import { sessionQuery } from "@leuchtturm/web/queries/session";
 
 export function useAuth() {
 	const navigate = useNavigate();

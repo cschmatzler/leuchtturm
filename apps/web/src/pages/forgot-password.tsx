@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { MailIcon } from "lucide-react";
 
-import { AuthSidePanel } from "@chevrotain/web/components/app/auth-side-panel";
-import { ForgotPasswordForm } from "@chevrotain/web/pages/forgot-password/-components/forgot-password-form";
+import { AuthSidePanel } from "@leuchtturm/web/components/app/auth-side-panel";
+import { ForgotPasswordForm } from "@leuchtturm/web/pages/forgot-password/-components/forgot-password-form";
 
 export const Route = createFileRoute("/forgot-password")({
 	component: Page,
@@ -20,7 +20,7 @@ function Page() {
 						<div className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
 							<MailIcon className="size-4" />
 						</div>
-						<span className="text-base font-semibold">Chevrotain</span>
+						<span className="text-base font-semibold">Leuchtturm</span>
 					</Link>
 				</div>
 				<div className="flex flex-1 items-center justify-center">

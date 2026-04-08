@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { determineNewOperator } from "@chevrotain/web/components/data-table-filter/operators";
+import { determineNewOperator } from "@leuchtturm/web/components/data-table-filter/operators";
 
 describe("determineNewOperator", () => {
 	describe("no transition needed", () => {

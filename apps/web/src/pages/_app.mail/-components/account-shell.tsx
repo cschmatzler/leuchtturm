@@ -19,9 +19,9 @@ import {
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
-} from "@chevrotain/web/components/ui/sidebar";
-import { useZeroQuery } from "@chevrotain/web/lib/query";
-import { queries } from "@chevrotain/zero/queries";
+} from "@leuchtturm/web/components/ui/sidebar";
+import { useZeroQuery } from "@leuchtturm/web/lib/query";
+import { queries } from "@leuchtturm/zero/queries";
 
 const FOLDER_ICONS: Record<string, ComponentType<{ className?: string }>> = {
 	inbox: InboxIcon,

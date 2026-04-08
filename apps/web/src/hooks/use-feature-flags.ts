@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 
-import { FeatureFlags } from "@chevrotain/core/feature-flags";
-import { useZeroQuery } from "@chevrotain/web/lib/query";
-import { queries } from "@chevrotain/zero/queries";
+import { FeatureFlags } from "@leuchtturm/core/feature-flags";
+import { useZeroQuery } from "@leuchtturm/web/lib/query";
+import { queries } from "@leuchtturm/zero/queries";
 
 export function useFeatureFlags(): Record<string, boolean> {
 	const [currentUser] = useZeroQuery(queries.currentUser());

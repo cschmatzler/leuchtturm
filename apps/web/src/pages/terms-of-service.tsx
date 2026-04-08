@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
-import { MarketingHeader } from "@chevrotain/web/components/app/marketing-header";
+import { MarketingHeader } from "@leuchtturm/web/components/app/marketing-header";
 
 export const Route = createFileRoute("/terms-of-service")({
 	component: Page,
@@ -20,7 +20,7 @@ function Page() {
 						<h1 className="text-3xl font-bold tracking-tight">Terms of Service</h1>
 						<p className="text-sm text-muted-foreground">Last updated: Jan 24, 2026</p>
 						<p className="mt-1 leading-relaxed text-muted-foreground">
-							These Terms of Service ("Terms") govern your use of Chevrotain. By accessing or using
+							These Terms of Service ("Terms") govern your use of Leuchtturm. By accessing or using
 							the service, you agree to these Terms.
 						</p>
 					</header>

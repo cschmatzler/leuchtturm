@@ -1,7 +1,7 @@
 import { type Transaction, defineMutatorsWithType } from "@rocicorp/zero";
 
-import { ForbiddenError, UnauthorizedError } from "@chevrotain/core/errors";
-import { type Context, type Schema } from "@chevrotain/zero/schema";
+import { ForbiddenError, UnauthorizedError } from "@leuchtturm/core/errors";
+import { type Context, type Schema } from "@leuchtturm/zero/schema";
 
 export const defineMutators = defineMutatorsWithType<Schema>();
 

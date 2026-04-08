@@ -3,11 +3,10 @@ import { useRouter } from "@tanstack/react-router";
 import type { Session, User } from "better-auth";
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 
-import { Loading } from "@chevrotain/web/components/app/loading";
-import { getSyncUrl } from "@chevrotain/web/runtime";
-import { mutators } from "@chevrotain/zero/mutators";
-import { queries } from "@chevrotain/zero/queries";
-import { schema, type Zero } from "@chevrotain/zero/schema";
+import { Loading } from "@leuchtturm/web/components/app/loading";
+import { mutators } from "@leuchtturm/zero/mutators";
+import { queries } from "@leuchtturm/zero/queries";
+import { schema, type Zero } from "@leuchtturm/zero/schema";
 
 export type SessionData = {
 	session: Session;
@@ -50,7 +49,7 @@ export function ZeroProvider({ session, children }: { session: SessionData; chil
 	return (
 		<ZeroProviderPrimitive
 			schema={schema}
-			cacheURL={getSyncUrl()}
+			cacheURL={import.meta.env.VITE_SYNC_URL}
 			userID={userId}
 			context={context}
 			mutators={mutators}

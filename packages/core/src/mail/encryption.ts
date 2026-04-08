@@ -17,9 +17,7 @@ function parseMailKek(raw: string): Buffer {
 		return utf8;
 	}
 
-	throw new globalThis.Error(
-		"MAIL_KEK must be either a 64-character hex string or a 32-byte raw string",
-	);
+	throw new Error("MAIL_KEK must be either a 64-character hex string or a 32-byte raw string");
 }
 
 function encryptRaw(key: Buffer, plaintext: Buffer): string {
@@ -59,19 +57,19 @@ function envelopeDecrypt(kek: Buffer, encrypted: EncryptedSecret): string {
 }
 
 export namespace MailEncryption {
-	export class Error extends Schema.TaggedErrorClass<Error>()(
+	export class MailEncryptionError extends Schema.TaggedErrorClass<MailEncryptionError>()(
 		"MailEncryptionError",
 		{ message: Schema.String },
 		{ httpApiStatus: 500 },
 	) {}
 
 	export interface Interface {
-		readonly encrypt: (payload: string) => Effect.Effect<EncryptedSecret, Error>;
-		readonly decrypt: (encrypted: EncryptedSecret) => Effect.Effect<string, Error>;
+		readonly encrypt: (payload: string) => Effect.Effect<EncryptedSecret, MailEncryptionError>;
+		readonly decrypt: (encrypted: EncryptedSecret) => Effect.Effect<string, MailEncryptionError>;
 	}
 
 	export class Service extends ServiceMap.Service<Service, Interface>()(
-		"@chevrotain/MailEncryption",
+		"@leuchtturm/MailEncryption",
 	) {}
 
 	export const layer = Layer.effect(Service)(
@@ -79,8 +77,8 @@ export namespace MailEncryption {
 			const kek = yield* Effect.try({
 				try: () => parseMailKek(Resource.MailKek.value),
 				catch: (error) =>
-					new Error({
-						message: error instanceof globalThis.Error ? error.message : String(error),
+					new MailEncryptionError({
+						message: String(error),
 					}),
 			});
 
@@ -88,8 +86,8 @@ export namespace MailEncryption {
 				return yield* Effect.try({
 					try: () => envelopeEncrypt(kek, payload),
 					catch: (error) =>
-						new Error({
-							message: error instanceof globalThis.Error ? error.message : String(error),
+						new MailEncryptionError({
+							message: String(error),
 						}),
 				});
 			});
@@ -98,8 +96,8 @@ export namespace MailEncryption {
 				return yield* Effect.try({
 					try: () => envelopeDecrypt(kek, encrypted),
 					catch: (error) =>
-						new Error({
-							message: error instanceof globalThis.Error ? error.message : String(error),
+						new MailEncryptionError({
+							message: String(error),
 						}),
 				});
 			});

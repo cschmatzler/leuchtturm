@@ -3,7 +3,7 @@ import { Command as CommandPrimitive } from "cmdk";
 import { CheckIcon, ChevronsUpDownIcon, SearchIcon } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
 
-import { cn } from "@chevrotain/web/lib/cn";
+import { cn } from "@leuchtturm/web/lib/cn";
 
 interface ComboboxRootProps extends BasePopover.Root.Props {
 	children?: ReactNode;

@@ -3,10 +3,10 @@ import { ArrowRightIcon, InboxIcon, MailIcon, MessageSquareIcon, SearchIcon } fr
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
-import { Button } from "@chevrotain/web/components/ui/button";
-import { Card, CardContent } from "@chevrotain/web/components/ui/card";
-import { useReactQuery } from "@chevrotain/web/lib/query";
-import { sessionQuery } from "@chevrotain/web/queries/session";
+import { Button } from "@leuchtturm/web/components/ui/button";
+import { Card, CardContent } from "@leuchtturm/web/components/ui/card";
+import { useReactQuery } from "@leuchtturm/web/lib/query";
+import { sessionQuery } from "@leuchtturm/web/queries/session";
 
 export const Route = createFileRoute("/")({
 	component: Page,
@@ -356,7 +356,7 @@ function BrandLink({ accent = false }: { accent?: boolean }) {
 			>
 				<MailIcon className="size-4" />
 			</div>
-			<span className="text-base font-semibold tracking-tight">Chevrotain</span>
+			<span className="text-base font-semibold tracking-tight">Leuchtturm</span>
 		</Link>
 	);
 }

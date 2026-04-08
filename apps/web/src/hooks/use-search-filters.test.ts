@@ -1,8 +1,8 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
-import type { FiltersState } from "@chevrotain/web/components/data-table-filter/types";
-import { useSearchFilters } from "@chevrotain/web/hooks/use-search-filters";
+import type { FiltersState } from "@leuchtturm/web/components/data-table-filter/types";
+import { useSearchFilters } from "@leuchtturm/web/hooks/use-search-filters";
 
 type NavigateOptions = Parameters<
 	ReturnType<Parameters<typeof useSearchFilters>[0]["route"]["useNavigate"]>

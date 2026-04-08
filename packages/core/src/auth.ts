@@ -7,7 +7,7 @@ import { Effect, Layer, Schema, ServiceMap } from "effect";
 import { Resource } from "sst";
 import { ulid } from "ulid";
 
-import { account, session, user, verification } from "@chevrotain/core/auth/auth.sql";
+import { account, session, user, verification } from "@leuchtturm/core/auth/auth.sql";
 import {
 	AccountId,
 	PASSWORD_MIN_LENGTH,
@@ -15,37 +15,39 @@ import {
 	SessionId,
 	UserId,
 	VerificationId,
-} from "@chevrotain/core/auth/schema";
-import { Billing } from "@chevrotain/core/billing";
-import { POLAR_PRO_PRODUCT_ID, POLAR_PRO_PRODUCT_SLUG } from "@chevrotain/core/billing/products";
-import { Database } from "@chevrotain/core/drizzle";
-import { Email } from "@chevrotain/core/email";
-import { sendPasswordResetEmail } from "@chevrotain/email/password-reset";
+} from "@leuchtturm/core/auth/schema";
+import { Billing } from "@leuchtturm/core/billing";
+import { POLAR_PRO_PRODUCT_ID, POLAR_PRO_PRODUCT_SLUG } from "@leuchtturm/core/billing/products";
+import { Database } from "@leuchtturm/core/drizzle";
+import { Email } from "@leuchtturm/core/email";
+import { sendPasswordResetEmail } from "@leuchtturm/email/password-reset";
 
 export namespace Auth {
 	export const SessionData = SessionDataSchema;
 	export type SessionData = typeof SessionData.Type;
 
-	export class Error extends Schema.TaggedErrorClass<Error>()(
+	export class AuthError extends Schema.TaggedErrorClass<AuthError>()(
 		"AuthError",
 		{ message: Schema.String },
 		{ httpApiStatus: 500 },
 	) {}
 
 	export interface Interface {
-		readonly handle: (request: Request) => Effect.Effect<Response, Error>;
-		readonly getSession: (headers: Headers) => Effect.Effect<SessionData | null, Error>;
+		readonly handle: (request: Request) => Effect.Effect<Response, AuthError>;
+		readonly getSession: (headers: Headers) => Effect.Effect<SessionData | null, AuthError>;
 	}
 
-	export class Service extends ServiceMap.Service<Service, Interface>()("@chevrotain/Auth") {}
+	export class Service extends ServiceMap.Service<Service, Interface>()("@leuchtturm/Auth") {}
 
 	export const layer = Layer.effect(Service)(
 		Effect.gen(function* () {
 			const { db } = yield* Database.Service;
 			const billing = yield* Billing.Service;
 			const email = yield* Email.Service;
+			const services = yield* Effect.services();
 
-			const runCallback = <A, E>(effect: Effect.Effect<A, E>) => Effect.runPromise(effect);
+			const runCallback = <A, E>(effect: Effect.Effect<A, E>) =>
+				Effect.runPromiseWith(services)(effect);
 
 			const logWebhook = Effect.fn("Auth.logWebhook")(function* (type: string) {
 				yield* Effect.logInfo("Polar webhook received").pipe(Effect.annotateLogs("type", type));
@@ -82,8 +84,8 @@ export namespace Auth {
 							userName: params.user.name,
 						}),
 					catch: (error) =>
-						new Error({
-							message: `Failed to send password reset email: ${error instanceof globalThis.Error ? error.message : String(error)}`,
+						new AuthError({
+							message: `Failed to send password reset email: ${String(error)}`,
 						}),
 				});
 			});
@@ -182,7 +184,7 @@ export namespace Auth {
 								case "verification":
 									return VerificationId.makeUnsafe(`ver_${ulid()}`);
 								default:
-									throw new globalThis.Error(`Unknown auth model: ${model}`);
+									throw new Error(`Unknown auth model: ${model}`);
 							}
 						},
 					},
@@ -193,8 +195,8 @@ export namespace Auth {
 				return yield* Effect.tryPromise({
 					try: () => auth.handler(request),
 					catch: (error) =>
-						new Error({
-							message: `Auth handler failed: ${error instanceof globalThis.Error ? error.message : String(error)}`,
+						new AuthError({
+							message: `Auth handler failed: ${String(error)}`,
 						}),
 				});
 			});
@@ -203,8 +205,8 @@ export namespace Auth {
 				const session = yield* Effect.tryPromise({
 					try: () => auth.api.getSession({ headers }),
 					catch: (error) =>
-						new Error({
-							message: `Auth getSession failed: ${error instanceof globalThis.Error ? error.message : String(error)}`,
+						new AuthError({
+							message: `Auth getSession failed: ${String(error)}`,
 						}),
 				});
 
@@ -215,7 +217,7 @@ export namespace Auth {
 				return yield* Schema.decodeUnknownEffect(SessionDataSchema)(session).pipe(
 					Effect.mapError(
 						(error) =>
-							new Error({
+							new AuthError({
 								message: `Invalid auth session payload: ${error.message}`,
 							}),
 					),

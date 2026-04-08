@@ -4,14 +4,14 @@ import { createElement, type ComponentType } from "react";
 import {
 	DataTableFilter,
 	type DataTableFilterProps,
-} from "@chevrotain/web/components/data-table-filter";
+} from "@leuchtturm/web/components/data-table-filter";
 import {
 	Empty,
 	EmptyContent,
 	EmptyDescription,
 	EmptyMedia,
 	EmptyTitle,
-} from "@chevrotain/web/components/ui/empty";
+} from "@leuchtturm/web/components/ui/empty";
 import {
 	Table,
 	TableBody,
@@ -19,8 +19,8 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow,
-} from "@chevrotain/web/components/ui/table";
-import { cn } from "@chevrotain/web/lib/cn";
+} from "@leuchtturm/web/components/ui/table";
+import { cn } from "@leuchtturm/web/lib/cn";
 
 export function DataTable<TData>({
 	table,

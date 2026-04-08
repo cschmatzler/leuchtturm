@@ -6,7 +6,7 @@ function reportRelativeSource(context, node) {
 			context.report({
 				node,
 				message:
-					"Relative imports are not allowed. Use package imports with @chevrotain/* instead.",
+					"Relative imports are not allowed. Use package imports with @leuchtturm/* instead.",
 			});
 		}
 	}
@@ -15,7 +15,7 @@ function reportRelativeSource(context, node) {
 const rule = {
 	meta: {
 		docs: {
-			description: "Disallow relative imports. Use @chevrotain/* imports instead.",
+			description: "Disallow relative imports. Use @leuchtturm/* imports instead.",
 		},
 		type: "problem",
 	},

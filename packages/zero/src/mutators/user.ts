@@ -1,10 +1,10 @@
 import { defineMutator } from "@rocicorp/zero";
 import { Schema } from "effect";
 
-import { User } from "@chevrotain/core/auth/schema";
-import { ForbiddenError } from "@chevrotain/core/errors";
-import { SupportedLanguageSchema } from "@chevrotain/core/i18n";
-import { assertLoggedIn } from "@chevrotain/zero/mutators/shared";
+import { User } from "@leuchtturm/core/auth/schema";
+import { ForbiddenError } from "@leuchtturm/core/errors";
+import { SupportedLanguageSchema } from "@leuchtturm/core/i18n";
+import { assertLoggedIn } from "@leuchtturm/zero/mutators/shared";
 
 export const userMutators = {
 	update: defineMutator(

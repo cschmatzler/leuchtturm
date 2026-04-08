@@ -8,7 +8,7 @@ import {
 	SessionId,
 	User,
 	UserId,
-} from "@chevrotain/core/auth/schema";
+} from "@leuchtturm/core/auth/schema";
 
 const now = new Date();
 

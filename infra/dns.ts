@@ -1,12 +1,15 @@
-import { appDomain, rootDomain } from "@chevrotain/infra/stage";
+export const root = "leuchtturm.dev";
+export const appDomain = $app.stage === "production" ? root : `${$app.stage}.${root}`;
+export const syncDomain =
+	$app.stage === "production" ? `sync.${root}` : `sync.${$app.stage}.${root}`;
 
 export const zone = cloudflare.getZoneOutput({
 	filter: {
-		name: rootDomain,
+		name: root,
 	},
 });
 
-export const webRoutesDns = new cloudflare.DnsRecord("WebRoutesDns", {
+new cloudflare.DnsRecord("Placeholder", {
 	zoneId: zone.zoneId,
 	name: appDomain,
 	type: "AAAA",

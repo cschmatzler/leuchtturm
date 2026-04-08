@@ -2,7 +2,8 @@ import { drizzle, type NodePgClient, type NodePgDatabase } from "drizzle-orm/nod
 import { Effect, Layer, ServiceMap } from "effect";
 import { Client as PgClient } from "pg";
 
-import { allRelations } from "@chevrotain/core/drizzle/relations";
+import { allRelations } from "@leuchtturm/core/drizzle/relations";
+import { DatabaseError } from "@leuchtturm/core/errors";
 
 export namespace Database {
 	export type Client = NodePgDatabase<Record<string, never>, typeof allRelations> & {
@@ -15,7 +16,7 @@ export namespace Database {
 		readonly db: Client;
 	}
 
-	export class Service extends ServiceMap.Service<Service, Interface>()("@chevrotain/Database") {}
+	export class Service extends ServiceMap.Service<Service, Interface>()("@leuchtturm/Database") {}
 
 	export const layer = (connectionString: string) =>
 		Layer.effect(Service)(
@@ -29,8 +30,7 @@ export namespace Database {
 							await client.connect();
 							return client;
 						},
-						catch: (error) =>
-							error instanceof globalThis.Error ? error : new globalThis.Error(String(error)),
+						catch: (error) => new DatabaseError({ message: String(error) }),
 					}),
 					(client) => Effect.promise(() => client.end()),
 				);

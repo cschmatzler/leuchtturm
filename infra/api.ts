@@ -1,25 +1,37 @@
-import { hyperdrive } from "@chevrotain/infra/database";
-import { apiSecrets } from "@chevrotain/infra/secret";
-import { webUrl } from "@chevrotain/infra/stage";
+import { output } from "@pulumi/pulumi";
 
-const apiConfig = new sst.Linkable("ApiConfig", {
+import { hyperdrive } from "@leuchtturm/infra/database";
+import { appDomain } from "@leuchtturm/infra/dns";
+import { apiSecrets } from "@leuchtturm/infra/secrets";
+
+const config = new sst.Linkable("ApiConfig", {
 	properties: {
-		BASE_URL: webUrl,
+		BASE_URL: $interpolate`https://${appDomain}`,
 		NODE_ENV: "production",
-		POLAR_SERVER: "production",
+		POLAR_SERVER: "sandbox",
 	},
 });
 
-export const api = new sst.cloudflare.Worker("Api", {
+export const api = new sst.cloudflare.Worker("ApiWorker", {
 	handler: "apps/api/src/index.ts",
 	placement: { mode: "smart" },
 	transform: {
-		worker: (args) => {
-			args.bindings = Promise.resolve(args.bindings ?? []).then((bindings) => [
+		observability: {
+			enabled: false,
+			headSamplingRate: 1,
+			logs: {
+				enabled: true,
+				headSamplingRate: 1,
+				persist: true,
+				invocationLogs: true,
+			},
+		},
+		worker: (args: any) => {
+			args.bindings = output(args.bindings ?? []).apply((bindings) => [
 				...bindings,
 				{ type: "hyperdrive", name: "HYPERDRIVE", id: hyperdrive.id },
 			]);
 		},
 	},
-	link: [apiConfig, ...apiSecrets],
+	link: [config, ...apiSecrets],
 });

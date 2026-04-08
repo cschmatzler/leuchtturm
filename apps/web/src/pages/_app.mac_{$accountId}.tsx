@@ -1,11 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
-import { useZeroQuery } from "@chevrotain/web/lib/query";
-import { parsePrefixedId, stringifyPrefixedId } from "@chevrotain/web/lib/route-params";
-import { MailAccountShell } from "@chevrotain/web/pages/_app.mail/-components/account-shell";
-import { ConversationList } from "@chevrotain/web/pages/_app.mail/-components/conversation-list";
-import { MessageList } from "@chevrotain/web/pages/_app.mail/-components/message-list";
-import { queries } from "@chevrotain/zero/queries";
+import { useZeroQuery } from "@leuchtturm/web/lib/query";
+import { parsePrefixedId, stringifyPrefixedId } from "@leuchtturm/web/lib/route-params";
+import { MailAccountShell } from "@leuchtturm/web/pages/_app.mail/-components/account-shell";
+import { ConversationList } from "@leuchtturm/web/pages/_app.mail/-components/conversation-list";
+import { MessageList } from "@leuchtturm/web/pages/_app.mail/-components/message-list";
+import { queries } from "@leuchtturm/zero/queries";
 
 export const Route = createFileRoute("/_app/mac_{$accountId}")({
 	params: {

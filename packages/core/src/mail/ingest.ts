@@ -4,8 +4,8 @@ import type {
 	ProviderBodyPart,
 	ProviderEmailAddress,
 	ProviderMessage,
-} from "@chevrotain/core/mail/provider";
-import type { MailMirroredCoverageKind, MailParticipantRole } from "@chevrotain/core/mail/schema";
+} from "@leuchtturm/core/mail/provider";
+import type { MailMirroredCoverageKind, MailParticipantRole } from "@leuchtturm/core/mail/schema";
 
 export interface MailParticipantInput {
 	readonly displayName: string | null;

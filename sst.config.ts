@@ -1,57 +1,27 @@
 export default $config({
 	app(input) {
 		return {
-			name: "chevrotain",
+			name: "leuchtturm",
 			home: "cloudflare",
 			providers: {
 				aws: {
 					region: "eu-central-1",
 				},
+				"@cloudyskysoftware/pulumi-render": "0.5.5",
 				cloudflare: "6.13.0",
 				planetscale: "1.0.0",
 			},
-			protect: input.stage === "production",
-			removal: input.stage === "production" ? "retain" : "remove",
+			// protect: input.stage === "production",
+			// removal: input.stage === "production" ? "retain" : "remove",
 		};
 	},
 	async run() {
-		const [{ api }, { zone }, { apiUrl, appDomain, webUrl }, { web }, { zeroUrl }] =
-			await Promise.all([
-				import("@chevrotain/infra/api"),
-				import("@chevrotain/infra/dns"),
-				import("@chevrotain/infra/stage"),
-				import("@chevrotain/infra/web"),
-				import("@chevrotain/infra/zero"),
-			]);
-
-		new cloudflare.WorkersRoute("ApiRoute", {
-			zoneId: zone.zoneId,
-			pattern: `${appDomain}/api`,
-			script: api.nodes.worker.scriptName,
-		});
-
-		new cloudflare.WorkersRoute("ApiWildcardRoute", {
-			zoneId: zone.zoneId,
-			pattern: `${appDomain}/api/*`,
-			script: api.nodes.worker.scriptName,
-		});
-
-		new cloudflare.WorkersRoute("WebRoute", {
-			zoneId: zone.zoneId,
-			pattern: appDomain,
-			script: web.nodes.router.nodes.worker.scriptName,
-		});
-
-		new cloudflare.WorkersRoute("WebWildcardRoute", {
-			zoneId: zone.zoneId,
-			pattern: `${appDomain}/*`,
-			script: web.nodes.router.nodes.worker.scriptName,
-		});
-
-		return {
-			api: apiUrl,
-			web: webUrl,
-			zero: zeroUrl,
-		};
+		await import("@leuchtturm/infra/dns");
+		await import("@leuchtturm/infra/secrets");
+		await import("@leuchtturm/infra/database");
+		await import("@leuchtturm/infra/api");
+		await import("@leuchtturm/infra/web");
+		await import("@leuchtturm/infra/routes");
+		await import("@leuchtturm/infra/zero");
 	},
 });

@@ -3,18 +3,18 @@ import type { ColumnDef, ColumnFiltersState, Row } from "@tanstack/react-table";
 import {
 	multiOptionFilterFn,
 	optionFilterFn,
-} from "@chevrotain/web/components/data-table-filter/filter-fns";
-import * as f from "@chevrotain/web/components/data-table-filter/filter-fns";
+} from "@leuchtturm/web/components/data-table-filter/filter-fns";
+import * as f from "@leuchtturm/web/components/data-table-filter/filter-fns";
 import {
 	isColumnOption,
 	isColumnOptionArray,
 	isStringArray,
-} from "@chevrotain/web/components/data-table-filter/helpers";
+} from "@leuchtturm/web/components/data-table-filter/helpers";
 import type {
 	Column,
 	FilterModel,
 	FiltersState,
-} from "@chevrotain/web/components/data-table-filter/types";
+} from "@leuchtturm/web/components/data-table-filter/types";
 
 interface CreateTanStackColumnsOptions<TData> {
 	columns: ColumnDef<TData, any>[];

@@ -6,8 +6,8 @@ import {
 	buildMailSearchDocumentValues,
 	collectConversationParticipants,
 	createProviderPayloadDigest,
-} from "@chevrotain/core/mail/ingest";
-import type { ProviderMessage } from "@chevrotain/core/mail/provider";
+} from "@leuchtturm/core/mail/ingest";
+import type { ProviderMessage } from "@leuchtturm/core/mail/provider";
 
 const providerMessage: ProviderMessage = {
 	providerRef: "msg_123",

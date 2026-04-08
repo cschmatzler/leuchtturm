@@ -95,7 +95,7 @@
 		'';
 		initialDatabases = [
 			{
-				name = "chevrotain";
+				name = "leuchtturm";
 				user = "postgres";
 			}
 		];
@@ -115,13 +115,13 @@
 	env.VITE_SYNC_URL = "http://localhost:34600/sync";
 
 	# Database
-	env.DATABASE_URL = "postgres://postgres:postgres@localhost:34601/chevrotain";
+	env.DATABASE_URL = "postgres://postgres:postgres@localhost:34601/leuchtturm";
 
 	# Auth
 	env.BETTER_AUTH_SECRET = "alberta-germany-gallons-outright-intubate-sake-verity";
 
 	# Zero
-	env.ZERO_APP_ID = "chevrotain";
+	env.ZERO_APP_ID = "leuchtturm";
 	env.ZERO_UPSTREAM_DB = config.env.DATABASE_URL;
 	env.ZERO_REPLICA_FILE = "/tmp/zero.db";
 	env.ZERO_QUERY_URL = "http://localhost:34600/api/query";

@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 
-import { Email, TrimmedNonEmptyString, Ulid } from "@chevrotain/core/schema";
+import { Email, TrimmedNonEmptyString, Ulid } from "@leuchtturm/core/schema";
 
 export const PASSWORD_MIN_LENGTH = 13;
 export const PASSWORD_VALIDATION_MESSAGE = "Password must be more than 12 characters";

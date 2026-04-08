@@ -8,8 +8,8 @@ import {
 	CommandItem,
 	CommandList,
 	CommandShortcut,
-} from "@chevrotain/web/components/ui/command";
-import { useCommandBar } from "@chevrotain/web/hooks/use-command-bar";
+} from "@leuchtturm/web/components/ui/command";
+import { useCommandBar } from "@leuchtturm/web/hooks/use-command-bar";
 
 function CommandBar() {
 	const { t } = useTranslation();

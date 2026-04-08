@@ -2,13 +2,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ArrowLeftIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { Button } from "@chevrotain/web/components/ui/button";
-import { Link } from "@chevrotain/web/components/ui/link";
-import { useZeroQuery } from "@chevrotain/web/lib/query";
-import { parsePrefixedId, stringifyPrefixedId } from "@chevrotain/web/lib/route-params";
-import { MailAccountShell } from "@chevrotain/web/pages/_app.mail/-components/account-shell";
-import { MessageDetail } from "@chevrotain/web/pages/_app.mail/-components/message-detail";
-import { queries } from "@chevrotain/zero/queries";
+import { Button } from "@leuchtturm/web/components/ui/button";
+import { Link } from "@leuchtturm/web/components/ui/link";
+import { useZeroQuery } from "@leuchtturm/web/lib/query";
+import { parsePrefixedId, stringifyPrefixedId } from "@leuchtturm/web/lib/route-params";
+import { MailAccountShell } from "@leuchtturm/web/pages/_app.mail/-components/account-shell";
+import { MessageDetail } from "@leuchtturm/web/pages/_app.mail/-components/message-detail";
+import { queries } from "@leuchtturm/zero/queries";
 
 export const Route = createFileRoute("/_app/mcv_{$conversationId}")({
 	params: {

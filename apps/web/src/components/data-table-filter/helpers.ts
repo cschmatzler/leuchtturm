@@ -1,6 +1,6 @@
 import { isBefore } from "date-fns";
 
-import type { Column, ColumnOption } from "@chevrotain/web/components/data-table-filter/types";
+import type { Column, ColumnOption } from "@leuchtturm/web/components/data-table-filter/types";
 
 export function getColumn<TData>(filterColumns: Column<TData>[], id: string) {
 	const column = filterColumns.find((c) => c.id === id);
@@ -63,15 +63,16 @@ export function isStringArray(value: unknown): value is string[] {
 }
 
 export function isColumnOptionMap(value: unknown): value is Map<string, number> {
-	if (!(value instanceof Map)) {
+	if (Object.prototype.toString.call(value) !== "[object Map]") {
 		return false;
 	}
-	for (const key of value.keys()) {
+	const map = value as Map<string, number>;
+	for (const key of map.keys()) {
 		if (typeof key !== "string") {
 			return false;
 		}
 	}
-	for (const entry of value.values()) {
+	for (const entry of map.values()) {
 		if (typeof entry !== "number") {
 			return false;
 		}

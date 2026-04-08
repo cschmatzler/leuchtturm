@@ -1,8 +1,8 @@
 import { QueryClient } from "@tanstack/react-query";
 import { describe, expect, it } from "vite-plus/test";
 
-import { Route } from "@chevrotain/web/pages/_app";
-import { sessionQuery } from "@chevrotain/web/queries/session";
+import { Route } from "@leuchtturm/web/pages/_app";
+import { sessionQuery } from "@leuchtturm/web/queries/session";
 
 describe("app route auth caching", () => {
 	it("keeps the session query fresh for five minutes", () => {

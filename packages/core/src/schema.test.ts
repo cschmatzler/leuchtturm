@@ -1,7 +1,7 @@
 import { Option, Schema } from "effect";
 import { describe, expect, it } from "vite-plus/test";
 
-import { Email, TrimmedNonEmptyString, Ulid } from "@chevrotain/core/schema";
+import { Email, TrimmedNonEmptyString, Ulid } from "@leuchtturm/core/schema";
 
 describe("core schema primitives", () => {
 	it("trims non-empty strings and rejects blank input", () => {

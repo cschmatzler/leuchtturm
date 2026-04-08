@@ -12,11 +12,11 @@
 	},
 	"iconLibrary": "lucide",
 	"aliases": {
-		"components": "@chevrotain/web/components",
-		"utils": "@chevrotain/web/lib/utils",
-		"ui": "@chevrotain/web/components/ui",
-		"lib": "@chevrotain/web/lib",
-		"hooks": "@chevrotain/web/hooks"
+		"components": "@leuchtturm/web/components",
+		"utils": "@leuchtturm/web/lib/utils",
+		"ui": "@leuchtturm/web/components/ui",
+		"lib": "@leuchtturm/web/lib",
+		"hooks": "@leuchtturm/web/hooks"
 	},
 	"registries": {}
 }

@@ -2,9 +2,9 @@ import { mustGetMutator, mustGetQuery } from "@rocicorp/zero";
 import { handleMutateRequest, handleQueryRequest } from "@rocicorp/zero/server";
 import { describe, expect, it } from "vite-plus/test";
 
-import { mutators } from "@chevrotain/zero/mutators";
-import { queries } from "@chevrotain/zero/queries";
-import { schema } from "@chevrotain/zero/schema";
+import { mutators } from "@leuchtturm/zero/mutators";
+import { queries } from "@leuchtturm/zero/queries";
+import { schema } from "@leuchtturm/zero/schema";
 
 const TEST_USER_ID = "usr_01ARZ3NDEKTSV4RRFFQ69G5FAV" as never;
 

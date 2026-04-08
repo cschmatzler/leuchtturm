@@ -1,11 +1,11 @@
 {
-	"name": "@chevrotain/zero-cache",
+	"name": "@leuchtturm/zero-cache",
 	"type": "module",
 	"scripts": {
 		"dev": "zero-cache-dev"
 	},
 	"dependencies": {
-		"@rocicorp/zero": "1.0.0"
+		"@rocicorp/zero": "1.1.1"
 	},
 	"trustedDependencies": [
 		"@rocicorp/zero-sqlite3"

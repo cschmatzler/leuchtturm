@@ -12,26 +12,26 @@ import {
 	type CSSProperties,
 } from "react";
 
-import { Button } from "@chevrotain/web/components/ui/button";
-import { Input } from "@chevrotain/web/components/ui/input";
-import { Separator } from "@chevrotain/web/components/ui/separator";
+import { Button } from "@leuchtturm/web/components/ui/button";
+import { Input } from "@leuchtturm/web/components/ui/input";
+import { Separator } from "@leuchtturm/web/components/ui/separator";
 import {
 	Sheet,
 	SheetContent,
 	SheetDescription,
 	SheetHeader,
 	SheetTitle,
-} from "@chevrotain/web/components/ui/sheet";
-import { Skeleton } from "@chevrotain/web/components/ui/skeleton";
+} from "@leuchtturm/web/components/ui/sheet";
+import { Skeleton } from "@leuchtturm/web/components/ui/skeleton";
 import {
 	Tooltip,
 	TooltipContent,
 	TooltipProvider,
 	TooltipTrigger,
-} from "@chevrotain/web/components/ui/tooltip";
-import { useLocalStorage } from "@chevrotain/web/hooks/use-local-storage";
-import { useIsMobile } from "@chevrotain/web/hooks/use-mobile";
-import { cn } from "@chevrotain/web/lib/cn";
+} from "@leuchtturm/web/components/ui/tooltip";
+import { useLocalStorage } from "@leuchtturm/web/hooks/use-local-storage";
+import { useIsMobile } from "@leuchtturm/web/hooks/use-mobile";
+import { cn } from "@leuchtturm/web/lib/cn";
 
 const SIDEBAR_STORAGE_KEY = "sidebar_state";
 const SIDEBAR_WIDTH = "16rem";

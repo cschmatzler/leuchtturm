@@ -19,20 +19,22 @@ export interface GoogleUserInfo {
 }
 
 export namespace GmailOAuth {
-	export class Error extends Schema.TaggedErrorClass<Error>()(
+	export class GmailOAuthError extends Schema.TaggedErrorClass<GmailOAuthError>()(
 		"GmailOAuthError",
 		{ message: Schema.String },
 		{ httpApiStatus: 500 },
 	) {}
 
 	export interface Interface {
-		readonly getAuthUrl: (state: string) => Effect.Effect<string, Error>;
-		readonly exchangeCode: (code: string) => Effect.Effect<OAuthTokens, Error>;
-		readonly refreshAccessToken: (refreshToken: string) => Effect.Effect<OAuthTokens, Error>;
-		readonly getUserInfo: (accessToken: string) => Effect.Effect<GoogleUserInfo, Error>;
+		readonly getAuthUrl: (state: string) => Effect.Effect<string, GmailOAuthError>;
+		readonly exchangeCode: (code: string) => Effect.Effect<OAuthTokens, GmailOAuthError>;
+		readonly refreshAccessToken: (
+			refreshToken: string,
+		) => Effect.Effect<OAuthTokens, GmailOAuthError>;
+		readonly getUserInfo: (accessToken: string) => Effect.Effect<GoogleUserInfo, GmailOAuthError>;
 	}
 
-	export class Service extends ServiceMap.Service<Service, Interface>()("@chevrotain/GmailOAuth") {}
+	export class Service extends ServiceMap.Service<Service, Interface>()("@leuchtturm/GmailOAuth") {}
 
 	export const layer = Layer.effect(Service)(
 		Effect.sync(() => {
@@ -52,7 +54,7 @@ export namespace GmailOAuth {
 						});
 						if (!response.ok) {
 							const responseBody = await response.text();
-							throw new globalThis.Error(`OAuth token exchange failed: ${responseBody}`);
+							throw new Error(`OAuth token exchange failed: ${responseBody}`);
 						}
 
 						const data = (await response.json()) as {
@@ -68,8 +70,8 @@ export namespace GmailOAuth {
 						};
 					},
 					catch: (error) =>
-						new Error({
-							message: error instanceof globalThis.Error ? error.message : String(error),
+						new GmailOAuthError({
+							message: String(error),
 						}),
 				});
 			});
@@ -120,14 +122,14 @@ export namespace GmailOAuth {
 						});
 						if (!response.ok) {
 							const responseBody = await response.text();
-							throw new globalThis.Error(`Failed to fetch Google user info: ${responseBody}`);
+							throw new Error(`Failed to fetch Google user info: ${responseBody}`);
 						}
 
 						return (await response.json()) as { email: string; name?: string };
 					},
 					catch: (error) =>
-						new Error({
-							message: error instanceof globalThis.Error ? error.message : String(error),
+						new GmailOAuthError({
+							message: String(error),
 						}),
 				});
 

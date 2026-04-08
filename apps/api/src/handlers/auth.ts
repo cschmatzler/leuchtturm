@@ -2,66 +2,66 @@ import { Effect } from "effect";
 import { Cookies, HttpServerRequest, HttpServerResponse } from "effect/unstable/http";
 import { HttpApiBuilder } from "effect/unstable/httpapi";
 
-import { ChevrotainApi } from "@chevrotain/api/contract";
-import { Auth } from "@chevrotain/core/auth";
-import { AuthServiceError } from "@chevrotain/core/errors";
+import { LeuchtturmApi } from "@leuchtturm/api/contract";
+import { Auth } from "@leuchtturm/core/auth";
+import { AuthServiceError } from "@leuchtturm/core/errors";
 
-const authPassthroughErrorResponse = (message: string) =>
-	HttpServerResponse.jsonUnsafe({ _tag: "AuthServiceError", message }, { status: 500 });
+export namespace AuthHandler {
+	const errorResponse = (message: string) =>
+		HttpServerResponse.jsonUnsafe({ _tag: "AuthServiceError", message }, { status: 500 });
 
-const runAuthPassthrough = Effect.fn("auth.passthrough.run")(function* (
-	auth: Auth.Interface,
-	request: HttpServerRequest.HttpServerRequest,
-) {
-	const rawRequest = yield* HttpServerRequest.toWeb(request).pipe(Effect.orDie);
+	export const handlePassthrough = Effect.fn("auth.passthrough.handle")(function* (
+		auth: Auth.Interface,
+		request: HttpServerRequest.HttpServerRequest,
+	) {
+		if (!(request.source instanceof Request)) {
+			return errorResponse("Auth passthrough requires a source Request");
+		}
 
-	const response = yield* auth.handle(rawRequest).pipe(
-		Effect.mapError(
-			(error) =>
-				new AuthServiceError({
-					message: `Auth passthrough failed: ${error.message}`,
-				}),
-		),
-	);
+		return yield* auth.handle(request.source).pipe(
+			Effect.mapError(
+				(error) =>
+					new AuthServiceError({
+						message: `Auth passthrough failed: ${error.message}`,
+					}),
+			),
+			Effect.flatMap((response) =>
+				Effect.tryPromise({
+					try: () => response.arrayBuffer(),
+					catch: (error) =>
+						new AuthServiceError({
+							message: `Failed to read auth response body: ${error instanceof Error ? error.message : String(error)}`,
+						}),
+				}).pipe(
+					Effect.map((body) => {
+						const headers = new Headers(response.headers);
+						const setCookieHeaders = headers.has("set-cookie") ? [headers.get("set-cookie")!] : [];
+						headers.delete("set-cookie");
 
-	// HttpServerResponse.fromWeb() converts the body to a stream and drops the
-	// content-type (defaults to application/octet-stream). Read the body eagerly
-	// and construct the response with the correct content-type preserved.
-	const body = yield* Effect.tryPromise({
-		try: () => response.arrayBuffer(),
-		catch: (error) =>
-			new AuthServiceError({
-				message: `Failed to read auth response body: ${error instanceof Error ? error.message : String(error)}`,
-			}),
+						return HttpServerResponse.raw(new Uint8Array(body), {
+							status: response.status,
+							headers,
+							contentType: response.headers.get("content-type") ?? undefined,
+							cookies: Cookies.fromSetCookie(setCookieHeaders),
+						});
+					}),
+				),
+			),
+			Effect.catchIf(
+				(error): error is AuthServiceError => error instanceof AuthServiceError,
+				(error) => Effect.succeed(errorResponse(error.message)),
+			),
+		);
 	});
-	const headers = new Headers(response.headers);
-	const setCookieHeaders = headers.has("set-cookie") ? [headers.get("set-cookie")!] : [];
-	headers.delete("set-cookie");
 
-	return HttpServerResponse.raw(new Uint8Array(body), {
-		status: response.status,
-		headers,
-		contentType: response.headers.get("content-type") ?? undefined,
-		cookies: Cookies.fromSetCookie(setCookieHeaders),
-	});
-});
+	const passthrough = ({ request }: { request: HttpServerRequest.HttpServerRequest }) =>
+		Effect.gen(function* () {
+			const auth = yield* Auth.Service;
 
-export const handleAuthPassthrough = Effect.fn("auth.passthrough.handle")(function* (
-	auth: Auth.Interface,
-	request: HttpServerRequest.HttpServerRequest,
-) {
-	return yield* runAuthPassthrough(auth, request).pipe(
-		Effect.catch((error) => Effect.succeed(authPassthroughErrorResponse(error.message))),
+			return yield* handlePassthrough(auth, request);
+		});
+
+	export const layer = HttpApiBuilder.group(LeuchtturmApi, "auth", (handlers) =>
+		handlers.handleRaw("authGet", passthrough).handleRaw("authPost", passthrough),
 	);
-});
-
-const passthrough = Effect.fn("auth.passthrough")(function* () {
-	const request = yield* HttpServerRequest.HttpServerRequest;
-	const auth = yield* Auth.Service;
-
-	return yield* handleAuthPassthrough(auth, request);
-});
-
-export const AuthHandler = HttpApiBuilder.group(ChevrotainApi, "auth", (handlers) =>
-	handlers.handleRaw("authGet", passthrough).handleRaw("authPost", passthrough),
-);
+}

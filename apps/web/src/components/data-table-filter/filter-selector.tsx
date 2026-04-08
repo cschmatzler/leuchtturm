@@ -2,12 +2,12 @@ import { ArrowRightIcon, ChevronRightIcon, FunnelIcon } from "lucide-react";
 import { Fragment, isValidElement, memo, useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { useDataTableFilterContext } from "@chevrotain/web/components/data-table-filter/context";
-import { FilterValueController } from "@chevrotain/web/components/data-table-filter/filter-value";
-import { getColumn } from "@chevrotain/web/components/data-table-filter/helpers";
-import type { Column, ColumnDataType } from "@chevrotain/web/components/data-table-filter/types";
-import { Button } from "@chevrotain/web/components/ui/button";
-import { Checkbox } from "@chevrotain/web/components/ui/checkbox";
+import { useDataTableFilterContext } from "@leuchtturm/web/components/data-table-filter/context";
+import { FilterValueController } from "@leuchtturm/web/components/data-table-filter/filter-value";
+import { getColumn } from "@leuchtturm/web/components/data-table-filter/helpers";
+import type { Column, ColumnDataType } from "@leuchtturm/web/components/data-table-filter/types";
+import { Button } from "@leuchtturm/web/components/ui/button";
+import { Checkbox } from "@leuchtturm/web/components/ui/checkbox";
 import {
 	Command,
 	CommandEmpty,
@@ -15,10 +15,10 @@ import {
 	CommandInput,
 	CommandItem,
 	CommandList,
-} from "@chevrotain/web/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@chevrotain/web/components/ui/popover";
-import { isAnyOf } from "@chevrotain/web/lib/array";
-import { cn } from "@chevrotain/web/lib/cn";
+} from "@leuchtturm/web/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@leuchtturm/web/components/ui/popover";
+import { isAnyOf } from "@leuchtturm/web/lib/array";
+import { cn } from "@leuchtturm/web/lib/cn";
 
 export function FilterSelector<TData>() {
 	const { t } = useTranslation();

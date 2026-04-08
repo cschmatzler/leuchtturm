@@ -1,7 +1,7 @@
 import { useDebouncedCallback } from "@tanstack/react-pacer";
 import { type ChangeEvent, type InputHTMLAttributes } from "react";
 
-import { Input } from "@chevrotain/web/components/ui/input";
+import { Input } from "@leuchtturm/web/components/ui/input";
 
 export function DebouncedInput({
 	value: initialValue,

@@ -5,7 +5,7 @@ import type {
 	FilterOperatorTarget,
 	FilterTypeOperatorDetails,
 	FilterValues,
-} from "@chevrotain/web/components/data-table-filter/types";
+} from "@leuchtturm/web/components/data-table-filter/types";
 
 export const DEFAULT_OPERATORS: Record<
 	ColumnDataType,

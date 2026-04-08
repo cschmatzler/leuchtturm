@@ -1,7 +1,7 @@
 import { Option, Schema } from "effect";
 import { describe, expect, it } from "vite-plus/test";
 
-import { FeatureFlag, FeatureFlagUserOverride } from "@chevrotain/core/feature-flags/schema";
+import { FeatureFlag, FeatureFlagUserOverride } from "@leuchtturm/core/feature-flags/schema";
 
 const now = new Date();
 const userId = "usr_01ARZ3NDEKTSV4RRFFQ69G5FAV";

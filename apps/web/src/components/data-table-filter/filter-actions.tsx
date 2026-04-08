@@ -2,9 +2,9 @@ import { FunnelXIcon } from "lucide-react";
 import { memo } from "react";
 import { useTranslation } from "react-i18next";
 
-import { useDataTableFilterContext } from "@chevrotain/web/components/data-table-filter/context";
-import { Button } from "@chevrotain/web/components/ui/button";
-import { cn } from "@chevrotain/web/lib/cn";
+import { useDataTableFilterContext } from "@leuchtturm/web/components/data-table-filter/context";
+import { Button } from "@leuchtturm/web/components/ui/button";
+import { cn } from "@leuchtturm/web/lib/cn";
 
 export const FilterActions = memo(FilterActionsComponent);
 function FilterActionsComponent() {

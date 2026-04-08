@@ -2,9 +2,9 @@
 	"extends": "../../tsconfig.web.json",
 	"compilerOptions": {
 		"paths": {
-			"@chevrotain/web/*": ["./src/*"],
-			"@chevrotain/zero/*": ["../../packages/zero/src/*"],
-			"@chevrotain/core/*": ["../../packages/core/src/*"]
+			"@leuchtturm/web/*": ["./src/*"],
+			"@leuchtturm/zero/*": ["../../packages/zero/src/*"],
+			"@leuchtturm/core/*": ["../../packages/core/src/*"]
 		}
 	},
 	"include": ["src"]

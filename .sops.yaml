@@ -1,17 +1,17 @@
 keys:
   - &host_tahani age1smjjh7l5gchlp4zgfqcxaam506mudacsr37nqj690t0gktzlksvqskd2ek
   - &host_jason age1ez6j3r5wdp0tjy7n5qzv5vfakdc2nh2zeu388zu7a80l0thv052syxq5e2
-  - &host_chevrotain_web age1s6phdx58fk78cv72qanrws58kn670ntuhu5w78u6d843n88nw3xqau5x8u
-  - &host_chevrotain_zero age1vxvd9xqtqm2cfcud6um7sd29mwsw2fjmwcxwugkwrr6xc9mx5dms5sd5w2
-  - &host_chevrotain_postgres age1u6y4ufxkhxkynvtlusquclnqwvy0a7jxdws6mrllkuxvgch2s3lq4t55kv
-  - &host_chevrotain_observability age1gnhdt2yn2ph0c0tz3cwesg5pq22w3p0sy4y344zf6c2w8lq29fpqwujs0w
+  - &host_leuchtturm_web age1s6phdx58fk78cv72qanrws58kn670ntuhu5w78u6d843n88nw3xqau5x8u
+  - &host_leuchtturm_zero age1vxvd9xqtqm2cfcud6um7sd29mwsw2fjmwcxwugkwrr6xc9mx5dms5sd5w2
+  - &host_leuchtturm_postgres age1u6y4ufxkhxkynvtlusquclnqwvy0a7jxdws6mrllkuxvgch2s3lq4t55kv
+  - &host_leuchtturm_observability age1gnhdt2yn2ph0c0tz3cwesg5pq22w3p0sy4y344zf6c2w8lq29fpqwujs0w
 creation_rules:
   - path_regex: secrets/[^/]+$
     key_groups:
       - age:
           - *host_tahani
           - *host_jason
-          - *host_chevrotain_web
-          - *host_chevrotain_zero
-          - *host_chevrotain_postgres
-          - *host_chevrotain_observability
+          - *host_leuchtturm_web
+          - *host_leuchtturm_zero
+          - *host_leuchtturm_postgres
+          - *host_leuchtturm_observability

@@ -2,13 +2,13 @@ import { Option, Schema } from "effect";
 import { ulid } from "ulid";
 import { describe, expect, it } from "vite-plus/test";
 
-import { ProviderMessage } from "@chevrotain/core/mail/provider";
+import { ProviderMessage } from "@leuchtturm/core/mail/provider";
 import {
 	CreateMailAccountInput,
 	MailAccountStatus,
 	MailConversation,
 	MailSearchDocument,
-} from "@chevrotain/core/mail/schema";
+} from "@leuchtturm/core/mail/schema";
 
 const now = new Date();
 

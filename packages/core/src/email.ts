@@ -3,20 +3,20 @@ import type { CreateEmailResponseSuccess } from "resend";
 import { Resend } from "resend";
 import { Resource } from "sst";
 
-import type { SendParams } from "@chevrotain/core/email/schema";
+import type { SendParams } from "@leuchtturm/core/email/schema";
 
 export namespace Email {
-	export class Error extends Schema.TaggedErrorClass<Error>()(
+	export class EmailError extends Schema.TaggedErrorClass<EmailError>()(
 		"EmailError",
 		{ message: Schema.String },
 		{ httpApiStatus: 500 },
 	) {}
 
 	export interface Interface {
-		readonly send: (params: SendParams) => Effect.Effect<CreateEmailResponseSuccess, Error>;
+		readonly send: (params: SendParams) => Effect.Effect<CreateEmailResponseSuccess, EmailError>;
 	}
 
-	export class Service extends ServiceMap.Service<Service, Interface>()("@chevrotain/Email") {}
+	export class Service extends ServiceMap.Service<Service, Interface>()("@leuchtturm/Email") {}
 
 	export const layer = Layer.effect(Service)(
 		Effect.gen(function* () {
@@ -28,13 +28,13 @@ export namespace Email {
 				const result = yield* Effect.tryPromise({
 					try: () => resend.emails.send(params),
 					catch: (error) =>
-						new Error({
-							message: `Resend API request failed: ${error instanceof globalThis.Error ? error.message : String(error)}`,
+						new EmailError({
+							message: `Resend API request failed: ${String(error)}`,
 						}),
 				});
 
 				if (result.error || !result.data) {
-					return yield* new Error({
+					return yield* new EmailError({
 						message: result.error?.message ?? "Email sent but received no response data",
 					});
 				}

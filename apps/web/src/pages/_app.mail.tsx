@@ -2,10 +2,10 @@ import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { InboxIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { Content, Header } from "@chevrotain/web/components/app/layout";
-import { Link } from "@chevrotain/web/components/ui/link";
-import { useZeroQuery } from "@chevrotain/web/lib/query";
-import { queries } from "@chevrotain/zero/queries";
+import { Content, Header } from "@leuchtturm/web/components/app/layout";
+import { Link } from "@leuchtturm/web/components/ui/link";
+import { useZeroQuery } from "@leuchtturm/web/lib/query";
+import { queries } from "@leuchtturm/zero/queries";
 
 export const Route = createFileRoute("/_app/mail")({
 	loader: async ({ context: { zero } }) => {

@@ -12,7 +12,7 @@ import { createInstance } from "i18next";
 import { I18nextProvider, initReactI18next } from "react-i18next";
 import { afterEach, describe, expect, it } from "vite-plus/test";
 
-import { MarketingHeader } from "@chevrotain/web/components/app/marketing-header";
+import { MarketingHeader } from "@leuchtturm/web/components/app/marketing-header";
 
 async function createTestI18n() {
 	const i18n = createInstance();

@@ -8,8 +8,8 @@ import {
 	resolveLanguage,
 	SUPPORTED_LANGUAGES,
 	type SupportedLanguage,
-} from "@chevrotain/core/i18n";
-import { Button } from "@chevrotain/web/components/ui/button";
+} from "@leuchtturm/core/i18n";
+import { Button } from "@leuchtturm/web/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -17,8 +17,8 @@ import {
 	CardFooter,
 	CardHeader,
 	CardTitle,
-} from "@chevrotain/web/components/ui/card";
-import { FieldDescription, FieldGroup, FieldLabel } from "@chevrotain/web/components/ui/field";
+} from "@leuchtturm/web/components/ui/card";
+import { FieldDescription, FieldGroup, FieldLabel } from "@leuchtturm/web/components/ui/field";
 import {
 	Select,
 	SelectContent,
@@ -26,10 +26,10 @@ import {
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-} from "@chevrotain/web/components/ui/select";
-import { useZero, useZeroQuery } from "@chevrotain/web/lib/query";
-import { mutators } from "@chevrotain/zero/mutators";
-import { queries } from "@chevrotain/zero/queries";
+} from "@leuchtturm/web/components/ui/select";
+import { useZero, useZeroQuery } from "@leuchtturm/web/lib/query";
+import { mutators } from "@leuchtturm/zero/mutators";
+import { queries } from "@leuchtturm/zero/queries";
 
 const LANGUAGE_LABELS = {
 	en: "English",

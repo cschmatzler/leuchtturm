@@ -1,69 +1,68 @@
-import { zeroDatabaseUrl } from "@chevrotain/infra/database";
-import { zone } from "@chevrotain/infra/dns";
-import { secret } from "@chevrotain/infra/secret";
-import { apiUrl, zeroDomain, zeroUrl } from "@chevrotain/infra/stage";
+import { interpolate } from "@pulumi/pulumi";
 
-const zeroLitestreamBucket = new sst.aws.Bucket("ZeroLitestreamBucket");
-const zeroVpc = new sst.aws.Vpc("ZeroVpc");
-const zeroCluster = new sst.aws.Cluster("ZeroCluster", { vpc: zeroVpc });
+import { appDomain, syncDomain, zone } from "@leuchtturm/infra/dns";
+import { secrets } from "@leuchtturm/infra/secrets";
 
-export const zero = new sst.aws.Service("Zero", {
-	cluster: zeroCluster,
-	cpu: "0.5 vCPU",
-	link: [zeroLitestreamBucket],
-	environment: {
-		AWS_REGION: "eu-central-1",
-		NODE_ENV: "production",
-		ZERO_ADMIN_PASSWORD: secret.zeroAdminPassword.value,
-		ZERO_APP_ID: "chevrotain",
-		ZERO_CHANGE_DB: zeroDatabaseUrl,
-		ZERO_CVR_DB: zeroDatabaseUrl,
-		ZERO_LITESTREAM_BACKUP_URL: $interpolate`s3://${zeroLitestreamBucket.name}/replica-v1`,
-		ZERO_MUTATE_FORWARD_COOKIES: "true",
-		ZERO_MUTATE_URL: `${apiUrl}/mutate`,
-		ZERO_QUERY_FORWARD_COOKIES: "true",
-		ZERO_QUERY_URL: `${apiUrl}/query`,
-		ZERO_REPLICA_FILE: "/tmp/zero.db",
-		ZERO_UPSTREAM_DB: zeroDatabaseUrl,
+export const zero = new render.services.WebService("ZeroService", {
+	name: `${$app.name}-${$app.stage}-zero`,
+	ownerId: secrets.renderOwnerId.value,
+	type: "web_service",
+	image: {
+		imagePath: "rocicorp/zero:1.1.1",
+		ownerId: secrets.renderOwnerId.value,
 	},
-	health: {
-		command: ["CMD-SHELL", "curl -f http://localhost:4848/keepalive || exit 1"],
-		interval: "30 seconds",
-		startPeriod: "30 seconds",
-		timeout: "5 seconds",
-	},
-	image: "rocicorp/zero:1.1.1",
-	loadBalancer: {
-		domain: {
-			dns: sst.cloudflare.dns({
-				proxy: true,
-				zone: zone.zoneId,
-			}),
-			name: zeroDomain,
+	envVars: [
+		{ key: "NODE_ENV", value: "production" },
+		{ key: "ZERO_ADMIN_PASSWORD", value: secrets.zeroAdminPassword.value },
+		{ key: "ZERO_APP_ID", value: "leuchtturm" },
+		{
+			key: "ZERO_CHANGE_DB",
+			value: interpolate`postgres://${secrets.zeroDatabaseUsername.value}:${secrets.zeroDatabasePassword.value}@eu-central-1.pg.psdb.cloud:5432/postgres?sslmode=verify-full`,
 		},
-		health: {
-			"4848/http": {
-				healthyThreshold: 2,
-				interval: "10 seconds",
-				path: "/keepalive",
-				successCodes: "200-299",
-				timeout: "5 seconds",
-				unhealthyThreshold: 3,
-			},
+		{
+			key: "ZERO_CVR_DB",
+			value: interpolate`postgres://${secrets.zeroDatabaseUsername.value}:${secrets.zeroDatabasePassword.value}@eu-central-1.pg.psdb.cloud:5432/postgres?sslmode=verify-full`,
 		},
-		rules: [
-			{ listen: "80/http", redirect: "443/https" },
-			{ forward: "4848/http", listen: "443/https" },
-		],
-	},
-	logging: {
-		retention: "1 month",
-	},
-	memory: "1 GB",
-	scaling: {
-		max: 1,
-		min: 1,
+		{ key: "ZERO_MUTATE_FORWARD_COOKIES", value: "true" },
+		{ key: "ZERO_MUTATE_URL", value: $interpolate`https://${appDomain}/api/mutate` },
+		{ key: "ZERO_QUERY_FORWARD_COOKIES", value: "true" },
+		{ key: "ZERO_QUERY_URL", value: $interpolate`https://${appDomain}/api/query` },
+		{ key: "ZERO_REPLICA_FILE", value: "/var/data/zero.db" },
+		{
+			key: "ZERO_UPSTREAM_DB",
+			value: interpolate`postgres://${secrets.zeroDatabaseUsername.value}:${secrets.zeroDatabasePassword.value}@eu-central-1.pg.psdb.cloud:5432/postgres?sslmode=verify-full`,
+		},
+	],
+	serviceDetails: {
+		disk: {
+			mountPath: "/var/data",
+			name: `${$app.name}-${$app.stage}-zero-data`,
+			sizeGB: 1,
+		},
+		healthCheckPath: "/keepalive",
+		numInstances: 1,
+		plan: "starter",
+		region: "frankfurt",
+		runtime: "image",
 	},
 });
 
-export { zeroUrl };
+new render.services.CustomDomain("ZeroCustomDomain", {
+	name: syncDomain,
+	serviceId: zero.id,
+});
+
+new cloudflare.DnsRecord("ZeroCustomDomainRecord", {
+	zoneId: zone.zoneId,
+	name: syncDomain,
+	type: "CNAME",
+	content: zero.serviceDetails.apply((details) => {
+		if (!details?.url) {
+			throw new Error("Render did not return a URL for the Zero service.");
+		}
+
+		return new URL(details.url).hostname;
+	}),
+	proxied: false,
+	ttl: 1,
+});

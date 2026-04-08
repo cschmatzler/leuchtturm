@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vite-plus/test";
 
-import { memo } from "@chevrotain/web/lib/memo";
+import { memo } from "@leuchtturm/web/lib/memo";
 
 describe("memo", () => {
 	describe("caching behavior", () => {

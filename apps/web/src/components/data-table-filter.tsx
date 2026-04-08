@@ -1,16 +1,16 @@
 import {
 	ActiveFilters,
 	ActiveFiltersMobileContainer,
-} from "@chevrotain/web/components/data-table-filter/active-filters";
-import { DataTableFilterProvider } from "@chevrotain/web/components/data-table-filter/context";
-import { FilterActions } from "@chevrotain/web/components/data-table-filter/filter-actions";
-import { FilterSelector } from "@chevrotain/web/components/data-table-filter/filter-selector";
+} from "@leuchtturm/web/components/data-table-filter/active-filters";
+import { DataTableFilterProvider } from "@leuchtturm/web/components/data-table-filter/context";
+import { FilterActions } from "@leuchtturm/web/components/data-table-filter/filter-actions";
+import { FilterSelector } from "@leuchtturm/web/components/data-table-filter/filter-selector";
 import type {
 	Column,
 	DataTableFilterActions,
 	FiltersState,
-} from "@chevrotain/web/components/data-table-filter/types";
-import { useIsMobile } from "@chevrotain/web/hooks/use-mobile";
+} from "@leuchtturm/web/components/data-table-filter/types";
+import { useIsMobile } from "@leuchtturm/web/hooks/use-mobile";
 
 export interface DataTableFilterProps<TData> {
 	filterColumns: Column<TData>[];

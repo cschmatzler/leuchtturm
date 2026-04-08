@@ -5,7 +5,7 @@ import {
 	createDateRange,
 	createNumberFilterValue,
 	createNumberRange,
-} from "@chevrotain/web/components/data-table-filter/helpers";
+} from "@leuchtturm/web/components/data-table-filter/helpers";
 
 describe("createNumberFilterValue", () => {
 	it("returns empty array for undefined", () => {

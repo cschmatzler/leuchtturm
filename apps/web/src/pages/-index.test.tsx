@@ -13,7 +13,7 @@ import type { ReactElement } from "react";
 import { I18nextProvider, initReactI18next } from "react-i18next";
 import { afterEach, describe, expect, it } from "vite-plus/test";
 
-import { Route } from "@chevrotain/web/pages/index";
+import { Route } from "@leuchtturm/web/pages/index";
 
 async function createTestI18n() {
 	const i18n = createInstance();

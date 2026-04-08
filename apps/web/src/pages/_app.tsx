@@ -5,10 +5,10 @@ import { CheckIcon, CogIcon, LogOutIcon, MailIcon, PlusIcon } from "lucide-react
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
-import { resolveLanguage } from "@chevrotain/core/i18n";
-import { Avatar, AvatarFallback } from "@chevrotain/web/components/ui/avatar";
-import { OptionShiftShortcut } from "@chevrotain/web/components/ui/kbd";
-import { Link } from "@chevrotain/web/components/ui/link";
+import { resolveLanguage } from "@leuchtturm/core/i18n";
+import { Avatar, AvatarFallback } from "@leuchtturm/web/components/ui/avatar";
+import { OptionShiftShortcut } from "@leuchtturm/web/components/ui/kbd";
+import { Link } from "@leuchtturm/web/components/ui/link";
 import {
 	Menu,
 	MenuContent,
@@ -16,7 +16,7 @@ import {
 	MenuSeparator,
 	MenuShortcut,
 	MenuTrigger,
-} from "@chevrotain/web/components/ui/menu";
+} from "@leuchtturm/web/components/ui/menu";
 import {
 	Sidebar,
 	SidebarContent,
@@ -28,14 +28,14 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 	SidebarProvider,
-} from "@chevrotain/web/components/ui/sidebar";
-import { ZeroProvider, type SessionData } from "@chevrotain/web/contexts/zero";
-import { useAuth } from "@chevrotain/web/hooks/use-auth";
-import { useCommandBar } from "@chevrotain/web/hooks/use-command-bar";
-import { useCommandProvider } from "@chevrotain/web/hooks/use-command-provider";
-import { useZeroQuery } from "@chevrotain/web/lib/query";
-import { deviceSessionsQuery, sessionQuery } from "@chevrotain/web/queries/session";
-import { queries } from "@chevrotain/zero/queries";
+} from "@leuchtturm/web/components/ui/sidebar";
+import { ZeroProvider, type SessionData } from "@leuchtturm/web/contexts/zero";
+import { useAuth } from "@leuchtturm/web/hooks/use-auth";
+import { useCommandBar } from "@leuchtturm/web/hooks/use-command-bar";
+import { useCommandProvider } from "@leuchtturm/web/hooks/use-command-provider";
+import { useZeroQuery } from "@leuchtturm/web/lib/query";
+import { deviceSessionsQuery, sessionQuery } from "@leuchtturm/web/queries/session";
+import { queries } from "@leuchtturm/zero/queries";
 
 function LogOutShortcut() {
 	return <OptionShiftShortcut keyLabel="Q" />;

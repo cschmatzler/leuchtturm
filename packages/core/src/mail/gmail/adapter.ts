@@ -8,8 +8,8 @@ import type {
 	ProviderMessage,
 	ProviderMessageHeaders,
 	ProviderThread,
-} from "@chevrotain/core/mail/provider";
-import type { MailFolderKind, MailLabelKind } from "@chevrotain/core/mail/schema";
+} from "@leuchtturm/core/mail/provider";
+import type { MailFolderKind, MailLabelKind } from "@leuchtturm/core/mail/schema";
 
 export interface GmailProviderLabel extends ProviderLabel {
 	readonly providerStatePayload: GmailLabel;
@@ -365,7 +365,8 @@ export class GmailAdapter implements MailProviderAdapter {
 				pageToken = data.nextPageToken;
 			} while (pageToken);
 		} catch (error) {
-			if (error instanceof Error && error.message.includes("404")) {
+			const gmailError = error as { readonly name?: unknown; readonly status?: unknown };
+			if (gmailError.name === "GmailApiError" && gmailError.status === 404) {
 				return { changes, newCursor: startHistoryId, cursorExpired: true };
 			}
 			throw error;

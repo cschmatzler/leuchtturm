@@ -1,1 +1,1 @@
-export { renderPasswordResetEmail, sendPasswordResetEmail } from "@chevrotain/email/password-reset";
+export { renderPasswordResetEmail, sendPasswordResetEmail } from "@leuchtturm/email/password-reset";

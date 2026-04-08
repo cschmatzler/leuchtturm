@@ -2,10 +2,10 @@ import { PaperclipIcon } from "lucide-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
-import { useZeroQuery } from "@chevrotain/web/lib/query";
-import { sanitizeEmailHtml } from "@chevrotain/web/lib/sanitize-html";
-import { queries } from "@chevrotain/zero/queries";
-import type { MailMessage } from "@chevrotain/zero/schema";
+import { useZeroQuery } from "@leuchtturm/web/lib/query";
+import { sanitizeEmailHtml } from "@leuchtturm/web/lib/sanitize-html";
+import { queries } from "@leuchtturm/zero/queries";
+import type { MailMessage } from "@leuchtturm/zero/schema";
 
 interface MessageDetailProps {
 	messageId: string;

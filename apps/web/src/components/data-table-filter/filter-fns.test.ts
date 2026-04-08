@@ -6,8 +6,8 @@ import {
 	numberFilterFn,
 	optionFilterFn,
 	textFilterFn,
-} from "@chevrotain/web/components/data-table-filter/filter-fns";
-import type { FilterModel } from "@chevrotain/web/components/data-table-filter/types";
+} from "@leuchtturm/web/components/data-table-filter/filter-fns";
+import type { FilterModel } from "@leuchtturm/web/components/data-table-filter/types";
 
 const optionFilter = (
 	operator: FilterModel<"option">["operator"],

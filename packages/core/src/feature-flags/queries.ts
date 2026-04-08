@@ -1,10 +1,10 @@
 import { and, eq } from "drizzle-orm";
 
-import { type Database } from "@chevrotain/core/drizzle";
+import { type Database } from "@leuchtturm/core/drizzle";
 import {
 	featureFlag,
 	featureFlagUserOverride,
-} from "@chevrotain/core/feature-flags/feature-flags.sql";
+} from "@leuchtturm/core/feature-flags/feature-flags.sql";
 
 export async function getFeatureFlags(
 	db: Database.Executor,

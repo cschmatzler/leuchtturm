@@ -1,13 +1,13 @@
-import noDirectFetch from "@chevrotain/oxlint-plugins/no-direct-fetch";
-import noLiveSuffix from "@chevrotain/oxlint-plugins/no-live-suffix";
-import noProcessEnv from "@chevrotain/oxlint-plugins/no-process-env";
-import noRelativeImports from "@chevrotain/oxlint-plugins/no-relative-imports";
-import noRowSuffix from "@chevrotain/oxlint-plugins/no-row-suffix";
-import noViMock from "@chevrotain/oxlint-plugins/no-vi-mock";
+import noDirectFetch from "@leuchtturm/oxlint-plugins/no-direct-fetch";
+import noLiveSuffix from "@leuchtturm/oxlint-plugins/no-live-suffix";
+import noProcessEnv from "@leuchtturm/oxlint-plugins/no-process-env";
+import noRelativeImports from "@leuchtturm/oxlint-plugins/no-relative-imports";
+import noRowSuffix from "@leuchtturm/oxlint-plugins/no-row-suffix";
+import noViMock from "@leuchtturm/oxlint-plugins/no-vi-mock";
 
 const plugin = {
 	meta: {
-		name: "@chevrotain/oxlint-plugins",
+		name: "@leuchtturm/oxlint-plugins",
 	},
 	rules: {
 		...noDirectFetch.rules,

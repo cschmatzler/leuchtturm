@@ -1,7 +1,7 @@
 import { Popover as BasePopover } from "@base-ui/react/popover";
 import type { ComponentProps } from "react";
 
-import { cn } from "@chevrotain/web/lib/cn";
+import { cn } from "@leuchtturm/web/lib/cn";
 
 function Popover({ ...props }: BasePopover.Root.Props) {
 	return <BasePopover.Root data-slot="popover" {...props} />;

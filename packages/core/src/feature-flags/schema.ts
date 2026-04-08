@@ -1,7 +1,7 @@
 import { Schema } from "effect";
 
-import { UserId } from "@chevrotain/core/auth/schema";
-import { TrimmedNonEmptyString } from "@chevrotain/core/schema";
+import { UserId } from "@leuchtturm/core/auth/schema";
+import { TrimmedNonEmptyString } from "@leuchtturm/core/schema";
 
 export const FeatureFlagKey = TrimmedNonEmptyString;
 export type FeatureFlagKey = typeof FeatureFlagKey.Type;

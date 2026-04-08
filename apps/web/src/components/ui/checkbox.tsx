@@ -1,7 +1,7 @@
 import { Checkbox as BaseCheckbox } from "@base-ui/react/checkbox";
 import { CheckIcon } from "lucide-react";
 
-import { cn } from "@chevrotain/web/lib/cn";
+import { cn } from "@leuchtturm/web/lib/cn";
 
 function Checkbox({ className, ...props }: BaseCheckbox.Root.Props) {
 	return (

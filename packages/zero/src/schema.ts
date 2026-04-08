@@ -11,7 +11,7 @@ import {
 	type Zero,
 } from "@rocicorp/zero";
 
-import { type SupportedLanguage } from "@chevrotain/core/i18n";
+import { type SupportedLanguage } from "@leuchtturm/core/i18n";
 
 const user = table("user")
 	.columns({

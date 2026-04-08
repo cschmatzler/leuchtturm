@@ -1,7 +1,7 @@
 import { Slider as BaseSlider } from "@base-ui/react/slider";
 import { useMemo } from "react";
 
-import { cn } from "@chevrotain/web/lib/cn";
+import { cn } from "@leuchtturm/web/lib/cn";
 
 function Slider({
 	className,

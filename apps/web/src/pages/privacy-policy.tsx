@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { MarketingHeader } from "@chevrotain/web/components/app/marketing-header";
+import { MarketingHeader } from "@leuchtturm/web/components/app/marketing-header";
 
 export const Route = createFileRoute("/privacy-policy")({
 	component: Page,
@@ -19,7 +19,7 @@ function Page() {
 						<h1 className="text-3xl font-bold tracking-tight">Privacy Policy</h1>
 						<p className="text-sm text-muted-foreground">Last updated: Jan 24, 2026</p>
 						<p className="mt-1 leading-relaxed text-muted-foreground">
-							This Privacy Policy explains how Chevrotain ("we", "us", or "our") collects, uses, and
+							This Privacy Policy explains how Leuchtturm ("we", "us", or "our") collects, uses, and
 							protects your personal data when you use our service. We are based in Germany and
 							process data under the GDPR.
 						</p>

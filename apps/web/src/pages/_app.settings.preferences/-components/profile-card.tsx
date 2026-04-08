@@ -4,8 +4,8 @@ import { Loader2Icon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
-import { User } from "@chevrotain/core/auth/schema";
-import { Button } from "@chevrotain/web/components/ui/button";
+import { User } from "@leuchtturm/core/auth/schema";
+import { Button } from "@leuchtturm/web/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -13,17 +13,17 @@ import {
 	CardFooter,
 	CardHeader,
 	CardTitle,
-} from "@chevrotain/web/components/ui/card";
+} from "@leuchtturm/web/components/ui/card";
 import {
 	FieldDescription,
 	FieldError,
 	FieldGroup,
 	FieldLabel,
-} from "@chevrotain/web/components/ui/field";
-import { Input } from "@chevrotain/web/components/ui/input";
-import { useZero, useZeroQuery } from "@chevrotain/web/lib/query";
-import { mutators } from "@chevrotain/zero/mutators";
-import { queries } from "@chevrotain/zero/queries";
+} from "@leuchtturm/web/components/ui/field";
+import { Input } from "@leuchtturm/web/components/ui/input";
+import { useZero, useZeroQuery } from "@leuchtturm/web/lib/query";
+import { mutators } from "@leuchtturm/zero/mutators";
+import { queries } from "@leuchtturm/zero/queries";
 
 const profileShape = Schema.Struct({
 	name: User.fields.name,

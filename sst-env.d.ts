@@ -6,14 +6,14 @@
 
 declare module "sst" {
   export interface Resource {
-    "Api": {
-      "type": "sst.cloudflare.Worker"
-    }
     "ApiConfig": {
       "BASE_URL": string
       "NODE_ENV": string
       "POLAR_SERVER": string
       "type": "sst.sst.Linkable"
+    }
+    "ApiWorker": {
+      "type": "sst.cloudflare.Worker"
     }
     "BetterAuthSecret": {
       "type": "sst.sst.Secret"
@@ -67,6 +67,10 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
+    "RenderOwnerId": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
     "ResendApiKey": {
       "type": "sst.sst.Secret"
       "value": string
@@ -74,6 +78,18 @@ declare module "sst" {
     "Web": {
       "type": "sst.cloudflare.StaticSite"
       "url": string
+    }
+    "ZeroAdminPassword": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "ZeroDatabasePassword": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "ZeroDatabaseUsername": {
+      "type": "sst.sst.Secret"
+      "value": string
     }
   }
 }

@@ -6,7 +6,7 @@ import {
 	BillingCustomerSnapshot,
 	BillingOrderSnapshot,
 	BillingSubscriptionSnapshot,
-} from "@chevrotain/core/billing/schema";
+} from "@leuchtturm/core/billing/schema";
 
 const userId = `usr_${ulid()}`;
 const now = new Date();

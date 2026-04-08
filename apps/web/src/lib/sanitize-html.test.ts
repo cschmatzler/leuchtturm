@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { sanitizeEmailHtml } from "@chevrotain/web/lib/sanitize-html";
+import { sanitizeEmailHtml } from "@leuchtturm/web/lib/sanitize-html";
 
 describe("sanitizeEmailHtml", () => {
 	it("preserves safe inline styles needed for email rendering", () => {

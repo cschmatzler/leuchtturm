@@ -13,11 +13,11 @@ import {
 import { render } from "@react-email/render";
 import { Tailwind } from "@react-email/tailwind";
 
-import { tailwindConfig } from "@chevrotain/email/tailwind";
+import { tailwindConfig } from "@leuchtturm/email/tailwind";
 
-const preheaderText = "Reset your Chevrotain password.";
-const defaultFrom = "Chevrotain <no-reply@leuchtturm.dev>";
-const defaultSubject = "Reset your Chevrotain password";
+const preheaderText = "Reset your Leuchtturm password.";
+const defaultFrom = "Leuchtturm <no-reply@leuchtturm.dev>";
+const defaultSubject = "Reset your Leuchtturm password";
 
 export interface PasswordResetEmailParams {
 	readonly resetUrl: string;
@@ -42,7 +42,7 @@ const PasswordResetEmail = ({ resetUrl, userName }: PasswordResetEmailParams) =>
 						<Section className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
 							<Section className="border-b border-border px-6 py-5">
 								<Text className="m-0 text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-									Chevrotain
+									Leuchtturm
 								</Text>
 							</Section>
 							<Section className="px-6 py-6">
@@ -53,7 +53,7 @@ const PasswordResetEmail = ({ resetUrl, userName }: PasswordResetEmailParams) =>
 									Hi {userName},
 								</Text>
 								<Text className="m-0 mb-5 text-base leading-[24px] text-muted-foreground">
-									We received a request to reset the password on your Chevrotain account. Use the
+									We received a request to reset the password on your Leuchtturm account. Use the
 									button below to set a new password.
 								</Text>
 								<Button
@@ -93,7 +93,7 @@ export async function renderPasswordResetEmail({ resetUrl, userName }: PasswordR
 	});
 
 	const text = [
-		"Reset your Chevrotain password.",
+		"Reset your Leuchtturm password.",
 		"",
 		"Use this link to choose a new password:",
 		resetUrl,

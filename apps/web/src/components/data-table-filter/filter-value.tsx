@@ -6,23 +6,23 @@ import type { DateRange } from "react-day-picker";
 import { useTranslation } from "react-i18next";
 import { take } from "remeda";
 
-import { useDataTableFilterContext } from "@chevrotain/web/components/data-table-filter/context";
-import { createNumberRange } from "@chevrotain/web/components/data-table-filter/helpers";
+import { useDataTableFilterContext } from "@leuchtturm/web/components/data-table-filter/context";
+import { createNumberRange } from "@leuchtturm/web/components/data-table-filter/helpers";
 import {
 	dateFilterOperators,
 	DEFAULT_OPERATORS,
 	numberFilterOperators,
-} from "@chevrotain/web/components/data-table-filter/operators";
+} from "@leuchtturm/web/components/data-table-filter/operators";
 import type {
 	Column,
 	ColumnDataType,
 	ColumnOptionExtended,
 	FilterModel,
 	FilterOperatorTarget,
-} from "@chevrotain/web/components/data-table-filter/types";
-import { Button } from "@chevrotain/web/components/ui/button";
-import { Calendar } from "@chevrotain/web/components/ui/calendar";
-import { Checkbox } from "@chevrotain/web/components/ui/checkbox";
+} from "@leuchtturm/web/components/data-table-filter/types";
+import { Button } from "@leuchtturm/web/components/ui/button";
+import { Calendar } from "@leuchtturm/web/components/ui/calendar";
+import { Checkbox } from "@leuchtturm/web/components/ui/checkbox";
 import {
 	Command,
 	CommandEmpty,
@@ -31,12 +31,12 @@ import {
 	CommandItem,
 	CommandList,
 	CommandSeparator,
-} from "@chevrotain/web/components/ui/command";
-import { DebouncedInput } from "@chevrotain/web/components/ui/debounced-input";
-import { Popover, PopoverContent, PopoverTrigger } from "@chevrotain/web/components/ui/popover";
-import { Slider } from "@chevrotain/web/components/ui/slider";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@chevrotain/web/components/ui/tabs";
-import { cn } from "@chevrotain/web/lib/cn";
+} from "@leuchtturm/web/components/ui/command";
+import { DebouncedInput } from "@leuchtturm/web/components/ui/debounced-input";
+import { Popover, PopoverContent, PopoverTrigger } from "@leuchtturm/web/components/ui/popover";
+import { Slider } from "@leuchtturm/web/components/ui/slider";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@leuchtturm/web/components/ui/tabs";
+import { cn } from "@leuchtturm/web/lib/cn";
 
 interface FilterValueProps<TData, TType extends ColumnDataType> {
 	filter: FilterModel<TType>;
@@ -167,7 +167,7 @@ function FilterValueOptionDisplay<TData>({
 
 function normalizeDateValue(value: unknown): Date | undefined {
 	if (!value) return undefined;
-	if (value instanceof Date) return value;
+	if (Object.prototype.toString.call(value) === "[object Date]") return value as Date;
 
 	if (typeof value === "string" || typeof value === "number") {
 		const parsed = new Date(value);

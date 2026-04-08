@@ -12,8 +12,8 @@ import {
 	RechartsBoundary,
 	type RechartsModule,
 	useRechartsModule,
-} from "@chevrotain/web/components/ui/recharts";
-import { cn } from "@chevrotain/web/lib/cn";
+} from "@leuchtturm/web/components/ui/recharts";
+import { cn } from "@leuchtturm/web/lib/cn";
 
 const THEMES = { light: "", dark: ".dark" } as const;
 

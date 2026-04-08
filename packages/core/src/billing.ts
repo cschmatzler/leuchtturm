@@ -6,33 +6,33 @@ import { eq } from "drizzle-orm";
 import { Effect, Layer, Schema, ServiceMap } from "effect";
 import { Resource } from "sst";
 
-import { user } from "@chevrotain/core/auth/auth.sql";
+import { user } from "@leuchtturm/core/auth/auth.sql";
 import {
 	billingCustomer,
 	billingOrder,
 	billingSubscription,
-} from "@chevrotain/core/billing/billing.sql";
+} from "@leuchtturm/core/billing/billing.sql";
 import {
 	BillingCustomerSnapshot,
 	BillingOrderSnapshot,
 	BillingSubscriptionSnapshot,
-} from "@chevrotain/core/billing/schema";
-import { Database } from "@chevrotain/core/drizzle";
+} from "@leuchtturm/core/billing/schema";
+import { Database } from "@leuchtturm/core/drizzle";
 
 export namespace Billing {
-	export class Error extends Schema.TaggedErrorClass<Error>()(
+	export class BillingError extends Schema.TaggedErrorClass<BillingError>()(
 		"BillingError",
 		{ message: Schema.String },
 		{ httpApiStatus: 500 },
 	) {}
 
 	export interface Interface {
-		readonly upsertCustomerState: (state: CustomerState) => Effect.Effect<void, Error>;
-		readonly upsertSubscription: (subscription: Subscription) => Effect.Effect<void, Error>;
-		readonly upsertOrder: (order: Order) => Effect.Effect<void, Error>;
+		readonly upsertCustomerState: (state: CustomerState) => Effect.Effect<void, BillingError>;
+		readonly upsertSubscription: (subscription: Subscription) => Effect.Effect<void, BillingError>;
+		readonly upsertOrder: (order: Order) => Effect.Effect<void, BillingError>;
 	}
 
-	export class Service extends ServiceMap.Service<Service, Interface>()("@chevrotain/Billing") {}
+	export class Service extends ServiceMap.Service<Service, Interface>()("@leuchtturm/Billing") {}
 
 	export const layer = Layer.effect(Service)(
 		Effect.gen(function* () {
@@ -111,12 +111,12 @@ export namespace Billing {
 				if (userId) return userId;
 
 				if (!externalId) {
-					return yield* new Error({
+					return yield* new BillingError({
 						message: `Polar ${resource} webhook payload is missing an external user id`,
 					});
 				}
 
-				return yield* new Error({
+				return yield* new BillingError({
 					message: `Polar ${resource} webhook references unknown local user: ${externalId}`,
 				});
 			});
@@ -127,8 +127,8 @@ export namespace Billing {
 				return yield* Effect.tryPromise({
 					try: () => polarClient.customers.getState({ id: customerId }),
 					catch: (error) =>
-						new Error({
-							message: `Unable to load Polar customer state for ${customerId}: ${error instanceof globalThis.Error ? error.message : String(error)}`,
+						new BillingError({
+							message: `Unable to load Polar customer state for ${customerId}: ${String(error)}`,
 						}),
 				});
 			});
@@ -141,8 +141,8 @@ export namespace Billing {
 				const rows = yield* Effect.tryPromise({
 					try: () => db.select({ id: user.id }).from(user).where(eq(user.id, externalId)).limit(1),
 					catch: (error) =>
-						new Error({
-							message: `Failed to look up user ${externalId}: ${error instanceof globalThis.Error ? error.message : String(error)}`,
+						new BillingError({
+							message: `Failed to look up user ${externalId}: ${String(error)}`,
 						}),
 				});
 
@@ -164,8 +164,8 @@ export namespace Billing {
 							await syncCustomerState(tx, { userId, state });
 						}),
 					catch: (error) =>
-						new Error({
-							message: `Failed to upsert customer state: ${error instanceof globalThis.Error ? error.message : String(error)}`,
+						new BillingError({
+							message: `Failed to upsert customer state: ${String(error)}`,
 						}),
 				});
 			});
@@ -217,8 +217,8 @@ export namespace Billing {
 							});
 						}),
 					catch: (error) =>
-						new Error({
-							message: `Failed to upsert subscription: ${error instanceof globalThis.Error ? error.message : String(error)}`,
+						new BillingError({
+							message: `Failed to upsert subscription: ${String(error)}`,
 						}),
 				});
 			});
@@ -252,25 +252,25 @@ export namespace Billing {
 											existingSubscription.userId !== userId ||
 											existingSubscription.polarCustomerId !== order.customerId
 										) {
-											throw new Error({
+											throw new BillingError({
 												message: `Polar order ${order.id} references subscription ${order.subscriptionId} with mismatched local ownership`,
 											});
 										}
 									} else {
 										if (!order.subscription) {
-											throw new Error({
+											throw new BillingError({
 												message: `Polar order ${order.id} references subscription ${order.subscriptionId} before its snapshot is available`,
 											});
 										}
 
 										if (order.subscription.id !== order.subscriptionId) {
-											throw new Error({
+											throw new BillingError({
 												message: `Polar order ${order.id} embeds subscription ${order.subscription.id} but references ${order.subscriptionId}`,
 											});
 										}
 
 										if (order.subscription.customerId !== order.customerId) {
-											throw new Error({
+											throw new BillingError({
 												message: `Polar order ${order.id} subscription customer ${order.subscription.customerId} does not match order customer ${order.customerId}`,
 											});
 										}
@@ -338,9 +338,16 @@ export namespace Billing {
 							});
 						}),
 					catch: (error) => {
-						if (error instanceof Error) return error;
-						return new Error({
-							message: `Failed to upsert order: ${error instanceof globalThis.Error ? error.message : String(error)}`,
+						if (
+							error &&
+							typeof error === "object" &&
+							"_tag" in error &&
+							error._tag === "BillingError"
+						) {
+							return error as BillingError;
+						}
+						return new BillingError({
+							message: `Failed to upsert order: ${String(error)}`,
 						});
 					},
 				});

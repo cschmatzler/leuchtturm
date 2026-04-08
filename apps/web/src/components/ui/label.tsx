@@ -1,6 +1,6 @@
 import { createElement, type ComponentProps } from "react";
 
-import { cn } from "@chevrotain/web/lib/cn";
+import { cn } from "@leuchtturm/web/lib/cn";
 
 function Label({ className, ...props }: ComponentProps<"label">) {
 	return createElement("label", {

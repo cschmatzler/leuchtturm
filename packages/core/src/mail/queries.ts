@@ -1,7 +1,7 @@
 import { and, eq, gt, inArray } from "drizzle-orm";
 import { Schema } from "effect";
 
-import { Database } from "@chevrotain/core/drizzle";
+import { Database } from "@leuchtturm/core/drizzle";
 import {
 	mailAccount,
 	mailAccountSecret,
@@ -16,7 +16,7 @@ import {
 	mailOAuthState,
 	mailParticipant,
 	mailProviderState,
-} from "@chevrotain/core/mail/mail.sql";
+} from "@leuchtturm/core/mail/mail.sql";
 import {
 	CreateMailAccountInput,
 	CreateMailAccountSecretInput,
@@ -25,7 +25,7 @@ import {
 	MailAccountStatus,
 	getProviderCapabilities,
 	UpdateMailAccountSecretInput,
-} from "@chevrotain/core/mail/schema";
+} from "@leuchtturm/core/mail/schema";
 
 const decodeCreateMailAccountInput = Schema.decodeUnknownSync(CreateMailAccountInput);
 const decodeCreateMailAccountSecretInput = Schema.decodeUnknownSync(CreateMailAccountSecretInput);

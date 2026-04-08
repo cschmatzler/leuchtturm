@@ -1,6 +1,6 @@
 import { Tooltip as BaseTooltip } from "@base-ui/react/tooltip";
 
-import { cn } from "@chevrotain/web/lib/cn";
+import { cn } from "@leuchtturm/web/lib/cn";
 
 function TooltipProvider({ delay = 0, ...props }: BaseTooltip.Provider.Props) {
 	return <BaseTooltip.Provider data-slot="tooltip-provider" delay={delay} {...props} />;
