@@ -4,7 +4,7 @@ import { secrets } from "@leuchtturm/infra/secrets";
 export const web = new sst.cloudflare.StaticSite("Web", {
 	path: "apps/web",
 	environment: {
-		VITE_POSTHOG_HOST: secrets.postHogHost,
+		VITE_POSTHOG_HOST: secrets.postHogHost.value,
 		VITE_POSTHOG_KEY: secrets.postHogProjectApiKey.value,
 		VITE_SYNC_URL: $interpolate`https://${syncDomain}`,
 	},
