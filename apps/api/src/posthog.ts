@@ -18,15 +18,15 @@ export namespace ApiAnalytics {
 
 	const createClient = (waitUntil?: (promise: Promise<unknown>) => void) => {
 		const resources = Resource as unknown as {
-			readonly ApiConfig?: {
-				readonly POSTHOG_HOST?: string;
+			readonly PostHogHost?: {
+				readonly value?: string;
 			};
 			readonly PostHogProjectApiKey?: {
 				readonly value?: string;
 			};
 		};
 		const apiKey = resources.PostHogProjectApiKey?.value;
-		const host = resources.ApiConfig?.POSTHOG_HOST;
+		const host = resources.PostHogHost?.value;
 
 		if (!apiKey || !host) {
 			return undefined;

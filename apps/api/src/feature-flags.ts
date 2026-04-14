@@ -31,20 +31,8 @@ export namespace FeatureFlags {
 
 	export const layer = Layer.effect(Service)(
 		Effect.sync(() => {
-			const resources = Resource as unknown as {
-				readonly ApiConfig?: {
-					readonly POSTHOG_HOST?: string;
-				};
-				readonly PostHogProjectApiKey?: {
-					readonly value?: string;
-				};
-			};
-			const apiKey = resources.PostHogProjectApiKey?.value;
-			const host = resources.ApiConfig?.POSTHOG_HOST;
-
-			if (!apiKey || !host) {
-				throw new Error("PostHog feature flags are not configured");
-			}
+			const apiKey = Resource.PostHogProjectApiKey.value;
+			const host = Resource.PostHogHost.value;
 
 			const client = new PostHog(apiKey, {
 				host,
