@@ -7,10 +7,6 @@ import {
 	billingSubscription,
 } from "@leuchtturm/core/billing/billing.sql";
 import {
-	featureFlag,
-	featureFlagUserOverride,
-} from "@leuchtturm/core/feature-flags/feature-flags.sql";
-import {
 	mailAccount,
 	mailAccountSecret,
 	mailAccountSyncState,
@@ -44,8 +40,6 @@ export const relations = defineRelationsPart(
 		billingCustomer,
 		billingSubscription,
 		billingOrder,
-		featureFlag,
-		featureFlagUserOverride,
 		mailAccount,
 		mailAccountSecret,
 		mailOAuthState,
@@ -82,10 +76,6 @@ export const relations = defineRelationsPart(
 				to: r.billingSubscription.userId,
 			}),
 			billingOrders: r.many.billingOrder({ from: r.user.id, to: r.billingOrder.userId }),
-			featureFlagOverrides: r.many.featureFlagUserOverride({
-				from: r.user.id,
-				to: r.featureFlagUserOverride.userId,
-			}),
 			mailAccounts: r.many.mailAccount({ from: r.user.id, to: r.mailAccount.userId }),
 			mailOAuthStates: r.many.mailOAuthState({
 				from: r.user.id,
@@ -140,20 +130,6 @@ export const relations = defineRelationsPart(
 				to: [r.billingSubscription.id, r.billingSubscription.userId],
 			}),
 		},
-		featureFlag: {
-			userOverrides: r.many.featureFlagUserOverride({
-				from: r.featureFlag.key,
-				to: r.featureFlagUserOverride.featureFlagKey,
-			}),
-		},
-		featureFlagUserOverride: {
-			flag: r.one.featureFlag({
-				from: r.featureFlagUserOverride.featureFlagKey,
-				to: r.featureFlag.key,
-			}),
-			user: r.one.user({ from: r.featureFlagUserOverride.userId, to: r.user.id }),
-		},
-
 		mailAccount: {
 			user: r.one.user({ from: r.mailAccount.userId, to: r.user.id }),
 			secret: r.one.mailAccountSecret({

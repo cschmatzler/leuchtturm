@@ -2,13 +2,14 @@ import { output } from "@pulumi/pulumi";
 
 import { hyperdrive } from "@leuchtturm/infra/database";
 import { appDomain } from "@leuchtturm/infra/dns";
-import { apiSecrets } from "@leuchtturm/infra/secrets";
+import { apiSecrets, secrets } from "@leuchtturm/infra/secrets";
 
 const config = new sst.Linkable("ApiConfig", {
 	properties: {
 		BASE_URL: $interpolate`https://${appDomain}`,
 		NODE_ENV: "production",
 		POLAR_SERVER: "sandbox",
+		POSTHOG_HOST: secrets.postHogHost,
 	},
 });
 

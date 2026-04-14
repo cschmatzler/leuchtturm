@@ -3,8 +3,6 @@ import { PostHog } from "posthog-node";
 import { Resource } from "sst";
 
 export namespace ApiAnalytics {
-	const DefaultPostHogApiHost = "https://eu.i.posthog.com";
-
 	const requestProperties = (
 		request: Request,
 		properties: Record<string, unknown> = {},
@@ -19,15 +17,23 @@ export namespace ApiAnalytics {
 	};
 
 	const createClient = (waitUntil?: (promise: Promise<unknown>) => void) => {
-		const resources = Resource as unknown as Record<string, { value?: string }>;
+		const resources = Resource as unknown as {
+			readonly ApiConfig?: {
+				readonly POSTHOG_HOST?: string;
+			};
+			readonly PostHogProjectApiKey?: {
+				readonly value?: string;
+			};
+		};
 		const apiKey = resources.PostHogProjectApiKey?.value;
+		const host = resources.ApiConfig?.POSTHOG_HOST;
 
-		if (!apiKey) {
+		if (!apiKey || !host) {
 			return undefined;
 		}
 
 		return new PostHog(apiKey, {
-			host: DefaultPostHogApiHost,
+			host,
 			waitUntil,
 		});
 	};

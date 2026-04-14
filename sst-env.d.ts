@@ -10,6 +10,11 @@ declare module "sst" {
       "BASE_URL": string
       "NODE_ENV": string
       "POLAR_SERVER": string
+      "POSTHOG_HOST": {
+        "4dabf18193072939515e22adb298388d": string
+        "packageVersion": string
+        "urn": string
+      }
       "type": "sst.sst.Linkable"
     }
     "ApiWorker": {
@@ -64,6 +69,10 @@ declare module "sst" {
       "value": string
     }
     "PolarWebhookSecret": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "PostHogHost": {
       "type": "sst.sst.Secret"
       "value": string
     }

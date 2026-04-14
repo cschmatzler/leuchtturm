@@ -1,6 +1,7 @@
 export const secrets = {
 	planetScaleDatabaseId: new sst.Secret("PlanetScaleDatabaseId"),
 	planetScaleOrganization: new sst.Secret("PlanetScaleOrganization"),
+	postHogHost: new sst.Secret("PostHogHost"),
 	postHogProjectApiKey: new sst.Secret("PostHogProjectApiKey"),
 	betterAuthSecret: new sst.Secret("BetterAuthSecret"),
 	gitHubClientId: new sst.Secret("GitHubClientId"),
@@ -21,6 +22,7 @@ export const secrets = {
 };
 
 export const apiSecrets = [
+	secrets.postHogHost,
 	secrets.postHogProjectApiKey,
 	secrets.betterAuthSecret,
 	secrets.gitHubClientId,

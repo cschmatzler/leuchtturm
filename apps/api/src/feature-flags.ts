@@ -3,8 +3,6 @@ import { PostHog } from "posthog-node";
 import { Resource } from "sst";
 
 export namespace FeatureFlags {
-	const DefaultPostHogApiHost = "https://eu.i.posthog.com";
-
 	export class FeatureFlagsError extends Schema.TaggedErrorClass<FeatureFlagsError>()(
 		"FeatureFlagsError",
 		{ message: Schema.String },
@@ -33,8 +31,23 @@ export namespace FeatureFlags {
 
 	export const layer = Layer.effect(Service)(
 		Effect.sync(() => {
-			const client = new PostHog(Resource.PostHogProjectApiKey.value, {
-				host: DefaultPostHogApiHost,
+			const resources = Resource as unknown as {
+				readonly ApiConfig?: {
+					readonly POSTHOG_HOST?: string;
+				};
+				readonly PostHogProjectApiKey?: {
+					readonly value?: string;
+				};
+			};
+			const apiKey = resources.PostHogProjectApiKey?.value;
+			const host = resources.ApiConfig?.POSTHOG_HOST;
+
+			if (!apiKey || !host) {
+				throw new Error("PostHog feature flags are not configured");
+			}
+
+			const client = new PostHog(apiKey, {
+				host,
 			});
 
 			return Service.of({

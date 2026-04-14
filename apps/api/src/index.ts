@@ -4,6 +4,7 @@ import { HttpApiBuilder } from "effect/unstable/httpapi";
 
 import { AuthMiddlewareServer } from "@leuchtturm/api/auth/http-auth-server";
 import { LeuchtturmApi } from "@leuchtturm/api/contract";
+import { FeatureFlags } from "@leuchtturm/api/feature-flags";
 import { AuthHandler } from "@leuchtturm/api/handlers/auth";
 import { HealthHandler } from "@leuchtturm/api/handlers/health";
 import { MailHandler, WebhookHandler } from "@leuchtturm/api/handlers/mail";
@@ -48,9 +49,11 @@ namespace ApiRuntime {
 		waitUntil?: (promise: Promise<unknown>) => void,
 	) => {
 		const database = Database.layer(connectionString);
-		const core = Layer.mergeAll(Auth.defaultLayer, Gmail.defaultLayer).pipe(
-			Layer.provideMerge(database),
-		);
+		const core = Layer.mergeAll(
+			Auth.defaultLayer,
+			FeatureFlags.defaultLayer,
+			Gmail.defaultLayer,
+		).pipe(Layer.provideMerge(database));
 		const runtime = Layer.mergeAll(core, HttpServer.layerServices);
 		const handler = HttpEffect.toWebHandlerLayer(api, runtime, {
 			middleware: RequestContext.Middleware,
