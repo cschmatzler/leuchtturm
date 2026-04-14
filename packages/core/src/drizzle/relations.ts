@@ -35,7 +35,7 @@ import {
 	mailSearchDocument,
 } from "@leuchtturm/core/mail/mail.sql";
 
-export const allRelations = defineRelationsPart(
+export const relations = defineRelationsPart(
 	{
 		user,
 		session,

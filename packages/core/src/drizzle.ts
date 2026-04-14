@@ -2,11 +2,11 @@ import { drizzle, type NodePgClient, type NodePgDatabase } from "drizzle-orm/nod
 import { Effect, Layer, ServiceMap } from "effect";
 import { Client as PgClient } from "pg";
 
-import { allRelations } from "@leuchtturm/core/drizzle/relations";
+import { relations } from "@leuchtturm/core/drizzle/relations";
 import { DatabaseError } from "@leuchtturm/core/errors";
 
 export namespace Database {
-	export type Client = NodePgDatabase<Record<string, never>, typeof allRelations> & {
+	export type Client = NodePgDatabase<Record<string, never>, typeof relations> & {
 		$client: NodePgClient;
 	};
 
@@ -38,7 +38,7 @@ export namespace Database {
 				return Service.of({
 					db: drizzle({
 						client,
-						relations: allRelations,
+						relations,
 					}),
 				});
 			}),

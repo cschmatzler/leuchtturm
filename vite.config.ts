@@ -20,7 +20,6 @@ export default defineConfig({
 		jsPlugins: [
 			"./packages/oxlint-plugins/src/no-direct-fetch.ts",
 			"./packages/oxlint-plugins/src/no-live-suffix.ts",
-			"./packages/oxlint-plugins/src/no-process-env.ts",
 			"./packages/oxlint-plugins/src/no-relative-imports.ts",
 			"./packages/oxlint-plugins/src/no-row-suffix.ts",
 			"./packages/oxlint-plugins/src/no-vi-mock.ts",
@@ -35,7 +34,6 @@ export default defineConfig({
 		],
 		rules: {
 			"no-live-suffix/no-live-suffix": "error",
-			"no-process-env/no-process-env": "error",
 			"no-relative-imports/no-relative-imports": "error",
 			"no-row-suffix/no-row-suffix": "error",
 			"no-vi-mock/no-vi-mock": "error",

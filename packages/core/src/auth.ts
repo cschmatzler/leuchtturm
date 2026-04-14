@@ -11,7 +11,7 @@ import { account, session, user, verification } from "@leuchtturm/core/auth/auth
 import {
 	AccountId,
 	PASSWORD_MIN_LENGTH,
-	SessionData as SessionDataSchema,
+	SessionData,
 	SessionId,
 	UserId,
 	VerificationId,
@@ -23,9 +23,6 @@ import { Email } from "@leuchtturm/core/email";
 import { sendPasswordResetEmail } from "@leuchtturm/email/password-reset";
 
 export namespace Auth {
-	export const SessionData = SessionDataSchema;
-	export type SessionData = typeof SessionData.Type;
-
 	export class AuthError extends Schema.TaggedErrorClass<AuthError>()(
 		"AuthError",
 		{ message: Schema.String },
@@ -214,7 +211,7 @@ export namespace Auth {
 					return null;
 				}
 
-				return yield* Schema.decodeUnknownEffect(SessionDataSchema)(session).pipe(
+				return yield* Schema.decodeUnknownEffect(SessionData)(session).pipe(
 					Effect.mapError(
 						(error) =>
 							new AuthError({
