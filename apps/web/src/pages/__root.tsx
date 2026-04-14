@@ -54,67 +54,55 @@ function RootBoundaryFallback({ error }: PostHogErrorBoundaryFallbackProps) {
 	return <RootErrorView error={error} />;
 }
 
-function usePostHogIdentification() {
-	const posthog = usePostHog();
-	const { data: session } = useQuery(sessionQuery());
-
-	useEffect(() => {
-		if (session === undefined) {
-			return;
-		}
-
-		if (!session) {
-			posthog.reset();
-			return;
-		}
-
-		posthog.identify(session.user.id, {
-			email: session.user.email,
-			name: session.user.name,
-		});
-	}, [posthog, session]);
-}
-
-function RootComponent() {
-	usePostHogIdentification();
-
-	return (
-		<I18nextProvider i18n={i18n}>
-			<PostHogErrorBoundary
-				fallback={RootBoundaryFallback}
-				additionalProperties={{ source: "root-error-boundary" }}
-			>
-				<a
-					href="#main-content"
-					className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:shadow-lg focus:ring-2 focus:ring-ring"
-				>
-					Skip to content
-				</a>
-				<CommandBarProvider>
-					<Toaster />
-					<CommandBar />
-					<Outlet />
-					<TanStackDevtools
-						plugins={[
-							{
-								name: "TanStack Router",
-								render: <TanStackRouterDevtoolsPanel />,
-							},
-							{
-								name: "TanStack Query",
-								render: <ReactQueryDevtoolsPanel />,
-							},
-							formDevtoolsPlugin(),
-							pacerDevtoolsPlugin(),
-						]}
-					/>
-				</CommandBarProvider>
-			</PostHogErrorBoundary>
-		</I18nextProvider>
-	);
-}
-
 export const Route = createRootRouteWithContext<RouterContext>()({
-	component: RootComponent,
+	component: function Root() {
+		const posthog = usePostHog();
+		const { data: session } = useQuery(sessionQuery());
+
+		useEffect(() => {
+			if (session === undefined) {
+				return;
+			}
+
+			if (!session) {
+				posthog.reset();
+				return;
+			}
+
+			posthog.identify(session.user.id, {
+				email: session.user.email,
+				name: session.user.name,
+			});
+		}, [posthog, session]);
+
+		return (
+			<I18nextProvider i18n={i18n}>
+				<PostHogErrorBoundary
+					fallback={RootBoundaryFallback}
+					additionalProperties={{ source: "root-error-boundary" }}
+				>
+					<CommandBarProvider>
+						<Toaster />
+						<CommandBar />
+						<Outlet />
+						<TanStackDevtools
+							plugins={[
+								{
+									name: "TanStack Router",
+									render: <TanStackRouterDevtoolsPanel />,
+								},
+								{
+									name: "TanStack Query",
+									render: <ReactQueryDevtoolsPanel />,
+								},
+								formDevtoolsPlugin(),
+								pacerDevtoolsPlugin(),
+							]}
+						/>
+					</CommandBarProvider>
+				</PostHogErrorBoundary>
+			</I18nextProvider>
+		);
+	},
 	errorComponent: RootErrorComponent,
 });

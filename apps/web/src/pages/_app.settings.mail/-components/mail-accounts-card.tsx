@@ -1,7 +1,7 @@
 import { InboxIcon, PlusIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { apiClient } from "@leuchtturm/web/clients/api";
+import { api } from "@leuchtturm/web/clients/api";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import {
 	Card,
@@ -18,7 +18,7 @@ export function MailAccountsCard() {
 	const [accounts] = useZeroQuery(queries.mailAccounts());
 
 	const handleConnectGmail = async () => {
-		const data = await apiClient.mail.mailOAuthUrl();
+		const data = await api.mail.mailOAuthUrl();
 		window.location.href = data.url;
 	};
 

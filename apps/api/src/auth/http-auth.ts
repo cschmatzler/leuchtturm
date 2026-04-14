@@ -1,8 +1,9 @@
 import { Schema, ServiceMap } from "effect";
 import { HttpApiMiddleware } from "effect/unstable/httpapi";
 
+import { Auth } from "@leuchtturm/core/auth";
 import type { Session, User } from "@leuchtturm/core/auth/schema";
-import { AuthServiceError, UnauthorizedError } from "@leuchtturm/core/errors";
+import { UnauthorizedError } from "@leuchtturm/core/errors";
 
 export namespace AuthMiddleware {
 	export interface CurrentUserShape {
@@ -14,7 +15,7 @@ export namespace AuthMiddleware {
 		"CurrentUser",
 	) {}
 
-	const MiddlewareError = Schema.Union([UnauthorizedError, AuthServiceError]);
+	const MiddlewareError = Schema.Union([UnauthorizedError, Auth.AuthError]);
 
 	export class Service extends HttpApiMiddleware.Service<Service, { provides: CurrentUser }>()(
 		"AuthMiddleware",

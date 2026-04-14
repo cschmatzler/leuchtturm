@@ -11,7 +11,7 @@ import { HttpApiBuilder } from "effect/unstable/httpapi";
 import { AuthMiddleware } from "@leuchtturm/api/auth/http-auth";
 import { LeuchtturmApi } from "@leuchtturm/api/contract";
 import { Database } from "@leuchtturm/core/drizzle";
-import { DatabaseError, ValidationError } from "@leuchtturm/core/errors";
+import { DatabaseError, NotFoundError, ValidationError } from "@leuchtturm/core/errors";
 import { MailEncryption } from "@leuchtturm/core/mail/encryption";
 import { GmailOAuth } from "@leuchtturm/core/mail/gmail/oauth";
 import { Gmail } from "@leuchtturm/core/mail/gmail/workflows";
@@ -53,13 +53,7 @@ export namespace MailHandler {
 			catch: (error) => MailHandlers.toDatabaseError("Failed to create OAuth state", error),
 		});
 
-		const url = yield* oauth
-			.getAuthUrl(state)
-			.pipe(
-				Effect.mapError((error) =>
-					MailHandlers.toDatabaseError("Failed to build OAuth URL", error),
-				),
-			);
+		const url = yield* oauth.getAuthUrl(state);
 
 		return { url };
 	});
@@ -88,21 +82,9 @@ export namespace MailHandler {
 			);
 		}
 
-		const tokens = yield* oauth
-			.exchangeCode(payload.code)
-			.pipe(
-				Effect.mapError((error) =>
-					MailHandlers.toDatabaseError("OAuth code exchange failed", error),
-				),
-			);
+		const tokens = yield* oauth.exchangeCode(payload.code);
 
-		const userInfo = yield* oauth
-			.getUserInfo(tokens.accessToken)
-			.pipe(
-				Effect.mapError((error) =>
-					MailHandlers.toDatabaseError("Failed to fetch Google user info", error),
-				),
-			);
+		const userInfo = yield* oauth.getUserInfo(tokens.accessToken);
 
 		const accountId = createMailAccountId();
 		yield* Effect.tryPromise({
@@ -118,19 +100,13 @@ export namespace MailHandler {
 			catch: (error) => MailHandlers.toDatabaseError("Failed to create mail account", error),
 		});
 
-		const encrypted = yield* encryption
-			.encrypt(
-				JSON.stringify({
-					accessToken: tokens.accessToken,
-					refreshToken: tokens.refreshToken,
-					expiresAt: Date.now() + tokens.expiresIn * 1000,
-				}),
-			)
-			.pipe(
-				Effect.mapError((error) =>
-					MailHandlers.toDatabaseError("Failed to encrypt mail credentials", error),
-				),
-			);
+		const encrypted = yield* encryption.encrypt(
+			JSON.stringify({
+				accessToken: tokens.accessToken,
+				refreshToken: tokens.refreshToken,
+				expiresAt: Date.now() + tokens.expiresIn * 1000,
+			}),
+		);
 
 		yield* Effect.tryPromise({
 			try: () =>
@@ -161,7 +137,7 @@ export namespace MailHandler {
 		});
 
 		if (!account) {
-			return yield* Effect.fail(new DatabaseError({ message: "Account not found" }));
+			return yield* Effect.fail(new NotFoundError({ resource: "MailAccount" }));
 		}
 
 		yield* Effect.tryPromise({

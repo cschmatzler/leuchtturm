@@ -2,21 +2,41 @@ import { Schema } from "effect";
 import { HttpApi, HttpApiEndpoint, HttpApiGroup } from "effect/unstable/httpapi";
 
 import { AuthMiddleware } from "@leuchtturm/api/auth/http-auth";
+import { Auth } from "@leuchtturm/core/auth";
 import {
-	AuthServiceError,
 	DatabaseError,
+	NotFoundError,
 	UnauthorizedError,
 	ValidationError,
 } from "@leuchtturm/core/errors";
+import { MailEncryption } from "@leuchtturm/core/mail/encryption";
+import { GmailOAuth } from "@leuchtturm/core/mail/gmail/oauth";
 import { MailAccountId, MailOAuthStateId } from "@leuchtturm/core/mail/schema";
 
 const SuccessResponse = Schema.Struct({ success: Schema.Literal(true) });
-const AuthRouteError = Schema.Union([UnauthorizedError, AuthServiceError]);
-const ProtectedRouteError = Schema.Union([DatabaseError, UnauthorizedError, AuthServiceError]);
+const HealthCheckSuccessResponse = Schema.Struct({
+	success: Schema.Literal(true),
+	database: Schema.Struct({
+		status: Schema.Literal("up"),
+		latencyMs: Schema.Number,
+	}),
+	totalTimeMs: Schema.Number,
+});
+const AuthRouteError = Schema.Union([UnauthorizedError, Auth.AuthError]);
+const ProtectedRouteError = Schema.Union([DatabaseError, UnauthorizedError, Auth.AuthError]);
+const MailOAuthUrlError = Schema.Union([ProtectedRouteError, GmailOAuth.GmailOAuthError]);
+const MailOAuthCallbackError = Schema.Union([
+	ProtectedRouteError,
+	GmailOAuth.GmailOAuthError,
+	MailEncryption.MailEncryptionError,
+	ValidationError,
+]);
+const MailDisconnectError = Schema.Union([ProtectedRouteError, NotFoundError]);
 
 export const health = HttpApiGroup.make("health").add(
 	HttpApiEndpoint.get("healthCheck", "/up", {
-		success: SuccessResponse,
+		success: HealthCheckSuccessResponse,
+		error: DatabaseError,
 	}),
 );
 
@@ -33,21 +53,21 @@ export const mail = HttpApiGroup.make("mail")
 	.add(
 		HttpApiEndpoint.get("mailOAuthUrl", "/mail/oauth/url", {
 			success: Schema.Struct({ url: Schema.String }),
-			error: ProtectedRouteError,
+			error: MailOAuthUrlError,
 		}),
 	)
 	.add(
 		HttpApiEndpoint.post("mailOAuthCallback", "/mail/oauth/callback", {
 			payload: Schema.Struct({ code: Schema.String, state: MailOAuthStateId }),
 			success: Schema.Struct({ accountId: MailAccountId }),
-			error: Schema.Union([ProtectedRouteError, ValidationError]),
+			error: MailOAuthCallbackError,
 		}),
 	)
 	.add(
 		HttpApiEndpoint.post("mailDisconnect", "/mail/disconnect", {
 			payload: Schema.Struct({ accountId: MailAccountId }),
 			success: SuccessResponse,
-			error: ProtectedRouteError,
+			error: MailDisconnectError,
 		}),
 	)
 	.middleware(AuthMiddleware.Service);

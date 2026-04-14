@@ -2,7 +2,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Schema } from "effect";
 
 import { MailOAuthStateId } from "@leuchtturm/core/mail/schema";
-import { apiClient } from "@leuchtturm/web/clients/api";
+import { api } from "@leuchtturm/web/clients/api";
 
 const searchSchema = Schema.Struct({
 	code: Schema.String,
@@ -14,7 +14,7 @@ export const Route = createFileRoute("/_app/mail/callback")({
 	beforeLoad: async ({ search }) => {
 		const response = await (async () => {
 			try {
-				return await apiClient.mail.mailOAuthCallback({
+				return await api.mail.mailOAuthCallback({
 					payload: { code: search.code, state: search.state },
 				});
 			} catch {
