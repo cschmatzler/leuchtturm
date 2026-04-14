@@ -8,6 +8,7 @@ import { Resource } from "sst";
 import { ulid } from "ulid";
 
 import { account, session, user, verification } from "@leuchtturm/core/auth/auth.sql";
+import { AuthError } from "@leuchtturm/core/auth/errors";
 import {
 	AccountId,
 	PASSWORD_MIN_LENGTH,
@@ -23,12 +24,6 @@ import { Email } from "@leuchtturm/core/email";
 import { sendPasswordResetEmail } from "@leuchtturm/email/password-reset";
 
 export namespace Auth {
-	export class AuthError extends Schema.TaggedErrorClass<AuthError>()(
-		"AuthError",
-		{ message: Schema.String },
-		{ httpApiStatus: 500 },
-	) {}
-
 	export interface Interface {
 		readonly handle: (request: Request) => Effect.Effect<Response, AuthError>;
 		readonly getSession: (headers: Headers) => Effect.Effect<SessionData | null, AuthError>;

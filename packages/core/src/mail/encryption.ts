@@ -1,6 +1,8 @@
-import { Effect, Layer, Schema, ServiceMap } from "effect";
+import { Effect, Layer, ServiceMap } from "effect";
 import { randomBytes, createCipheriv, createDecipheriv } from "node:crypto";
 import { Resource } from "sst";
+
+import { MailEncryptionError } from "@leuchtturm/core/mail/errors";
 
 const ALGORITHM = "aes-256-gcm" as const;
 const NONCE_LENGTH = 12;
@@ -57,12 +59,6 @@ function envelopeDecrypt(kek: Buffer, encrypted: EncryptedSecret): string {
 }
 
 export namespace MailEncryption {
-	export class MailEncryptionError extends Schema.TaggedErrorClass<MailEncryptionError>()(
-		"MailEncryptionError",
-		{ message: Schema.String },
-		{ httpApiStatus: 500 },
-	) {}
-
 	export interface Interface {
 		readonly encrypt: (payload: string) => Effect.Effect<EncryptedSecret, MailEncryptionError>;
 		readonly decrypt: (encrypted: EncryptedSecret) => Effect.Effect<string, MailEncryptionError>;

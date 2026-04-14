@@ -1,5 +1,7 @@
-import { Effect, Layer, Redacted, Schema, ServiceMap } from "effect";
+import { Effect, Layer, Redacted, ServiceMap } from "effect";
 import { Resource } from "sst";
+
+import { GmailOAuthError } from "@leuchtturm/core/mail/gmail/errors";
 
 const GMAIL_SCOPES = [
 	"https://www.googleapis.com/auth/gmail.readonly",
@@ -19,12 +21,6 @@ export interface GoogleUserInfo {
 }
 
 export namespace GmailOAuth {
-	export class GmailOAuthError extends Schema.TaggedErrorClass<GmailOAuthError>()(
-		"GmailOAuthError",
-		{ message: Schema.String },
-		{ httpApiStatus: 500 },
-	) {}
-
 	export interface Interface {
 		readonly getAuthUrl: (state: string) => Effect.Effect<string, GmailOAuthError>;
 		readonly exchangeCode: (code: string) => Effect.Effect<OAuthTokens, GmailOAuthError>;

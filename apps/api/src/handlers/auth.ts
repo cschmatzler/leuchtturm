@@ -4,6 +4,7 @@ import { HttpApiBuilder } from "effect/unstable/httpapi";
 
 import { LeuchtturmApi } from "@leuchtturm/api/contract";
 import { Auth } from "@leuchtturm/core/auth";
+import { AuthError } from "@leuchtturm/core/auth/errors";
 
 export namespace AuthHandler {
 	export const handlePassthrough = Effect.fn("auth.passthrough.handle")(function* (
@@ -13,7 +14,7 @@ export namespace AuthHandler {
 		return yield* auth.handle(request.source as Request).pipe(
 			Effect.mapError(
 				(error) =>
-					new Auth.AuthError({
+					new AuthError({
 						message: `Auth passthrough failed: ${error.message}`,
 					}),
 			),
@@ -21,7 +22,7 @@ export namespace AuthHandler {
 				Effect.tryPromise({
 					try: () => response.arrayBuffer(),
 					catch: (error) =>
-						new Auth.AuthError({
+						new AuthError({
 							message: `Failed to read auth response body: ${error instanceof Error ? error.message : String(error)}`,
 						}),
 				}).pipe(

@@ -2,15 +2,15 @@ import { Schema } from "effect";
 import { HttpApi, HttpApiEndpoint, HttpApiGroup } from "effect/unstable/httpapi";
 
 import { AuthMiddleware } from "@leuchtturm/api/auth/http-auth";
-import { Auth } from "@leuchtturm/core/auth";
+import { AuthError } from "@leuchtturm/core/auth/errors";
 import {
 	DatabaseError,
 	NotFoundError,
 	UnauthorizedError,
 	ValidationError,
 } from "@leuchtturm/core/errors";
-import { MailEncryption } from "@leuchtturm/core/mail/encryption";
-import { GmailOAuth } from "@leuchtturm/core/mail/gmail/oauth";
+import { MailEncryptionError } from "@leuchtturm/core/mail/errors";
+import { GmailOAuthError } from "@leuchtturm/core/mail/gmail/errors";
 import { MailAccountId, MailOAuthStateId } from "@leuchtturm/core/mail/schema";
 
 const SuccessResponse = Schema.Struct({ success: Schema.Literal(true) });
@@ -22,13 +22,13 @@ const HealthCheckSuccessResponse = Schema.Struct({
 	}),
 	totalTimeMs: Schema.Number,
 });
-const AuthRouteError = Schema.Union([UnauthorizedError, Auth.AuthError]);
-const ProtectedRouteError = Schema.Union([DatabaseError, UnauthorizedError, Auth.AuthError]);
-const MailOAuthUrlError = Schema.Union([ProtectedRouteError, GmailOAuth.GmailOAuthError]);
+const AuthRouteError = Schema.Union([UnauthorizedError, AuthError]);
+const ProtectedRouteError = Schema.Union([DatabaseError, UnauthorizedError, AuthError]);
+const MailOAuthUrlError = Schema.Union([ProtectedRouteError, GmailOAuthError]);
 const MailOAuthCallbackError = Schema.Union([
 	ProtectedRouteError,
-	GmailOAuth.GmailOAuthError,
-	MailEncryption.MailEncryptionError,
+	GmailOAuthError,
+	MailEncryptionError,
 	ValidationError,
 ]);
 const MailDisconnectError = Schema.Union([ProtectedRouteError, NotFoundError]);

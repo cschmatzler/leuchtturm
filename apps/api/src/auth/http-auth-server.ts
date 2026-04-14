@@ -3,6 +3,7 @@ import { HttpServerRequest, HttpServerResponse } from "effect/unstable/http";
 
 import { AuthMiddleware } from "@leuchtturm/api/auth/http-auth";
 import { Auth } from "@leuchtturm/core/auth";
+import { AuthError } from "@leuchtturm/core/auth/errors";
 
 export namespace AuthMiddlewareServer {
 	const run = Effect.fn("AuthMiddleware.run")(function* <E, R>(
@@ -18,7 +19,7 @@ export namespace AuthMiddlewareServer {
 			.pipe(
 				Effect.mapError(
 					(error) =>
-						new Auth.AuthError({
+						new AuthError({
 							message: `Auth session lookup failed: ${error.message}`,
 						}),
 				),
@@ -44,7 +45,7 @@ export namespace AuthMiddlewareServer {
 		httpApp: Effect.Effect<HttpServerResponse.HttpServerResponse, E, R>,
 	) {
 		return yield* run(auth, request, httpApp).pipe(
-			Effect.catchIf(Schema.is(Auth.AuthError), (error) =>
+			Effect.catchIf(Schema.is(AuthError), (error) =>
 				Effect.succeed(
 					HttpServerResponse.jsonUnsafe(
 						{ _tag: error._tag, message: error.message },
