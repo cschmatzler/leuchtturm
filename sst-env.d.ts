@@ -55,6 +55,10 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
+    "PostHogProjectApiKey": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
     "PolarAccessToken": {
       "type": "sst.sst.Secret"
       "value": string

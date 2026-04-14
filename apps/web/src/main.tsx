@@ -1,4 +1,5 @@
 import "@leuchtturm/web/index.css";
+import { PostHogProvider } from "@posthog/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
@@ -19,9 +20,19 @@ function Router() {
 
 	return (
 		<StrictMode>
-			<QueryClientProvider client={queryClient}>
-				<RouterProvider router={router} context={routerContext} />
-			</QueryClientProvider>
+			<PostHogProvider
+				apiKey={import.meta.env.VITE_POSTHOG_KEY}
+				options={{
+					api_host: import.meta.env.VITE_POSTHOG_HOST,
+					capture_pageview: "history_change",
+					capture_pageleave: true,
+					capture_exceptions: true,
+				}}
+			>
+				<QueryClientProvider client={queryClient}>
+					<RouterProvider router={router} context={routerContext} />
+				</QueryClientProvider>
+			</PostHogProvider>
 		</StrictMode>
 	);
 }

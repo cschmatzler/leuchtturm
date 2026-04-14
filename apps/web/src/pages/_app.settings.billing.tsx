@@ -13,7 +13,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@leuchtturm/web/components/ui/card";
-import { reportUiError } from "@leuchtturm/web/lib/report-ui-error";
+import { reportError } from "@leuchtturm/web/lib/report-error";
 import { customerStateQuery } from "@leuchtturm/web/queries/billing";
 
 export const Route = createFileRoute("/_app/settings/billing")({
@@ -35,7 +35,9 @@ function Page() {
 		try {
 			await authClient.customer.portal();
 		} catch (error) {
-			reportUiError({ error, message: t("Could not open billing portal") });
+			reportError(error, t("Could not open billing portal"), {
+				source: "billing-settings",
+			});
 		}
 	};
 
@@ -43,7 +45,9 @@ function Page() {
 		try {
 			await authClient.checkout({ slug: POLAR_PRO_PRODUCT_SLUG });
 		} catch (error) {
-			reportUiError({ error, message: t("Could not open checkout") });
+			reportError(error, t("Could not open checkout"), {
+				source: "billing-settings",
+			});
 		}
 	};
 
