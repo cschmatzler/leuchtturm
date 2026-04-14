@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
-import { parsePrefixedId, stringifyPrefixedId } from "@leuchtturm/web/lib/route-params";
 import { MailAccountShell } from "@leuchtturm/web/pages/_app.mail/-components/account-shell";
 import { ConversationList } from "@leuchtturm/web/pages/_app.mail/-components/conversation-list";
 import { MessageList } from "@leuchtturm/web/pages/_app.mail/-components/message-list";
@@ -9,8 +8,14 @@ import { queries } from "@leuchtturm/zero/queries";
 
 export const Route = createFileRoute("/_app/mac_{$accountId}")({
 	params: {
-		parse: (params) => ({ accountId: parsePrefixedId(params.accountId, "mac_") }),
-		stringify: (params) => ({ accountId: stringifyPrefixedId(params.accountId, "mac_") }),
+		parse: (params) => ({
+			accountId: params.accountId.startsWith("mac_") ? params.accountId : `mac_${params.accountId}`,
+		}),
+		stringify: (params) => ({
+			accountId: params.accountId.startsWith("mac_")
+				? params.accountId.slice("mac_".length)
+				: params.accountId,
+		}),
 	},
 	loader: async ({ context: { zero }, params: { accountId } }) => {
 		zero.preload(queries.mailAccounts());

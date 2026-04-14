@@ -1,15 +1,20 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
-import { parsePrefixedId, stringifyPrefixedId } from "@leuchtturm/web/lib/route-params";
 import { MailAccountShell } from "@leuchtturm/web/pages/_app.mail/-components/account-shell";
 import { MessageList } from "@leuchtturm/web/pages/_app.mail/-components/message-list";
 import { queries } from "@leuchtturm/zero/queries";
 
 export const Route = createFileRoute("/_app/mfl_{$folderId}")({
 	params: {
-		parse: (params) => ({ folderId: parsePrefixedId(params.folderId, "mfl_") }),
-		stringify: (params) => ({ folderId: stringifyPrefixedId(params.folderId, "mfl_") }),
+		parse: (params) => ({
+			folderId: params.folderId.startsWith("mfl_") ? params.folderId : `mfl_${params.folderId}`,
+		}),
+		stringify: (params) => ({
+			folderId: params.folderId.startsWith("mfl_")
+				? params.folderId.slice("mfl_".length)
+				: params.folderId,
+		}),
 	},
 	loader: async ({ context: { zero }, params: { folderId } }) => {
 		zero.preload(queries.mailFolder({ folderId }));

@@ -4,15 +4,20 @@ import { ArrowLeftIcon } from "lucide-react";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { Link } from "@leuchtturm/web/components/ui/link";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
-import { parsePrefixedId, stringifyPrefixedId } from "@leuchtturm/web/lib/route-params";
 import { MailAccountShell } from "@leuchtturm/web/pages/_app.mail/-components/account-shell";
 import { MessageDetail } from "@leuchtturm/web/pages/_app.mail/-components/message-detail";
 import { queries } from "@leuchtturm/zero/queries";
 
 export const Route = createFileRoute("/_app/mmg_{$messageId}")({
 	params: {
-		parse: (params) => ({ messageId: parsePrefixedId(params.messageId, "mmg_") }),
-		stringify: (params) => ({ messageId: stringifyPrefixedId(params.messageId, "mmg_") }),
+		parse: (params) => ({
+			messageId: params.messageId.startsWith("mmg_") ? params.messageId : `mmg_${params.messageId}`,
+		}),
+		stringify: (params) => ({
+			messageId: params.messageId.startsWith("mmg_")
+				? params.messageId.slice("mmg_".length)
+				: params.messageId,
+		}),
 	},
 	loader: async ({ context: { zero }, params: { messageId } }) => {
 		zero.preload(queries.mailMessage({ messageId }));

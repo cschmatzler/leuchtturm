@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { Link } from "@leuchtturm/web/components/ui/link";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
-import { parsePrefixedId, stringifyPrefixedId } from "@leuchtturm/web/lib/route-params";
 import { MailAccountShell } from "@leuchtturm/web/pages/_app.mail/-components/account-shell";
 import { MessageDetail } from "@leuchtturm/web/pages/_app.mail/-components/message-detail";
 import { queries } from "@leuchtturm/zero/queries";
@@ -13,10 +12,14 @@ import { queries } from "@leuchtturm/zero/queries";
 export const Route = createFileRoute("/_app/mcv_{$conversationId}")({
 	params: {
 		parse: (params) => ({
-			conversationId: parsePrefixedId(params.conversationId, "mcv_"),
+			conversationId: params.conversationId.startsWith("mcv_")
+				? params.conversationId
+				: `mcv_${params.conversationId}`,
 		}),
 		stringify: (params) => ({
-			conversationId: stringifyPrefixedId(params.conversationId, "mcv_"),
+			conversationId: params.conversationId.startsWith("mcv_")
+				? params.conversationId.slice("mcv_".length)
+				: params.conversationId,
 		}),
 	},
 	loader: async ({ context: { zero }, params: { conversationId } }) => {
