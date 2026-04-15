@@ -14,6 +14,7 @@ import { ApiAnalytics } from "@leuchtturm/api/posthog";
 import { Auth } from "@leuchtturm/core/auth";
 import { Database } from "@leuchtturm/core/drizzle";
 import { makeRuntime } from "@leuchtturm/core/effect/run-service";
+import { Email } from "@leuchtturm/core/email";
 import { Gmail } from "@leuchtturm/core/mail/gmail/workflows";
 
 namespace ApiRuntime {
@@ -51,6 +52,7 @@ namespace ApiRuntime {
 		const database = Database.layer(connectionString);
 		const core = Layer.mergeAll(
 			Auth.defaultLayer,
+			Email.defaultLayer,
 			FeatureFlags.defaultLayer,
 			Gmail.defaultLayer,
 		).pipe(Layer.provideMerge(database));

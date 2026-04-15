@@ -5,6 +5,7 @@ import { Database } from "@leuchtturm/core/drizzle";
 import {
 	getGmailFolders,
 	GmailAdapter,
+	type GmailHistoryChangesResult,
 	type GmailProviderFolder,
 	type GmailProviderLabel,
 	type GmailProviderMessage,
@@ -127,62 +128,74 @@ function toSyncError(context: string, error: unknown): Error {
 	return new Error(`${context}: ${String(error)}`);
 }
 
-async function registerWatch(
+function registerWatch(
 	db: Db,
 	accountId: string,
 	adapter: GmailAdapter,
 	topicName: string,
-): Promise<void> {
-	const { expiration } = await adapter.watch(topicName);
-	const now = new Date();
-	await db
-		.insert(mailAccountSyncState)
-		.values({
-			id: createMailAccountSyncStateId(),
-			accountId,
-			provider: PROVIDER,
-			stateKind: WATCH_SYNC_STATE_KIND,
-			payload: { expiration },
-			lastSuccessfulSyncAt: now,
-			lastAttemptedSyncAt: now,
-			createdAt: now,
-			updatedAt: now,
-		})
-		.onConflictDoUpdate({
-			target: [mailAccountSyncState.accountId, mailAccountSyncState.stateKind],
-			set: {
-				provider: PROVIDER,
-				payload: { expiration },
-				lastSuccessfulSyncAt: now,
-				lastAttemptedSyncAt: now,
-				lastErrorCode: null,
-				lastErrorMessage: null,
-				updatedAt: now,
-			},
+): Effect.Effect<void, Error> {
+	return Effect.gen(function* () {
+		const { expiration } = yield* adapter.watch(topicName);
+		const now = new Date();
+		yield* Effect.tryPromise({
+			try: () =>
+				db
+					.insert(mailAccountSyncState)
+					.values({
+						id: createMailAccountSyncStateId(),
+						accountId,
+						provider: PROVIDER,
+						stateKind: WATCH_SYNC_STATE_KIND,
+						payload: { expiration },
+						lastSuccessfulSyncAt: now,
+						lastAttemptedSyncAt: now,
+						createdAt: now,
+						updatedAt: now,
+					})
+					.onConflictDoUpdate({
+						target: [mailAccountSyncState.accountId, mailAccountSyncState.stateKind],
+						set: {
+							provider: PROVIDER,
+							payload: { expiration },
+							lastSuccessfulSyncAt: now,
+							lastAttemptedSyncAt: now,
+							lastErrorCode: null,
+							lastErrorMessage: null,
+							updatedAt: now,
+						},
+					}),
+			catch: (error) => (error instanceof Error ? error : new Error(String(error))),
 		});
+	});
 }
 
-async function renewWatchIfNeeded(
+function renewWatchIfNeeded(
 	db: Db,
 	accountId: string,
 	adapter: GmailAdapter,
 	topicName: string,
-): Promise<void> {
-	const [watchState] = await db
-		.select({ payload: mailAccountSyncState.payload })
-		.from(mailAccountSyncState)
-		.where(
-			and(
-				eq(mailAccountSyncState.accountId, accountId),
-				eq(mailAccountSyncState.stateKind, WATCH_SYNC_STATE_KIND),
-			),
-		)
-		.limit(1);
+): Effect.Effect<void, Error> {
+	return Effect.gen(function* () {
+		const [watchState] = yield* Effect.tryPromise({
+			try: () =>
+				db
+					.select({ payload: mailAccountSyncState.payload })
+					.from(mailAccountSyncState)
+					.where(
+						and(
+							eq(mailAccountSyncState.accountId, accountId),
+							eq(mailAccountSyncState.stateKind, WATCH_SYNC_STATE_KIND),
+						),
+					)
+					.limit(1),
+			catch: (error) => (error instanceof Error ? error : new Error(String(error))),
+		});
 
-	const expiration = (watchState?.payload as { expiration?: number })?.expiration ?? 0;
-	if (expiration < Date.now() + WATCH_RENEWAL_BUFFER_MS) {
-		await registerWatch(db, accountId, adapter, topicName);
-	}
+		const expiration = (watchState?.payload as { expiration?: number })?.expiration ?? 0;
+		if (expiration < Date.now() + WATCH_RENEWAL_BUFFER_MS) {
+			yield* registerWatch(db, accountId, adapter, topicName);
+		}
+	});
 }
 
 async function loadParticipantViews(
@@ -278,29 +291,30 @@ export namespace GmailSync {
 			});
 
 			const listLabels = Effect.fn("GmailSync.listLabels")(function* (adapter: GmailAdapter) {
-				return yield* Effect.tryPromise({
-					try: () => adapter.listLabels(),
-					catch: (error) => toSyncError("Failed to list Gmail labels", error),
-				});
+				return yield* adapter
+					.listLabels()
+					.pipe(Effect.mapError((error) => toSyncError("Failed to list Gmail labels", error)));
 			});
 
 			const listRecentThreads = Effect.fn("GmailSync.listRecentThreads")(function* (
 				adapter: GmailAdapter,
 				cutoff: Date,
 			) {
-				return yield* Effect.tryPromise({
-					try: () => adapter.listRecentThreads(cutoff),
-					catch: (error) => toSyncError("Failed to list recent Gmail threads", error),
-				});
+				return yield* adapter
+					.listRecentThreads(cutoff)
+					.pipe(
+						Effect.mapError((error) => toSyncError("Failed to list recent Gmail threads", error)),
+					);
 			});
 
 			const getLatestCursor = Effect.fn("GmailSync.getLatestCursor")(function* (
 				adapter: GmailAdapter,
 			) {
-				return yield* Effect.tryPromise({
-					try: () => adapter.getLatestCursor(),
-					catch: (error) => toSyncError("Failed to load latest Gmail cursor", error),
-				});
+				return yield* adapter
+					.getLatestCursor()
+					.pipe(
+						Effect.mapError((error) => toSyncError("Failed to load latest Gmail cursor", error)),
+					);
 			});
 
 			const loadBootstrapSnapshot = Effect.fn("GmailSync.loadBootstrapSnapshot")(function* (
@@ -383,10 +397,11 @@ export namespace GmailSync {
 				adapter: GmailAdapter,
 				topicName: string,
 			) {
-				yield* Effect.tryPromise({
-					try: () => registerWatch(db, accountId, adapter, topicName),
-					catch: (error) => toSyncError(`Failed to register Gmail watch for ${accountId}`, error),
-				});
+				yield* registerWatch(db, accountId, adapter, topicName).pipe(
+					Effect.mapError((error) =>
+						toSyncError(`Failed to register Gmail watch for ${accountId}`, error),
+					),
+				);
 			});
 
 			const registerWatchSafe = Effect.fn("GmailSync.registerWatchSafe")(function* (
@@ -422,11 +437,13 @@ export namespace GmailSync {
 				adapter: GmailAdapter,
 				startHistoryId: string,
 			) {
-				return yield* Effect.tryPromise({
-					try: () => adapter.getHistoryChanges(startHistoryId),
-					catch: (error) =>
-						toSyncError(`Failed to load Gmail history from ${startHistoryId}`, error),
-				});
+				return yield* adapter
+					.getHistoryChanges(startHistoryId)
+					.pipe(
+						Effect.mapError((error) =>
+							toSyncError(`Failed to load Gmail history from ${startHistoryId}`, error),
+						),
+					);
 			});
 
 			const markResyncing = Effect.fn("GmailSync.markResyncing")(function* (accountId: string) {
@@ -485,7 +502,7 @@ export namespace GmailSync {
 			const persistDeltaChanges = Effect.fn("GmailSync.persistDeltaChanges")(function* (params: {
 				account: MailAccountRecord;
 				accountId: string;
-				changes: Awaited<ReturnType<GmailAdapter["getHistoryChanges"]>>["changes"];
+				changes: GmailHistoryChangesResult["changes"];
 				folders: readonly GmailProviderFolder[];
 				labels: readonly GmailProviderLabel[];
 				newCursor: string;
@@ -534,10 +551,11 @@ export namespace GmailSync {
 				adapter: GmailAdapter,
 				topicName: string,
 			) {
-				yield* Effect.tryPromise({
-					try: () => renewWatchIfNeeded(db, accountId, adapter, topicName),
-					catch: (error) => toSyncError(`Failed to renew Gmail watch for ${accountId}`, error),
-				});
+				yield* renewWatchIfNeeded(db, accountId, adapter, topicName).pipe(
+					Effect.mapError((error) =>
+						toSyncError(`Failed to renew Gmail watch for ${accountId}`, error),
+					),
+				);
 			});
 
 			const renewWatchIfNeededSafe = Effect.fn("GmailSync.renewWatchIfNeededSafe")(function* (

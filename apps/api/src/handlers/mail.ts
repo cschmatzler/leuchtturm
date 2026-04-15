@@ -10,20 +10,11 @@ import { HttpApiBuilder } from "effect/unstable/httpapi";
 
 import { AuthMiddleware } from "@leuchtturm/api/auth/http-auth";
 import { LeuchtturmApi } from "@leuchtturm/api/contract";
-import { Database } from "@leuchtturm/core/drizzle";
+import { Email } from "@leuchtturm/core/email";
 import { DatabaseError, NotFoundError, ValidationError } from "@leuchtturm/core/errors";
 import { MailEncryption } from "@leuchtturm/core/mail/encryption";
 import { GmailOAuth } from "@leuchtturm/core/mail/gmail/oauth";
 import { Gmail } from "@leuchtturm/core/mail/gmail/workflows";
-import {
-	consumeMailOAuthState,
-	createMailAccount,
-	createMailAccountSecret,
-	createMailOAuthState,
-	disconnectMailAccount,
-	getMailAccountByEmail,
-	getMailAccountForUser,
-} from "@leuchtturm/core/mail/queries";
 import { createMailAccountId, createMailOAuthStateId } from "@leuchtturm/core/mail/schema";
 
 namespace MailHandlers {
@@ -38,20 +29,22 @@ namespace MailHandlers {
 export namespace MailHandler {
 	const oauthUrl = Effect.fn("mail.oauthUrl")(function* () {
 		const { user, session } = yield* AuthMiddleware.CurrentUser;
-		const { db } = yield* Database.Service;
+		const email = yield* Email.Service;
 		const oauth = yield* GmailOAuth.Service;
 		const state = createMailOAuthStateId();
 
-		yield* Effect.tryPromise({
-			try: () =>
-				createMailOAuthState(db, {
-					id: state,
-					userId: user.id,
-					sessionId: session.id,
-					expiresAt: new Date(Date.now() + MailHandlers.oauthStateTtlMs),
-				}),
-			catch: (error) => MailHandlers.toDatabaseError("Failed to create OAuth state", error),
-		});
+		yield* email
+			.createOAuthState({
+				id: state,
+				userId: user.id,
+				sessionId: session.id,
+				expiresAt: new Date(Date.now() + MailHandlers.oauthStateTtlMs),
+			})
+			.pipe(
+				Effect.mapError((error) =>
+					MailHandlers.toDatabaseError("Failed to create OAuth state", error),
+				),
+			);
 
 		const url = yield* oauth.getAuthUrl(state);
 
@@ -60,19 +53,21 @@ export namespace MailHandler {
 
 	const oauthCallback = Effect.fn("mail.oauthCallback")(function* ({ payload }) {
 		const { user, session } = yield* AuthMiddleware.CurrentUser;
-		const { db } = yield* Database.Service;
+		const email = yield* Email.Service;
 		const oauth = yield* GmailOAuth.Service;
 		const encryption = yield* MailEncryption.Service;
 
-		const state = yield* Effect.tryPromise({
-			try: () =>
-				consumeMailOAuthState(db, {
-					id: payload.state,
-					userId: user.id,
-					sessionId: session.id,
-				}),
-			catch: (error) => MailHandlers.toDatabaseError("Failed to validate OAuth state", error),
-		});
+		const state = yield* email
+			.consumeOAuthState({
+				id: payload.state,
+				userId: user.id,
+				sessionId: session.id,
+			})
+			.pipe(
+				Effect.mapError((error) =>
+					MailHandlers.toDatabaseError("Failed to validate OAuth state", error),
+				),
+			);
 
 		if (!state) {
 			return yield* Effect.fail(
@@ -87,18 +82,20 @@ export namespace MailHandler {
 		const userInfo = yield* oauth.getUserInfo(tokens.accessToken);
 
 		const accountId = createMailAccountId();
-		yield* Effect.tryPromise({
-			try: () =>
-				createMailAccount(db, {
-					id: accountId,
-					userId: user.id,
-					provider: "gmail",
-					email: userInfo.email,
-					displayName: userInfo.name ?? null,
-					status: "connecting",
-				}),
-			catch: (error) => MailHandlers.toDatabaseError("Failed to create mail account", error),
-		});
+		yield* email
+			.createAccount({
+				id: accountId,
+				userId: user.id,
+				provider: "gmail",
+				email: userInfo.email,
+				displayName: userInfo.name ?? null,
+				status: "connecting",
+			})
+			.pipe(
+				Effect.mapError((error) =>
+					MailHandlers.toDatabaseError("Failed to create mail account", error),
+				),
+			);
 
 		const encrypted = yield* encryption.encrypt(
 			JSON.stringify({
@@ -108,16 +105,18 @@ export namespace MailHandler {
 			}),
 		);
 
-		yield* Effect.tryPromise({
-			try: () =>
-				createMailAccountSecret(db, {
-					accountId,
-					authKind: "oauth2",
-					encryptedPayload: encrypted.encryptedPayload,
-					encryptedDek: encrypted.encryptedDek,
-				}),
-			catch: (error) => MailHandlers.toDatabaseError("Failed to store mail credentials", error),
-		});
+		yield* email
+			.createAccountSecret({
+				accountId,
+				authKind: "oauth2",
+				encryptedPayload: encrypted.encryptedPayload,
+				encryptedDek: encrypted.encryptedDek,
+			})
+			.pipe(
+				Effect.mapError((error) =>
+					MailHandlers.toDatabaseError("Failed to store mail credentials", error),
+				),
+			);
 
 		yield* Gmail.BootstrapWorkflow.execute(
 			{ accountId, accessToken: tokens.accessToken },
@@ -129,21 +128,21 @@ export namespace MailHandler {
 
 	const disconnect = Effect.fn("mail.disconnect")(function* ({ payload }) {
 		const { user } = yield* AuthMiddleware.CurrentUser;
-		const { db } = yield* Database.Service;
+		const email = yield* Email.Service;
 
-		const account = yield* Effect.tryPromise({
-			try: () => getMailAccountForUser(db, payload.accountId, user.id),
-			catch: (error) => MailHandlers.toDatabaseError("Failed to fetch account", error),
-		});
+		const account = yield* email
+			.getAccountForUser(payload.accountId, user.id)
+			.pipe(
+				Effect.mapError((error) => MailHandlers.toDatabaseError("Failed to fetch account", error)),
+			);
 
 		if (!account) {
 			return yield* Effect.fail(new NotFoundError({ resource: "MailAccount" }));
 		}
 
-		yield* Effect.tryPromise({
-			try: () => disconnectMailAccount(db, payload.accountId),
-			catch: (error) => MailHandlers.toDatabaseError("Disconnect failed", error),
-		});
+		yield* email
+			.disconnectAccount(payload.accountId)
+			.pipe(Effect.mapError((error) => MailHandlers.toDatabaseError("Disconnect failed", error)));
 
 		return { success: true as const };
 	});
@@ -171,11 +170,14 @@ export namespace WebhookHandler {
 			return { success: true as const };
 		}
 
-		const { db } = yield* Database.Service;
-		const account = yield* Effect.tryPromise({
-			try: () => getMailAccountByEmail(db, decoded.emailAddress!),
-			catch: (error) => MailHandlers.toDatabaseError("Failed to look up account", error),
-		});
+		const email = yield* Email.Service;
+		const account = yield* email
+			.getAccountByEmail(decoded.emailAddress!)
+			.pipe(
+				Effect.mapError((error) =>
+					MailHandlers.toDatabaseError("Failed to look up account", error),
+				),
+			);
 
 		if (!account) {
 			// Unknown email — ack without processing

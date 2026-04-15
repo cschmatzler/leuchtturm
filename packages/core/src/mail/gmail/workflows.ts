@@ -2,15 +2,10 @@ import { Effect, Layer, Schema } from "effect";
 import { Workflow, WorkflowEngine } from "effect/unstable/workflow";
 import { Resource } from "sst";
 
-import { Database } from "@leuchtturm/core/drizzle";
+import { Email } from "@leuchtturm/core/email";
 import { MailEncryption } from "@leuchtturm/core/mail/encryption";
 import { GmailOAuth } from "@leuchtturm/core/mail/gmail/oauth";
 import { GmailSync } from "@leuchtturm/core/mail/gmail/sync";
-import {
-	getMailAccountSecret,
-	updateMailAccountSecret,
-	updateMailAccountStatus,
-} from "@leuchtturm/core/mail/queries";
 import { StoredMailOAuthSecret } from "@leuchtturm/core/mail/schema";
 
 const ACCESS_TOKEN_REFRESH_SKEW_MS = 60 * 1000;
@@ -82,6 +77,7 @@ const DeltaWorkflowLayer = Layer.unwrap(
 const GmailWorkflowsLayer = Layer.merge(BootstrapWorkflowLayer, DeltaWorkflowLayer);
 
 const GmailWorkflowDependencies = Layer.mergeAll(
+	Email.defaultLayer,
 	MailEncryption.defaultLayer,
 	GmailOAuth.defaultLayer,
 	GmailSync.defaultLayer,
@@ -99,42 +95,48 @@ export const Gmail = {
 
 function resolveAccessToken(accountId: string) {
 	return Effect.gen(function* () {
-		const { db } = yield* Database.Service;
+		const email = yield* Email.Service;
 		const encryption = yield* MailEncryption.Service;
 		const oauth = yield* GmailOAuth.Service;
 
-		const secret = yield* Effect.tryPromise({
-			try: () => getMailAccountSecret(db, accountId),
-			catch: (error) => new Error(`Failed to fetch credentials: ${toErrorString(error)}`),
-		});
+		const secret = yield* email
+			.getAccountSecret(accountId)
+			.pipe(
+				Effect.mapError(
+					(error) => new Error(`Failed to fetch credentials: ${toErrorString(error)}`),
+				),
+			);
 
 		if (!secret) {
 			return yield* Effect.fail(new Error("Account credentials not found"));
 		}
 
 		const decrypted = yield* decryptSecret(encryption, secret);
-		const fresh = yield* ensureFreshToken(db, oauth, encryption, accountId, decrypted);
+		const fresh = yield* ensureFreshToken(email, oauth, encryption, accountId, decrypted);
 		return fresh.accessToken;
 	});
 }
 
 function refreshStoredToken(accountId: string) {
 	return Effect.gen(function* () {
-		const { db } = yield* Database.Service;
+		const email = yield* Email.Service;
 		const encryption = yield* MailEncryption.Service;
 		const oauth = yield* GmailOAuth.Service;
 
-		const secret = yield* Effect.tryPromise({
-			try: () => getMailAccountSecret(db, accountId),
-			catch: (error) => new Error(`Failed to fetch credentials: ${toErrorString(error)}`),
-		});
+		const secret = yield* email
+			.getAccountSecret(accountId)
+			.pipe(
+				Effect.mapError(
+					(error) => new Error(`Failed to fetch credentials: ${toErrorString(error)}`),
+				),
+			);
 
 		if (!secret) {
 			return yield* Effect.fail(new Error("Account credentials not found"));
 		}
 
 		const decrypted = yield* decryptSecret(encryption, secret);
-		const refreshed = yield* refreshAccessToken(db, oauth, encryption, accountId, decrypted);
+		const refreshed = yield* refreshAccessToken(email, oauth, encryption, accountId, decrypted);
 		return refreshed.accessToken;
 	});
 }
@@ -163,7 +165,7 @@ function decryptSecret(
 }
 
 function ensureFreshToken(
-	db: Database.Client,
+	email: Email.Interface,
 	oauth: GmailOAuth.Interface,
 	encryption: MailEncryption.Interface,
 	accountId: string,
@@ -172,11 +174,11 @@ function ensureFreshToken(
 	if (secret.expiresAt > Date.now() + ACCESS_TOKEN_REFRESH_SKEW_MS) {
 		return Effect.succeed(secret);
 	}
-	return refreshAccessToken(db, oauth, encryption, accountId, secret);
+	return refreshAccessToken(email, oauth, encryption, accountId, secret);
 }
 
 function refreshAccessToken(
-	db: Database.Client,
+	email: Email.Interface,
 	oauth: GmailOAuth.Interface,
 	encryption: MailEncryption.Interface,
 	accountId: string,
@@ -184,10 +186,11 @@ function refreshAccessToken(
 ) {
 	return Effect.gen(function* () {
 		if (!secret.refreshToken) {
-			yield* Effect.tryPromise({
-				try: () => updateMailAccountStatus(db, accountId, "requires_reauth"),
-				catch: (e) => new Error(`Status update failed: ${toErrorString(e)}`),
-			});
+			yield* email
+				.updateAccountStatus(accountId, "requires_reauth")
+				.pipe(
+					Effect.mapError((error) => new Error(`Status update failed: ${toErrorString(error)}`)),
+				);
 			return yield* Effect.fail(new Error(`Account ${accountId} requires reauthorization`));
 		}
 
@@ -199,10 +202,9 @@ function refreshAccessToken(
 				),
 			(error) =>
 				Effect.gen(function* () {
-					yield* Effect.tryPromise({
-						try: () => updateMailAccountStatus(db, accountId, "requires_reauth"),
-						catch: () => error,
-					});
+					yield* email
+						.updateAccountStatus(accountId, "requires_reauth")
+						.pipe(Effect.mapError(() => error));
 					return yield* Effect.fail(error);
 				}),
 		);
@@ -220,15 +222,15 @@ function refreshAccessToken(
 					(error) => new Error(`Failed to encrypt credentials: ${toErrorString(error)}`),
 				),
 			);
-		yield* Effect.tryPromise({
-			try: () => updateMailAccountSecret(db, accountId, encrypted),
-			catch: (error) => new Error(`Failed to persist token: ${toErrorString(error)}`),
-		});
+		yield* email
+			.updateAccountSecret(accountId, encrypted)
+			.pipe(
+				Effect.mapError((error) => new Error(`Failed to persist token: ${toErrorString(error)}`)),
+			);
 
-		yield* Effect.tryPromise({
-			try: () => updateMailAccountStatus(db, accountId, "healthy"),
-			catch: (error) => new Error(`Status update failed: ${toErrorString(error)}`),
-		});
+		yield* email
+			.updateAccountStatus(accountId, "healthy")
+			.pipe(Effect.mapError((error) => new Error(`Status update failed: ${toErrorString(error)}`)));
 
 		return nextSecret;
 	});

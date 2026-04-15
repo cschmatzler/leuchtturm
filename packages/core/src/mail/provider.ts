@@ -1,4 +1,4 @@
-import { Schema } from "effect";
+import { Effect, Schema } from "effect";
 
 import { EmailAddress, MailFolderKind, MailLabelKind } from "@leuchtturm/core/mail/schema";
 
@@ -97,17 +97,20 @@ export const ProviderHistoryChange = Schema.Struct({
 export type ProviderHistoryChange = typeof ProviderHistoryChange.Type;
 
 export interface MailProviderAdapter {
-	listLabels(): Promise<ProviderLabel[]>;
+	listLabels(): Effect.Effect<ProviderLabel[], Error>;
 
-	listRecentThreads(cutoff: Date): Promise<ProviderThread[]>;
+	listRecentThreads(cutoff: Date): Effect.Effect<ProviderThread[], Error>;
 
-	getHistoryChanges(cursor: string): Promise<{
-		changes: ProviderHistoryChange;
-		newCursor: string;
-		cursorExpired: boolean;
-	}>;
+	getHistoryChanges(cursor: string): Effect.Effect<
+		{
+			changes: ProviderHistoryChange;
+			newCursor: string;
+			cursorExpired: boolean;
+		},
+		Error
+	>;
 
-	getMessage(providerRef: string): Promise<ProviderMessage>;
+	getMessage(providerRef: string): Effect.Effect<ProviderMessage, Error>;
 
-	getLatestCursor(): Promise<string>;
+	getLatestCursor(): Effect.Effect<string, Error>;
 }

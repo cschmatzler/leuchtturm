@@ -1,3 +1,5 @@
+import { Effect } from "effect";
+
 import type {
 	MailProviderAdapter,
 	ProviderAttachment,
@@ -36,6 +38,12 @@ export interface GmailProviderHistoryChange {
 	readonly labelsRemoved: Array<{ readonly labelRefs: string[]; readonly messageRef: string }>;
 	readonly messagesAdded: GmailProviderMessage[];
 	readonly messagesDeleted: string[];
+}
+
+export interface GmailHistoryChangesResult {
+	readonly changes: GmailProviderHistoryChange;
+	readonly newCursor: string;
+	readonly cursorExpired: boolean;
 }
 
 const GMAIL_API_BASE = "https://gmail.googleapis.com/gmail/v1/users/me";
@@ -209,6 +217,17 @@ function normalizeGmailMessage(msg: GmailMessage): GmailProviderMessage {
 export class GmailAdapter implements MailProviderAdapter {
 	constructor(private readonly accessToken: string) {}
 
+	private toError(error: unknown): Error {
+		return error instanceof Error ? error : new Error(String(error));
+	}
+
+	private lift<A>(operation: () => Promise<A>): Effect.Effect<A, Error> {
+		return Effect.tryPromise({
+			try: operation,
+			catch: (error) => this.toError(error),
+		});
+	}
+
 	private async gmailRequest<T>(
 		path: string,
 		options?: { params?: Record<string, string | readonly string[]>; body?: unknown },
@@ -249,153 +268,168 @@ export class GmailAdapter implements MailProviderAdapter {
 		return response.json() as Promise<T>;
 	}
 
-	async listLabels(): Promise<GmailProviderLabel[]> {
-		const data = await this.gmailRequest<{ labels: GmailLabel[] }>("/labels");
-		return (data.labels ?? []).map((label) => {
-			const hasHierarchy = label.name.includes("/");
-			return {
-				providerRef: label.id,
-				name: hasHierarchy ? label.name.split("/").pop()! : label.name,
-				path: label.name,
-				delimiter: hasHierarchy ? "/" : undefined,
-				color: label.color?.backgroundColor,
-				kind: gmailLabelKind(label.type),
-				providerStatePayload: label,
-			};
-		});
-	}
-
-	async listRecentThreads(cutoff: Date): Promise<GmailProviderThread[]> {
-		const query = `after:${Math.floor(cutoff.getTime() / 1000)}`;
-		const threadIds: string[] = [];
-		let pageToken: string | undefined;
-
-		do {
-			const params: Record<string, string> = { q: query, maxResults: "500" };
-			if (pageToken) params.pageToken = pageToken;
-
-			const data = await this.gmailRequest<{
-				threads?: Array<{ id: string }>;
-				nextPageToken?: string;
-			}>("/threads", { params });
-
-			if (data.threads) threadIds.push(...data.threads.map((t) => t.id));
-			pageToken = data.nextPageToken;
-		} while (pageToken);
-
-		const threads: GmailProviderThread[] = [];
-		const BATCH_SIZE = 10;
-
-		for (let i = 0; i < threadIds.length; i += BATCH_SIZE) {
-			const batch = threadIds.slice(i, i + BATCH_SIZE);
-			const results = await Promise.all(
-				batch.map((id) =>
-					this.gmailRequest<GmailThread>(`/threads/${id}`, { params: { format: "full" } }),
-				),
-			);
-			for (const thread of results) {
-				threads.push({
-					providerRef: thread.id,
-					messages: (thread.messages ?? []).map(normalizeGmailMessage),
-				});
-			}
-		}
-
-		return threads;
-	}
-
-	async getHistoryChanges(startHistoryId: string): Promise<{
-		changes: GmailProviderHistoryChange;
-		newCursor: string;
-		cursorExpired: boolean;
-	}> {
-		const changes: GmailProviderHistoryChange = {
-			messagesAdded: [],
-			messagesDeleted: [],
-			labelsAdded: [],
-			labelsRemoved: [],
-		};
-
-		let pageToken: string | undefined;
-		let latestHistoryId = startHistoryId;
-
-		try {
-			do {
-				const params: Record<string, string | readonly string[]> = {
-					startHistoryId,
-					historyTypes: ["messageAdded", "messageDeleted", "labelAdded", "labelRemoved"],
-					maxResults: "500",
-				};
-				if (pageToken) params.pageToken = pageToken;
-
-				const data = await this.gmailRequest<{
-					history?: GmailHistoryRecord[];
-					historyId: string;
-					nextPageToken?: string;
-				}>("/history", { params });
-
-				latestHistoryId = data.historyId;
-
-				for (const record of data.history ?? []) {
-					if (record.messagesAdded) {
-						for (const added of record.messagesAdded) {
-							changes.messagesAdded.push(await this.getMessage(added.message.id));
-						}
-					}
-					if (record.messagesDeleted) {
-						for (const deleted of record.messagesDeleted) {
-							changes.messagesDeleted.push(deleted.message.id);
-						}
-					}
-					if (record.labelsAdded) {
-						for (const added of record.labelsAdded) {
-							changes.labelsAdded.push({ messageRef: added.message.id, labelRefs: added.labelIds });
-						}
-					}
-					if (record.labelsRemoved) {
-						for (const removed of record.labelsRemoved) {
-							changes.labelsRemoved.push({
-								messageRef: removed.message.id,
-								labelRefs: removed.labelIds,
-							});
-						}
-					}
-				}
-
-				pageToken = data.nextPageToken;
-			} while (pageToken);
-		} catch (error) {
-			const gmailError = error as { readonly name?: unknown; readonly status?: unknown };
-			if (gmailError.name === "GmailApiError" && gmailError.status === 404) {
-				return { changes, newCursor: startHistoryId, cursorExpired: true };
-			}
-			throw error;
-		}
-
-		return { changes, newCursor: latestHistoryId, cursorExpired: false };
-	}
-
-	async getMessage(providerRef: string): Promise<GmailProviderMessage> {
+	private async getMessagePromise(providerRef: string): Promise<GmailProviderMessage> {
 		const msg = await this.gmailRequest<GmailMessage>(`/messages/${providerRef}`, {
 			params: { format: "full" },
 		});
 		return normalizeGmailMessage(msg);
 	}
 
-	async getLatestCursor(): Promise<string> {
-		const profile = await this.gmailRequest<{ historyId: string }>("/profile");
-		return profile.historyId;
-	}
-
-	async watch(topicName: string): Promise<{ historyId: string; expiration: number }> {
-		const data = await this.gmailRequest<{ historyId: string; expiration: string }>("/watch", {
-			body: { topicName, labelFilterBehavior: "INCLUDE" },
+	listLabels(): Effect.Effect<GmailProviderLabel[], Error> {
+		return this.lift(async () => {
+			const data = await this.gmailRequest<{ labels: GmailLabel[] }>("/labels");
+			return (data.labels ?? []).map((label) => {
+				const hasHierarchy = label.name.includes("/");
+				return {
+					providerRef: label.id,
+					name: hasHierarchy ? label.name.split("/").pop()! : label.name,
+					path: label.name,
+					delimiter: hasHierarchy ? "/" : undefined,
+					color: label.color?.backgroundColor,
+					kind: gmailLabelKind(label.type),
+					providerStatePayload: label,
+				};
+			});
 		});
-		return { historyId: data.historyId, expiration: Number(data.expiration) };
 	}
 
-	async stopWatch(): Promise<void> {
-		await this.gmailRequest("/stop", { body: {} });
+	listRecentThreads(cutoff: Date): Effect.Effect<GmailProviderThread[], Error> {
+		return this.lift(async () => {
+			const query = `after:${Math.floor(cutoff.getTime() / 1000)}`;
+			const threadIds: string[] = [];
+			let pageToken: string | undefined;
+
+			do {
+				const params: Record<string, string> = { q: query, maxResults: "500" };
+				if (pageToken) params.pageToken = pageToken;
+
+				const data = await this.gmailRequest<{
+					threads?: Array<{ id: string }>;
+					nextPageToken?: string;
+				}>("/threads", { params });
+
+				if (data.threads) threadIds.push(...data.threads.map((t) => t.id));
+				pageToken = data.nextPageToken;
+			} while (pageToken);
+
+			const threads: GmailProviderThread[] = [];
+			const BATCH_SIZE = 10;
+
+			for (let i = 0; i < threadIds.length; i += BATCH_SIZE) {
+				const batch = threadIds.slice(i, i + BATCH_SIZE);
+				const results = await Promise.all(
+					batch.map((id) =>
+						this.gmailRequest<GmailThread>(`/threads/${id}`, { params: { format: "full" } }),
+					),
+				);
+				for (const thread of results) {
+					threads.push({
+						providerRef: thread.id,
+						messages: (thread.messages ?? []).map(normalizeGmailMessage),
+					});
+				}
+			}
+
+			return threads;
+		});
+	}
+
+	getHistoryChanges(startHistoryId: string): Effect.Effect<GmailHistoryChangesResult, Error> {
+		return this.lift(async () => {
+			const changes: GmailProviderHistoryChange = {
+				messagesAdded: [],
+				messagesDeleted: [],
+				labelsAdded: [],
+				labelsRemoved: [],
+			};
+
+			let pageToken: string | undefined;
+			let latestHistoryId = startHistoryId;
+
+			try {
+				do {
+					const params: Record<string, string | readonly string[]> = {
+						startHistoryId,
+						historyTypes: ["messageAdded", "messageDeleted", "labelAdded", "labelRemoved"],
+						maxResults: "500",
+					};
+					if (pageToken) params.pageToken = pageToken;
+
+					const data = await this.gmailRequest<{
+						history?: GmailHistoryRecord[];
+						historyId: string;
+						nextPageToken?: string;
+					}>("/history", { params });
+
+					latestHistoryId = data.historyId;
+
+					for (const record of data.history ?? []) {
+						if (record.messagesAdded) {
+							for (const added of record.messagesAdded) {
+								changes.messagesAdded.push(await this.getMessagePromise(added.message.id));
+							}
+						}
+						if (record.messagesDeleted) {
+							for (const deleted of record.messagesDeleted) {
+								changes.messagesDeleted.push(deleted.message.id);
+							}
+						}
+						if (record.labelsAdded) {
+							for (const added of record.labelsAdded) {
+								changes.labelsAdded.push({
+									messageRef: added.message.id,
+									labelRefs: added.labelIds,
+								});
+							}
+						}
+						if (record.labelsRemoved) {
+							for (const removed of record.labelsRemoved) {
+								changes.labelsRemoved.push({
+									messageRef: removed.message.id,
+									labelRefs: removed.labelIds,
+								});
+							}
+						}
+					}
+
+					pageToken = data.nextPageToken;
+				} while (pageToken);
+			} catch (error) {
+				const gmailError = error as { readonly name?: unknown; readonly status?: unknown };
+				if (gmailError.name === "GmailApiError" && gmailError.status === 404) {
+					return { changes, newCursor: startHistoryId, cursorExpired: true };
+				}
+				throw error;
+			}
+
+			return { changes, newCursor: latestHistoryId, cursorExpired: false };
+		});
+	}
+
+	getMessage(providerRef: string): Effect.Effect<GmailProviderMessage, Error> {
+		return this.lift(() => this.getMessagePromise(providerRef));
+	}
+
+	getLatestCursor(): Effect.Effect<string, Error> {
+		return this.lift(async () => {
+			const profile = await this.gmailRequest<{ historyId: string }>("/profile");
+			return profile.historyId;
+		});
+	}
+
+	watch(topicName: string): Effect.Effect<{ historyId: string; expiration: number }, Error> {
+		return this.lift(async () => {
+			const data = await this.gmailRequest<{ historyId: string; expiration: string }>("/watch", {
+				body: { topicName, labelFilterBehavior: "INCLUDE" },
+			});
+			return { historyId: data.historyId, expiration: Number(data.expiration) };
+		});
+	}
+
+	stopWatch(): Effect.Effect<void, Error> {
+		return this.lift(async () => {
+			await this.gmailRequest("/stop", { body: {} });
+		});
 	}
 }
 
