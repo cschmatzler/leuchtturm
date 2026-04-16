@@ -6,14 +6,7 @@ export interface GmailBootstrapWorkflowParams {
 }
 
 export interface GmailBootstrapWorkflowBinding {
-	create(options: {
-		readonly id: string;
-		readonly params: GmailBootstrapWorkflowParams;
-	}): Promise<unknown>;
-}
-
-export function createGmailBootstrapWorkflowInstanceId(accountId: string): string {
-	return `gmail-bootstrap-${accountId}-${crypto.randomUUID()}`;
+	create(options: { readonly params: GmailBootstrapWorkflowParams }): Promise<unknown>;
 }
 
 export namespace GmailBootstrapWorkflowDispatcher {
@@ -31,11 +24,7 @@ export namespace GmailBootstrapWorkflowDispatcher {
 			Service.of({
 				start: (params) =>
 					Effect.tryPromise({
-						try: () =>
-							binding.create({
-								id: createGmailBootstrapWorkflowInstanceId(params.accountId),
-								params,
-							}),
+						try: () => binding.create({ params }),
 						catch: (error) => (error instanceof Error ? error : new Error(String(error))),
 					}).pipe(Effect.asVoid),
 			}),
