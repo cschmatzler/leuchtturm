@@ -21,10 +21,8 @@ export function MailAccountsCard() {
 	const [accounts] = useZeroQuery(queries.mailAccounts());
 	const [activeAccountId, setActiveAccountId] = useState<string | undefined>();
 
-	const handleConnectGmail = async (forceConsent = true) => {
-		const data = await api.mail.mailOAuthUrl({
-			query: { forceConsent: forceConsent ? "true" : "false" },
-		});
+	const handleConnectGmail = async () => {
+		const data = await api.mail.mailOAuthUrl();
 		window.location.href = data.url;
 	};
 
@@ -86,7 +84,7 @@ export function MailAccountsCard() {
 												size="sm"
 												variant="outline"
 												disabled={busy}
-												onClick={() => void handleConnectGmail(true)}
+												onClick={() => void handleConnectGmail()}
 											>
 												<RefreshCwIcon className="size-3.5" />
 												Reconnect

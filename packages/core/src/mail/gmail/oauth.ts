@@ -9,15 +9,10 @@ const GMAIL_SCOPES = [
 	"https://www.googleapis.com/auth/userinfo.email",
 ].join(" ");
 
-export interface AuthUrlOptions {
-	readonly forceConsent?: boolean;
-}
-
 export function buildGoogleOAuthUrl(params: {
 	readonly clientId: string;
 	readonly redirectUri: string;
 	readonly state: string;
-	readonly options?: AuthUrlOptions;
 }): string {
 	const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
 	url.searchParams.set("client_id", params.clientId);
@@ -28,9 +23,7 @@ export function buildGoogleOAuthUrl(params: {
 	url.searchParams.set("include_granted_scopes", "true");
 	url.searchParams.set("state", params.state);
 
-	if (params.options?.forceConsent) {
-		url.searchParams.set("prompt", "consent");
-	}
+	url.searchParams.set("prompt", "consent select_account");
 
 	return url.toString();
 }
@@ -48,10 +41,7 @@ export interface GoogleUserInfo {
 
 export namespace GmailOAuth {
 	export interface Interface {
-		readonly getAuthUrl: (
-			state: string,
-			options?: AuthUrlOptions,
-		) => Effect.Effect<string, GmailOAuthError>;
+		readonly getAuthUrl: (state: string) => Effect.Effect<string, GmailOAuthError>;
 		readonly exchangeCode: (code: string) => Effect.Effect<OAuthTokens, GmailOAuthError>;
 		readonly refreshAccessToken: (
 			refreshToken: string,
@@ -101,13 +91,12 @@ export namespace GmailOAuth {
 				});
 			});
 
-			const getAuthUrl = (state: string, options?: AuthUrlOptions) =>
+			const getAuthUrl = (state: string) =>
 				Effect.sync(() =>
 					buildGoogleOAuthUrl({
 						clientId,
 						redirectUri,
 						state,
-						options,
 					}),
 				);
 

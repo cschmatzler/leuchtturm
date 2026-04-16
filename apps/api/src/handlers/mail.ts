@@ -164,12 +164,11 @@ namespace MailHandlers {
 }
 
 export namespace MailHandler {
-	const oauthUrl = Effect.fn("mail.oauthUrl")(function* ({ query }) {
+	const oauthUrl = Effect.fn("mail.oauthUrl")(function* () {
 		const { user, session } = yield* AuthMiddleware.CurrentUser;
 		const email = yield* Email.Service;
 		const oauth = yield* GmailOAuth.Service;
 		const state = createMailOAuthStateId();
-		const forceConsent = query?.forceConsent !== "false";
 
 		yield* email
 			.createOAuthState({
@@ -184,9 +183,7 @@ export namespace MailHandler {
 				),
 			);
 
-		const url = yield* oauth.getAuthUrl(state, {
-			forceConsent,
-		});
+		const url = yield* oauth.getAuthUrl(state);
 
 		return { url };
 	});

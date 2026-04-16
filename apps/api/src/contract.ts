@@ -24,9 +24,6 @@ const HealthCheckSuccessResponse = Schema.Struct({
 });
 const AuthRouteError = Schema.Union([UnauthorizedError, AuthError]);
 const ProtectedRouteError = Schema.Union([DatabaseError, UnauthorizedError, AuthError]);
-const MailOAuthUrlQuery = {
-	forceConsent: Schema.optional(Schema.String),
-} as const;
 const MailOAuthUrlError = Schema.Union([ProtectedRouteError, GmailOAuthError]);
 const MailOAuthCallbackError = Schema.Union([
 	ProtectedRouteError,
@@ -56,7 +53,6 @@ export const auth = HttpApiGroup.make("auth")
 export const mail = HttpApiGroup.make("mail")
 	.add(
 		HttpApiEndpoint.get("mailOAuthUrl", "/mail/oauth/url", {
-			query: MailOAuthUrlQuery,
 			success: Schema.Struct({ url: Schema.String }),
 			error: MailOAuthUrlError,
 		}),
