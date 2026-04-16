@@ -18,37 +18,22 @@ function toErrorString(error: unknown): string {
 	return String(error);
 }
 
-function runDetached<R>(label: string, effect: Effect.Effect<void, string, R>) {
-	return effect.pipe(
-		Effect.catch((error) => Effect.logError(`${label}: ${error}`)),
-		Effect.forkDetach,
-		Effect.map(() => undefined),
-	);
-}
-
 const BootstrapWorkflow = {
 	execute: (
 		{ accountId, accessToken }: { accountId: string; accessToken?: string },
-		options?: WorkflowExecuteOptions,
-	) => {
-		const run = Effect.gen(function* () {
+		_options?: WorkflowExecuteOptions,
+	) =>
+		Effect.gen(function* () {
 			const sync = yield* GmailSync.Service;
 			const topicName = Resource.GmailPubSubTopic.value;
 			const token = accessToken ?? (yield* resolveAccessToken(accountId));
 			yield* sync.bootstrapAccount(accountId, token, topicName);
-		}).pipe(Effect.mapError(toErrorString));
-
-		if (options?.discard) {
-			return runDetached(`Gmail bootstrap failed for ${accountId}`, run);
-		}
-
-		return run;
-	},
+		}).pipe(Effect.mapError(toErrorString)),
 } as const;
 
 const DeltaWorkflow = {
-	execute: ({ accountId }: { accountId: string }, options?: WorkflowExecuteOptions) => {
-		const run = Effect.gen(function* () {
+	execute: ({ accountId }: { accountId: string }, _options?: WorkflowExecuteOptions) =>
+		Effect.gen(function* () {
 			const sync = yield* GmailSync.Service;
 			const topicName = Resource.GmailPubSubTopic.value;
 			const token = yield* resolveAccessToken(accountId);
@@ -66,14 +51,7 @@ const DeltaWorkflow = {
 					return yield* sync.syncDelta(accountId, refreshed, topicName);
 				}),
 			);
-		}).pipe(Effect.mapError(toErrorString));
-
-		if (options?.discard) {
-			return runDetached(`Gmail delta failed for ${accountId}`, run);
-		}
-
-		return run;
-	},
+		}).pipe(Effect.mapError(toErrorString)),
 } as const;
 
 const stopWatch = (accountId: string) =>

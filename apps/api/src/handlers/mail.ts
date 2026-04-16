@@ -10,6 +10,7 @@ import { HttpApiBuilder } from "effect/unstable/httpapi";
 import { Resource } from "sst";
 
 import { AuthMiddleware } from "@leuchtturm/api/auth/http-auth";
+import { BackgroundTasks } from "@leuchtturm/api/background";
 import { LeuchtturmApi } from "@leuchtturm/api/contract";
 import { Email } from "@leuchtturm/core/email";
 import {
@@ -190,6 +191,7 @@ export namespace MailHandler {
 
 	const oauthCallback = Effect.fn("mail.oauthCallback")(function* ({ payload }) {
 		const { user, session } = yield* AuthMiddleware.CurrentUser;
+		const background = yield* BackgroundTasks.Service;
 		const email = yield* Email.Service;
 		const oauth = yield* GmailOAuth.Service;
 		const encryption = yield* MailEncryption.Service;
@@ -304,13 +306,12 @@ export namespace MailHandler {
 				),
 			);
 
-		yield* Gmail.BootstrapWorkflow.execute({
-			accountId: account.id,
-			accessToken: tokens.accessToken,
-		}).pipe(
-			Effect.mapError((error) =>
-				MailHandlers.toDatabaseError("Failed to bootstrap Gmail account", error),
-			),
+		yield* background.run(
+			`Gmail bootstrap failed for ${account.id}`,
+			Gmail.BootstrapWorkflow.execute({
+				accountId: account.id,
+				accessToken: tokens.accessToken,
+			}),
 		);
 
 		return { accountId: account.id as never };
@@ -366,6 +367,7 @@ export namespace WebhookHandler {
 			return { success: true as const };
 		}
 
+		const background = yield* BackgroundTasks.Service;
 		const email = yield* Email.Service;
 		const accounts = yield* email
 			.getAccountsByEmail(decoded.emailAddress)
@@ -383,13 +385,9 @@ export namespace WebhookHandler {
 		yield* Effect.forEach(
 			gmailAccounts,
 			(account) =>
-				Gmail.DeltaWorkflow.execute({ accountId: account.id }, { discard: true }).pipe(
-					Effect.mapError((error) =>
-						MailHandlers.toDatabaseError(
-							`Failed to launch delta sync for account ${account.id}`,
-							error,
-						),
-					),
+				background.run(
+					`Gmail delta failed for ${account.id}`,
+					Gmail.DeltaWorkflow.execute({ accountId: account.id }),
 				),
 			{ concurrency: 4 },
 		);
