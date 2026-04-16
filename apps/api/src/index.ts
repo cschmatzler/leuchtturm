@@ -10,6 +10,11 @@ import { AuthHandler } from "@leuchtturm/api/handlers/auth";
 import { HealthHandler } from "@leuchtturm/api/handlers/health";
 import { MailHandler, WebhookHandler } from "@leuchtturm/api/handlers/mail";
 import { ZeroHandler } from "@leuchtturm/api/handlers/zero";
+import {
+	GmailBootstrapWorkflowDispatcher,
+	type GmailBootstrapWorkflowBinding,
+} from "@leuchtturm/api/mail/gmail/bootstrap-dispatcher";
+import { GmailBootstrapWorkflow } from "@leuchtturm/api/mail/gmail/bootstrap-workflow";
 import { RequestContext } from "@leuchtturm/api/middleware/request-context";
 import { ApiAnalytics } from "@leuchtturm/api/posthog";
 import { Auth } from "@leuchtturm/core/auth";
@@ -23,6 +28,7 @@ namespace ApiRuntime {
 		readonly HYPERDRIVE: {
 			readonly connectionString: string;
 		};
+		readonly GMAIL_BOOTSTRAP_WORKFLOW: GmailBootstrapWorkflowBinding;
 	}
 
 	const handlers = Layer.mergeAll(
@@ -46,11 +52,8 @@ namespace ApiRuntime {
 
 	export class Service extends ServiceMap.Service<Service, Interface>()("@leuchtturm/ApiRuntime") {}
 
-	export const layer = (
-		connectionString: string,
-		waitUntil?: (promise: Promise<unknown>) => void,
-	) => {
-		const database = Database.layer(connectionString);
+	export const layer = (env: Env, waitUntil?: (promise: Promise<unknown>) => void) => {
+		const database = Database.layer(env.HYPERDRIVE.connectionString);
 		const core = Layer.mergeAll(
 			Auth.defaultLayer,
 			Email.defaultLayer,
@@ -61,6 +64,7 @@ namespace ApiRuntime {
 			core,
 			HttpServer.layerServices,
 			BackgroundTasks.layer(waitUntil),
+			GmailBootstrapWorkflowDispatcher.layer(env.GMAIL_BOOTSTRAP_WORKFLOW),
 		);
 		const handler = HttpEffect.toWebHandlerLayer(api, runtime, {
 			middleware: RequestContext.Middleware,
@@ -111,11 +115,11 @@ namespace ApiRuntime {
 		).pipe(Layer.provide(ApiAnalytics.layer(waitUntil)));
 	};
 
-	export const create = (
-		connectionString: string,
-		waitUntil?: (promise: Promise<unknown>) => void,
-	) => makeRuntime(Service, layer(connectionString, waitUntil));
+	export const create = (env: Env, waitUntil?: (promise: Promise<unknown>) => void) =>
+		makeRuntime(Service, layer(env, waitUntil));
 }
+
+export { GmailBootstrapWorkflow };
 
 export default {
 	fetch(
@@ -123,8 +127,6 @@ export default {
 		env: ApiRuntime.Env,
 		ctx: { waitUntil: (promise: Promise<unknown>) => void },
 	) {
-		return ApiRuntime.create(env.HYPERDRIVE.connectionString, ctx.waitUntil.bind(ctx)).runPromise(
-			(api) => api.handle(request),
-		);
+		return ApiRuntime.create(env, ctx.waitUntil.bind(ctx)).runPromise((api) => api.handle(request));
 	},
 };

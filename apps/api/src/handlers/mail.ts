@@ -12,6 +12,7 @@ import { Resource } from "sst";
 import { AuthMiddleware } from "@leuchtturm/api/auth/http-auth";
 import { BackgroundTasks } from "@leuchtturm/api/background";
 import { LeuchtturmApi } from "@leuchtturm/api/contract";
+import { GmailBootstrapWorkflowDispatcher } from "@leuchtturm/api/mail/gmail/bootstrap-dispatcher";
 import { Email } from "@leuchtturm/core/email";
 import {
 	DatabaseError,
@@ -191,7 +192,7 @@ export namespace MailHandler {
 
 	const oauthCallback = Effect.fn("mail.oauthCallback")(function* ({ payload }) {
 		const { user, session } = yield* AuthMiddleware.CurrentUser;
-		const background = yield* BackgroundTasks.Service;
+		const bootstrapWorkflow = yield* GmailBootstrapWorkflowDispatcher.Service;
 		const email = yield* Email.Service;
 		const oauth = yield* GmailOAuth.Service;
 		const encryption = yield* MailEncryption.Service;
@@ -306,13 +307,24 @@ export namespace MailHandler {
 				),
 			);
 
-		yield* background.run(
-			`Gmail bootstrap failed for ${account.id}`,
-			Gmail.BootstrapWorkflow.execute({
+		yield* bootstrapWorkflow
+			.start({
 				accountId: account.id,
 				accessToken: tokens.accessToken,
-			}),
-		);
+			})
+			.pipe(
+				Effect.mapError((error) =>
+					MailHandlers.toDatabaseError("Failed to launch Gmail bootstrap workflow", error),
+				),
+			);
+
+		yield* email
+			.updateAccountStatus(account.id, "bootstrapping")
+			.pipe(
+				Effect.mapError((error) =>
+					MailHandlers.toDatabaseError("Failed to mark Gmail account as bootstrapping", error),
+				),
+			);
 
 		return { accountId: account.id as never };
 	});

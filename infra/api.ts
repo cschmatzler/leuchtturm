@@ -4,6 +4,8 @@ import { hyperdrive } from "@leuchtturm/infra/database";
 import { appDomain } from "@leuchtturm/infra/dns";
 import { apiSecrets, secrets } from "@leuchtturm/infra/secrets";
 
+const gmailBootstrapWorkflowName = `${$app.name}-${$app.stage}-gmail-bootstrap`;
+
 const config = new sst.Linkable("ApiConfig", {
 	properties: {
 		BASE_URL: $interpolate`https://${appDomain}`,
@@ -31,8 +33,20 @@ export const api = new sst.cloudflare.Worker("ApiWorker", {
 			args.bindings = output(args.bindings ?? []).apply((bindings) => [
 				...bindings,
 				{ type: "hyperdrive", name: "HYPERDRIVE", id: hyperdrive.id },
+				{
+					type: "workflow",
+					name: "GMAIL_BOOTSTRAP_WORKFLOW",
+					workflowName: gmailBootstrapWorkflowName,
+				},
 			]);
 		},
 	},
 	link: [config, ...apiSecrets],
+});
+
+export const gmailBootstrapWorkflow = new cloudflare.Workflow("GmailBootstrapWorkflow", {
+	accountId: sst.cloudflare.DEFAULT_ACCOUNT_ID,
+	workflowName: gmailBootstrapWorkflowName,
+	className: "GmailBootstrapWorkflow",
+	scriptName: api.nodes.worker.scriptName,
 });
