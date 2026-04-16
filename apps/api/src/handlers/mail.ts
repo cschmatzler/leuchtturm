@@ -32,7 +32,7 @@ const decodeStoredMailOAuthSecret = Schema.decodeUnknownSync(StoredMailOAuthSecr
 interface GoogleTokenInfo {
 	readonly aud?: string;
 	readonly email?: string;
-	readonly email_verified?: string;
+	readonly email_verified?: boolean | string;
 	readonly exp?: string;
 	readonly iss?: string;
 }
@@ -151,7 +151,7 @@ namespace MailHandlers {
 			);
 		}
 
-		if (tokenInfo.email_verified !== "true") {
+		if (!(tokenInfo.email_verified === "true" || tokenInfo.email_verified === true)) {
 			return yield* Effect.fail(
 				new UnauthorizedError({
 					message: "Unverified Gmail push token",
