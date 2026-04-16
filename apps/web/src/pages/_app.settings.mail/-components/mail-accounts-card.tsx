@@ -21,7 +21,7 @@ export function MailAccountsCard() {
 	const [accounts] = useZeroQuery(queries.mailAccounts());
 	const [activeAccountId, setActiveAccountId] = useState<string | undefined>();
 
-	const handleConnectGmail = async (forceConsent = false) => {
+	const handleConnectGmail = async (forceConsent = true) => {
 		const data = await api.mail.mailOAuthUrl({
 			query: { forceConsent: forceConsent ? "true" : "false" },
 		});
