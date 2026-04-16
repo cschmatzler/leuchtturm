@@ -55,10 +55,25 @@ export namespace Email {
 			displayName: string | null;
 			status: string;
 		}) => Effect.Effect<void, EmailError>;
+		readonly upsertAccount: (values: {
+			id: string;
+			userId: string;
+			provider: string;
+			email: string;
+			displayName: string | null;
+			status: string;
+		}) => Effect.Effect<typeof mailAccount.$inferSelect, EmailError>;
 		readonly getAccountForUser: (
 			accountId: string,
 			userId: string,
 		) => Effect.Effect<typeof mailAccount.$inferSelect | undefined, EmailError>;
+		readonly getAccountByUserAndEmail: (
+			userId: string,
+			email: string,
+		) => Effect.Effect<typeof mailAccount.$inferSelect | undefined, EmailError>;
+		readonly getAccountsByEmail: (
+			email: string,
+		) => Effect.Effect<readonly (typeof mailAccount.$inferSelect)[], EmailError>;
 		readonly updateAccountStatus: (
 			accountId: string,
 			status: string,
@@ -160,6 +175,46 @@ export namespace Email {
 				);
 			});
 
+			const upsertAccount = Effect.fn("Email.upsertAccount")(function* (values: {
+				id: string;
+				userId: string;
+				provider: string;
+				email: string;
+				displayName: string | null;
+				status: string;
+			}) {
+				const validatedValues = yield* decode("Invalid upsert mail account input", () =>
+					decodeCreateMailAccountInput(values),
+				);
+				const capabilities = getProviderCapabilities(validatedValues.provider);
+				const now = new Date();
+				const rows = yield* run("Failed to upsert mail account", () =>
+					db
+						.insert(mailAccount)
+						.values({
+							...validatedValues,
+							...capabilities,
+							createdAt: now,
+							updatedAt: now,
+						})
+						.onConflictDoUpdate({
+							target: [mailAccount.userId, mailAccount.email],
+							set: {
+								provider: validatedValues.provider,
+								displayName: validatedValues.displayName,
+								status: validatedValues.status,
+								...capabilities,
+								lastErrorCode: null,
+								lastErrorMessage: null,
+								degradedReason: null,
+								updatedAt: now,
+							},
+						})
+						.returning(),
+				);
+				return rows[0]!;
+			});
+
 			const getAccountForUser = Effect.fn("Email.getAccountForUser")(function* (
 				accountId: string,
 				userId: string,
@@ -172,6 +227,26 @@ export namespace Email {
 						.limit(1),
 				);
 				return rows[0];
+			});
+
+			const getAccountByUserAndEmail = Effect.fn("Email.getAccountByUserAndEmail")(function* (
+				userId: string,
+				email: string,
+			) {
+				const rows = yield* run("Failed to fetch mail account by user and email", () =>
+					db
+						.select()
+						.from(mailAccount)
+						.where(and(eq(mailAccount.userId, userId), eq(mailAccount.email, email)))
+						.limit(1),
+				);
+				return rows[0];
+			});
+
+			const getAccountsByEmail = Effect.fn("Email.getAccountsByEmail")(function* (email: string) {
+				return yield* run("Failed to fetch mail accounts by email", () =>
+					db.select().from(mailAccount).where(eq(mailAccount.email, email)),
+				);
 			});
 
 			const updateAccountStatus = Effect.fn("Email.updateAccountStatus")(function* (
@@ -204,11 +279,22 @@ export namespace Email {
 				);
 				const now = new Date();
 				yield* run("Failed to create mail account secret", () =>
-					db.insert(mailAccountSecret).values({
-						...validatedValues,
-						createdAt: now,
-						updatedAt: now,
-					}),
+					db
+						.insert(mailAccountSecret)
+						.values({
+							...validatedValues,
+							createdAt: now,
+							updatedAt: now,
+						})
+						.onConflictDoUpdate({
+							target: [mailAccountSecret.accountId],
+							set: {
+								authKind: validatedValues.authKind,
+								encryptedPayload: validatedValues.encryptedPayload,
+								encryptedDek: validatedValues.encryptedDek,
+								updatedAt: now,
+							},
+						}),
 				);
 			});
 
@@ -363,7 +449,10 @@ export namespace Email {
 			return Service.of({
 				send,
 				createAccount,
+				upsertAccount,
 				getAccountForUser,
+				getAccountByUserAndEmail,
+				getAccountsByEmail,
 				updateAccountStatus,
 				createAccountSecret,
 				getAccountSecret,

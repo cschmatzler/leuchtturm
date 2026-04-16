@@ -5,17 +5,59 @@
  * Incremental sync is driven by Gmail Pub/Sub push notifications.
  */
 
-import { Effect } from "effect";
+import { Effect, Schema } from "effect";
 import { HttpApiBuilder } from "effect/unstable/httpapi";
+import { Resource } from "sst";
 
 import { AuthMiddleware } from "@leuchtturm/api/auth/http-auth";
 import { LeuchtturmApi } from "@leuchtturm/api/contract";
 import { Email } from "@leuchtturm/core/email";
-import { DatabaseError, NotFoundError, ValidationError } from "@leuchtturm/core/errors";
+import {
+	DatabaseError,
+	NotFoundError,
+	UnauthorizedError,
+	ValidationError,
+} from "@leuchtturm/core/errors";
 import { MailEncryption } from "@leuchtturm/core/mail/encryption";
 import { GmailOAuth } from "@leuchtturm/core/mail/gmail/oauth";
 import { Gmail } from "@leuchtturm/core/mail/gmail/workflows";
-import { createMailAccountId, createMailOAuthStateId } from "@leuchtturm/core/mail/schema";
+import {
+	createMailAccountId,
+	createMailOAuthStateId,
+	StoredMailOAuthSecret,
+} from "@leuchtturm/core/mail/schema";
+
+const decodeStoredMailOAuthSecret = Schema.decodeUnknownSync(StoredMailOAuthSecret);
+
+interface GoogleTokenInfo {
+	readonly aud?: string;
+	readonly email?: string;
+	readonly email_verified?: string;
+	readonly exp?: string;
+	readonly iss?: string;
+}
+
+const GOOGLE_ISSUERS = new Set(["accounts.google.com", "https://accounts.google.com"]);
+const verifiedPushTokenExpirations = new Map<string, number>();
+
+function parseBearerToken(value: string | undefined): string | undefined {
+	if (!value) return undefined;
+	const match = value.match(/^Bearer\s+(.+)$/i);
+	return match?.[1]?.trim();
+}
+
+export function decodeGmailPushData(raw: string): { readonly emailAddress: string } | undefined {
+	try {
+		const decodedRaw = Buffer.from(raw, "base64").toString("utf-8");
+		const decoded = JSON.parse(decodedRaw) as { readonly emailAddress?: unknown };
+		if (typeof decoded.emailAddress !== "string" || decoded.emailAddress.length === 0) {
+			return undefined;
+		}
+		return { emailAddress: decoded.emailAddress.trim().toLowerCase() };
+	} catch {
+		return undefined;
+	}
+}
 
 namespace MailHandlers {
 	export const oauthStateTtlMs = 10 * 60 * 1000;
@@ -24,10 +66,105 @@ namespace MailHandlers {
 		new DatabaseError({
 			message: `${context}: ${String(error)}`,
 		});
+
+	export const verifyGmailPushRequest = Effect.fn("mail.verifyGmailPushRequest")(function* (
+		headers: {
+			readonly authorization?: string;
+			readonly "x-goog-subscription"?: string;
+			readonly "x-goog-topic"?: string;
+		},
+		subscription?: string,
+	) {
+		if (headers["x-goog-topic"] !== Resource.GmailPubSubTopic.value) {
+			return yield* Effect.fail(
+				new UnauthorizedError({
+					message: "Invalid Gmail push topic",
+				}),
+			);
+		}
+
+		if (subscription) {
+			const topic = Resource.GmailPubSubTopic.value;
+			const [projectPath] = topic.split("/topics/");
+			if (projectPath && !subscription.startsWith(`${projectPath}/subscriptions/`)) {
+				return yield* Effect.fail(
+					new UnauthorizedError({
+						message: "Invalid Gmail push subscription",
+					}),
+				);
+			}
+		}
+
+		const token = parseBearerToken(headers.authorization);
+		if (!token) {
+			return yield* Effect.fail(
+				new UnauthorizedError({
+					message: "Missing Gmail push bearer token",
+				}),
+			);
+		}
+
+		const cachedExpiry = verifiedPushTokenExpirations.get(token);
+		if (cachedExpiry && cachedExpiry > Date.now() + 30_000) {
+			return;
+		}
+
+		const expectedAudience = new URL("/api/webhook/gmail", Resource.ApiConfig.BASE_URL).toString();
+		const tokenInfo = yield* Effect.tryPromise({
+			try: async () => {
+				const response = await fetch(
+					`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(token)}`,
+				);
+				if (!response.ok) {
+					throw new Error(`Token verification failed with status ${response.status}`);
+				}
+				return (await response.json()) as GoogleTokenInfo;
+			},
+			catch: () =>
+				new UnauthorizedError({
+					message: "Failed to verify Gmail push bearer token",
+				}),
+		});
+
+		if (!tokenInfo.aud || tokenInfo.aud !== expectedAudience) {
+			return yield* Effect.fail(
+				new UnauthorizedError({
+					message: "Invalid Gmail push token audience",
+				}),
+			);
+		}
+
+		if (!tokenInfo.iss || !GOOGLE_ISSUERS.has(tokenInfo.iss)) {
+			return yield* Effect.fail(
+				new UnauthorizedError({
+					message: "Invalid Gmail push token issuer",
+				}),
+			);
+		}
+
+		const expMs = Number(tokenInfo.exp ?? "0") * 1000;
+		if (!Number.isFinite(expMs) || expMs <= Date.now()) {
+			return yield* Effect.fail(
+				new UnauthorizedError({
+					message: "Expired Gmail push bearer token",
+				}),
+			);
+		}
+
+		if (tokenInfo.email_verified !== "true") {
+			return yield* Effect.fail(
+				new UnauthorizedError({
+					message: "Unverified Gmail push token",
+				}),
+			);
+		}
+
+		verifiedPushTokenExpirations.set(token, expMs);
+	});
 }
 
 export namespace MailHandler {
-	const oauthUrl = Effect.fn("mail.oauthUrl")(function* () {
+	const oauthUrl = Effect.fn("mail.oauthUrl")(function* ({ query }) {
 		const { user, session } = yield* AuthMiddleware.CurrentUser;
 		const email = yield* Email.Service;
 		const oauth = yield* GmailOAuth.Service;
@@ -46,7 +183,9 @@ export namespace MailHandler {
 				),
 			);
 
-		const url = yield* oauth.getAuthUrl(state);
+		const url = yield* oauth.getAuthUrl(state, {
+			forceConsent: query.forceConsent === "true",
+		});
 
 		return { url };
 	});
@@ -78,36 +217,85 @@ export namespace MailHandler {
 		}
 
 		const tokens = yield* oauth.exchangeCode(payload.code);
-
 		const userInfo = yield* oauth.getUserInfo(tokens.accessToken);
+		const normalizedEmail = userInfo.email.trim().toLowerCase();
 
-		const accountId = createMailAccountId();
-		yield* email
-			.createAccount({
-				id: accountId,
+		const existingAccount = yield* email
+			.getAccountByUserAndEmail(user.id, normalizedEmail)
+			.pipe(
+				Effect.mapError((error) =>
+					MailHandlers.toDatabaseError("Failed to fetch existing mail account", error),
+				),
+			);
+
+		let existingRefreshToken: string | undefined;
+		if (existingAccount) {
+			const secret = yield* email
+				.getAccountSecret(existingAccount.id)
+				.pipe(
+					Effect.mapError((error) =>
+						MailHandlers.toDatabaseError("Failed to fetch existing credentials", error),
+					),
+				);
+			if (secret) {
+				const decrypted = yield* encryption
+					.decrypt({
+						encryptedPayload: secret.encryptedPayload,
+						encryptedDek: secret.encryptedDek,
+					})
+					.pipe(
+						Effect.mapError((error) =>
+							MailHandlers.toDatabaseError("Failed to decrypt existing credentials", error),
+						),
+					);
+
+				existingRefreshToken = yield* Effect.try({
+					try: () => decodeStoredMailOAuthSecret(JSON.parse(decrypted)).refreshToken,
+					catch: (error) =>
+						MailHandlers.toDatabaseError("Failed to decode existing credentials", error),
+				});
+			}
+		}
+
+		const refreshToken = tokens.refreshToken ?? existingRefreshToken;
+		if (!refreshToken) {
+			return yield* Effect.fail(
+				new ValidationError({
+					global: [
+						{
+							message: "Gmail did not return a refresh token. Reconnect and grant offline access.",
+						},
+					],
+				}),
+			);
+		}
+
+		const account = yield* email
+			.upsertAccount({
+				id: existingAccount?.id ?? createMailAccountId(),
 				userId: user.id,
 				provider: "gmail",
-				email: userInfo.email,
+				email: normalizedEmail,
 				displayName: userInfo.name ?? null,
 				status: "connecting",
 			})
 			.pipe(
 				Effect.mapError((error) =>
-					MailHandlers.toDatabaseError("Failed to create mail account", error),
+					MailHandlers.toDatabaseError("Failed to upsert mail account", error),
 				),
 			);
 
 		const encrypted = yield* encryption.encrypt(
 			JSON.stringify({
 				accessToken: tokens.accessToken,
-				refreshToken: tokens.refreshToken,
+				refreshToken,
 				expiresAt: Date.now() + tokens.expiresIn * 1000,
 			}),
 		);
 
 		yield* email
 			.createAccountSecret({
-				accountId,
+				accountId: account.id,
 				authKind: "oauth2",
 				encryptedPayload: encrypted.encryptedPayload,
 				encryptedDek: encrypted.encryptedDek,
@@ -118,12 +306,16 @@ export namespace MailHandler {
 				),
 			);
 
-		yield* Gmail.BootstrapWorkflow.execute(
-			{ accountId, accessToken: tokens.accessToken },
-			{ discard: true },
+		yield* Gmail.BootstrapWorkflow.execute({
+			accountId: account.id,
+			accessToken: tokens.accessToken,
+		}).pipe(
+			Effect.mapError((error) =>
+				MailHandlers.toDatabaseError("Failed to bootstrap Gmail account", error),
+			),
 		);
 
-		return { accountId };
+		return { accountId: account.id as never };
 	});
 
 	const disconnect = Effect.fn("mail.disconnect")(function* ({ payload }) {
@@ -139,6 +331,12 @@ export namespace MailHandler {
 		if (!account) {
 			return yield* Effect.fail(new NotFoundError({ resource: "MailAccount" }));
 		}
+
+		yield* Gmail.stopWatch(account.id).pipe(
+			Effect.catch((error) =>
+				Effect.logWarning(`Failed to stop Gmail watch for ${account.id}: ${String(error)}`),
+			),
+		);
 
 		yield* email
 			.disconnectAccount(payload.accountId)
@@ -156,35 +354,47 @@ export namespace MailHandler {
 }
 
 export namespace WebhookHandler {
-	const gmailPush = Effect.fn("webhook.gmailPush")(function* ({ payload }) {
+	const gmailPush = Effect.fn("webhook.gmailPush")(function* ({ headers, payload }) {
+		yield* MailHandlers.verifyGmailPushRequest(headers, payload.subscription);
+
 		const raw = payload.message?.data;
 		if (!raw) {
 			return { success: true as const };
 		}
 
-		const decoded = JSON.parse(Buffer.from(raw, "base64").toString("utf-8")) as {
-			emailAddress?: string;
-		};
-
-		if (!decoded.emailAddress) {
+		const decoded = decodeGmailPushData(raw);
+		if (!decoded) {
+			// Invalid payload format — ack without processing.
 			return { success: true as const };
 		}
 
 		const email = yield* Email.Service;
-		const account = yield* email
-			.getAccountByEmail(decoded.emailAddress!)
+		const accounts = yield* email
+			.getAccountsByEmail(decoded.emailAddress)
 			.pipe(
 				Effect.mapError((error) =>
-					MailHandlers.toDatabaseError("Failed to look up account", error),
+					MailHandlers.toDatabaseError("Failed to look up accounts", error),
 				),
 			);
 
-		if (!account) {
-			// Unknown email — ack without processing
+		const gmailAccounts = accounts.filter((account) => account.provider === "gmail");
+		if (gmailAccounts.length === 0) {
 			return { success: true as const };
 		}
 
-		yield* Gmail.DeltaWorkflow.execute({ accountId: account.id }, { discard: true });
+		yield* Effect.forEach(
+			gmailAccounts,
+			(account) =>
+				Gmail.DeltaWorkflow.execute({ accountId: account.id }).pipe(
+					Effect.mapError((error) =>
+						MailHandlers.toDatabaseError(
+							`Failed to run delta sync for account ${account.id}`,
+							error,
+						),
+					),
+				),
+			{ concurrency: 4 },
+		);
 
 		return { success: true as const };
 	});

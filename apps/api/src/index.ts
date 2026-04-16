@@ -71,7 +71,7 @@ namespace ApiRuntime {
 						const startedAt = Date.now();
 
 						return Effect.tryPromise({
-							try: () => handler.handler(request),
+							try: () => handler.handler(request, ServiceMap.empty()),
 							catch: (error) =>
 								error instanceof globalThis.Error
 									? error

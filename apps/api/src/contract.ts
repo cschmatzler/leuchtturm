@@ -24,6 +24,9 @@ const HealthCheckSuccessResponse = Schema.Struct({
 });
 const AuthRouteError = Schema.Union([UnauthorizedError, AuthError]);
 const ProtectedRouteError = Schema.Union([DatabaseError, UnauthorizedError, AuthError]);
+const MailOAuthUrlQuery = {
+	forceConsent: Schema.optional(Schema.String),
+} as const;
 const MailOAuthUrlError = Schema.Union([ProtectedRouteError, GmailOAuthError]);
 const MailOAuthCallbackError = Schema.Union([
 	ProtectedRouteError,
@@ -32,6 +35,7 @@ const MailOAuthCallbackError = Schema.Union([
 	ValidationError,
 ]);
 const MailDisconnectError = Schema.Union([ProtectedRouteError, NotFoundError]);
+const GmailPushError = Schema.Union([DatabaseError, UnauthorizedError]);
 
 export const health = HttpApiGroup.make("health").add(
 	HttpApiEndpoint.get("healthCheck", "/up", {
@@ -52,6 +56,7 @@ export const auth = HttpApiGroup.make("auth")
 export const mail = HttpApiGroup.make("mail")
 	.add(
 		HttpApiEndpoint.get("mailOAuthUrl", "/mail/oauth/url", {
+			query: MailOAuthUrlQuery,
 			success: Schema.Struct({ url: Schema.String }),
 			error: MailOAuthUrlError,
 		}),
@@ -74,15 +79,21 @@ export const mail = HttpApiGroup.make("mail")
 
 export const webhook = HttpApiGroup.make("webhook").add(
 	HttpApiEndpoint.post("gmailPush", "/webhook/gmail", {
+		headers: Schema.Struct({
+			authorization: Schema.optional(Schema.String),
+			"x-goog-subscription": Schema.optional(Schema.String),
+			"x-goog-topic": Schema.optional(Schema.String),
+		}),
 		payload: Schema.Struct({
 			message: Schema.optional(
 				Schema.Struct({
 					data: Schema.optional(Schema.String),
 				}),
 			),
+			subscription: Schema.optional(Schema.String),
 		}),
 		success: SuccessResponse,
-		error: DatabaseError,
+		error: GmailPushError,
 	}),
 );
 

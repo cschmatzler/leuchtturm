@@ -47,6 +47,48 @@ export interface GmailHistoryChangesResult {
 }
 
 const GMAIL_API_BASE = "https://gmail.googleapis.com/gmail/v1/users/me";
+const RETRYABLE_STATUS_CODES = new Set([408, 425, 429, 500, 502, 503, 504]);
+const MAX_GMAIL_RETRY_ATTEMPTS = 5;
+const RETRY_BASE_DELAY_MS = 250;
+const RETRY_MAX_DELAY_MS = 5_000;
+
+function isRetryableStatus(status: number): boolean {
+	return RETRYABLE_STATUS_CODES.has(status);
+}
+
+function parseRetryAfterMs(value: string | null): number | undefined {
+	if (!value) return undefined;
+
+	const seconds = Number(value);
+	if (Number.isFinite(seconds) && seconds > 0) {
+		return seconds * 1000;
+	}
+
+	const absolute = Date.parse(value);
+	if (!Number.isNaN(absolute)) {
+		const delta = absolute - Date.now();
+		return delta > 0 ? delta : undefined;
+	}
+
+	return undefined;
+}
+
+async function sleep(ms: number): Promise<void> {
+	await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function retryDelayMs(attempt: number, retryAfterMs?: number): number {
+	if (retryAfterMs && retryAfterMs > 0) {
+		return Math.min(retryAfterMs, RETRY_MAX_DELAY_MS);
+	}
+
+	const exponential = Math.min(
+		RETRY_BASE_DELAY_MS * Math.pow(2, Math.max(0, attempt - 1)),
+		RETRY_MAX_DELAY_MS,
+	);
+	const jitter = Math.random() * RETRY_BASE_DELAY_MS;
+	return Math.floor(exponential + jitter);
+}
 
 export class GmailApiError extends Error {
 	constructor(
@@ -259,13 +301,38 @@ export class GmailAdapter implements MailProviderAdapter {
 			init.body = JSON.stringify(options.body);
 		}
 
-		const response = await fetch(url.toString(), init);
-		if (!response.ok) {
+		for (let attempt = 1; attempt <= MAX_GMAIL_RETRY_ATTEMPTS; attempt += 1) {
+			let response: Response;
+
+			try {
+				response = await fetch(url.toString(), init);
+			} catch (error) {
+				if (attempt >= MAX_GMAIL_RETRY_ATTEMPTS) {
+					throw error;
+				}
+
+				await sleep(retryDelayMs(attempt));
+				continue;
+			}
+
+			if (!response.ok) {
+				const text = await response.text();
+				if (attempt < MAX_GMAIL_RETRY_ATTEMPTS && isRetryableStatus(response.status)) {
+					const retryAfterMs = parseRetryAfterMs(response.headers.get("retry-after"));
+					await sleep(retryDelayMs(attempt, retryAfterMs));
+					continue;
+				}
+				throw new GmailApiError(response.status, text);
+			}
+
 			const text = await response.text();
-			throw new GmailApiError(response.status, text);
+			if (text.length === 0) {
+				return undefined as T;
+			}
+			return JSON.parse(text) as T;
 		}
 
-		return response.json() as Promise<T>;
+		throw new Error("Gmail API request exhausted retries");
 	}
 
 	private async getMessagePromise(providerRef: string): Promise<GmailProviderMessage> {

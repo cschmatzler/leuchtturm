@@ -9,6 +9,32 @@ const GMAIL_SCOPES = [
 	"https://www.googleapis.com/auth/userinfo.email",
 ].join(" ");
 
+export interface AuthUrlOptions {
+	readonly forceConsent?: boolean;
+}
+
+export function buildGoogleOAuthUrl(params: {
+	readonly clientId: string;
+	readonly redirectUri: string;
+	readonly state: string;
+	readonly options?: AuthUrlOptions;
+}): string {
+	const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
+	url.searchParams.set("client_id", params.clientId);
+	url.searchParams.set("redirect_uri", params.redirectUri);
+	url.searchParams.set("response_type", "code");
+	url.searchParams.set("scope", GMAIL_SCOPES);
+	url.searchParams.set("access_type", "offline");
+	url.searchParams.set("include_granted_scopes", "true");
+	url.searchParams.set("state", params.state);
+
+	if (params.options?.forceConsent) {
+		url.searchParams.set("prompt", "consent");
+	}
+
+	return url.toString();
+}
+
 export interface OAuthTokens {
 	readonly accessToken: string;
 	readonly refreshToken?: string;
@@ -22,7 +48,10 @@ export interface GoogleUserInfo {
 
 export namespace GmailOAuth {
 	export interface Interface {
-		readonly getAuthUrl: (state: string) => Effect.Effect<string, GmailOAuthError>;
+		readonly getAuthUrl: (
+			state: string,
+			options?: AuthUrlOptions,
+		) => Effect.Effect<string, GmailOAuthError>;
 		readonly exchangeCode: (code: string) => Effect.Effect<OAuthTokens, GmailOAuthError>;
 		readonly refreshAccessToken: (
 			refreshToken: string,
@@ -72,18 +101,15 @@ export namespace GmailOAuth {
 				});
 			});
 
-			const getAuthUrl = (state: string) =>
-				Effect.sync(() => {
-					const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
-					url.searchParams.set("client_id", clientId);
-					url.searchParams.set("redirect_uri", redirectUri);
-					url.searchParams.set("response_type", "code");
-					url.searchParams.set("scope", GMAIL_SCOPES);
-					url.searchParams.set("access_type", "offline");
-					url.searchParams.set("prompt", "consent");
-					url.searchParams.set("state", state);
-					return url.toString();
-				});
+			const getAuthUrl = (state: string, options?: AuthUrlOptions) =>
+				Effect.sync(() =>
+					buildGoogleOAuthUrl({
+						clientId,
+						redirectUri,
+						state,
+						options,
+					}),
+				);
 
 			const exchangeCode = Effect.fn("GmailOAuth.exchangeCode")(function* (code: string) {
 				return yield* exchangeToken(

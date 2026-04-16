@@ -1,5 +1,7 @@
-import { InboxIcon, PlusIcon } from "lucide-react";
+import { InboxIcon, PlusIcon, RefreshCwIcon, Trash2Icon } from "lucide-react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 
 import { api } from "@leuchtturm/web/clients/api";
 import { Button } from "@leuchtturm/web/components/ui/button";
@@ -11,15 +13,35 @@ import {
 	CardTitle,
 } from "@leuchtturm/web/components/ui/card";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
+import { reportError } from "@leuchtturm/web/lib/report-error";
 import { queries } from "@leuchtturm/zero/queries";
 
 export function MailAccountsCard() {
 	const { t } = useTranslation();
 	const [accounts] = useZeroQuery(queries.mailAccounts());
+	const [activeAccountId, setActiveAccountId] = useState<string | undefined>();
 
-	const handleConnectGmail = async () => {
-		const data = await api.mail.mailOAuthUrl();
+	const handleConnectGmail = async (forceConsent = false) => {
+		const data = await api.mail.mailOAuthUrl({
+			query: { forceConsent: forceConsent ? "true" : undefined },
+		});
 		window.location.href = data.url;
+	};
+
+	const handleDisconnect = async (accountId: string) => {
+		if (!window.confirm("Disconnect this Gmail account?")) {
+			return;
+		}
+
+		setActiveAccountId(accountId);
+		try {
+			await api.mail.mailDisconnect({ payload: { accountId: accountId as never } });
+			toast.success("Account disconnected");
+		} catch (error) {
+			reportError(error, "Failed to disconnect account", { accountId });
+		} finally {
+			setActiveAccountId(undefined);
+		}
 	};
 
 	return (
@@ -31,23 +53,61 @@ export function MailAccountsCard() {
 			<CardContent className="border-t border-border px-6 py-5">
 				{accounts.length > 0 && (
 					<div className="mb-4 flex flex-col gap-3">
-						{accounts.map((account) => (
-							<div key={account.id} className="flex items-center gap-3">
-								<div className="flex size-9 items-center justify-center rounded-full bg-primary/10">
-									<InboxIcon className="size-4 text-primary" />
+						{accounts.map((account) => {
+							const busy = activeAccountId === account.id;
+							return (
+								<div
+									key={account.id}
+									className="flex items-start gap-3 rounded-lg border border-border p-3"
+								>
+									<div className="mt-0.5 flex size-9 items-center justify-center rounded-full bg-primary/10">
+										<InboxIcon className="size-4 text-primary" />
+									</div>
+									<div className="min-w-0 flex-1">
+										<p className="truncate text-sm font-medium">
+											{account.displayName ?? account.email}
+										</p>
+										<p className="truncate text-xs text-muted-foreground">{account.email}</p>
+										<p className="mt-1 text-xs text-muted-foreground">
+											{account.lastSuccessfulSyncAt
+												? `Last sync: ${new Date(account.lastSuccessfulSyncAt).toLocaleString()}`
+												: "Never synced"}
+										</p>
+										{account.lastErrorMessage && (
+											<p className="mt-1 line-clamp-2 text-xs text-destructive">
+												{account.lastErrorMessage}
+											</p>
+										)}
+									</div>
+									<div className="flex shrink-0 flex-col items-end gap-2">
+										<StatusBadge status={account.status} />
+										<div className="flex items-center gap-1">
+											<Button
+												size="sm"
+												variant="outline"
+												disabled={busy}
+												onClick={() => void handleConnectGmail(true)}
+											>
+												<RefreshCwIcon className="size-3.5" />
+												Reconnect
+											</Button>
+											<Button
+												size="sm"
+												variant="destructive"
+												disabled={busy}
+												onClick={() => void handleDisconnect(account.id)}
+											>
+												<Trash2Icon className="size-3.5" />
+												Disconnect
+											</Button>
+										</div>
+									</div>
 								</div>
-								<div className="min-w-0 flex-1">
-									<p className="truncate text-sm font-medium">
-										{account.displayName ?? account.email}
-									</p>
-									<p className="truncate text-xs text-muted-foreground">{account.email}</p>
-								</div>
-								<StatusBadge status={account.status} />
-							</div>
-						))}
+							);
+						})}
 					</div>
 				)}
-				<Button size="sm" variant="outline" onClick={handleConnectGmail}>
+				<Button size="sm" variant="outline" onClick={() => void handleConnectGmail()}>
 					<PlusIcon className="size-4" />
 					{t("Connect Gmail")}
 				</Button>
@@ -71,7 +131,7 @@ function StatusBadge({ status }: { status: string }) {
 		<span
 			className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${colors[status] ?? colors.paused}`}
 		>
-			{status.replace("_", " ")}
+			{status.replace(/_/g, " ")}
 		</span>
 	);
 }

@@ -475,7 +475,6 @@ export namespace GmailSync {
 								for (const thread of params.threads) {
 									await syncThread(txDb, params.account.userId, params.accountId, thread);
 								}
-								await rebuildSearchDocumentsForAccount(txDb, params.accountId);
 								await upsertSyncCursor(txDb, params.accountId, params.cursor);
 
 								await txDb
@@ -533,7 +532,6 @@ export namespace GmailSync {
 
 							await syncLabels(txDb, params.account.userId, params.accountId, params.labels);
 							await syncFolders(txDb, params.account.userId, params.accountId, params.folders);
-							await rebuildSearchDocumentsForAccount(txDb, params.accountId);
 							await upsertSyncCursor(txDb, params.accountId, params.newCursor);
 
 							await txDb
@@ -865,9 +863,11 @@ async function syncThread(
 	const resolvedId = conversation?.id ?? conversationId;
 
 	for (const message of messages) {
-		await upsertMessage(db, userId, accountId, message, resolvedId);
+		await upsertMessage(db, userId, accountId, message, resolvedId, {
+			recomputeConversation: false,
+		});
 	}
-	await recomputeProjections(db, userId, accountId, resolvedId);
+	await recomputeConversationStats(db, resolvedId);
 }
 
 async function ensureConversation(
@@ -1039,6 +1039,9 @@ async function upsertMessage(
 	accountId: string,
 	message: GmailProviderMessage,
 	conversationId?: string,
+	options?: {
+		readonly recomputeConversation?: boolean;
+	},
 ): Promise<void> {
 	const now = new Date();
 	const resolvedConversationId =
@@ -1103,7 +1106,7 @@ async function upsertMessage(
 	await upsertMessageSource(db, messageId, message.providerRef, message.providerStatePayload);
 	await rebuildSearchDocument(db, messageId);
 
-	if (nextConversationId) {
+	if (nextConversationId && options?.recomputeConversation !== false) {
 		await recomputeConversationStats(db, nextConversationId);
 	}
 }
@@ -1636,17 +1639,6 @@ async function rebuildSearchDocument(db: Db, messageId: string): Promise<void> {
 		.insert(mailSearchDocument)
 		.values({ messageId: msg.id, ...docValues, createdAt: now })
 		.onConflictDoUpdate({ target: [mailSearchDocument.messageId], set: docValues });
-}
-
-async function rebuildSearchDocumentsForAccount(db: Db, accountId: string): Promise<void> {
-	const messages = await db
-		.select({ id: mailMessage.id })
-		.from(mailMessage)
-		.where(eq(mailMessage.accountId, accountId));
-
-	for (const msg of messages) {
-		await rebuildSearchDocument(db, msg.id);
-	}
 }
 
 async function upsertSyncCursor(db: Db, accountId: string, historyId: string): Promise<void> {
