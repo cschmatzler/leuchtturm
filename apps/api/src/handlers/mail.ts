@@ -304,12 +304,15 @@ export namespace MailHandler {
 				),
 			);
 
-		yield* Gmail.BootstrapWorkflow.execute({
-			accountId: account.id,
-			accessToken: tokens.accessToken,
-		}).pipe(
+		yield* Gmail.BootstrapWorkflow.execute(
+			{
+				accountId: account.id,
+				accessToken: tokens.accessToken,
+			},
+			{ discard: true },
+		).pipe(
 			Effect.mapError((error) =>
-				MailHandlers.toDatabaseError("Failed to bootstrap Gmail account", error),
+				MailHandlers.toDatabaseError("Failed to launch Gmail bootstrap", error),
 			),
 		);
 
@@ -383,10 +386,10 @@ export namespace WebhookHandler {
 		yield* Effect.forEach(
 			gmailAccounts,
 			(account) =>
-				Gmail.DeltaWorkflow.execute({ accountId: account.id }).pipe(
+				Gmail.DeltaWorkflow.execute({ accountId: account.id }, { discard: true }).pipe(
 					Effect.mapError((error) =>
 						MailHandlers.toDatabaseError(
-							`Failed to run delta sync for account ${account.id}`,
+							`Failed to launch delta sync for account ${account.id}`,
 							error,
 						),
 					),
