@@ -23,7 +23,7 @@ export function MailAccountsCard() {
 
 	const handleConnectGmail = async (forceConsent = false) => {
 		const data = await api.mail.mailOAuthUrl({
-			query: { forceConsent: forceConsent ? "true" : undefined },
+			query: { forceConsent: forceConsent ? "true" : "false" },
 		});
 		window.location.href = data.url;
 	};

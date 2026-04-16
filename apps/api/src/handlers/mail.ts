@@ -169,6 +169,7 @@ export namespace MailHandler {
 		const email = yield* Email.Service;
 		const oauth = yield* GmailOAuth.Service;
 		const state = createMailOAuthStateId();
+		const forceConsent = query?.forceConsent === "true";
 
 		yield* email
 			.createOAuthState({
@@ -184,7 +185,7 @@ export namespace MailHandler {
 			);
 
 		const url = yield* oauth.getAuthUrl(state, {
-			forceConsent: query.forceConsent === "true",
+			forceConsent,
 		});
 
 		return { url };
