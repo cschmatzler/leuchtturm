@@ -304,15 +304,12 @@ export namespace MailHandler {
 				),
 			);
 
-		yield* Gmail.BootstrapWorkflow.execute(
-			{
-				accountId: account.id,
-				accessToken: tokens.accessToken,
-			},
-			{ discard: true },
-		).pipe(
+		yield* Gmail.BootstrapWorkflow.execute({
+			accountId: account.id,
+			accessToken: tokens.accessToken,
+		}).pipe(
 			Effect.mapError((error) =>
-				MailHandlers.toDatabaseError("Failed to launch Gmail bootstrap", error),
+				MailHandlers.toDatabaseError("Failed to bootstrap Gmail account", error),
 			),
 		);
 
