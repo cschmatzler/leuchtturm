@@ -14,7 +14,7 @@
 		"@react-email/text": "0.1.6",
 		"effect": "4.0.0-beta.34",
 		"react": "19.2.5",
-		"resend": "6.10.0"
+		"resend": "6.11.0"
 	},
 	"devDependencies": {
 		"@types/react": "19.2.14",

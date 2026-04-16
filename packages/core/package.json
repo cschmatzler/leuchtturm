@@ -20,7 +20,7 @@
 		"effect": "4.0.0-beta.34",
 		"googleapis": "^171.4.0",
 		"pg": "8.20.0",
-		"resend": "6.10.0",
+		"resend": "6.11.0",
 		"ulid": "3.0.2"
 	},
 	"devDependencies": {

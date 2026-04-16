@@ -11,7 +11,7 @@
 		"@effect/language-service": "^0.85.1",
 		"@leuchtturm/infra": "workspace:*",
 		"@types/node": "25.6.0",
-		"sst": "4.7.1",
+		"sst": "4.7.2",
 		"typescript": "6.0.2",
 		"vite-plus": "0.1.16"
 	},

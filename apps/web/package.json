@@ -9,7 +9,7 @@
 		"dev": "vp dev --config vite.config.ts"
 	},
 	"dependencies": {
-		"@base-ui/react": "1.3.0",
+		"@base-ui/react": "1.4.0",
 		"@fontsource/dm-sans": "^5.2.8",
 		"@fontsource/geist-mono": "^5.2.7",
 		"@fontsource/syne": "^5.2.7",
@@ -28,7 +28,7 @@
 		"@tanstack/react-pacer-devtools": "0.6.1",
 		"@tanstack/react-query": "5.99.0",
 		"@tanstack/react-query-devtools": "5.99.0",
-		"@tanstack/react-router": "1.168.18",
+		"@tanstack/react-router": "1.168.19",
 		"@tanstack/react-router-devtools": "1.166.13",
 		"@tanstack/react-table": "8.21.3",
 		"better-auth": "1.6.2",
@@ -54,7 +54,7 @@
 	},
 	"devDependencies": {
 		"@tailwindcss/vite": "4.2.2",
-		"@tanstack/router-plugin": "1.167.18",
+		"@tanstack/router-plugin": "1.167.21",
 		"@testing-library/react": "16.3.2",
 		"@types/react": "19.2.14",
 		"@types/react-dom": "19.2.3",
