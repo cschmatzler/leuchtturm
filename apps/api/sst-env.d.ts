@@ -4,7 +4,113 @@
 /* deno-fmt-ignore-file */
 /* biome-ignore-all lint: auto-generated */
 
-/// <reference path="../../sst-env.d.ts" />
+import "sst"
+declare module "sst" {
+  export interface Resource {
+    "ApiConfig": {
+      "BASE_URL": string
+      "NODE_ENV": string
+      "POLAR_SERVER": string
+      "POSTHOG_HOST": {
+        "4dabf18193072939515e22adb298388d": string
+        "packageVersion": string
+        "urn": string
+      }
+      "type": "sst.sst.Linkable"
+    }
+    "BetterAuthSecret": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "GitHubClientId": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "GitHubClientSecret": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "GmailOauthClientId": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "GmailOauthClientSecret": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "GmailOauthRedirectUri": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "GmailPubSubTopic": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "MailKek": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "PlanetScaleDatabaseId": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "PlanetScaleOrganization": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "PolarAccessToken": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "PolarSuccessUrl": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "PolarWebhookSecret": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "PostHogHost": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "PostHogProjectApiKey": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "RenderOwnerId": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "ResendApiKey": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "Web": {
+      "type": "sst.cloudflare.StaticSite"
+      "url": string
+    }
+    "ZeroAdminPassword": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "ZeroDatabasePassword": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "ZeroDatabaseUsername": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+  }
+}
+// cloudflare 
+import * as cloudflare from "@cloudflare/workers-types";
+declare module "sst" {
+  export interface Resource {
+    "ApiWorker": cloudflare.Service
+  }
+}
 
 import "sst"
 export {}
