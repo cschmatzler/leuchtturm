@@ -1,6 +1,7 @@
 import { Effect, Layer, ServiceMap } from "effect";
 import { HttpEffect, HttpRouter, HttpServer } from "effect/unstable/http";
 import { HttpApiBuilder } from "effect/unstable/httpapi";
+import { fromCloudflareEnv } from "sst";
 
 import { AuthMiddlewareServer } from "@leuchtturm/api/auth/http-auth-server";
 import { BackgroundTasks } from "@leuchtturm/api/background";
@@ -8,7 +9,7 @@ import { LeuchtturmApi } from "@leuchtturm/api/contract";
 import { FeatureFlags } from "@leuchtturm/api/feature-flags";
 import { AuthHandler } from "@leuchtturm/api/handlers/auth";
 import { HealthHandler } from "@leuchtturm/api/handlers/health";
-import { type GmailBootstrapWorkflowBinding, MailHandler } from "@leuchtturm/api/handlers/mail";
+import { MailHandler } from "@leuchtturm/api/handlers/mail";
 import { ZeroHandler } from "@leuchtturm/api/handlers/zero";
 import { RequestContext } from "@leuchtturm/api/middleware/request-context";
 import { ApiAnalytics } from "@leuchtturm/api/posthog";
@@ -24,25 +25,8 @@ namespace Api {
 		readonly HYPERDRIVE: {
 			readonly connectionString: string;
 		};
-		readonly GMAIL_BOOTSTRAP_WORKFLOW: GmailBootstrapWorkflowBinding;
+		readonly GMAIL_BOOTSTRAP_WORKFLOW: MailHandler.GmailBootstrapWorkflowBinding;
 	}
-
-	const handlers = (workflowBinding: GmailBootstrapWorkflowBinding) =>
-		Layer.mergeAll(
-			HealthHandler.layer,
-			ZeroHandler.layer,
-			AuthHandler.layer,
-			MailHandler.mailLayer(workflowBinding),
-			MailHandler.webhookLayer,
-		);
-
-	const api = (workflowBinding: GmailBootstrapWorkflowBinding) =>
-		HttpRouter.toHttpEffect(
-			HttpApiBuilder.layer(LeuchtturmApi).pipe(
-				Layer.provide(handlers(workflowBinding)),
-				Layer.provide(AuthMiddlewareServer.layer),
-			),
-		).pipe(Effect.flatten);
 
 	export interface Interface {
 		readonly handle: (request: Request) => Effect.Effect<Response, Error>;
@@ -51,6 +35,19 @@ namespace Api {
 	export class Service extends ServiceMap.Service<Service, Interface>()("@leuchtturm/Api") {}
 
 	export const layer = (env: Env, waitUntil?: (promise: Promise<unknown>) => void) => {
+		const handlers = Layer.mergeAll(
+			HealthHandler.layer,
+			ZeroHandler.layer,
+			AuthHandler.layer,
+			MailHandler.mailLayer,
+			MailHandler.webhookLayer,
+		);
+		const api = HttpRouter.toHttpEffect(
+			HttpApiBuilder.layer(LeuchtturmApi).pipe(
+				Layer.provide(handlers),
+				Layer.provide(AuthMiddlewareServer.layer),
+			),
+		).pipe(Effect.flatten);
 		const database = Database.layer(env.HYPERDRIVE.connectionString);
 		const core = Layer.mergeAll(
 			Auth.defaultLayer,
@@ -63,7 +60,7 @@ namespace Api {
 			HttpServer.layerServices,
 			BackgroundTasks.layer(waitUntil),
 		);
-		const handler = HttpEffect.toWebHandlerLayer(api(env.GMAIL_BOOTSTRAP_WORKFLOW), runtime, {
+		const handler = HttpEffect.toWebHandlerLayer(api, runtime, {
 			middleware: RequestContext.Middleware,
 		});
 
@@ -120,6 +117,7 @@ namespace Api {
 
 export default {
 	fetch(request: Request, env: Api.Env, ctx: { waitUntil: (promise: Promise<unknown>) => void }) {
+		fromCloudflareEnv(env);
 		return Api.create(env, ctx.waitUntil.bind(ctx)).runPromise((api) => api.handle(request));
 	},
 };
