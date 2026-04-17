@@ -26,16 +26,6 @@ export const api = new sst.cloudflare.Worker("ApiWorker", {
 	handler: "apps/api/src/index.ts",
 	placement: { mode: "smart" },
 	transform: {
-		observability: {
-			enabled: false,
-			headSamplingRate: 1,
-			logs: {
-				enabled: true,
-				headSamplingRate: 1,
-				persist: true,
-				invocationLogs: true,
-			},
-		},
 		worker: (args: any) => {
 			withHyperdriveBinding(args);
 			args.bindings = output(args.bindings ?? []).apply((bindings) => [

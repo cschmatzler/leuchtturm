@@ -1,5 +1,5 @@
 import { Effect, Layer, Schema, ServiceMap } from "effect";
-import { PostHog } from "posthog-node";
+import { PostHog } from "posthog-node/edge";
 import { Resource } from "sst";
 
 export namespace FeatureFlags {
