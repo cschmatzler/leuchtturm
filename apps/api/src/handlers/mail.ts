@@ -13,6 +13,7 @@ import { AuthMiddleware } from "@leuchtturm/api/auth/http-auth";
 import { BackgroundTasks } from "@leuchtturm/api/background";
 import { LeuchtturmApi } from "@leuchtturm/api/contract";
 import { GmailBootstrapWorkflowDispatcher } from "@leuchtturm/api/mail/gmail/bootstrap-dispatcher";
+import { Database } from "@leuchtturm/core/drizzle";
 import { Email } from "@leuchtturm/core/email";
 import {
 	DatabaseError,
@@ -42,6 +43,23 @@ interface GoogleTokenInfo {
 const GOOGLE_ISSUERS = new Set(["accounts.google.com", "https://accounts.google.com"]);
 const verifiedPushTokenExpirations = new Map<string, number>();
 
+function toErrorMessage(error: unknown): string {
+	if (error instanceof Error) {
+		return error.message;
+	}
+
+	if (
+		typeof error === "object" &&
+		error !== null &&
+		"message" in error &&
+		typeof error.message === "string"
+	) {
+		return error.message;
+	}
+
+	return String(error);
+}
+
 function parseBearerToken(value: string | undefined): string | undefined {
 	if (!value) return undefined;
 	const match = value.match(/^Bearer\s+(.+)$/i);
@@ -66,8 +84,38 @@ namespace MailHandlers {
 
 	export const toDatabaseError = (context: string, error: unknown) =>
 		new DatabaseError({
-			message: `${context}: ${String(error)}`,
+			message: `${context}: ${toErrorMessage(error)}`,
 		});
+
+	export const persistGmailOAuthBootstrapFailure = Effect.fn(
+		"mail.persistGmailOAuthBootstrapFailure",
+	)(function* (accountId: string, error: unknown) {
+		const { db } = yield* Database.Service;
+
+		yield* Effect.tryPromise({
+			try: () =>
+				db.$client.query(
+					[
+						"update mail_account",
+						"set status = $1, last_error_code = $2, last_error_message = $3, degraded_reason = $4, updated_at = $5",
+						"where id = $6",
+					].join(" "),
+					[
+						"degraded",
+						"oauth_bootstrap_failed",
+						toErrorMessage(error),
+						"Gmail OAuth bootstrap failed",
+						new Date(),
+						accountId,
+					],
+				),
+			catch: (persistError) =>
+				toDatabaseError(
+					`Failed to persist Gmail OAuth bootstrap failure for ${accountId}`,
+					persistError,
+				),
+		});
+	});
 
 	export const verifyGmailPushRequest = Effect.fn("mail.verifyGmailPushRequest")(function* (
 		headers: {
@@ -286,45 +334,60 @@ export namespace MailHandler {
 				),
 			);
 
-		const encrypted = yield* encryption.encrypt(
-			JSON.stringify({
-				accessToken: tokens.accessToken,
-				refreshToken,
-				expiresAt: Date.now() + tokens.expiresIn * 1000,
-			}),
+		yield* Effect.gen(function* () {
+			const encrypted = yield* encryption.encrypt(
+				JSON.stringify({
+					accessToken: tokens.accessToken,
+					refreshToken,
+					expiresAt: Date.now() + tokens.expiresIn * 1000,
+				}),
+			);
+
+			yield* email
+				.createAccountSecret({
+					accountId: account.id,
+					authKind: "oauth2",
+					encryptedPayload: encrypted.encryptedPayload,
+					encryptedDek: encrypted.encryptedDek,
+				})
+				.pipe(
+					Effect.mapError((error) =>
+						MailHandlers.toDatabaseError("Failed to store mail credentials", error),
+					),
+				);
+
+			yield* bootstrapWorkflow
+				.start({
+					accountId: account.id,
+					accessToken: tokens.accessToken,
+				})
+				.pipe(
+					Effect.mapError((error) =>
+						MailHandlers.toDatabaseError("Failed to launch Gmail bootstrap workflow", error),
+					),
+				);
+
+			yield* email
+				.updateAccountStatus(account.id, "bootstrapping")
+				.pipe(
+					Effect.mapError((error) =>
+						MailHandlers.toDatabaseError("Failed to mark Gmail account as bootstrapping", error),
+					),
+				);
+		}).pipe(
+			Effect.catch((error) =>
+				MailHandlers.persistGmailOAuthBootstrapFailure(account.id, error).pipe(
+					Effect.catch((persistError) =>
+						Effect.logWarning(
+							persistError instanceof Error
+								? `Failed to persist Gmail OAuth bootstrap failure for ${account.id}: ${persistError.message}`
+								: `Failed to persist Gmail OAuth bootstrap failure for ${account.id}`,
+						),
+					),
+					Effect.flatMap(() => Effect.fail(error)),
+				),
+			),
 		);
-
-		yield* email
-			.createAccountSecret({
-				accountId: account.id,
-				authKind: "oauth2",
-				encryptedPayload: encrypted.encryptedPayload,
-				encryptedDek: encrypted.encryptedDek,
-			})
-			.pipe(
-				Effect.mapError((error) =>
-					MailHandlers.toDatabaseError("Failed to store mail credentials", error),
-				),
-			);
-
-		yield* bootstrapWorkflow
-			.start({
-				accountId: account.id,
-				accessToken: tokens.accessToken,
-			})
-			.pipe(
-				Effect.mapError((error) =>
-					MailHandlers.toDatabaseError("Failed to launch Gmail bootstrap workflow", error),
-				),
-			);
-
-		yield* email
-			.updateAccountStatus(account.id, "bootstrapping")
-			.pipe(
-				Effect.mapError((error) =>
-					MailHandlers.toDatabaseError("Failed to mark Gmail account as bootstrapping", error),
-				),
-			);
 
 		return { accountId: account.id as never };
 	});

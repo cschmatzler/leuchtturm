@@ -115,7 +115,6 @@ export namespace Email {
 
 	export const layer = Layer.effect(Service)(
 		Effect.gen(function* () {
-			const resend = new Resend(Resource.ResendApiKey.value);
 			const { db } = yield* Database.Service;
 
 			yield* Effect.logInfo("Email initialized");
@@ -139,7 +138,7 @@ export namespace Email {
 
 			const send = Effect.fn("Email.send")(function* (params: SendParams) {
 				const result = yield* Effect.tryPromise({
-					try: () => resend.emails.send(params),
+					try: () => new Resend(Resource.ResendApiKey.value).emails.send(params),
 					catch: fail("Resend API request failed"),
 				});
 
