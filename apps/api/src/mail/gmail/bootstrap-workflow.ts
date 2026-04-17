@@ -1,6 +1,7 @@
 import { WorkflowEntrypoint } from "cloudflare:workers";
 import type { WorkflowEvent, WorkflowStep } from "cloudflare:workers";
 import { Effect, Layer } from "effect";
+import { fromCloudflareEnv } from "sst";
 
 import type { GmailBootstrapWorkflowParams } from "@leuchtturm/api/mail/gmail/bootstrap-dispatcher";
 import { Database } from "@leuchtturm/core/drizzle";
@@ -13,6 +14,11 @@ export interface GmailBootstrapWorkflowEnv {
 }
 
 export class GmailBootstrapWorkflow extends WorkflowEntrypoint<GmailBootstrapWorkflowEnv> {
+	constructor(ctx: unknown, env: GmailBootstrapWorkflowEnv) {
+		fromCloudflareEnv(env);
+		super(ctx, env);
+	}
+
 	override async run(event: WorkflowEvent<GmailBootstrapWorkflowParams>, step: WorkflowStep) {
 		const payload = event.payload;
 
