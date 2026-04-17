@@ -403,6 +403,11 @@ export namespace Email {
 							.set({ status: "paused", updatedAt: now })
 							.where(eq(mailAccount.id, accountId));
 
+						await tx
+							.update(mailConversation)
+							.set({ latestMessageId: null, updatedAt: now })
+							.where(eq(mailConversation.accountId, accountId));
+
 						await tx.delete(mailMessage).where(eq(mailMessage.accountId, accountId));
 						await tx.delete(mailConversation).where(eq(mailConversation.accountId, accountId));
 						await tx.delete(mailFolder).where(eq(mailFolder.accountId, accountId));
