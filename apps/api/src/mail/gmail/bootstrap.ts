@@ -49,3 +49,5 @@ export class GmailBootstrapWorkflow extends WorkflowEntrypoint<GmailBootstrapWor
 		});
 	}
 }
+
+export default {};
