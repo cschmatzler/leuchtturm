@@ -12,7 +12,6 @@ import { Resource } from "sst";
 import { AuthMiddleware } from "@leuchtturm/api/auth/http-auth";
 import { BackgroundTasks } from "@leuchtturm/api/background";
 import { LeuchtturmApi } from "@leuchtturm/api/contract";
-import { GmailBootstrapWorkflowDispatcher } from "@leuchtturm/api/mail/gmail/bootstrap-dispatcher";
 import { Database } from "@leuchtturm/core/drizzle";
 import { Email } from "@leuchtturm/core/email";
 import {
@@ -30,6 +29,15 @@ import {
 	StoredMailOAuthSecret,
 } from "@leuchtturm/core/mail/schema";
 
+export interface GmailBootstrapWorkflowBinding {
+	create(options: {
+		readonly params: {
+			readonly accountId: string;
+			readonly accessToken: string;
+		};
+	}): Promise<unknown>;
+}
+
 const decodeStoredMailOAuthSecret = Schema.decodeUnknownSync(StoredMailOAuthSecret);
 
 interface GoogleTokenInfo {
@@ -42,29 +50,6 @@ interface GoogleTokenInfo {
 
 const GOOGLE_ISSUERS = new Set(["accounts.google.com", "https://accounts.google.com"]);
 const verifiedPushTokenExpirations = new Map<string, number>();
-
-function toErrorMessage(error: unknown): string {
-	if (error instanceof Error) {
-		return error.message;
-	}
-
-	if (
-		typeof error === "object" &&
-		error !== null &&
-		"message" in error &&
-		typeof error.message === "string"
-	) {
-		return error.message;
-	}
-
-	return String(error);
-}
-
-function parseBearerToken(value: string | undefined): string | undefined {
-	if (!value) return undefined;
-	const match = value.match(/^Bearer\s+(.+)$/i);
-	return match?.[1]?.trim();
-}
 
 export function decodeGmailPushData(raw: string): { readonly emailAddress: string } | undefined {
 	try {
@@ -79,12 +64,12 @@ export function decodeGmailPushData(raw: string): { readonly emailAddress: strin
 	}
 }
 
-namespace MailHandlers {
+export namespace MailHandler {
 	export const oauthStateTtlMs = 10 * 60 * 1000;
 
 	export const toDatabaseError = (context: string, error: unknown) =>
 		new DatabaseError({
-			message: `${context}: ${toErrorMessage(error)}`,
+			message: `${context}: ${String(error)}`,
 		});
 
 	export const persistGmailOAuthBootstrapFailure = Effect.fn(
@@ -103,7 +88,7 @@ namespace MailHandlers {
 					[
 						"degraded",
 						"oauth_bootstrap_failed",
-						toErrorMessage(error),
+						String(error),
 						"Gmail OAuth bootstrap failed",
 						new Date(),
 						accountId,
@@ -145,7 +130,7 @@ namespace MailHandlers {
 			}
 		}
 
-		const token = parseBearerToken(headers.authorization);
+		const token = headers.authorization?.match(/^Bearer\s+(.+)$/i)?.[1]?.trim();
 		if (!token) {
 			return yield* Effect.fail(
 				new UnauthorizedError({
@@ -225,11 +210,11 @@ export namespace MailHandler {
 				id: state,
 				userId: user.id,
 				sessionId: session.id,
-				expiresAt: new Date(Date.now() + MailHandlers.oauthStateTtlMs),
+				expiresAt: new Date(Date.now() + MailHandler.oauthStateTtlMs),
 			})
 			.pipe(
 				Effect.mapError((error) =>
-					MailHandlers.toDatabaseError("Failed to create OAuth state", error),
+					MailHandler.toDatabaseError("Failed to create OAuth state", error),
 				),
 			);
 
@@ -238,159 +223,159 @@ export namespace MailHandler {
 		return { url };
 	});
 
-	const oauthCallback = Effect.fn("mail.oauthCallback")(function* ({ payload }) {
-		const { user, session } = yield* AuthMiddleware.CurrentUser;
-		const bootstrapWorkflow = yield* GmailBootstrapWorkflowDispatcher.Service;
-		const email = yield* Email.Service;
-		const oauth = yield* GmailOAuth.Service;
-		const encryption = yield* MailEncryption.Service;
+	const oauthCallback = (workflowBinding: GmailBootstrapWorkflowBinding) =>
+		Effect.fn("mail.oauthCallback")(function* ({ payload }) {
+			const { user, session } = yield* AuthMiddleware.CurrentUser;
+			const email = yield* Email.Service;
+			const oauth = yield* GmailOAuth.Service;
+			const encryption = yield* MailEncryption.Service;
 
-		const state = yield* email
-			.consumeOAuthState({
-				id: payload.state,
-				userId: user.id,
-				sessionId: session.id,
-			})
-			.pipe(
-				Effect.mapError((error) =>
-					MailHandlers.toDatabaseError("Failed to validate OAuth state", error),
-				),
-			);
-
-		if (!state) {
-			return yield* Effect.fail(
-				new ValidationError({
-					global: [{ message: "Invalid or expired Gmail OAuth state" }],
-				}),
-			);
-		}
-
-		const tokens = yield* oauth.exchangeCode(payload.code);
-		const userInfo = yield* oauth.getUserInfo(tokens.accessToken);
-		const normalizedEmail = userInfo.email.trim().toLowerCase();
-
-		const existingAccount = yield* email
-			.getAccountByUserAndEmail(user.id, normalizedEmail)
-			.pipe(
-				Effect.mapError((error) =>
-					MailHandlers.toDatabaseError("Failed to fetch existing mail account", error),
-				),
-			);
-
-		let existingRefreshToken: string | undefined;
-		if (existingAccount) {
-			const secret = yield* email
-				.getAccountSecret(existingAccount.id)
+			const state = yield* email
+				.consumeOAuthState({
+					id: payload.state,
+					userId: user.id,
+					sessionId: session.id,
+				})
 				.pipe(
 					Effect.mapError((error) =>
-						MailHandlers.toDatabaseError("Failed to fetch existing credentials", error),
+						MailHandler.toDatabaseError("Failed to validate OAuth state", error),
 					),
 				);
-			if (secret) {
-				const decrypted = yield* encryption
-					.decrypt({
-						encryptedPayload: secret.encryptedPayload,
-						encryptedDek: secret.encryptedDek,
+
+			if (!state) {
+				return yield* Effect.fail(
+					new ValidationError({
+						global: [{ message: "Invalid or expired Gmail OAuth state" }],
+					}),
+				);
+			}
+
+			const tokens = yield* oauth.exchangeCode(payload.code);
+			const userInfo = yield* oauth.getUserInfo(tokens.accessToken);
+			const normalizedEmail = userInfo.email.trim().toLowerCase();
+
+			const existingAccount = yield* email
+				.getAccountByUserAndEmail(user.id, normalizedEmail)
+				.pipe(
+					Effect.mapError((error) =>
+						MailHandler.toDatabaseError("Failed to fetch existing mail account", error),
+					),
+				);
+
+			let existingRefreshToken: string | undefined;
+			if (existingAccount) {
+				const secret = yield* email
+					.getAccountSecret(existingAccount.id)
+					.pipe(
+						Effect.mapError((error) =>
+							MailHandler.toDatabaseError("Failed to fetch existing credentials", error),
+						),
+					);
+				if (secret) {
+					const decrypted = yield* encryption
+						.decrypt({
+							encryptedPayload: secret.encryptedPayload,
+							encryptedDek: secret.encryptedDek,
+						})
+						.pipe(
+							Effect.mapError((error) =>
+								MailHandler.toDatabaseError("Failed to decrypt existing credentials", error),
+							),
+						);
+
+					existingRefreshToken = yield* Effect.try({
+						try: () => decodeStoredMailOAuthSecret(JSON.parse(decrypted)).refreshToken,
+						catch: (error) =>
+							MailHandler.toDatabaseError("Failed to decode existing credentials", error),
+					});
+				}
+			}
+
+			const refreshToken = tokens.refreshToken ?? existingRefreshToken;
+			if (!refreshToken) {
+				return yield* Effect.fail(
+					new ValidationError({
+						global: [
+							{
+								message:
+									"Gmail did not return a refresh token. Reconnect and grant offline access.",
+							},
+						],
+					}),
+				);
+			}
+
+			const account = yield* email
+				.upsertAccount({
+					id: existingAccount?.id ?? createMailAccountId(),
+					userId: user.id,
+					provider: "gmail",
+					email: normalizedEmail,
+					displayName: userInfo.name ?? null,
+					status: "connecting",
+				})
+				.pipe(
+					Effect.mapError((error) =>
+						MailHandler.toDatabaseError("Failed to upsert mail account", error),
+					),
+				);
+
+			yield* Effect.gen(function* () {
+				const encrypted = yield* encryption.encrypt(
+					JSON.stringify({
+						accessToken: tokens.accessToken,
+						refreshToken,
+						expiresAt: Date.now() + tokens.expiresIn * 1000,
+					}),
+				);
+
+				yield* email
+					.createAccountSecret({
+						accountId: account.id,
+						authKind: "oauth2",
+						encryptedPayload: encrypted.encryptedPayload,
+						encryptedDek: encrypted.encryptedDek,
 					})
 					.pipe(
 						Effect.mapError((error) =>
-							MailHandlers.toDatabaseError("Failed to decrypt existing credentials", error),
+							MailHandler.toDatabaseError("Failed to store mail credentials", error),
 						),
 					);
 
-				existingRefreshToken = yield* Effect.try({
-					try: () => decodeStoredMailOAuthSecret(JSON.parse(decrypted)).refreshToken,
+				yield* Effect.tryPromise({
+					try: () =>
+						workflowBinding.create({
+							params: {
+								accountId: account.id,
+								accessToken: tokens.accessToken,
+							},
+						}),
 					catch: (error) =>
-						MailHandlers.toDatabaseError("Failed to decode existing credentials", error),
+						MailHandler.toDatabaseError("Failed to launch Gmail bootstrap workflow", error),
 				});
-			}
-		}
 
-		const refreshToken = tokens.refreshToken ?? existingRefreshToken;
-		if (!refreshToken) {
-			return yield* Effect.fail(
-				new ValidationError({
-					global: [
-						{
-							message: "Gmail did not return a refresh token. Reconnect and grant offline access.",
-						},
-					],
-				}),
-			);
-		}
-
-		const account = yield* email
-			.upsertAccount({
-				id: existingAccount?.id ?? createMailAccountId(),
-				userId: user.id,
-				provider: "gmail",
-				email: normalizedEmail,
-				displayName: userInfo.name ?? null,
-				status: "connecting",
-			})
-			.pipe(
-				Effect.mapError((error) =>
-					MailHandlers.toDatabaseError("Failed to upsert mail account", error),
-				),
-			);
-
-		yield* Effect.gen(function* () {
-			const encrypted = yield* encryption.encrypt(
-				JSON.stringify({
-					accessToken: tokens.accessToken,
-					refreshToken,
-					expiresAt: Date.now() + tokens.expiresIn * 1000,
-				}),
-			);
-
-			yield* email
-				.createAccountSecret({
-					accountId: account.id,
-					authKind: "oauth2",
-					encryptedPayload: encrypted.encryptedPayload,
-					encryptedDek: encrypted.encryptedDek,
-				})
-				.pipe(
-					Effect.mapError((error) =>
-						MailHandlers.toDatabaseError("Failed to store mail credentials", error),
-					),
-				);
-
-			yield* bootstrapWorkflow
-				.start({
-					accountId: account.id,
-					accessToken: tokens.accessToken,
-				})
-				.pipe(
-					Effect.mapError((error) =>
-						MailHandlers.toDatabaseError("Failed to launch Gmail bootstrap workflow", error),
-					),
-				);
-
-			yield* email
-				.updateAccountStatus(account.id, "bootstrapping")
-				.pipe(
-					Effect.mapError((error) =>
-						MailHandlers.toDatabaseError("Failed to mark Gmail account as bootstrapping", error),
-					),
-				);
-		}).pipe(
-			Effect.catch((error) =>
-				MailHandlers.persistGmailOAuthBootstrapFailure(account.id, error).pipe(
-					Effect.catch((persistError) =>
-						Effect.logWarning(
-							persistError instanceof Error
-								? `Failed to persist Gmail OAuth bootstrap failure for ${account.id}: ${persistError.message}`
-								: `Failed to persist Gmail OAuth bootstrap failure for ${account.id}`,
+				yield* email
+					.updateAccountStatus(account.id, "bootstrapping")
+					.pipe(
+						Effect.mapError((error) =>
+							MailHandler.toDatabaseError("Failed to mark Gmail account as bootstrapping", error),
 						),
+					);
+			}).pipe(
+				Effect.catch((error) =>
+					MailHandler.persistGmailOAuthBootstrapFailure(account.id, error).pipe(
+						Effect.catch((persistError) =>
+							Effect.logWarning(
+								`Failed to persist Gmail OAuth bootstrap failure for ${account.id}: ${JSON.stringify(persistError)}`,
+							),
+						),
+						Effect.flatMap(() => Effect.fail(error)),
 					),
-					Effect.flatMap(() => Effect.fail(error)),
 				),
-			),
-		);
+			);
 
-		return { accountId: account.id as never };
-	});
+			return { accountId: account.id as never };
+		});
 
 	const disconnect = Effect.fn("mail.disconnect")(function* ({ payload }) {
 		const { user } = yield* AuthMiddleware.CurrentUser;
@@ -399,7 +384,7 @@ export namespace MailHandler {
 		const account = yield* email
 			.getAccountForUser(payload.accountId, user.id)
 			.pipe(
-				Effect.mapError((error) => MailHandlers.toDatabaseError("Failed to fetch account", error)),
+				Effect.mapError((error) => MailHandler.toDatabaseError("Failed to fetch account", error)),
 			);
 
 		if (!account) {
@@ -414,22 +399,23 @@ export namespace MailHandler {
 
 		yield* email
 			.disconnectAccount(payload.accountId)
-			.pipe(Effect.mapError((error) => MailHandlers.toDatabaseError("Disconnect failed", error)));
+			.pipe(Effect.mapError((error) => MailHandler.toDatabaseError("Disconnect failed", error)));
 
 		return { success: true as const };
 	});
 
-	export const layer = HttpApiBuilder.group(LeuchtturmApi, "mail", (handlers) =>
-		handlers
-			.handle("mailOAuthUrl", oauthUrl)
-			.handle("mailOAuthCallback", oauthCallback)
-			.handle("mailDisconnect", disconnect),
-	);
+	export const mailLayer = (workflowBinding: GmailBootstrapWorkflowBinding) =>
+		HttpApiBuilder.group(LeuchtturmApi, "mail", (handlers) =>
+			handlers
+				.handle("mailOAuthUrl", oauthUrl)
+				.handle("mailOAuthCallback", oauthCallback(workflowBinding))
+				.handle("mailDisconnect", disconnect),
+		);
 }
 
-export namespace WebhookHandler {
+export namespace MailHandler {
 	const gmailPush = Effect.fn("webhook.gmailPush")(function* ({ headers, payload }) {
-		yield* MailHandlers.verifyGmailPushRequest(headers, payload.subscription);
+		yield* MailHandler.verifyGmailPushRequest(headers, payload.subscription);
 
 		const raw = payload.message?.data;
 		if (!raw) {
@@ -448,7 +434,7 @@ export namespace WebhookHandler {
 			.getAccountsByEmail(decoded.emailAddress)
 			.pipe(
 				Effect.mapError((error) =>
-					MailHandlers.toDatabaseError("Failed to look up accounts", error),
+					MailHandler.toDatabaseError("Failed to look up accounts", error),
 				),
 			);
 
@@ -470,7 +456,7 @@ export namespace WebhookHandler {
 		return { success: true as const };
 	});
 
-	export const layer = HttpApiBuilder.group(LeuchtturmApi, "webhook", (handlers) =>
+	export const webhookLayer = HttpApiBuilder.group(LeuchtturmApi, "webhook", (handlers) =>
 		handlers.handle("gmailPush", gmailPush),
 	);
 }

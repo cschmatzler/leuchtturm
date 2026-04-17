@@ -23,7 +23,7 @@ export namespace AuthHandler {
 					try: () => response.arrayBuffer(),
 					catch: (error) =>
 						new AuthError({
-							message: `Failed to read auth response body: ${error instanceof Error ? error.message : String(error)}`,
+							message: `Failed to read auth response body: ${String(error)}`,
 						}),
 				}).pipe(
 					Effect.map((body) => {

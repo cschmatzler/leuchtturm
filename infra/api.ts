@@ -15,6 +15,13 @@ const config = new sst.Linkable("ApiConfig", {
 	},
 });
 
+const withHyperdriveBinding = (args: any) => {
+	args.bindings = output(args.bindings ?? []).apply((bindings) => [
+		...bindings,
+		{ type: "hyperdrive", name: "HYPERDRIVE", id: hyperdrive.id },
+	]);
+};
+
 export const api = new sst.cloudflare.Worker("ApiWorker", {
 	handler: "apps/api/src/index.ts",
 	placement: { mode: "smart" },
@@ -30,9 +37,9 @@ export const api = new sst.cloudflare.Worker("ApiWorker", {
 			},
 		},
 		worker: (args: any) => {
+			withHyperdriveBinding(args);
 			args.bindings = output(args.bindings ?? []).apply((bindings) => [
 				...bindings,
-				{ type: "hyperdrive", name: "HYPERDRIVE", id: hyperdrive.id },
 				{
 					type: "workflow",
 					name: "GMAIL_BOOTSTRAP_WORKFLOW",
@@ -44,9 +51,17 @@ export const api = new sst.cloudflare.Worker("ApiWorker", {
 	link: [config, ...apiSecrets],
 });
 
+const workflowWorker = new sst.cloudflare.Worker("ApiWorkflowWorker", {
+	handler: "apps/api/src/mail/gmail/bootstrap.ts",
+	transform: {
+		worker: withHyperdriveBinding,
+	},
+	link: [config, ...apiSecrets],
+});
+
 export const gmailBootstrapWorkflow = new cloudflare.Workflow("GmailBootstrapWorkflow", {
 	accountId: sst.cloudflare.DEFAULT_ACCOUNT_ID,
 	workflowName: gmailBootstrapWorkflowName,
 	className: "GmailBootstrapWorkflow",
-	scriptName: api.nodes.worker.scriptName,
+	scriptName: workflowWorker.nodes.worker.scriptName,
 });

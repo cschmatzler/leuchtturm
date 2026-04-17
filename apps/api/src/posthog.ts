@@ -94,7 +94,7 @@ export namespace ApiAnalytics {
 											"api",
 											requestProperties(request, properties),
 										),
-									catch: (error) => (error instanceof Error ? error : new Error(String(error))),
+									catch: (error) => String(error),
 								}).pipe(Effect.catch(() => Effect.succeed(undefined))),
 				});
 			}),

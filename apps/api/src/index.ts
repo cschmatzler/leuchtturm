@@ -8,22 +8,18 @@ import { LeuchtturmApi } from "@leuchtturm/api/contract";
 import { FeatureFlags } from "@leuchtturm/api/feature-flags";
 import { AuthHandler } from "@leuchtturm/api/handlers/auth";
 import { HealthHandler } from "@leuchtturm/api/handlers/health";
-import { MailHandler, WebhookHandler } from "@leuchtturm/api/handlers/mail";
+import { type GmailBootstrapWorkflowBinding, MailHandler } from "@leuchtturm/api/handlers/mail";
 import { ZeroHandler } from "@leuchtturm/api/handlers/zero";
-import {
-	GmailBootstrapWorkflowDispatcher,
-	type GmailBootstrapWorkflowBinding,
-} from "@leuchtturm/api/mail/gmail/bootstrap-dispatcher";
-import { GmailBootstrapWorkflow } from "@leuchtturm/api/mail/gmail/bootstrap-workflow";
 import { RequestContext } from "@leuchtturm/api/middleware/request-context";
 import { ApiAnalytics } from "@leuchtturm/api/posthog";
 import { Auth } from "@leuchtturm/core/auth";
 import { Database } from "@leuchtturm/core/drizzle";
 import { makeRuntime } from "@leuchtturm/core/effect/run-service";
 import { Email } from "@leuchtturm/core/email";
+import { DatabaseError } from "@leuchtturm/core/errors";
 import { Gmail } from "@leuchtturm/core/mail/gmail/workflows";
 
-namespace ApiRuntime {
+namespace Api {
 	export interface Env {
 		readonly HYPERDRIVE: {
 			readonly connectionString: string;
@@ -31,26 +27,28 @@ namespace ApiRuntime {
 		readonly GMAIL_BOOTSTRAP_WORKFLOW: GmailBootstrapWorkflowBinding;
 	}
 
-	const handlers = Layer.mergeAll(
-		HealthHandler.layer,
-		ZeroHandler.layer,
-		AuthHandler.layer,
-		MailHandler.layer,
-		WebhookHandler.layer,
-	);
+	const handlers = (workflowBinding: GmailBootstrapWorkflowBinding) =>
+		Layer.mergeAll(
+			HealthHandler.layer,
+			ZeroHandler.layer,
+			AuthHandler.layer,
+			MailHandler.mailLayer(workflowBinding),
+			MailHandler.webhookLayer,
+		);
 
-	const api = HttpRouter.toHttpEffect(
-		HttpApiBuilder.layer(LeuchtturmApi).pipe(
-			Layer.provide(handlers),
-			Layer.provide(AuthMiddlewareServer.layer),
-		),
-	).pipe(Effect.flatten);
+	const api = (workflowBinding: GmailBootstrapWorkflowBinding) =>
+		HttpRouter.toHttpEffect(
+			HttpApiBuilder.layer(LeuchtturmApi).pipe(
+				Layer.provide(handlers(workflowBinding)),
+				Layer.provide(AuthMiddlewareServer.layer),
+			),
+		).pipe(Effect.flatten);
 
 	export interface Interface {
-		readonly handle: (request: Request) => Effect.Effect<Response, globalThis.Error>;
+		readonly handle: (request: Request) => Effect.Effect<Response, Error>;
 	}
 
-	export class Service extends ServiceMap.Service<Service, Interface>()("@leuchtturm/ApiRuntime") {}
+	export class Service extends ServiceMap.Service<Service, Interface>()("@leuchtturm/Api") {}
 
 	export const layer = (env: Env, waitUntil?: (promise: Promise<unknown>) => void) => {
 		const database = Database.layer(env.HYPERDRIVE.connectionString);
@@ -64,9 +62,8 @@ namespace ApiRuntime {
 			core,
 			HttpServer.layerServices,
 			BackgroundTasks.layer(waitUntil),
-			GmailBootstrapWorkflowDispatcher.layer(env.GMAIL_BOOTSTRAP_WORKFLOW),
 		);
-		const handler = HttpEffect.toWebHandlerLayer(api, runtime, {
+		const handler = HttpEffect.toWebHandlerLayer(api(env.GMAIL_BOOTSTRAP_WORKFLOW), runtime, {
 			middleware: RequestContext.Middleware,
 		});
 
@@ -76,15 +73,15 @@ namespace ApiRuntime {
 				const analytics = yield* ApiAnalytics.Service;
 
 				return Service.of({
-					handle: Effect.fn("ApiRuntime.handle")((request: Request) => {
+					handle: Effect.fn("Api.handle")((request: Request) => {
 						const startedAt = Date.now();
 
 						return Effect.tryPromise({
 							try: () => handler.handler(request, ServiceMap.empty()),
 							catch: (error) =>
-								error instanceof globalThis.Error
-									? error
-									: new globalThis.Error(`API handler failed: ${String(error)}`),
+								new DatabaseError({
+									message: `API handler failed: ${String(error)}`,
+								}),
 						}).pipe(
 							Effect.tap((response) =>
 								analytics.captureRequest(request, response, Date.now() - startedAt),
@@ -92,7 +89,9 @@ namespace ApiRuntime {
 							Effect.tap((response) =>
 								response.status >= 500
 									? analytics.captureException(
-											new globalThis.Error(`API request failed with status ${response.status}`),
+											new DatabaseError({
+												message: `API request failed with status ${response.status}`,
+											}),
 											request,
 											{
 												duration_ms: Date.now() - startedAt,
@@ -119,14 +118,8 @@ namespace ApiRuntime {
 		makeRuntime(Service, layer(env, waitUntil));
 }
 
-export { GmailBootstrapWorkflow };
-
 export default {
-	fetch(
-		request: Request,
-		env: ApiRuntime.Env,
-		ctx: { waitUntil: (promise: Promise<unknown>) => void },
-	) {
-		return ApiRuntime.create(env, ctx.waitUntil.bind(ctx)).runPromise((api) => api.handle(request));
+	fetch(request: Request, env: Api.Env, ctx: { waitUntil: (promise: Promise<unknown>) => void }) {
+		return Api.create(env, ctx.waitUntil.bind(ctx)).runPromise((api) => api.handle(request));
 	},
 };

@@ -3,9 +3,13 @@ import type { WorkflowEvent, WorkflowStep } from "cloudflare:workers";
 import { Effect, Layer } from "effect";
 import { fromCloudflareEnv } from "sst";
 
-import type { GmailBootstrapWorkflowParams } from "@leuchtturm/api/mail/gmail/bootstrap-dispatcher";
 import { Database } from "@leuchtturm/core/drizzle";
 import { Gmail } from "@leuchtturm/core/mail/gmail/workflows";
+
+export interface GmailBootstrapWorkflowParams {
+	readonly accountId: string;
+	readonly accessToken: string;
+}
 
 export interface GmailBootstrapWorkflowEnv {
 	readonly HYPERDRIVE: {
@@ -13,8 +17,10 @@ export interface GmailBootstrapWorkflowEnv {
 	};
 }
 
+type WorkflowContext = ConstructorParameters<typeof WorkflowEntrypoint>[0];
+
 export class GmailBootstrapWorkflow extends WorkflowEntrypoint<GmailBootstrapWorkflowEnv> {
-	constructor(ctx: unknown, env: GmailBootstrapWorkflowEnv) {
+	constructor(ctx: WorkflowContext, env: GmailBootstrapWorkflowEnv) {
 		fromCloudflareEnv(env);
 		super(ctx, env);
 	}
