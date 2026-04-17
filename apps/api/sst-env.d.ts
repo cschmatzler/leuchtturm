@@ -109,6 +109,7 @@ import * as cloudflare from "@cloudflare/workers-types";
 declare module "sst" {
   export interface Resource {
     "ApiWorker": cloudflare.Service
+    "ApiWorkflowWorker": cloudflare.Service
   }
 }
 

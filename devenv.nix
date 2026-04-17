@@ -5,14 +5,11 @@
 }: {
 	packages = [
 		pkgs.bash
-		pkgs.caddy
-		pkgs.deploy-rs
 		pkgs.nufmt
 		pkgs.nushell
 		pkgs.readline
-		pkgs.sops
-		pkgs.tea
 		pkgs.treefmt
+		pkgs.wrangler
 	];
 
 	# Languages

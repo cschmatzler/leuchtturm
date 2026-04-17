@@ -6,6 +6,6 @@
 		"./*": "./*.ts"
 	},
 	"dependencies": {
-		"@pulumi/pulumi": "^3.230.0"
+		"@pulumi/pulumi": "^3.231.0"
 	}
 }

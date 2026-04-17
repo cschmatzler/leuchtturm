@@ -20,6 +20,9 @@ declare module "sst" {
     "ApiWorker": {
       "type": "sst.cloudflare.Worker"
     }
+    "ApiWorkflowWorker": {
+      "type": "sst.cloudflare.Worker"
+    }
     "BetterAuthSecret": {
       "type": "sst.sst.Secret"
       "value": string

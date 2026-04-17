@@ -1,7 +1,7 @@
 import { WorkflowEntrypoint } from "cloudflare:workers";
 import type { WorkflowEvent, WorkflowStep } from "cloudflare:workers";
 import { Effect, Layer } from "effect";
-import { fromCloudflareEnv } from "sst";
+import { fromCloudflareEnv } from "sst/resource/cloudflare";
 
 import { Database } from "@leuchtturm/core/drizzle";
 import { Gmail } from "@leuchtturm/core/mail/gmail/workflows";

@@ -1,7 +1,7 @@
 import { Effect, Layer, ServiceMap } from "effect";
 import { HttpEffect, HttpRouter, HttpServer } from "effect/unstable/http";
 import { HttpApiBuilder } from "effect/unstable/httpapi";
-import { fromCloudflareEnv } from "sst";
+import { fromCloudflareEnv } from "sst/resource/cloudflare";
 
 import { AuthMiddlewareServer } from "@leuchtturm/api/auth/http-auth-server";
 import { BackgroundTasks } from "@leuchtturm/api/background";

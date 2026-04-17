@@ -1,4 +1,4 @@
-import { Effect, Schema } from "effect";
+import { Effect, Inspectable, Schema } from "effect";
 import { HttpApiBuilder } from "effect/unstable/httpapi";
 import { Resource } from "sst";
 
@@ -66,14 +66,9 @@ export namespace MailHandler {
 
 	export const oauthStateTtlMs = 10 * 60 * 1000;
 
-	export const toDatabaseError = (context: string, error: unknown) =>
-		new DatabaseError({
-			message: `${context}: ${String(error)}`,
-		});
-
 	export const persistGmailOAuthBootstrapFailure = Effect.fn(
 		"mail.persistGmailOAuthBootstrapFailure",
-	)(function* (accountId: string, error: unknown) {
+	)(function* (accountId: string, error: Error) {
 		const { db } = yield* Database.Service;
 
 		yield* Effect.tryPromise({
@@ -87,17 +82,16 @@ export namespace MailHandler {
 					[
 						"degraded",
 						"oauth_bootstrap_failed",
-						String(error),
+						error.message,
 						"Gmail OAuth bootstrap failed",
 						new Date(),
 						accountId,
 					],
 				),
 			catch: (persistError) =>
-				toDatabaseError(
-					`Failed to persist Gmail OAuth bootstrap failure for ${accountId}`,
-					persistError,
-				),
+				new DatabaseError({
+					message: `Failed to persist Gmail OAuth bootstrap failure for ${accountId}: ${Inspectable.toStringUnknown(persistError)}`,
+				}),
 		});
 	});
 
@@ -209,7 +203,12 @@ export namespace MailHandler {
 				sessionId: session.id,
 				expiresAt: new Date(Date.now() + oauthStateTtlMs),
 			})
-			.pipe(Effect.mapError((error) => toDatabaseError("Failed to create OAuth state", error)));
+			.pipe(
+				Effect.mapError(
+					(error) =>
+						new DatabaseError({ message: `Failed to create OAuth state: ${error.message}` }),
+				),
+			);
 
 		const url = yield* oauth.getAuthUrl(state);
 
@@ -228,7 +227,12 @@ export namespace MailHandler {
 				userId: user.id,
 				sessionId: session.id,
 			})
-			.pipe(Effect.mapError((error) => toDatabaseError("Failed to validate OAuth state", error)));
+			.pipe(
+				Effect.mapError(
+					(error) =>
+						new DatabaseError({ message: `Failed to validate OAuth state: ${error.message}` }),
+				),
+			);
 
 		if (!state) {
 			return yield* Effect.fail(
@@ -242,21 +246,25 @@ export namespace MailHandler {
 		const userInfo = yield* oauth.getUserInfo(tokens.accessToken);
 		const normalizedEmail = userInfo.email.trim().toLowerCase();
 
-		const existingAccount = yield* email
-			.getAccountByUserAndEmail(user.id, normalizedEmail)
-			.pipe(
-				Effect.mapError((error) => toDatabaseError("Failed to fetch existing mail account", error)),
-			);
+		const existingAccount = yield* email.getAccountByUserAndEmail(user.id, normalizedEmail).pipe(
+			Effect.mapError(
+				(error) =>
+					new DatabaseError({
+						message: `Failed to fetch existing mail account: ${error.message}`,
+					}),
+			),
+		);
 
 		let existingRefreshToken: string | undefined;
 		if (existingAccount) {
-			const secret = yield* email
-				.getAccountSecret(existingAccount.id)
-				.pipe(
-					Effect.mapError((error) =>
-						toDatabaseError("Failed to fetch existing credentials", error),
-					),
-				);
+			const secret = yield* email.getAccountSecret(existingAccount.id).pipe(
+				Effect.mapError(
+					(error) =>
+						new DatabaseError({
+							message: `Failed to fetch existing credentials: ${error.message}`,
+						}),
+				),
+			);
 			if (secret) {
 				const decrypted = yield* encryption
 					.decrypt({
@@ -264,14 +272,20 @@ export namespace MailHandler {
 						encryptedDek: secret.encryptedDek,
 					})
 					.pipe(
-						Effect.mapError((error) =>
-							toDatabaseError("Failed to decrypt existing credentials", error),
+						Effect.mapError(
+							(error) =>
+								new DatabaseError({
+									message: `Failed to decrypt existing credentials: ${error.message}`,
+								}),
 						),
 					);
 
 				existingRefreshToken = yield* Effect.try({
 					try: () => decodeStoredMailOAuthSecret(JSON.parse(decrypted)).refreshToken,
-					catch: (error) => toDatabaseError("Failed to decode existing credentials", error),
+					catch: (error) =>
+						new DatabaseError({
+							message: `Failed to decode existing credentials: ${error instanceof Error ? error.message : Inspectable.toStringUnknown(error)}`,
+						}),
 				});
 			}
 		}
@@ -298,7 +312,12 @@ export namespace MailHandler {
 				displayName: userInfo.name ?? null,
 				status: "connecting",
 			})
-			.pipe(Effect.mapError((error) => toDatabaseError("Failed to upsert mail account", error)));
+			.pipe(
+				Effect.mapError(
+					(error) =>
+						new DatabaseError({ message: `Failed to upsert mail account: ${error.message}` }),
+				),
+			);
 
 		yield* Effect.gen(function* () {
 			const encrypted = yield* encryption.encrypt(
@@ -317,7 +336,12 @@ export namespace MailHandler {
 					encryptedDek: encrypted.encryptedDek,
 				})
 				.pipe(
-					Effect.mapError((error) => toDatabaseError("Failed to store mail credentials", error)),
+					Effect.mapError(
+						(error) =>
+							new DatabaseError({
+								message: `Failed to store mail credentials: ${error.message}`,
+							}),
+					),
 				);
 
 			yield* Effect.tryPromise({
@@ -328,22 +352,26 @@ export namespace MailHandler {
 							accessToken: tokens.accessToken,
 						},
 					}),
-				catch: (error) => toDatabaseError("Failed to launch Gmail bootstrap workflow", error),
+				catch: (error) =>
+					new DatabaseError({
+						message: `Failed to launch Gmail bootstrap workflow: ${Inspectable.toStringUnknown(error)}`,
+					}),
 			});
 
-			yield* email
-				.updateAccountStatus(account.id, "bootstrapping")
-				.pipe(
-					Effect.mapError((error) =>
-						toDatabaseError("Failed to mark Gmail account as bootstrapping", error),
-					),
-				);
+			yield* email.updateAccountStatus(account.id, "bootstrapping").pipe(
+				Effect.mapError(
+					(error) =>
+						new DatabaseError({
+							message: `Failed to mark Gmail account as bootstrapping: ${error.message}`,
+						}),
+				),
+			);
 		}).pipe(
 			Effect.catch((error) =>
 				persistGmailOAuthBootstrapFailure(account.id, error).pipe(
 					Effect.catch((persistError) =>
 						Effect.logWarning(
-							`Failed to persist Gmail OAuth bootstrap failure for ${account.id}: ${JSON.stringify(persistError)}`,
+							`Failed to persist Gmail OAuth bootstrap failure for ${account.id}: ${Inspectable.toStringUnknown(persistError)}`,
 						),
 					),
 					Effect.flatMap(() => Effect.fail(error)),
@@ -360,7 +388,11 @@ export namespace MailHandler {
 
 		const account = yield* email
 			.getAccountForUser(payload.accountId, user.id)
-			.pipe(Effect.mapError((error) => toDatabaseError("Failed to fetch account", error)));
+			.pipe(
+				Effect.mapError(
+					(error) => new DatabaseError({ message: `Failed to fetch account: ${error.message}` }),
+				),
+			);
 
 		if (!account) {
 			return yield* Effect.fail(new NotFoundError({ resource: "MailAccount" }));
@@ -374,7 +406,11 @@ export namespace MailHandler {
 
 		yield* email
 			.disconnectAccount(payload.accountId)
-			.pipe(Effect.mapError((error) => toDatabaseError("Disconnect failed", error)));
+			.pipe(
+				Effect.mapError(
+					(error) => new DatabaseError({ message: `Disconnect failed: ${error.message}` }),
+				),
+			);
 
 		return { success: true as const };
 	});
@@ -396,7 +432,11 @@ export namespace MailHandler {
 		const email = yield* Email.Service;
 		const accounts = yield* email
 			.getAccountsByEmail(decoded.emailAddress)
-			.pipe(Effect.mapError((error) => toDatabaseError("Failed to look up accounts", error)));
+			.pipe(
+				Effect.mapError(
+					(error) => new DatabaseError({ message: `Failed to look up accounts: ${error.message}` }),
+				),
+			);
 
 		const gmailAccounts = accounts.filter((account) => account.provider === "gmail");
 		if (gmailAccounts.length === 0) {

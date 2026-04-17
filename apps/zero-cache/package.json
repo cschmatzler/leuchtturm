@@ -5,7 +5,7 @@
 		"dev": "zero-cache-dev"
 	},
 	"dependencies": {
-		"@rocicorp/zero": "1.1.1"
+		"@rocicorp/zero": "1.3.0"
 	},
 	"trustedDependencies": [
 		"@rocicorp/zero-sqlite3"

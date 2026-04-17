@@ -3,7 +3,7 @@ packages:
   - apps/*
   - packages/*
 
-minimumReleaseAge: 4320
+minimumReleaseAge: 720
 
 onlyBuiltDependencies:
   - "@rocicorp/zero-sqlite3"
