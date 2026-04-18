@@ -18,6 +18,7 @@ import { Database } from "@leuchtturm/core/drizzle";
 import { makeRuntime } from "@leuchtturm/core/effect/run-service";
 import { Email } from "@leuchtturm/core/email";
 import { DatabaseError } from "@leuchtturm/core/errors";
+import { MailContentStorage, type MailContentBucket } from "@leuchtturm/core/mail/content-storage";
 import { Gmail } from "@leuchtturm/core/mail/gmail/workflows";
 
 namespace Api {
@@ -25,6 +26,7 @@ namespace Api {
 		readonly HYPERDRIVE: {
 			readonly connectionString: string;
 		};
+		readonly MAIL_CONTENT_BUCKET: MailContentBucket;
 		readonly GMAIL_BOOTSTRAP_WORKFLOW: MailHandler.GmailBootstrapWorkflowBinding;
 	}
 
@@ -49,12 +51,15 @@ namespace Api {
 			),
 		).pipe(Effect.flatten);
 		const database = Database.layer(env.HYPERDRIVE.connectionString);
+		const mailContentStorage = MailContentStorage.layer(env.MAIL_CONTENT_BUCKET);
 		const core = Layer.mergeAll(
 			Auth.defaultLayer,
 			Email.defaultLayer,
 			FeatureFlags.defaultLayer,
 			Gmail.defaultLayer,
-		).pipe(Layer.provideMerge(database));
+		)
+			.pipe(Layer.provideMerge(database))
+			.pipe(Layer.provideMerge(mailContentStorage));
 		const runtime = Layer.mergeAll(
 			core,
 			HttpServer.layerServices,

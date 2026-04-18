@@ -4,6 +4,7 @@ import { Effect, Layer } from "effect";
 import { fromCloudflareEnv } from "sst/resource/cloudflare";
 
 import { Database } from "@leuchtturm/core/drizzle";
+import { MailContentStorage, type MailContentBucket } from "@leuchtturm/core/mail/content-storage";
 import { Gmail } from "@leuchtturm/core/mail/gmail/workflows";
 
 export interface GmailBootstrapWorkflowParams {
@@ -15,6 +16,7 @@ export interface GmailBootstrapWorkflowEnv {
 	readonly HYPERDRIVE: {
 		readonly connectionString: string;
 	};
+	readonly MAIL_CONTENT_BUCKET: MailContentBucket;
 }
 
 type WorkflowContext = ConstructorParameters<typeof WorkflowEntrypoint>[0];
@@ -35,9 +37,9 @@ export class GmailBootstrapWorkflow extends WorkflowEntrypoint<GmailBootstrapWor
 					accessToken: payload.accessToken,
 				}).pipe(
 					Effect.provide(
-						Gmail.defaultLayer.pipe(
-							Layer.provideMerge(Database.layer(this.env.HYPERDRIVE.connectionString)),
-						),
+						Gmail.defaultLayer
+							.pipe(Layer.provideMerge(Database.layer(this.env.HYPERDRIVE.connectionString)))
+							.pipe(Layer.provideMerge(MailContentStorage.layer(this.env.MAIL_CONTENT_BUCKET))),
 					),
 				),
 			);

@@ -316,6 +316,43 @@ export const mailConversationFolder = pgTable(
 	],
 );
 
+export const mailConversationRender = pgTable(
+	"mail_conversation_render",
+	{
+		conversationId: char("conversation_id", { length: 30 }).primaryKey(),
+		accountId: char("account_id", { length: 30 }).notNull(),
+		userId: char("user_id", { length: 30 })
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		storageKind: text("storage_kind").notNull(),
+		storageKey: text("storage_key").notNull(),
+		contentSha256: text("content_sha256"),
+		byteSize: integer("byte_size"),
+		messageCount: integer("message_count").notNull().default(0),
+		parserVersion: text("parser_version"),
+		sanitizerVersion: text("sanitizer_version"),
+		encryptionMetadata: jsonb("encryption_metadata"),
+		createdAt: timestamp("created_at").notNull(),
+		updatedAt: timestamp("updated_at")
+			.$onUpdate(() => new Date())
+			.notNull(),
+	},
+	(table): PgTableExtraConfigValue[] => [
+		index("mail_conversation_render_account_id_idx").on(table.accountId),
+		index("mail_conversation_render_user_id_idx").on(table.userId),
+		unique("mail_conversation_render_scope_uniq").on(
+			table.conversationId,
+			table.accountId,
+			table.userId,
+		),
+		foreignKey({
+			name: "mail_conversation_render_scope_fkey",
+			columns: [table.conversationId, table.accountId, table.userId],
+			foreignColumns: [mailConversation.id, mailConversation.accountId, mailConversation.userId],
+		}).onDelete("cascade"),
+	],
+);
+
 export const mailMessage = pgTable(
 	"mail_message",
 	{
@@ -388,37 +425,6 @@ export const mailMessageHeader = pgTable(
 	(table) => [
 		foreignKey({
 			name: "mail_message_header_message_user_fkey",
-			columns: [table.messageId, table.userId],
-			foreignColumns: [mailMessage.id, mailMessage.userId],
-		}).onDelete("cascade"),
-	],
-);
-
-export const mailMessageBodyPart = pgTable(
-	"mail_message_body_part",
-	{
-		id: char("id", { length: 30 }).primaryKey(),
-		userId: char("user_id", { length: 30 })
-			.notNull()
-			.references(() => user.id, { onDelete: "cascade" }),
-		messageId: char("message_id", { length: 30 }).notNull(),
-		partIndex: smallint("part_index").notNull(),
-		contentType: text("content_type").notNull(),
-		content: text("content").notNull(),
-		isPreferredRender: boolean("is_preferred_render").notNull().default(false),
-		createdAt: timestamp("created_at").notNull(),
-		updatedAt: timestamp("updated_at")
-			.$onUpdate(() => new Date())
-			.notNull(),
-	},
-	(table) => [
-		index("mail_message_body_part_message_id_idx").on(table.messageId),
-		unique("mail_message_body_part_message_id_part_index_uniq").on(
-			table.messageId,
-			table.partIndex,
-		),
-		foreignKey({
-			name: "mail_message_body_part_message_user_fkey",
 			columns: [table.messageId, table.userId],
 			foreignColumns: [mailMessage.id, mailMessage.userId],
 		}).onDelete("cascade"),

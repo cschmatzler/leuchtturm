@@ -14,12 +14,12 @@ import {
 	mailConversation,
 	mailConversationFolder,
 	mailConversationLabel,
+	mailConversationRender,
 	mailFolder,
 	mailFolderSyncState,
 	mailIdentity,
 	mailLabel,
 	mailMessage,
-	mailMessageBodyPart,
 	mailMessageHeader,
 	mailMessageLabel,
 	mailMessageMailbox,
@@ -50,9 +50,9 @@ export const relations = defineRelationsPart(
 		mailConversation,
 		mailConversationLabel,
 		mailConversationFolder,
+		mailConversationRender,
 		mailMessage,
 		mailMessageHeader,
-		mailMessageBodyPart,
 		mailMessageLabel,
 		mailMessageMailbox,
 		mailAttachment,
@@ -150,6 +150,10 @@ export const relations = defineRelationsPart(
 				from: r.mailAccount.id,
 				to: r.mailConversation.accountId,
 			}),
+			conversationRenders: r.many.mailConversationRender({
+				from: r.mailAccount.id,
+				to: r.mailConversationRender.accountId,
+			}),
 			messages: r.many.mailMessage({ from: r.mailAccount.id, to: r.mailMessage.accountId }),
 			searchDocuments: r.many.mailSearchDocument({
 				from: r.mailAccount.id,
@@ -221,6 +225,14 @@ export const relations = defineRelationsPart(
 				from: r.mailConversation.accountId,
 				to: r.mailAccount.id,
 			}),
+			render: r.one.mailConversationRender({
+				from: [r.mailConversation.id, r.mailConversation.accountId, r.mailConversation.userId],
+				to: [
+					r.mailConversationRender.conversationId,
+					r.mailConversationRender.accountId,
+					r.mailConversationRender.userId,
+				],
+			}),
 			latestMessage: r.one.mailMessage({
 				from: [
 					r.mailConversation.latestMessageId,
@@ -260,15 +272,25 @@ export const relations = defineRelationsPart(
 			}),
 			folder: r.one.mailFolder({ from: r.mailConversationFolder.folderId, to: r.mailFolder.id }),
 		},
+		mailConversationRender: {
+			conversation: r.one.mailConversation({
+				from: [
+					r.mailConversationRender.conversationId,
+					r.mailConversationRender.accountId,
+					r.mailConversationRender.userId,
+				],
+				to: [r.mailConversation.id, r.mailConversation.accountId, r.mailConversation.userId],
+			}),
+			account: r.one.mailAccount({
+				from: r.mailConversationRender.accountId,
+				to: r.mailAccount.id,
+			}),
+		},
 		mailMessage: {
 			account: r.one.mailAccount({ from: r.mailMessage.accountId, to: r.mailAccount.id }),
 			conversation: r.one.mailConversation({
 				from: r.mailMessage.conversationId,
 				to: r.mailConversation.id,
-			}),
-			bodyParts: r.many.mailMessageBodyPart({
-				from: r.mailMessage.id,
-				to: r.mailMessageBodyPart.messageId,
 			}),
 			header: r.one.mailMessageHeader({
 				from: r.mailMessage.id,
@@ -301,9 +323,6 @@ export const relations = defineRelationsPart(
 		},
 		mailMessageHeader: {
 			message: r.one.mailMessage({ from: r.mailMessageHeader.messageId, to: r.mailMessage.id }),
-		},
-		mailMessageBodyPart: {
-			message: r.one.mailMessage({ from: r.mailMessageBodyPart.messageId, to: r.mailMessage.id }),
 		},
 		mailMessageLabel: {
 			message: r.one.mailMessage({ from: r.mailMessageLabel.messageId, to: r.mailMessage.id }),

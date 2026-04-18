@@ -11,7 +11,13 @@ import {
 } from "@leuchtturm/core/errors";
 import { MailEncryptionError } from "@leuchtturm/core/mail/errors";
 import { GmailOAuthError } from "@leuchtturm/core/mail/gmail/errors";
-import { MailAccountId, MailOAuthStateId } from "@leuchtturm/core/mail/schema";
+import { ConversationRenderBundle, MessageRenderBundle } from "@leuchtturm/core/mail/render";
+import {
+	MailAccountId,
+	MailConversationId,
+	MailMessageId,
+	MailOAuthStateId,
+} from "@leuchtturm/core/mail/schema";
 
 const SuccessResponse = Schema.Struct({ success: Schema.Literal(true) });
 const HealthCheckSuccessResponse = Schema.Struct({
@@ -32,6 +38,7 @@ const MailOAuthCallbackError = Schema.Union([
 	ValidationError,
 ]);
 const MailDisconnectError = Schema.Union([ProtectedRouteError, NotFoundError]);
+const MailRenderError = Schema.Union([ProtectedRouteError, NotFoundError]);
 const GmailPushError = Schema.Union([DatabaseError, UnauthorizedError]);
 
 export const health = HttpApiGroup.make("health").add(
@@ -69,6 +76,20 @@ export const mail = HttpApiGroup.make("mail")
 			payload: Schema.Struct({ accountId: MailAccountId }),
 			success: SuccessResponse,
 			error: MailDisconnectError,
+		}),
+	)
+	.add(
+		HttpApiEndpoint.get("mailConversationRender", "/mail/conversations/:conversationId/render", {
+			params: Schema.Struct({ conversationId: MailConversationId }),
+			success: ConversationRenderBundle,
+			error: MailRenderError,
+		}),
+	)
+	.add(
+		HttpApiEndpoint.get("mailMessageRender", "/mail/messages/:messageId/render", {
+			params: Schema.Struct({ messageId: MailMessageId }),
+			success: MessageRenderBundle,
+			error: MailRenderError,
 		}),
 	)
 	.middleware(AuthMiddleware.Service);

@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ArrowLeftIcon } from "lucide-react";
 
+import { getPreferredMessageRender } from "@leuchtturm/core/mail/render";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { Link } from "@leuchtturm/web/components/ui/link";
-import { useZeroQuery } from "@leuchtturm/web/lib/query";
+import { useReactQuery, useZeroQuery } from "@leuchtturm/web/lib/query";
 import { MailAccountShell } from "@leuchtturm/web/pages/_app.mail/-components/account-shell";
 import { MessageDetail } from "@leuchtturm/web/pages/_app.mail/-components/message-detail";
+import { messageRenderQuery } from "@leuchtturm/web/queries/mail-render";
 import { queries } from "@leuchtturm/zero/queries";
 
 export const Route = createFileRoute("/_app/mmg_{$messageId}")({
@@ -19,9 +21,9 @@ export const Route = createFileRoute("/_app/mmg_{$messageId}")({
 				: params.messageId,
 		}),
 	},
-	loader: async ({ context: { zero }, params: { messageId } }) => {
+	loader: async ({ context: { queryClient, zero }, params: { messageId } }) => {
 		zero.preload(queries.mailMessage({ messageId }));
-		zero.preload(queries.mailMessageBodyParts({ messageId }));
+		await queryClient.ensureQueryData(messageRenderQuery(messageId));
 	},
 	component: MessagePage,
 });
@@ -29,6 +31,10 @@ export const Route = createFileRoute("/_app/mmg_{$messageId}")({
 function MessagePage() {
 	const { messageId } = Route.useParams();
 	const [message] = useZeroQuery(queries.mailMessage({ messageId }));
+	const { data: renderBundle } = useReactQuery(messageRenderQuery(messageId));
+	const preferredRender = renderBundle
+		? getPreferredMessageRender(renderBundle)
+		: { renderKind: "text" as const, content: "" };
 
 	if (!message) return null;
 
@@ -42,7 +48,7 @@ function MessagePage() {
 						</Button>
 					</Link>
 				</div>
-				<MessageDetail messageId={messageId} />
+				<MessageDetail renderKind={preferredRender.renderKind} content={preferredRender.content} />
 			</div>
 		</MailAccountShell>
 	);

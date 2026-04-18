@@ -185,20 +185,6 @@ const mailMessageHeader = table("mail_message_header")
 	})
 	.primaryKey("messageId");
 
-const mailMessageBodyPart = table("mail_message_body_part")
-	.columns({
-		id: string(),
-		userId: string().from("user_id"),
-		messageId: string().from("message_id"),
-		partIndex: number().from("part_index"),
-		contentType: string().from("content_type"),
-		content: string(),
-		isPreferredRender: boolean().from("is_preferred_render"),
-		createdAt: number().from("created_at"),
-		updatedAt: number().from("updated_at"),
-	})
-	.primaryKey("id");
-
 const mailMessageLabel = table("mail_message_label")
 	.columns({
 		accountId: string().from("account_id"),
@@ -425,11 +411,6 @@ const mailMessageRelationships = relationships(mailMessage, ({ one, many }) => (
 		destField: ["id"],
 		destSchema: mailConversation,
 	}),
-	bodyParts: many({
-		sourceField: ["id"],
-		destField: ["messageId"],
-		destSchema: mailMessageBodyPart,
-	}),
 	header: one({
 		sourceField: ["id"],
 		destField: ["messageId"],
@@ -469,14 +450,6 @@ const mailMessageRelationships = relationships(mailMessage, ({ one, many }) => (
 			destSchema: mailParticipant,
 		},
 	),
-}));
-
-const mailMessageBodyPartRelationships = relationships(mailMessageBodyPart, ({ one }) => ({
-	message: one({
-		sourceField: ["messageId"],
-		destField: ["id"],
-		destSchema: mailMessage,
-	}),
 }));
 
 const mailMessageLabelRelationships = relationships(mailMessageLabel, ({ one }) => ({
@@ -545,7 +518,6 @@ export const schema = createSchema({
 		mailConversationLabel,
 		mailConversationFolder,
 		mailMessage,
-		mailMessageBodyPart,
 		mailMessageHeader,
 		mailMessageLabel,
 		mailMessageMailbox,
@@ -563,7 +535,6 @@ export const schema = createSchema({
 		mailConversationLabelRelationships,
 		mailConversationFolderRelationships,
 		mailMessageRelationships,
-		mailMessageBodyPartRelationships,
 		mailMessageHeaderRelationships,
 		mailMessageLabelRelationships,
 		mailMessageMailboxRelationships,
@@ -595,7 +566,6 @@ export type MailConversation = Row<typeof schema.tables.mail_conversation>;
 export type MailConversationLabel = Row<typeof schema.tables.mail_conversation_label>;
 export type MailConversationFolder = Row<typeof schema.tables.mail_conversation_folder>;
 export type MailMessage = Row<typeof schema.tables.mail_message>;
-export type MailMessageBodyPart = Row<typeof schema.tables.mail_message_body_part>;
 export type MailMessageHeader = Row<typeof schema.tables.mail_message_header>;
 export type MailMessageLabel = Row<typeof schema.tables.mail_message_label>;
 export type MailMessageMailbox = Row<typeof schema.tables.mail_message_mailbox>;

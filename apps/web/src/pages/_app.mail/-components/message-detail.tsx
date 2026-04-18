@@ -1,60 +1,36 @@
 import { PaperclipIcon } from "lucide-react";
-import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
-import { useZeroQuery } from "@leuchtturm/web/lib/query";
-import { sanitizeEmailHtml } from "@leuchtturm/web/lib/sanitize-html";
-import { queries } from "@leuchtturm/zero/queries";
 import type { MailMessage } from "@leuchtturm/zero/schema";
 
 interface MessageDetailProps {
-	messageId: string;
+	renderKind: "html" | "text";
+	content: string;
 }
 
-export function MessageDetail({ messageId }: MessageDetailProps) {
-	const [bodyParts] = useZeroQuery(queries.mailMessageBodyParts({ messageId }));
+export function MessageDetail({ renderKind, content }: MessageDetailProps) {
+	const { t } = useTranslation();
+
+	if (content.length === 0) {
+		return (
+			<div className="flex min-w-0 flex-col gap-4 overflow-x-hidden p-4">
+				<p className="text-sm text-muted-foreground italic">{t("No content")}</p>
+			</div>
+		);
+	}
 
 	return (
 		<div className="flex min-w-0 flex-col gap-4 overflow-x-hidden p-4">
-			<MessageBody bodyParts={bodyParts} />
+			{renderKind === "html" ? (
+				<div
+					className="prose prose-sm dark:prose-invert max-w-none overflow-x-auto"
+					// biome-ignore lint/security/noDangerouslySetInnerHtml: HTML is sanitized during mail ingest on the server.
+					dangerouslySetInnerHTML={{ __html: content }}
+				/>
+			) : (
+				<pre className="whitespace-pre-wrap text-sm">{content}</pre>
+			)}
 		</div>
-	);
-}
-
-function MessageBody({
-	bodyParts,
-}: {
-	bodyParts: readonly { contentType: string; content: string; isPreferredRender: boolean }[];
-}) {
-	const { t } = useTranslation();
-
-	if (bodyParts.length === 0) {
-		return <p className="text-sm text-muted-foreground italic">{t("No content")}</p>;
-	}
-
-	// Render preferred part (HTML if available, otherwise plain text) — §16
-	const preferred = bodyParts.find((p) => p.isPreferredRender) ?? bodyParts[0];
-
-	if (!preferred) {
-		return <p className="text-sm text-muted-foreground italic">{t("No content")}</p>;
-	}
-
-	if (preferred.contentType === "text/html") {
-		return <SanitizedHtml html={preferred.content} />;
-	}
-
-	return <pre className="whitespace-pre-wrap text-sm">{preferred.content}</pre>;
-}
-
-function SanitizedHtml({ html }: { html: string }) {
-	const sanitized = useMemo(() => sanitizeEmailHtml(html), [html]);
-
-	return (
-		<div
-			className="prose prose-sm dark:prose-invert max-w-none overflow-x-auto"
-			// biome-ignore lint/security/noDangerouslySetInnerHtml: HTML is sanitized client-side via DOMPurify
-			dangerouslySetInnerHTML={{ __html: sanitized }}
-		/>
 	);
 }
 

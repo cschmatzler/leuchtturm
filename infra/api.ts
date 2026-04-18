@@ -15,10 +15,17 @@ const config = new sst.Linkable("ApiConfig", {
 	},
 });
 
-const withHyperdriveBinding = (args: any) => {
+export const mailContentBucket = new sst.cloudflare.Bucket("MailContentBucket");
+
+const withWorkerBindings = (args: any) => {
 	args.bindings = output(args.bindings ?? []).apply((bindings) => [
 		...bindings,
 		{ type: "hyperdrive", name: "HYPERDRIVE", id: hyperdrive.id },
+		{
+			type: "r2_bucket",
+			name: "MAIL_CONTENT_BUCKET",
+			bucketName: mailContentBucket.name,
+		},
 	]);
 };
 
@@ -27,7 +34,7 @@ export const api = new sst.cloudflare.Worker("ApiWorker", {
 	placement: { mode: "smart" },
 	transform: {
 		worker: (args: any) => {
-			withHyperdriveBinding(args);
+			withWorkerBindings(args);
 			args.bindings = output(args.bindings ?? []).apply((bindings) => [
 				...bindings,
 				{
@@ -44,7 +51,7 @@ export const api = new sst.cloudflare.Worker("ApiWorker", {
 const workflowWorker = new sst.cloudflare.Worker("ApiWorkflowWorker", {
 	handler: "apps/api/src/mail/gmail/bootstrap.ts",
 	transform: {
-		worker: withHyperdriveBinding,
+		worker: withWorkerBindings,
 	},
 	link: [config, ...apiSecrets],
 });

@@ -2,6 +2,7 @@ import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { Effect, Layer, ServiceMap } from "effect";
 
 import { Database } from "@leuchtturm/core/drizzle";
+import { MailContentStorage } from "@leuchtturm/core/mail/content-storage";
 import {
 	getGmailFolders,
 	GmailAdapter,
@@ -28,11 +29,11 @@ import {
 	mailConversation,
 	mailConversationFolder,
 	mailConversationLabel,
+	mailConversationRender,
 	mailFolder,
 	mailFolderSyncState,
 	mailLabel,
 	mailMessage,
-	mailMessageBodyPart,
 	mailMessageHeader,
 	mailMessageLabel,
 	mailMessageMailbox,
@@ -43,13 +44,20 @@ import {
 	mailSearchDocument,
 } from "@leuchtturm/core/mail/mail.sql";
 import {
+	buildConversationRenderBundle,
+	buildMessageRenderBundle,
+	decodeMessageRenderBundle,
+	MAIL_RENDER_PARSER_VERSION,
+	MAIL_RENDER_SANITIZER_VERSION,
+	type MessageRenderBundle,
+} from "@leuchtturm/core/mail/render";
+import {
 	createMailAccountSyncStateId,
 	createMailAttachmentId,
 	createMailConversationId,
 	createMailFolderId,
 	createMailFolderSyncStateId,
 	createMailLabelId,
-	createMailMessageBodyPartId,
 	createMailMessageId,
 	createMailMessageMailboxId,
 	createMailMessageParticipantId,
@@ -59,16 +67,16 @@ import {
 } from "@leuchtturm/core/mail/schema";
 
 type Db = Database.Executor;
+type MailContent = MailContentStorage.Interface;
 type MailAccountRecord = typeof mailAccount.$inferSelect;
 
 const PROVIDER = "gmail";
 const FOLDER_SYNC_STATE_KIND = "gmail_folder_projection";
 const HISTORY_SYNC_STATE_KIND = "gmail_history";
-const MESSAGE_SOURCE_KIND = "gmail_full_message";
-const MESSAGE_PARSER_VERSION = "gmail-rest-v1";
+const RAW_SOURCE_KIND = "gmail_full_message";
+const MESSAGE_RENDER_SOURCE_KIND = "render_bundle";
 const PROVIDER_FOLDER_OBJECT = "gmail_folder";
 const PROVIDER_LABEL_OBJECT = "gmail_label";
-const PROVIDER_MESSAGE_OBJECT = "gmail_message";
 
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
 const WATCH_RENEWAL_BUFFER_MS = 24 * 60 * 60 * 1000;
@@ -256,6 +264,7 @@ export namespace GmailSync {
 	export const layer = Layer.effect(Service)(
 		Effect.gen(function* () {
 			const { db } = yield* Database.Service;
+			const storage = yield* MailContentStorage.Service;
 
 			const loadAccount = Effect.fn("GmailSync.loadAccount")(function* (accountId: string) {
 				const [account] = yield* Effect.tryPromise({
@@ -350,7 +359,7 @@ export namespace GmailSync {
 								await syncLabels(txDb, params.account.userId, params.accountId, params.labels);
 								await syncFolders(txDb, params.account.userId, params.accountId, params.folders);
 								for (const thread of params.threads) {
-									await syncThread(txDb, params.account.userId, params.accountId, thread);
+									await syncThread(txDb, storage, params.account.userId, params.accountId, thread);
 								}
 								await upsertSyncCursor(txDb, params.accountId, params.cursor);
 
@@ -473,7 +482,7 @@ export namespace GmailSync {
 								await syncLabels(txDb, params.account.userId, params.accountId, params.labels);
 								await syncFolders(txDb, params.account.userId, params.accountId, params.folders);
 								for (const thread of params.threads) {
-									await syncThread(txDb, params.account.userId, params.accountId, thread);
+									await syncThread(txDb, storage, params.account.userId, params.accountId, thread);
 								}
 								await upsertSyncCursor(txDb, params.accountId, params.cursor);
 
@@ -512,14 +521,21 @@ export namespace GmailSync {
 							const txDb = tx as unknown as Db;
 
 							for (const message of params.changes.messagesAdded) {
-								await upsertMessage(txDb, params.account.userId, params.accountId, message);
+								await upsertMessage(
+									txDb,
+									storage,
+									params.account.userId,
+									params.accountId,
+									message,
+								);
 							}
 							for (const deletedRef of params.changes.messagesDeleted) {
-								await deleteMessageByRef(txDb, params.accountId, deletedRef);
+								await deleteMessageByRef(txDb, storage, params.accountId, deletedRef);
 							}
 							for (const { messageRef, labelRefs } of params.changes.labelsAdded) {
 								await addMessageLabels(
 									txDb,
+									storage,
 									params.account.userId,
 									params.accountId,
 									messageRef,
@@ -527,7 +543,7 @@ export namespace GmailSync {
 								);
 							}
 							for (const { messageRef, labelRefs } of params.changes.labelsRemoved) {
-								await removeMessageLabels(txDb, params.accountId, messageRef, labelRefs);
+								await removeMessageLabels(txDb, storage, params.accountId, messageRef, labelRefs);
 							}
 
 							await syncLabels(txDb, params.account.userId, params.accountId, params.labels);
@@ -814,6 +830,7 @@ async function syncFolders(
 
 async function syncThread(
 	db: Db,
+	storage: MailContent,
 	userId: string,
 	accountId: string,
 	thread: GmailProviderThread,
@@ -863,11 +880,11 @@ async function syncThread(
 	const resolvedId = conversation?.id ?? conversationId;
 
 	for (const message of messages) {
-		await upsertMessage(db, userId, accountId, message, resolvedId, {
+		await upsertMessage(db, storage, userId, accountId, message, resolvedId, {
 			recomputeConversation: false,
 		});
 	}
-	await recomputeConversationStats(db, resolvedId);
+	await recomputeConversationStats(db, storage, resolvedId);
 }
 
 async function ensureConversation(
@@ -919,7 +936,11 @@ async function ensureConversation(
 	return conversation?.id ?? conversationId;
 }
 
-async function recomputeConversationStats(db: Db, conversationId: string): Promise<void> {
+async function recomputeConversationStats(
+	db: Db,
+	storage: MailContent,
+	conversationId: string,
+): Promise<void> {
 	const messages = await db
 		.select({
 			accountId: mailMessage.accountId,
@@ -939,6 +960,7 @@ async function recomputeConversationStats(db: Db, conversationId: string): Promi
 		.orderBy(desc(mailMessage.receivedAt), desc(mailMessage.createdAt));
 
 	if (messages.length === 0) {
+		await deleteConversationRender(db, storage, conversationId);
 		await db.delete(mailConversation).where(eq(mailConversation.id, conversationId));
 		return;
 	}
@@ -975,6 +997,7 @@ async function recomputeConversationStats(db: Db, conversationId: string): Promi
 		.where(eq(mailConversation.id, conversationId));
 
 	await recomputeProjections(db, latest.userId, latest.accountId, conversationId);
+	await rebuildConversationRender(db, storage, conversationId);
 }
 
 async function recomputeProjections(
@@ -1035,6 +1058,7 @@ async function recomputeProjections(
 
 async function upsertMessage(
 	db: Db,
+	storage: MailContent,
 	userId: string,
 	accountId: string,
 	message: GmailProviderMessage,
@@ -1083,7 +1107,13 @@ async function upsertMessage(
 		});
 	}
 
-	await replaceBodyParts(db, userId, messageId, message.bodyParts);
+	const messageRenderBundle = buildMessageRenderBundle({
+		messageId,
+		bodyParts: message.bodyParts,
+		parserVersion: MAIL_RENDER_PARSER_VERSION,
+		sanitizerVersion: MAIL_RENDER_SANITIZER_VERSION,
+	});
+
 	await replaceAttachments(db, userId, messageId, message.attachments);
 	await syncMessageHeader(db, userId, messageId, message.headers);
 	await syncParticipants(db, userId, messageId, message);
@@ -1096,48 +1126,16 @@ async function upsertMessage(
 		await db.delete(mailMessageMailbox).where(eq(mailMessageMailbox.messageId, messageId));
 	}
 
-	await upsertProviderState(
-		db,
+	await upsertMessageSources(db, storage, {
 		accountId,
-		PROVIDER_MESSAGE_OBJECT,
-		message.providerRef,
-		message.providerStatePayload,
-	);
-	await upsertMessageSource(db, messageId, message.providerRef, message.providerStatePayload);
-	await rebuildSearchDocument(db, messageId);
+		messageId,
+		providerPayload: message.providerStatePayload,
+		messageRenderBundle,
+	});
+	await rebuildSearchDocument(db, messageId, message.bodyParts);
 
 	if (nextConversationId && options?.recomputeConversation !== false) {
-		await recomputeConversationStats(db, nextConversationId);
-	}
-}
-
-async function replaceBodyParts(
-	db: Db,
-	userId: string,
-	messageId: string,
-	bodyParts: GmailProviderMessage["bodyParts"],
-): Promise<void> {
-	const now = new Date();
-	await db.delete(mailMessageBodyPart).where(eq(mailMessageBodyPart.messageId, messageId));
-
-	let preferredSet = false;
-	const hasHtml = bodyParts.some((bp) => bp.contentType === "text/html");
-
-	for (const [index, bp] of bodyParts.entries()) {
-		const isPreferred =
-			!preferredSet && (bp.contentType === "text/html" || (index === 0 && !hasHtml));
-		await db.insert(mailMessageBodyPart).values({
-			id: createMailMessageBodyPartId(),
-			userId,
-			messageId,
-			partIndex: index,
-			contentType: bp.contentType,
-			content: bp.content,
-			isPreferredRender: isPreferred,
-			createdAt: now,
-			updatedAt: now,
-		});
-		if (isPreferred) preferredSet = true;
+		await recomputeConversationStats(db, storage, nextConversationId);
 	}
 }
 
@@ -1381,6 +1379,7 @@ async function updateMessageFlags(
 
 async function addMessageLabels(
 	db: Db,
+	storage: MailContent,
 	userId: string,
 	accountId: string,
 	messageRef: string,
@@ -1407,12 +1406,13 @@ async function addMessageLabels(
 	await rebuildSearchDocument(db, message.id);
 
 	if (message.conversationId) {
-		await recomputeConversationStats(db, message.conversationId);
+		await recomputeConversationStats(db, storage, message.conversationId);
 	}
 }
 
 async function removeMessageLabels(
 	db: Db,
+	storage: MailContent,
 	accountId: string,
 	messageRef: string,
 	labelRefs: readonly string[],
@@ -1437,11 +1437,16 @@ async function removeMessageLabels(
 	await rebuildSearchDocument(db, message.id);
 
 	if (message.conversationId) {
-		await recomputeConversationStats(db, message.conversationId);
+		await recomputeConversationStats(db, storage, message.conversationId);
 	}
 }
 
-async function deleteMessageByRef(db: Db, accountId: string, providerRef: string): Promise<void> {
+async function deleteMessageByRef(
+	db: Db,
+	storage: MailContent,
+	accountId: string,
+	providerRef: string,
+): Promise<void> {
 	const message = await findMessage(db, accountId, providerRef);
 	if (!message) return;
 
@@ -1449,21 +1454,23 @@ async function deleteMessageByRef(db: Db, accountId: string, providerRef: string
 		.select({ participantId: mailMessageParticipant.participantId })
 		.from(mailMessageParticipant)
 		.where(eq(mailMessageParticipant.messageId, message.id));
+	const sourceRows = await db
+		.select({
+			storageKey: mailMessageSource.storageKey,
+			storageKind: mailMessageSource.storageKind,
+		})
+		.from(mailMessageSource)
+		.where(eq(mailMessageSource.messageId, message.id));
+	const r2SourceKeys = sourceRows
+		.filter((row) => row.storageKind === "r2")
+		.map((row) => row.storageKey);
 
 	await db
 		.update(mailConversation)
 		.set({ latestMessageId: null, updatedAt: new Date() })
 		.where(eq(mailConversation.latestMessageId, message.id));
 	await db.delete(mailMessage).where(eq(mailMessage.id, message.id));
-	await db
-		.delete(mailProviderState)
-		.where(
-			and(
-				eq(mailProviderState.accountId, accountId),
-				eq(mailProviderState.objectType, PROVIDER_MESSAGE_OBJECT),
-				eq(mailProviderState.objectId, providerRef),
-			),
-		);
+	await Effect.runPromise(storage.deleteKeys(r2SourceKeys));
 
 	await cleanupOrphanedParticipants(
 		db,
@@ -1472,7 +1479,7 @@ async function deleteMessageByRef(db: Db, accountId: string, providerRef: string
 	);
 
 	if (message.conversationId) {
-		await recomputeConversationStats(db, message.conversationId);
+		await recomputeConversationStats(db, storage, message.conversationId);
 	}
 }
 
@@ -1545,44 +1552,260 @@ async function upsertFolderSyncState(
 		});
 }
 
-async function upsertMessageSource(
+function messageRawStorageKey(accountId: string, messageId: string): string {
+	return `mail/${accountId}/messages/${messageId}/raw/${RAW_SOURCE_KIND}.json`;
+}
+
+function messageRenderStorageKey(accountId: string, messageId: string): string {
+	return `mail/${accountId}/messages/${messageId}/render-bundle.json`;
+}
+
+function conversationRenderStorageKey(accountId: string, conversationId: string): string {
+	return `mail/${accountId}/conversations/${conversationId}/render-bundle.json`;
+}
+
+function emptyMessageRenderBundle(messageId: string): MessageRenderBundle {
+	return {
+		version: 1,
+		messageId,
+		preferredKind: "text",
+		html: null,
+		text: null,
+		parserVersion: MAIL_RENDER_PARSER_VERSION,
+		sanitizerVersion: MAIL_RENDER_SANITIZER_VERSION,
+	};
+}
+
+async function upsertMessageSourcePointer(
 	db: Db,
-	messageId: string,
-	providerRef: string,
-	payload: unknown,
+	values: {
+		readonly messageId: string;
+		readonly sourceKind: string;
+		readonly storageKey: string;
+		readonly contentSha256: string;
+		readonly byteSize: number;
+		readonly parserVersion: string | null;
+		readonly sanitizerVersion: string | null;
+	},
 ): Promise<void> {
 	const now = new Date();
-	const digest = createProviderPayloadDigest(payload);
 	await db
 		.insert(mailMessageSource)
 		.values({
 			id: createMailMessageSourceId(),
-			messageId,
-			sourceKind: MESSAGE_SOURCE_KIND,
-			storageKind: "postgres",
-			storageKey: `${PROVIDER_MESSAGE_OBJECT}/${providerRef}`,
-			contentSha256: digest.contentSha256,
-			byteSize: digest.byteSize,
-			parserVersion: MESSAGE_PARSER_VERSION,
-			sanitizerVersion: null,
+			messageId: values.messageId,
+			sourceKind: values.sourceKind,
+			storageKind: "r2",
+			storageKey: values.storageKey,
+			contentSha256: values.contentSha256,
+			byteSize: values.byteSize,
+			parserVersion: values.parserVersion,
+			sanitizerVersion: values.sanitizerVersion,
+			encryptionMetadata: null,
 			createdAt: now,
 			updatedAt: now,
 		})
 		.onConflictDoUpdate({
 			target: [mailMessageSource.messageId, mailMessageSource.sourceKind],
 			set: {
-				storageKind: "postgres",
-				storageKey: `${PROVIDER_MESSAGE_OBJECT}/${providerRef}`,
-				contentSha256: digest.contentSha256,
-				byteSize: digest.byteSize,
-				parserVersion: MESSAGE_PARSER_VERSION,
-				sanitizerVersion: null,
+				storageKind: "r2",
+				storageKey: values.storageKey,
+				contentSha256: values.contentSha256,
+				byteSize: values.byteSize,
+				parserVersion: values.parserVersion,
+				sanitizerVersion: values.sanitizerVersion,
+				encryptionMetadata: null,
 				updatedAt: now,
 			},
 		});
 }
 
-async function rebuildSearchDocument(db: Db, messageId: string): Promise<void> {
+async function upsertMessageSources(
+	db: Db,
+	storage: MailContent,
+	values: {
+		readonly accountId: string;
+		readonly messageId: string;
+		readonly providerPayload: unknown;
+		readonly messageRenderBundle: MessageRenderBundle;
+	},
+): Promise<void> {
+	const rawDigest = createProviderPayloadDigest(values.providerPayload);
+	const rawStorageKey = messageRawStorageKey(values.accountId, values.messageId);
+	await Effect.runPromise(storage.putText(rawStorageKey, rawDigest.json));
+	await upsertMessageSourcePointer(db, {
+		messageId: values.messageId,
+		sourceKind: RAW_SOURCE_KIND,
+		storageKey: rawStorageKey,
+		contentSha256: rawDigest.contentSha256,
+		byteSize: rawDigest.byteSize,
+		parserVersion: MAIL_RENDER_PARSER_VERSION,
+		sanitizerVersion: null,
+	});
+
+	const renderDigest = createProviderPayloadDigest(values.messageRenderBundle);
+	const renderStorageKey = messageRenderStorageKey(values.accountId, values.messageId);
+	await Effect.runPromise(storage.putText(renderStorageKey, renderDigest.json));
+	await upsertMessageSourcePointer(db, {
+		messageId: values.messageId,
+		sourceKind: MESSAGE_RENDER_SOURCE_KIND,
+		storageKey: renderStorageKey,
+		contentSha256: renderDigest.contentSha256,
+		byteSize: renderDigest.byteSize,
+		parserVersion: MAIL_RENDER_PARSER_VERSION,
+		sanitizerVersion: MAIL_RENDER_SANITIZER_VERSION,
+	});
+}
+
+async function deleteConversationRender(
+	db: Db,
+	storage: MailContent,
+	conversationId: string,
+): Promise<void> {
+	const [existing] = await db
+		.select({
+			storageKey: mailConversationRender.storageKey,
+			storageKind: mailConversationRender.storageKind,
+		})
+		.from(mailConversationRender)
+		.where(eq(mailConversationRender.conversationId, conversationId))
+		.limit(1);
+
+	await db
+		.delete(mailConversationRender)
+		.where(eq(mailConversationRender.conversationId, conversationId));
+
+	if (existing?.storageKind === "r2") {
+		await Effect.runPromise(storage.deleteKeys([existing.storageKey]));
+	}
+}
+
+async function rebuildConversationRender(
+	db: Db,
+	storage: MailContent,
+	conversationId: string,
+): Promise<void> {
+	const [conversation] = await db
+		.select({
+			id: mailConversation.id,
+			accountId: mailConversation.accountId,
+			userId: mailConversation.userId,
+		})
+		.from(mailConversation)
+		.where(eq(mailConversation.id, conversationId))
+		.limit(1);
+
+	if (!conversation) {
+		await deleteConversationRender(db, storage, conversationId);
+		return;
+	}
+
+	const messages = await db
+		.select({
+			id: mailMessage.id,
+			receivedAt: mailMessage.receivedAt,
+			createdAt: mailMessage.createdAt,
+		})
+		.from(mailMessage)
+		.where(eq(mailMessage.conversationId, conversationId))
+		.orderBy(sql`${mailMessage.receivedAt} asc nulls last`, mailMessage.createdAt);
+
+	if (messages.length === 0) {
+		await deleteConversationRender(db, storage, conversationId);
+		return;
+	}
+
+	const messageIds = messages.map((message) => message.id);
+	const sourceRows = await db
+		.select({ messageId: mailMessageSource.messageId, storageKey: mailMessageSource.storageKey })
+		.from(mailMessageSource)
+		.where(
+			and(
+				inArray(mailMessageSource.messageId, messageIds),
+				eq(mailMessageSource.sourceKind, MESSAGE_RENDER_SOURCE_KIND),
+				eq(mailMessageSource.storageKind, "r2"),
+			),
+		);
+	const sourceByMessageId = new Map(sourceRows.map((row) => [row.messageId, row.storageKey]));
+
+	const renderedMessages: Array<{ messageId: string; bundle: MessageRenderBundle }> = [];
+	for (const message of messages) {
+		const storageKey = sourceByMessageId.get(message.id);
+		if (!storageKey) {
+			renderedMessages.push({
+				messageId: message.id,
+				bundle: emptyMessageRenderBundle(message.id),
+			});
+			continue;
+		}
+
+		const raw = await Effect.runPromise(storage.getText(storageKey));
+		if (!raw) {
+			renderedMessages.push({
+				messageId: message.id,
+				bundle: emptyMessageRenderBundle(message.id),
+			});
+			continue;
+		}
+
+		renderedMessages.push({
+			messageId: message.id,
+			bundle: decodeMessageRenderBundle(JSON.parse(raw)),
+		});
+	}
+
+	const conversationBundle = buildConversationRenderBundle({
+		conversationId,
+		parserVersion: MAIL_RENDER_PARSER_VERSION,
+		sanitizerVersion: MAIL_RENDER_SANITIZER_VERSION,
+		messages: renderedMessages,
+	});
+	const digest = createProviderPayloadDigest(conversationBundle);
+	const storageKey = conversationRenderStorageKey(conversation.accountId, conversationId);
+
+	await Effect.runPromise(storage.putText(storageKey, digest.json));
+
+	const now = new Date();
+	await db
+		.insert(mailConversationRender)
+		.values({
+			conversationId,
+			accountId: conversation.accountId,
+			userId: conversation.userId,
+			storageKind: "r2",
+			storageKey,
+			contentSha256: digest.contentSha256,
+			byteSize: digest.byteSize,
+			messageCount: renderedMessages.length,
+			parserVersion: MAIL_RENDER_PARSER_VERSION,
+			sanitizerVersion: MAIL_RENDER_SANITIZER_VERSION,
+			encryptionMetadata: null,
+			createdAt: now,
+			updatedAt: now,
+		})
+		.onConflictDoUpdate({
+			target: [mailConversationRender.conversationId],
+			set: {
+				accountId: conversation.accountId,
+				userId: conversation.userId,
+				storageKind: "r2",
+				storageKey,
+				contentSha256: digest.contentSha256,
+				byteSize: digest.byteSize,
+				messageCount: renderedMessages.length,
+				parserVersion: MAIL_RENDER_PARSER_VERSION,
+				sanitizerVersion: MAIL_RENDER_SANITIZER_VERSION,
+				encryptionMetadata: null,
+				updatedAt: now,
+			},
+		});
+}
+
+async function rebuildSearchDocument(
+	db: Db,
+	messageId: string,
+	bodyParts?: readonly { content: string; contentType: "text/html" | "text/plain" }[],
+): Promise<void> {
 	const [msg] = await db
 		.select({
 			accountId: mailMessage.accountId,
@@ -1598,13 +1821,17 @@ async function rebuildSearchDocument(db: Db, messageId: string): Promise<void> {
 
 	if (!msg) return;
 
+	const [existingDoc] = await db
+		.select({
+			bodyText: mailSearchDocument.bodyText,
+			mirroredCoverageKind: mailSearchDocument.mirroredCoverageKind,
+		})
+		.from(mailSearchDocument)
+		.where(eq(mailSearchDocument.messageId, messageId))
+		.limit(1);
+
 	const participants =
 		(await loadParticipantViews(db, [messageId])).get(messageId) ?? EMPTY_PARTICIPANT_VIEWS;
-
-	const bodyParts = await db
-		.select({ content: mailMessageBodyPart.content, contentType: mailMessageBodyPart.contentType })
-		.from(mailMessageBodyPart)
-		.where(eq(mailMessageBodyPart.messageId, messageId));
 	const labelRows = await db
 		.select({ labelId: mailMessageLabel.labelId })
 		.from(mailMessageLabel)
@@ -1614,15 +1841,24 @@ async function rebuildSearchDocument(db: Db, messageId: string): Promise<void> {
 		.from(mailMessageMailbox)
 		.where(eq(mailMessageMailbox.messageId, messageId));
 
-	const searchValues = buildMailSearchDocumentValues({
+	const nextSearchValues = buildMailSearchDocumentValues({
 		bccRecipients: participants.bccRecipients,
-		bodyParts: bodyParts as Array<{ content: string; contentType: "text/html" | "text/plain" }>,
+		bodyParts: bodyParts ?? [],
 		ccRecipients: participants.ccRecipients,
 		sender: participants.sender,
 		snippet: msg.snippet,
 		subject: msg.subject,
 		toRecipients: participants.toRecipients,
 	});
+
+	const searchValues = bodyParts
+		? nextSearchValues
+		: {
+				...nextSearchValues,
+				bodyText: existingDoc?.bodyText ?? nextSearchValues.bodyText,
+				mirroredCoverageKind:
+					existingDoc?.mirroredCoverageKind ?? nextSearchValues.mirroredCoverageKind,
+			};
 
 	const now = new Date();
 	const docValues = {

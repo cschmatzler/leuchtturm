@@ -34,11 +34,6 @@ export const MailMessageId = Schema.TemplateLiteral(["mmg_", Ulid]).pipe(
 );
 export type MailMessageId = typeof MailMessageId.Type;
 
-export const MailMessageBodyPartId = Schema.TemplateLiteral(["mbp_", Ulid]).pipe(
-	Schema.brand("MailMessageBodyPartId"),
-);
-export type MailMessageBodyPartId = typeof MailMessageBodyPartId.Type;
-
 export const MailMessageMailboxId = Schema.TemplateLiteral(["mmb_", Ulid]).pipe(
 	Schema.brand("MailMessageMailboxId"),
 );
@@ -106,10 +101,6 @@ export function createMailConversationId(): MailConversationId {
 
 export function createMailMessageId(): MailMessageId {
 	return MailMessageId.makeUnsafe(`mmg_${ulid()}`);
-}
-
-export function createMailMessageBodyPartId(): MailMessageBodyPartId {
-	return MailMessageBodyPartId.makeUnsafe(`mbp_${ulid()}`);
 }
 
 export function createMailMessageMailboxId(): MailMessageMailboxId {
@@ -187,7 +178,7 @@ export type MailLabelKind = typeof MailLabelKind.Type;
 export const MailAuthKind = Schema.Literals(["oauth2", "app_password"]);
 export type MailAuthKind = typeof MailAuthKind.Type;
 
-export const MailSourceKind = Schema.Literals(["raw_mime", "gmail_raw_json", "gmail_full_message"]);
+export const MailSourceKind = Schema.Literals(["raw_mime", "gmail_full_message", "render_bundle"]);
 export type MailSourceKind = typeof MailSourceKind.Type;
 
 export const MailStorageKind = Schema.Literals(["postgres", "s3", "r2", "filesystem"]);

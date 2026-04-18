@@ -13,9 +13,14 @@ import {
 	UnauthorizedError,
 	ValidationError,
 } from "@leuchtturm/core/errors";
+import { MailContentStorage } from "@leuchtturm/core/mail/content-storage";
 import { MailEncryption } from "@leuchtturm/core/mail/encryption";
 import { GmailOAuth } from "@leuchtturm/core/mail/gmail/oauth";
 import { Gmail } from "@leuchtturm/core/mail/gmail/workflows";
+import {
+	decodeConversationRenderBundle,
+	decodeMessageRenderBundle,
+} from "@leuchtturm/core/mail/render";
 import {
 	createMailAccountId,
 	createMailOAuthStateId,
@@ -47,6 +52,7 @@ export namespace MailHandler {
 	}
 
 	const GOOGLE_ISSUERS = new Set(["accounts.google.com", "https://accounts.google.com"]);
+	const MESSAGE_RENDER_SOURCE_KIND = "render_bundle";
 	const verifiedPushTokenExpirations = new Map<string, number>();
 
 	export const decodeGmailPushData = (
@@ -382,9 +388,197 @@ export namespace MailHandler {
 		return { accountId: account.id as never };
 	});
 
+	const loadAccountContentStorageKeys = Effect.fn("mail.loadAccountContentStorageKeys")(function* (
+		accountId: string,
+	) {
+		const { db } = yield* Database.Service;
+
+		const messageRows = yield* Effect.tryPromise({
+			try: async () => {
+				const result = await db.$client.query<{ storage_key: string }>(
+					[
+						"select mms.storage_key",
+						"from mail_message_source mms",
+						"inner join mail_message mm on mm.id = mms.message_id",
+						"where mm.account_id = $1 and mms.storage_kind = 'r2'",
+					].join(" "),
+					[accountId],
+				);
+				return result.rows;
+			},
+			catch: (error) =>
+				new DatabaseError({
+					message: `Failed to load message storage keys for ${accountId}: ${String(error)}`,
+				}),
+		});
+
+		const conversationRows = yield* Effect.tryPromise({
+			try: async () => {
+				const result = await db.$client.query<{ storage_key: string }>(
+					[
+						"select storage_key",
+						"from mail_conversation_render",
+						"where account_id = $1 and storage_kind = 'r2'",
+					].join(" "),
+					[accountId],
+				);
+				return result.rows;
+			},
+			catch: (error) =>
+				new DatabaseError({
+					message: `Failed to load conversation storage keys for ${accountId}: ${String(error)}`,
+				}),
+		});
+
+		return [...new Set([...messageRows, ...conversationRows].map((row) => row.storage_key))];
+	});
+
+	const conversationRender = Effect.fn("mail.conversationRender")(function* ({ params }) {
+		const { user } = yield* AuthMiddleware.CurrentUser;
+		const { db } = yield* Database.Service;
+		const storage = yield* MailContentStorage.Service;
+
+		const conversationRows = yield* Effect.tryPromise({
+			try: async () => {
+				const result = await db.$client.query<{ id: string }>(
+					["select id", "from mail_conversation", "where id = $1 and user_id = $2", "limit 1"].join(
+						" ",
+					),
+					[params.conversationId, user.id],
+				);
+				return result.rows;
+			},
+			catch: (error) =>
+				new DatabaseError({
+					message: `Failed to load conversation ${params.conversationId}: ${String(error)}`,
+				}),
+		});
+		const conversation = conversationRows[0];
+
+		if (!conversation) {
+			return yield* Effect.fail(new NotFoundError({ resource: "MailConversation" }));
+		}
+
+		const pointerRows = yield* Effect.tryPromise({
+			try: async () => {
+				const result = await db.$client.query<{ storage_key: string }>(
+					[
+						"select storage_key",
+						"from mail_conversation_render",
+						"where conversation_id = $1 and user_id = $2",
+						"limit 1",
+					].join(" "),
+					[params.conversationId, user.id],
+				);
+				return result.rows;
+			},
+			catch: (error) =>
+				new DatabaseError({
+					message: `Failed to load conversation render pointer for ${params.conversationId}: ${String(error)}`,
+				}),
+		});
+		const pointer = pointerRows[0] ? { storageKey: pointerRows[0].storage_key } : undefined;
+
+		if (!pointer) {
+			return yield* Effect.fail(new NotFoundError({ resource: "MailConversationRender" }));
+		}
+
+		const raw = yield* storage
+			.getText(pointer.storageKey)
+			.pipe(
+				Effect.mapError(
+					(error) =>
+						new DatabaseError({ message: `Failed to read conversation render: ${error.message}` }),
+				),
+			);
+
+		if (!raw) {
+			return yield* Effect.fail(new NotFoundError({ resource: "MailConversationRender" }));
+		}
+
+		return yield* Effect.try({
+			try: () => decodeConversationRenderBundle(JSON.parse(raw)),
+			catch: (error) =>
+				new DatabaseError({
+					message: `Failed to decode conversation render bundle for ${params.conversationId}: ${String(error)}`,
+				}),
+		});
+	});
+
+	const messageRender = Effect.fn("mail.messageRender")(function* ({ params }) {
+		const { user } = yield* AuthMiddleware.CurrentUser;
+		const { db } = yield* Database.Service;
+		const storage = yield* MailContentStorage.Service;
+
+		const messageRows = yield* Effect.tryPromise({
+			try: async () => {
+				const result = await db.$client.query<{ id: string }>(
+					["select id", "from mail_message", "where id = $1 and user_id = $2", "limit 1"].join(" "),
+					[params.messageId, user.id],
+				);
+				return result.rows;
+			},
+			catch: (error) =>
+				new DatabaseError({
+					message: `Failed to load message ${params.messageId}: ${String(error)}`,
+				}),
+		});
+		const message = messageRows[0];
+
+		if (!message) {
+			return yield* Effect.fail(new NotFoundError({ resource: "MailMessage" }));
+		}
+
+		const pointerRows = yield* Effect.tryPromise({
+			try: async () => {
+				const result = await db.$client.query<{ storage_key: string }>(
+					[
+						"select storage_key",
+						"from mail_message_source",
+						"where message_id = $1 and source_kind = $2 and storage_kind = 'r2'",
+						"limit 1",
+					].join(" "),
+					[params.messageId, MESSAGE_RENDER_SOURCE_KIND],
+				);
+				return result.rows;
+			},
+			catch: (error) =>
+				new DatabaseError({
+					message: `Failed to load message render pointer for ${params.messageId}: ${String(error)}`,
+				}),
+		});
+		const pointer = pointerRows[0] ? { storageKey: pointerRows[0].storage_key } : undefined;
+
+		if (!pointer) {
+			return yield* Effect.fail(new NotFoundError({ resource: "MailMessageRender" }));
+		}
+
+		const raw = yield* storage
+			.getText(pointer.storageKey)
+			.pipe(
+				Effect.mapError(
+					(error) =>
+						new DatabaseError({ message: `Failed to read message render: ${error.message}` }),
+				),
+			);
+
+		if (!raw) {
+			return yield* Effect.fail(new NotFoundError({ resource: "MailMessageRender" }));
+		}
+
+		return yield* Effect.try({
+			try: () => decodeMessageRenderBundle(JSON.parse(raw)),
+			catch: (error) =>
+				new DatabaseError({
+					message: `Failed to decode message render bundle for ${params.messageId}: ${String(error)}`,
+				}),
+		});
+	});
+
 	const disconnect = Effect.fn("mail.disconnect")(function* ({ payload }) {
 		const { user } = yield* AuthMiddleware.CurrentUser;
 		const email = yield* Email.Service;
+		const storage = yield* MailContentStorage.Service;
 
 		const account = yield* email
 			.getAccountForUser(payload.accountId, user.id)
@@ -401,6 +595,16 @@ export namespace MailHandler {
 		yield* Gmail.stopWatch(account.id).pipe(
 			Effect.catch((error) =>
 				Effect.logWarning(`Failed to stop Gmail watch for ${account.id}: ${String(error)}`),
+			),
+		);
+
+		const storageKeys = yield* loadAccountContentStorageKeys(account.id);
+		yield* storage.deleteKeys(storageKeys).pipe(
+			Effect.mapError(
+				(error) =>
+					new DatabaseError({
+						message: `Failed to delete mail content artifacts for ${account.id}: ${error.message}`,
+					}),
 			),
 		);
 
@@ -460,7 +664,9 @@ export namespace MailHandler {
 		handlers
 			.handle("mailOAuthUrl", oauthUrl)
 			.handle("mailOAuthCallback", oauthCallback)
-			.handle("mailDisconnect", disconnect),
+			.handle("mailDisconnect", disconnect)
+			.handle("mailConversationRender", conversationRender)
+			.handle("mailMessageRender", messageRender),
 	);
 
 	export const webhookLayer = HttpApiBuilder.group(LeuchtturmApi, "webhook", (handlers) =>

@@ -78,13 +78,6 @@ export const queries = defineQueries({
 			.orderBy("receivedAt", "asc"),
 	),
 
-	mailMessageBodyParts: defineQuery(({ ctx, args }) =>
-		zql.mail_message_body_part
-			.where("userId", ctx?.userId ?? "")
-			.where("messageId", (args as { messageId: string }).messageId)
-			.orderBy("partIndex", "asc"),
-	),
-
 	mailFolderMessages: defineQuery(({ ctx, args }) =>
 		zql.mail_message_mailbox
 			.where("userId", ctx?.userId ?? "")

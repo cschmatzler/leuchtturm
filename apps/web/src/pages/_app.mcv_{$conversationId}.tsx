@@ -1,12 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ArrowLeftIcon } from "lucide-react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { Link } from "@leuchtturm/web/components/ui/link";
-import { useZeroQuery } from "@leuchtturm/web/lib/query";
+import { useReactQuery, useZeroQuery } from "@leuchtturm/web/lib/query";
 import { MailAccountShell } from "@leuchtturm/web/pages/_app.mail/-components/account-shell";
 import { MessageDetail } from "@leuchtturm/web/pages/_app.mail/-components/message-detail";
+import { conversationRenderQuery } from "@leuchtturm/web/queries/mail-render";
 import { queries } from "@leuchtturm/zero/queries";
 
 export const Route = createFileRoute("/_app/mcv_{$conversationId}")({
@@ -22,9 +24,10 @@ export const Route = createFileRoute("/_app/mcv_{$conversationId}")({
 				: params.conversationId,
 		}),
 	},
-	loader: async ({ context: { zero }, params: { conversationId } }) => {
+	loader: async ({ context: { queryClient, zero }, params: { conversationId } }) => {
 		zero.preload(queries.mailConversation({ conversationId }));
 		zero.preload(queries.mailConversationMessages({ conversationId }));
+		await queryClient.ensureQueryData(conversationRenderQuery(conversationId));
 	},
 	component: ConversationPage,
 });
@@ -34,6 +37,12 @@ function ConversationPage() {
 	const { conversationId } = Route.useParams();
 	const [conversation] = useZeroQuery(queries.mailConversation({ conversationId }));
 	const [messages] = useZeroQuery(queries.mailConversationMessages({ conversationId }));
+	const { data: renderBundle } = useReactQuery(conversationRenderQuery(conversationId));
+
+	const renderByMessageId = useMemo(
+		() => new Map(renderBundle?.messages.map((message) => [message.messageId, message])),
+		[renderBundle],
+	);
 
 	const accountId = conversation?.accountId ?? messages[0]?.accountId;
 	const subject = conversation?.subject ?? messages[0]?.subject;
@@ -57,9 +66,16 @@ function ConversationPage() {
 					</div>
 				</div>
 				<div className="flex min-w-0 flex-col divide-y divide-border overflow-y-auto overflow-x-hidden">
-					{messages.map((message) => (
-						<MessageDetail key={message.id} messageId={message.id} />
-					))}
+					{messages.map((message) => {
+						const render = renderByMessageId.get(message.id);
+						return (
+							<MessageDetail
+								key={message.id}
+								renderKind={render?.renderKind ?? "text"}
+								content={render?.content ?? ""}
+							/>
+						);
+					})}
 				</div>
 			</div>
 		</MailAccountShell>
