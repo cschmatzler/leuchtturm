@@ -47,11 +47,7 @@ export namespace AuthMiddleware {
 			);
 
 		if (!currentUser) {
-			yield* Effect.logWarning("Auth middleware rejected unauthenticated request");
-			return HttpServerResponse.jsonUnsafe(
-				{ _tag: "UnauthorizedError", message: "Unauthorized" },
-				{ status: 401 },
-			);
+			return yield* Effect.fail(new UnauthorizedError({ message: "Unauthorized" }));
 		}
 
 		return yield* httpApp.pipe(Effect.provideService(CurrentUser, currentUser));

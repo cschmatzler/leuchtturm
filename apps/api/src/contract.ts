@@ -1,7 +1,7 @@
 import { Schema } from "effect";
 import { HttpApi, HttpApiEndpoint, HttpApiGroup } from "effect/unstable/httpapi";
 
-import { AuthMiddleware } from "@leuchtturm/api/auth/http-auth";
+import { AuthMiddleware } from "@leuchtturm/api/auth";
 import { AuthError } from "@leuchtturm/core/auth/errors";
 import { DatabaseError, UnauthorizedError } from "@leuchtturm/core/errors";
 

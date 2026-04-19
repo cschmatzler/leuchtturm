@@ -1,4 +1,4 @@
-import { Effect, Option } from "effect";
+import { Context, Effect, Option } from "effect";
 import {
 	Headers,
 	HttpMiddleware,
@@ -11,6 +11,24 @@ export namespace RequestContext {
 	const RequestIdHeader = "x-request-id";
 	const RequestIdPattern = /^[A-Za-z0-9._:-]{1,128}$/;
 	const TrustedProxyPeers = new Set(["127.0.0.1", "::1", "::ffff:127.0.0.1"]);
+
+	export interface CurrentShape {
+		readonly method: string;
+		readonly path: string;
+		readonly requestId: string;
+	}
+
+	export class Current extends Context.Service<Current, CurrentShape>()(
+		"@leuchtturm/RequestContext",
+	) {}
+
+	const requestPath = (url: string) => {
+		try {
+			return new URL(url).pathname;
+		} catch {
+			return new URL(url, "http://internal").pathname;
+		}
+	};
 
 	const getIncomingRequestId = (
 		request: HttpServerRequest.HttpServerRequest,
@@ -39,7 +57,19 @@ export namespace RequestContext {
 		Effect.gen(function* () {
 			const request = yield* HttpServerRequest.HttpServerRequest;
 			const requestId = makeRequestId(getIncomingRequestId(request));
-			const exit = yield* Effect.exit(app);
+			const current = Current.of({
+				method: request.method,
+				path: requestPath(request.url),
+				requestId,
+			});
+			const appWithContext = app.pipe(
+				Effect.annotateLogs({ requestId }),
+				Effect.annotateSpans({ "http.request.id": requestId }),
+				Effect.provideService(Current, current),
+			);
+
+			yield* Effect.annotateCurrentSpan({ "http.request.id": requestId });
+			const exit = yield* Effect.exit(appWithContext);
 
 			if (exit._tag === "Success") {
 				return HttpServerResponse.setHeader(exit.value, RequestIdHeader, requestId);

@@ -1,100 +1,54 @@
-import { Effect, Layer, Context } from "effect";
+import { Context, Effect, Layer } from "effect";
 import { PostHog } from "posthog-node/edge";
-import { Resource } from "sst";
 
-export namespace ApiAnalytics {
-	const requestProperties = (
-		request: Request,
-		properties: Record<string, unknown> = {},
-	): Record<string, unknown> => {
-		const url = new URL(request.url);
+import { ApiConfig } from "@leuchtturm/api/config";
+import { RequestRuntime } from "@leuchtturm/api/request-runtime";
 
-		return {
-			method: request.method,
-			path: url.pathname,
-			...properties,
-		};
-	};
-
+export namespace ProductAnalytics {
 	const createClient = (waitUntil?: (promise: Promise<unknown>) => void) => {
-		const resources = Resource as unknown as {
-			readonly PostHogHost?: {
-				readonly value?: string;
-			};
-			readonly PostHogProjectApiKey?: {
-				readonly value?: string;
-			};
-		};
-		const apiKey = resources.PostHogProjectApiKey?.value;
-		const host = resources.PostHogHost?.value;
-
-		if (!apiKey || !host) {
+		const config = ApiConfig.posthog();
+		if (!config) {
 			return undefined;
 		}
 
-		return new PostHog(apiKey, {
-			host,
+		return new PostHog(config.apiKey, {
+			host: config.host,
 			waitUntil,
 		});
 	};
 
 	export interface Interface {
-		readonly captureRequest: (
-			request: Request,
-			response: Response,
-			durationMs: number,
-		) => Effect.Effect<void>;
-		readonly captureException: (
-			error: unknown,
-			request: Request,
+		readonly capture: (
+			distinctId: string,
+			event: string,
 			properties?: Record<string, unknown>,
-		) => Effect.Effect<void>;
+		) => Effect.Effect<void, never, RequestRuntime.Service>;
 	}
 
-	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/ApiAnalytics") {}
+	export class Service extends Context.Service<Service, Interface>()(
+		"@leuchtturm/ProductAnalytics",
+	) {}
 
-	export const layer = (waitUntil?: (promise: Promise<unknown>) => void) =>
-		Layer.effect(
-			Service,
-			Effect.sync(() => {
-				const client = createClient(waitUntil);
+	export const layer = Layer.succeed(
+		Service,
+		Service.of({
+			capture: (distinctId, event, properties = {}) =>
+				Effect.gen(function* () {
+					const runtime = yield* RequestRuntime.Service;
+					const client = createClient(runtime.waitUntil);
 
-				return Service.of({
-					captureRequest: (request, response, durationMs) =>
-						Effect.sync(() => {
-							if (!client) {
-								return;
-							}
+					yield* Effect.sync(() => {
+						if (!client) {
+							return;
+						}
 
-							const path = new URL(request.url).pathname;
-							if (path === "/health") {
-								return;
-							}
-
-							client.capture({
-								distinctId: "api",
-								event: "api request completed",
-								properties: requestProperties(request, {
-									duration_ms: durationMs,
-									ok: response.ok,
-									status: response.status,
-									status_group: `${Math.floor(response.status / 100)}xx`,
-								}),
-							});
-						}),
-					captureException: (error, request, properties = {}) =>
-						!client
-							? Effect.succeed(undefined)
-							: Effect.tryPromise({
-									try: () =>
-										client.captureExceptionImmediate(
-											error,
-											"api",
-											requestProperties(request, properties),
-										),
-									catch: (error) => String(error),
-								}).pipe(Effect.catch(() => Effect.succeed(undefined))),
-				});
-			}),
-		);
+						client.capture({
+							distinctId,
+							event,
+							properties,
+						});
+					});
+				}),
+		}),
+	);
 }

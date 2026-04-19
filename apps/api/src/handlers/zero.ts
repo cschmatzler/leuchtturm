@@ -5,7 +5,7 @@ import { Effect } from "effect";
 import { HttpServerRequest, HttpServerResponse } from "effect/unstable/http";
 import { HttpApiBuilder } from "effect/unstable/httpapi";
 
-import { AuthMiddleware } from "@leuchtturm/api/auth/http-auth";
+import { AuthMiddleware } from "@leuchtturm/api/auth";
 import { LeuchtturmApi } from "@leuchtturm/api/contract";
 import { Database } from "@leuchtturm/core/drizzle";
 import { DatabaseError } from "@leuchtturm/core/errors";

@@ -1,35 +1,37 @@
-import { Effect, Fiber, Layer, Context } from "effect";
+import { Context, Effect, Fiber, Layer } from "effect";
+
+import { Observability } from "@leuchtturm/api/observability";
+import { RequestRuntime } from "@leuchtturm/api/request-runtime";
 
 export namespace BackgroundTasks {
+	const run = Effect.fn("BackgroundTasks.run")(function* <A, E, R>(
+		label: string,
+		effect: Effect.Effect<A, E, R>,
+	) {
+		const fiber = yield* effect.pipe(
+			Effect.withSpan(`background.${label}`, {
+				attributes: { label },
+				kind: "internal",
+			}),
+			Effect.tapError((error) => Observability.logError(`${label}: ${String(error)}`, { label })),
+			Effect.forkDetach({ startImmediately: true }),
+		);
+
+		yield* RequestRuntime.register(Effect.runPromise(Fiber.await(fiber)).then(() => undefined));
+	});
+
 	export interface Interface {
-		readonly run: <A, E, R>(
-			label: string,
-			effect: Effect.Effect<A, E, R>,
-		) => Effect.Effect<void, never, R>;
+		readonly run: typeof run;
 	}
 
 	export class Service extends Context.Service<Service, Interface>()(
 		"@leuchtturm/BackgroundTasks",
 	) {}
 
-	export const layer = (waitUntil?: (promise: Promise<unknown>) => void) =>
-		Layer.succeed(
-			Service,
-			Service.of({
-				run: (label, effect) =>
-					Effect.gen(function* () {
-						const fiber = yield* effect.pipe(
-							Effect.tapError((error) => Effect.logError(`${label}: ${String(error)}`)),
-							Effect.forkDetach({ startImmediately: true }),
-						);
-
-						const promise = Effect.runPromise(Fiber.await(fiber)).then(() => undefined);
-						if (waitUntil) {
-							waitUntil(promise);
-						} else {
-							void promise;
-						}
-					}),
-			}),
-		);
+	export const layer = Layer.succeed(
+		Service,
+		Service.of({
+			run,
+		}),
+	);
 }
