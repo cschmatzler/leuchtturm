@@ -1,4 +1,4 @@
-import { MailIcon } from "lucide-react";
+import { SparklesIcon } from "lucide-react";
 
 export function Loading() {
 	return (
@@ -9,7 +9,7 @@ export function Loading() {
 		>
 			<span className="sr-only">Loading</span>
 			<div className="flex size-10 animate-pulse items-center justify-center rounded-xl bg-primary/10 text-primary">
-				<MailIcon className="size-5" />
+				<SparklesIcon className="size-5" />
 			</div>
 			<div className="flex flex-col items-center gap-2">
 				<div className="h-2 w-48 animate-pulse rounded-full bg-muted" />

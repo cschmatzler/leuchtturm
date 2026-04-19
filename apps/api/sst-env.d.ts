@@ -30,26 +30,6 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "GmailOauthClientId": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
-    "GmailOauthClientSecret": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
-    "GmailOauthRedirectUri": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
-    "GmailPubSubTopic": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
-    "MailKek": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
     "PlanetScaleDatabaseId": {
       "type": "sst.sst.Secret"
       "value": string
@@ -109,9 +89,7 @@ import * as cloudflare from "@cloudflare/workers-types";
 declare module "sst" {
   export interface Resource {
     "ApiWorker": cloudflare.Service
-    "ApiWorkflowWorker": cloudflare.Service
     "HYPERDRIVE": cloudflare.Hyperdrive
-    "Storage": cloudflare.R2Bucket
   }
 }
 

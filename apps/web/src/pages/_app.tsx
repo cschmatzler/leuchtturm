@@ -1,7 +1,7 @@
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Outlet, redirect, useNavigate } from "@tanstack/react-router";
-import { CheckIcon, CogIcon, LogOutIcon, MailIcon, PlusIcon } from "lucide-react";
+import { CheckIcon, CogIcon, LogOutIcon, PlusIcon } from "lucide-react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -159,18 +159,6 @@ function Shell({ session }: { session: SessionData }) {
 			<Sidebar variant="inset" collapsible="icon">
 				<SidebarContent>
 					<SidebarGroup>
-						<SidebarGroupContent>
-							<SidebarMenu>
-								<SidebarMenuItem>
-									<SidebarMenuButton tooltip={t("Mail")} render={<Link to="/mail" />}>
-										<MailIcon />
-										<span>{t("Mail")}</span>
-									</SidebarMenuButton>
-								</SidebarMenuItem>
-							</SidebarMenu>
-						</SidebarGroupContent>
-					</SidebarGroup>
-					<SidebarGroup className="mt-auto">
 						<SidebarGroupContent>
 							<SidebarMenu>
 								<SidebarMenuItem>

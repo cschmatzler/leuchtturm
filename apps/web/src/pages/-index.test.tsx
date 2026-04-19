@@ -55,9 +55,9 @@ async function renderHomePage(session: unknown) {
 		path: "/",
 		component: Page as never,
 	});
-	const mailRoute = createRoute({
+	const settingsRoute = createRoute({
 		getParentRoute: () => rootRoute,
-		path: "/mail",
+		path: "/settings/preferences",
 		component: Empty,
 	});
 	const loginRoute = createRoute({
@@ -83,7 +83,7 @@ async function renderHomePage(session: unknown) {
 	const router = createRouter({
 		routeTree: rootRoute.addChildren([
 			indexRoute,
-			mailRoute,
+			settingsRoute,
 			loginRoute,
 			signupRoute,
 			tosRoute,
@@ -126,6 +126,8 @@ describe("home page auth CTAs", () => {
 
 		const dashboardLinks = screen.getAllByRole("link", { name: /dashboard/i });
 		expect(dashboardLinks).toHaveLength(4);
-		expect(dashboardLinks.every((link) => link.getAttribute("href") === "/mail")).toBe(true);
+		expect(
+			dashboardLinks.every((link) => link.getAttribute("href") === "/settings/preferences"),
+		).toBe(true);
 	});
 });

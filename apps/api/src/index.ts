@@ -1,4 +1,4 @@
-import { Effect, Layer, Context } from "effect";
+import { Context, Effect, Layer } from "effect";
 import { HttpEffect, HttpRouter, HttpServer } from "effect/unstable/http";
 import { HttpApiBuilder } from "effect/unstable/httpapi";
 import { fromCloudflareEnv } from "sst/resource/cloudflare";
@@ -9,25 +9,19 @@ import { LeuchtturmApi } from "@leuchtturm/api/contract";
 import { FeatureFlags } from "@leuchtturm/api/feature-flags";
 import { AuthHandler } from "@leuchtturm/api/handlers/auth";
 import { HealthHandler } from "@leuchtturm/api/handlers/health";
-import { MailHandler } from "@leuchtturm/api/handlers/mail";
 import { ZeroHandler } from "@leuchtturm/api/handlers/zero";
 import { RequestContext } from "@leuchtturm/api/middleware/request-context";
 import { ApiAnalytics } from "@leuchtturm/api/posthog";
 import { Auth } from "@leuchtturm/core/auth";
 import { Database } from "@leuchtturm/core/drizzle";
 import { makeRuntime } from "@leuchtturm/core/effect/run-service";
-import { Email } from "@leuchtturm/core/email";
 import { DatabaseError } from "@leuchtturm/core/errors";
-import { MailContentStorage, type MailContentBucket } from "@leuchtturm/core/mail/content-storage";
-import { Gmail } from "@leuchtturm/core/mail/gmail/workflows";
 
 namespace Api {
 	export interface Env {
 		readonly HYPERDRIVE: {
 			readonly connectionString: string;
 		};
-		readonly MAIL_CONTENT_BUCKET: MailContentBucket;
-		readonly GMAIL_BOOTSTRAP_WORKFLOW: MailHandler.GmailBootstrapWorkflowBinding;
 	}
 
 	export interface Interface {
@@ -37,13 +31,7 @@ namespace Api {
 	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/Api") {}
 
 	export const layer = (env: Env, waitUntil?: (promise: Promise<unknown>) => void) => {
-		const handlers = Layer.mergeAll(
-			HealthHandler.layer,
-			ZeroHandler.layer,
-			AuthHandler.layer,
-			MailHandler.mailLayer,
-			MailHandler.webhookLayer,
-		);
+		const handlers = Layer.mergeAll(HealthHandler.layer, ZeroHandler.layer, AuthHandler.layer);
 		const api = HttpRouter.toHttpEffect(
 			HttpApiBuilder.layer(LeuchtturmApi).pipe(
 				Layer.provide(handlers),
@@ -51,15 +39,9 @@ namespace Api {
 			),
 		).pipe(Effect.flatten);
 		const database = Database.layer(env.HYPERDRIVE.connectionString);
-		const mailContentStorage = MailContentStorage.layer(env.MAIL_CONTENT_BUCKET);
-		const core = Layer.mergeAll(
-			Auth.defaultLayer,
-			Email.defaultLayer,
-			FeatureFlags.defaultLayer,
-			Gmail.defaultLayer,
-		)
-			.pipe(Layer.provideMerge(database))
-			.pipe(Layer.provideMerge(mailContentStorage));
+		const core = Layer.mergeAll(Auth.defaultLayer, FeatureFlags.defaultLayer).pipe(
+			Layer.provideMerge(database),
+		);
 		const runtime = Layer.mergeAll(
 			core,
 			HttpServer.layerServices,

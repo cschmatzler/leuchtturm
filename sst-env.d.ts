@@ -20,9 +20,6 @@ declare module "sst" {
     "ApiWorker": {
       "type": "sst.cloudflare.Worker"
     }
-    "ApiWorkflowWorker": {
-      "type": "sst.cloudflare.Worker"
-    }
     "BetterAuthSecret": {
       "type": "sst.sst.Secret"
       "value": string
@@ -35,28 +32,8 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "GmailOauthClientId": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
-    "GmailOauthClientSecret": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
-    "GmailOauthRedirectUri": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
-    "GmailPubSubTopic": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
     "HYPERDRIVE": {
       "type": "sst.sst.Linkable"
-    }
-    "MailKek": {
-      "type": "sst.sst.Secret"
-      "value": string
     }
     "PlanetScaleDatabaseId": {
       "type": "sst.sst.Secret"
@@ -93,10 +70,6 @@ declare module "sst" {
     "ResendApiKey": {
       "type": "sst.sst.Secret"
       "value": string
-    }
-    "Storage": {
-      "name": string
-      "type": "sst.cloudflare.Bucket"
     }
     "Web": {
       "type": "sst.cloudflare.StaticSite"

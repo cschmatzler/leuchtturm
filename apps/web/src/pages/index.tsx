@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRightIcon, InboxIcon, MailIcon, MessageSquareIcon, SearchIcon } from "lucide-react";
+import { ArrowRightIcon, CompassIcon, SearchIcon, SparklesIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -51,7 +51,7 @@ function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
 						<Button
 							size="sm"
 							className="bg-background text-foreground hover:bg-background/90"
-							render={<Link to="/mail" />}
+							render={<Link to="/settings/preferences" />}
 						>
 							{t("Dashboard")}
 						</Button>
@@ -80,21 +80,21 @@ function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
 			<section className="relative mx-auto max-w-7xl px-6 pb-40 pt-28 md:pb-52 md:pt-36">
 				<div className="mx-auto max-w-3xl text-center">
 					<div className="animate-hero inline-flex items-center gap-2 rounded-full border border-background/10 bg-background/[0.06] px-4 py-1.5 text-xs font-medium tracking-wide text-background/60">
-						<MailIcon className="size-3" />
-						{t("Built for clarity")}
+						<SparklesIcon className="size-3" />
+						{t("Built for focus")}
 					</div>
 					<h1
 						className="animate-hero mt-8 font-display text-5xl font-extrabold tracking-tight sm:text-6xl md:text-7xl lg:text-8xl"
 						style={{ animationDelay: "0.08s" }}
 					>
-						{t("Your inbox, refined.")}
+						{t("Your workflow, refined.")}
 					</h1>
 					<p
 						className="animate-hero mx-auto mt-7 max-w-lg text-lg leading-relaxed text-background/45"
 						style={{ animationDelay: "0.16s" }}
 					>
 						{t(
-							"A fast, focused email client built for clarity. Tame your inbox, find anything instantly, and stay on top of what matters.",
+							"A fast, focused workspace built for clarity. Keep your projects organized, find what you need instantly, and stay on top of what matters.",
 						)}
 					</p>
 					<div
@@ -105,7 +105,7 @@ function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
 							<Button
 								size="lg"
 								className="bg-background text-foreground hover:bg-background/90"
-								render={<Link to="/mail" />}
+								render={<Link to="/settings/preferences" />}
 							>
 								{t("Go to Dashboard")}
 								<ArrowRightIcon data-icon="inline-end" />
@@ -153,26 +153,24 @@ function FeaturesSection() {
 
 			<div className="mt-16 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
 				<FeatureCard
-					icon={<InboxIcon className="size-5" />}
-					title={t("Inbox")}
+					icon={<CompassIcon className="size-5" />}
+					title={t("Workspace")}
 					description={t(
-						"Smart inbox that learns what matters. Priority sorting, custom filters, and keyboard-first navigation that keeps your hands where they belong.",
+						"Stay organized with a clean, keyboard-first workspace designed for speed and focus.",
 					)}
 				/>
 				<FeatureCard
-					icon={<MessageSquareIcon className="size-5" />}
-					title={t("Threads")}
+					icon={<SparklesIcon className="size-5" />}
+					title={t("Automation")}
 					description={t(
-						"Follow conversations naturally. Reply in context without ever losing track of the thread.",
+						"Automate repetitive tasks and spend more time on the work that actually matters.",
 					)}
 				/>
 				<FeatureCard
 					className="sm:col-span-2 lg:col-span-1"
 					icon={<SearchIcon className="size-5" />}
 					title={t("Search")}
-					description={t(
-						"Find any email instantly. Full-text search across your entire archive with smart filters.",
-					)}
+					description={t("Find anything instantly with fast, reliable full-text search.")}
 				/>
 			</div>
 		</section>
@@ -220,15 +218,15 @@ function CallToActionSection({ isAuthenticated }: { isAuthenticated: boolean }) 
 					</h2>
 					<p className="mx-auto mt-4 max-w-xl text-background/45">
 						{isAuthenticated
-							? t("Head back to your inbox and stay on top of things.")
-							: t("Sign up free and experience email the way it should be.")}
+							? t("Head back to your workspace and keep moving.")
+							: t("Sign up free and stay in flow.")}
 					</p>
 					<div className="mt-9 flex justify-center gap-3">
 						{isAuthenticated ? (
 							<Button
 								size="lg"
 								className="bg-background text-foreground hover:bg-background/90"
-								render={<Link to="/mail" />}
+								render={<Link to="/settings/preferences" />}
 							>
 								{t("Go to Dashboard")}
 								<ArrowRightIcon data-icon="inline-end" />
@@ -270,7 +268,7 @@ function MarketingFooter({ isAuthenticated }: { isAuthenticated: boolean }) {
 					<div className="flex flex-col gap-3">
 						<BrandLink accent />
 						<p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
-							{t("A fast, focused email client built for people who value clarity.")}
+							{t("A fast, focused app built for people who value clarity.")}
 						</p>
 					</div>
 					<div>
@@ -299,7 +297,7 @@ function MarketingFooter({ isAuthenticated }: { isAuthenticated: boolean }) {
 						<nav className="mt-4 flex flex-col gap-2.5">
 							{isAuthenticated ? (
 								<Link
-									to="/mail"
+									to="/settings/preferences"
 									className="text-sm text-foreground/70 transition-colors hover:text-foreground"
 								>
 									{t("Dashboard")}
@@ -354,7 +352,7 @@ function BrandLink({ accent = false }: { accent?: boolean }) {
 						: "flex size-8 items-center justify-center rounded-lg bg-background/15"
 				}
 			>
-				<MailIcon className="size-4" />
+				<SparklesIcon className="size-4" />
 			</div>
 			<span className="text-base font-semibold tracking-tight">Leuchtturm</span>
 		</Link>

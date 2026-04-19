@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { MailIcon } from "lucide-react";
+import { SparklesIcon } from "lucide-react";
 
 import { AuthSidePanel } from "@leuchtturm/web/components/app/auth-side-panel";
 import { ForgotPasswordForm } from "@leuchtturm/web/pages/forgot-password/-components/forgot-password-form";
@@ -18,7 +18,7 @@ function Page() {
 						className="flex items-center gap-2.5 font-medium transition-colors hover:text-primary"
 					>
 						<div className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-							<MailIcon className="size-4" />
+							<SparklesIcon className="size-4" />
 						</div>
 						<span className="text-base font-semibold">Leuchtturm</span>
 					</Link>

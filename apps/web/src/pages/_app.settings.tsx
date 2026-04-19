@@ -7,7 +7,6 @@ import { cn } from "@leuchtturm/web/lib/cn";
 
 const SETTINGS_TABS = [
 	{ to: "/settings/preferences" as const, labelKey: "Preferences" },
-	{ to: "/settings/mail" as const, labelKey: "Mail accounts" },
 	{ to: "/settings/billing" as const, labelKey: "Billing" },
 ] as const;
 

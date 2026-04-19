@@ -29,7 +29,7 @@ function Page() {
 						<h2 className="text-xl font-semibold">Information we collect</h2>
 						<ul className="list-disc space-y-2 pl-5 leading-relaxed text-muted-foreground">
 							<li>Account details such as name, email address, and hashed passwords.</li>
-							<li>Content you add to the product, including emails and account settings.</li>
+							<li>Content you add to the product, including account settings.</li>
 							<li>Usage and device data, such as logins, pages viewed, and browser type.</li>
 							<li>Support requests and communications you send to us.</li>
 						</ul>

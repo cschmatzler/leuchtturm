@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { MailIcon } from "lucide-react";
+import { SparklesIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@leuchtturm/web/components/ui/button";
@@ -38,7 +38,7 @@ export function MarketingHeader({ variant = "default" }: MarketingHeaderProps) {
 							variant === "hero" && "size-8",
 						)}
 					>
-						<MailIcon
+						<SparklesIcon
 							className={cn(variant === "default" && "size-4", variant === "hero" && "size-4")}
 						/>
 					</div>
@@ -47,7 +47,7 @@ export function MarketingHeader({ variant = "default" }: MarketingHeaderProps) {
 				{!isLoading && (
 					<div className="flex items-center gap-2">
 						{session ? (
-							<Button size="sm" render={<Link to="/mail" />}>
+							<Button size="sm" render={<Link to="/settings/preferences" />}>
 								{t("Dashboard")}
 							</Button>
 						) : (

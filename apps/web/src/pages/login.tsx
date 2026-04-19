@@ -2,7 +2,7 @@ import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Schema } from "effect";
-import { MailIcon } from "lucide-react";
+import { SparklesIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
@@ -33,7 +33,7 @@ function Page() {
 			{
 				email: value.email,
 				password: value.password,
-				callbackURL: "/mail",
+				callbackURL: "/settings/preferences",
 			},
 			{
 				onRequest: () => {
@@ -44,7 +44,7 @@ function Page() {
 					await queryClient.fetchQuery(sessionQuery());
 					toast.dismiss();
 					toast.success(t("Welcome back!"));
-					navigate({ to: "/mail" });
+					navigate({ to: "/settings/preferences" });
 				},
 				onError: (ctx) => {
 					toast.dismiss();
@@ -71,7 +71,7 @@ function Page() {
 						className="flex items-center gap-2.5 font-medium transition-colors hover:text-primary"
 					>
 						<div className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-							<MailIcon className="size-4" />
+							<SparklesIcon className="size-4" />
 						</div>
 						<span className="text-base font-semibold">Leuchtturm</span>
 					</Link>
