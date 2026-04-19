@@ -1,5 +1,5 @@
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
-import { Effect, Layer, ServiceMap } from "effect";
+import { Effect, Layer, Context } from "effect";
 
 import { Database } from "@leuchtturm/core/drizzle";
 import { MailContentStorage } from "@leuchtturm/core/mail/content-storage";
@@ -259,7 +259,7 @@ export namespace GmailSync {
 		) => Effect.Effect<void, Error>;
 	}
 
-	export class Service extends ServiceMap.Service<Service, Interface>()("@leuchtturm/GmailSync") {}
+	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/GmailSync") {}
 
 	export const layer = Layer.effect(Service)(
 		Effect.gen(function* () {

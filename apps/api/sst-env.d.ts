@@ -110,6 +110,8 @@ declare module "sst" {
   export interface Resource {
     "ApiWorker": cloudflare.Service
     "ApiWorkflowWorker": cloudflare.Service
+    "HYPERDRIVE": cloudflare.Hyperdrive
+    "Storage": cloudflare.R2Bucket
   }
 }
 

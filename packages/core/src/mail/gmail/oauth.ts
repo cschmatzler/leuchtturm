@@ -1,4 +1,4 @@
-import { Effect, Layer, Redacted, ServiceMap } from "effect";
+import { Effect, Layer, Redacted, Context } from "effect";
 import { Resource } from "sst";
 
 import { GmailOAuthError } from "@leuchtturm/core/mail/gmail/errors";
@@ -49,7 +49,7 @@ export namespace GmailOAuth {
 		readonly getUserInfo: (accessToken: string) => Effect.Effect<GoogleUserInfo, GmailOAuthError>;
 	}
 
-	export class Service extends ServiceMap.Service<Service, Interface>()("@leuchtturm/GmailOAuth") {}
+	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/GmailOAuth") {}
 
 	export const layer = Layer.effect(Service)(
 		Effect.sync(() => {

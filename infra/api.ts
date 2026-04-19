@@ -1,10 +1,7 @@
-import { output } from "@pulumi/pulumi";
-
-import { hyperdrive } from "@leuchtturm/infra/database";
+import { hyperdriveBinding } from "@leuchtturm/infra/database";
 import { appDomain } from "@leuchtturm/infra/dns";
 import { apiSecrets, secrets } from "@leuchtturm/infra/secrets";
-
-const gmailBootstrapWorkflowName = `${$app.name}-${$app.stage}-gmail-bootstrap`;
+import { storage } from "@leuchtturm/infra/storage";
 
 const config = new sst.Linkable("ApiConfig", {
 	properties: {
@@ -15,50 +12,20 @@ const config = new sst.Linkable("ApiConfig", {
 	},
 });
 
-export const mailContentBucket = new sst.cloudflare.Bucket("MailContentBucket");
-
-const withWorkerBindings = (args: any) => {
-	args.bindings = output(args.bindings ?? []).apply((bindings) => [
-		...bindings,
-		{ type: "hyperdrive", name: "HYPERDRIVE", id: hyperdrive.id },
-		{
-			type: "r2_bucket",
-			name: "MAIL_CONTENT_BUCKET",
-			bucketName: mailContentBucket.name,
-		},
-	]);
-};
-
 export const api = new sst.cloudflare.Worker("ApiWorker", {
 	handler: "apps/api/src/index.ts",
 	placement: { mode: "smart" },
-	transform: {
-		worker: (args: any) => {
-			withWorkerBindings(args);
-			args.bindings = output(args.bindings ?? []).apply((bindings) => [
-				...bindings,
-				{
-					type: "workflow",
-					name: "GMAIL_BOOTSTRAP_WORKFLOW",
-					workflowName: gmailBootstrapWorkflowName,
-				},
-			]);
-		},
-	},
-	link: [config, ...apiSecrets],
+	link: [config, storage, hyperdriveBinding, ...apiSecrets],
 });
 
 const workflowWorker = new sst.cloudflare.Worker("ApiWorkflowWorker", {
 	handler: "apps/api/src/mail/gmail/bootstrap.ts",
-	transform: {
-		worker: withWorkerBindings,
-	},
-	link: [config, ...apiSecrets],
+	link: [config, storage, hyperdriveBinding, ...apiSecrets],
 });
 
-export const gmailBootstrapWorkflow = new cloudflare.Workflow("GmailBootstrapWorkflow", {
+new cloudflare.Workflow("GmailBootstrapWorkflow", {
 	accountId: sst.cloudflare.DEFAULT_ACCOUNT_ID,
-	workflowName: gmailBootstrapWorkflowName,
+	workflowName: "bootstrap",
 	className: "GmailBootstrapWorkflow",
 	scriptName: workflowWorker.nodes.worker.scriptName,
 });

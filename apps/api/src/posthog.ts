@@ -1,4 +1,4 @@
-import { Effect, Layer, ServiceMap } from "effect";
+import { Effect, Layer, Context } from "effect";
 import { PostHog } from "posthog-node/edge";
 import { Resource } from "sst";
 
@@ -51,9 +51,7 @@ export namespace ApiAnalytics {
 		) => Effect.Effect<void>;
 	}
 
-	export class Service extends ServiceMap.Service<Service, Interface>()(
-		"@leuchtturm/ApiAnalytics",
-	) {}
+	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/ApiAnalytics") {}
 
 	export const layer = (waitUntil?: (promise: Promise<unknown>) => void) =>
 		Layer.effect(

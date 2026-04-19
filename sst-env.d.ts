@@ -51,6 +51,9 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
+    "HYPERDRIVE": {
+      "type": "sst.sst.Linkable"
+    }
     "MailKek": {
       "type": "sst.sst.Secret"
       "value": string
@@ -90,6 +93,10 @@ declare module "sst" {
     "ResendApiKey": {
       "type": "sst.sst.Secret"
       "value": string
+    }
+    "Storage": {
+      "name": string
+      "type": "sst.cloudflare.Bucket"
     }
     "Web": {
       "type": "sst.cloudflare.StaticSite"

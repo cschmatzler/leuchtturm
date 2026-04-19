@@ -1,5 +1,5 @@
 import { drizzle, type NodePgClient, type NodePgDatabase } from "drizzle-orm/node-postgres";
-import { Effect, Layer, ServiceMap } from "effect";
+import { Effect, Layer, Context } from "effect";
 import { Client as PgClient } from "pg";
 
 import { relations } from "@leuchtturm/core/drizzle/relations";
@@ -16,7 +16,7 @@ export namespace Database {
 		readonly db: Client;
 	}
 
-	export class Service extends ServiceMap.Service<Service, Interface>()("@leuchtturm/Database") {}
+	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/Database") {}
 
 	export const layer = (connectionString: string) =>
 		Layer.effect(Service)(

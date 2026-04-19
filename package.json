@@ -11,7 +11,7 @@
 		"@effect/language-service": "^0.85.1",
 		"@leuchtturm/infra": "workspace:*",
 		"@types/node": "25.6.0",
-		"sst": "4.7.5",
+		"sst": "4.7.9",
 		"typescript": "6.0.3",
 		"vite-plus": "0.1.18"
 	},
@@ -21,7 +21,7 @@
 	"packageManager": "pnpm@10.28.0",
 	"pnpm": {
 		"overrides": {
-			"effect": "4.0.0-beta.34"
+			"effect": "4.0.0-beta.50"
 		}
 	},
 	"trustedDependencies": [

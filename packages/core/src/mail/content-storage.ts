@@ -1,4 +1,4 @@
-import { Effect, Layer, Schema, ServiceMap } from "effect";
+import { Effect, Layer, Schema, Context } from "effect";
 
 export interface MailContentBucketObject {
 	readonly text: () => Promise<string>;
@@ -31,7 +31,7 @@ export namespace MailContentStorage {
 		readonly deleteKeys: (keys: readonly string[]) => Effect.Effect<void, MailContentStorageError>;
 	}
 
-	export class Service extends ServiceMap.Service<Service, Interface>()(
+	export class Service extends Context.Service<Service, Interface>()(
 		"@leuchtturm/MailContentStorage",
 	) {}
 

@@ -8,12 +8,3 @@ export const zone = cloudflare.getZoneOutput({
 		name: root,
 	},
 });
-
-new cloudflare.DnsRecord("Placeholder", {
-	zoneId: zone.zoneId,
-	name: appDomain,
-	type: "AAAA",
-	content: "100::",
-	proxied: true,
-	ttl: 1,
-});

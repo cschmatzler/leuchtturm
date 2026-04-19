@@ -1,4 +1,4 @@
-import { Effect, Layer, ServiceMap } from "effect";
+import { Effect, Layer, Context } from "effect";
 import { HttpEffect, HttpRouter, HttpServer } from "effect/unstable/http";
 import { HttpApiBuilder } from "effect/unstable/httpapi";
 import { fromCloudflareEnv } from "sst/resource/cloudflare";
@@ -34,7 +34,7 @@ namespace Api {
 		readonly handle: (request: Request) => Effect.Effect<Response, Error>;
 	}
 
-	export class Service extends ServiceMap.Service<Service, Interface>()("@leuchtturm/Api") {}
+	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/Api") {}
 
 	export const layer = (env: Env, waitUntil?: (promise: Promise<unknown>) => void) => {
 		const handlers = Layer.mergeAll(
@@ -79,7 +79,7 @@ namespace Api {
 						const startedAt = Date.now();
 
 						return Effect.tryPromise({
-							try: () => handler.handler(request, ServiceMap.empty()),
+							try: () => handler.handler(request, Context.empty()),
 							catch: (error) =>
 								new DatabaseError({
 									message: `API handler failed: ${String(error)}`,

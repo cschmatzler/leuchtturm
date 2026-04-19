@@ -1,4 +1,4 @@
-import { Effect, Layer, ServiceMap } from "effect";
+import { Effect, Layer, Context } from "effect";
 import { Resource } from "sst";
 
 import { MailEncryptionError } from "@leuchtturm/core/mail/errors";
@@ -114,7 +114,7 @@ export namespace MailEncryption {
 		readonly decrypt: (encrypted: EncryptedSecret) => Effect.Effect<string, MailEncryptionError>;
 	}
 
-	export class Service extends ServiceMap.Service<Service, Interface>()(
+	export class Service extends Context.Service<Service, Interface>()(
 		"@leuchtturm/MailEncryption",
 	) {}
 

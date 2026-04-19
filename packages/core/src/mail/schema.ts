@@ -80,63 +80,63 @@ export const MailOAuthStateId = Schema.TemplateLiteral(["mos_", Ulid]).pipe(
 export type MailOAuthStateId = typeof MailOAuthStateId.Type;
 
 export function createMailAccountId(): MailAccountId {
-	return MailAccountId.makeUnsafe(`mac_${ulid()}`);
+	return Schema.decodeSync(MailAccountId)(`mac_${ulid()}`);
 }
 
 export function createMailIdentityId(): MailIdentityId {
-	return MailIdentityId.makeUnsafe(`mid_${ulid()}`);
+	return Schema.decodeSync(MailIdentityId)(`mid_${ulid()}`);
 }
 
 export function createMailFolderId(): MailFolderId {
-	return MailFolderId.makeUnsafe(`mfl_${ulid()}`);
+	return Schema.decodeSync(MailFolderId)(`mfl_${ulid()}`);
 }
 
 export function createMailLabelId(): MailLabelId {
-	return MailLabelId.makeUnsafe(`mlb_${ulid()}`);
+	return Schema.decodeSync(MailLabelId)(`mlb_${ulid()}`);
 }
 
 export function createMailConversationId(): MailConversationId {
-	return MailConversationId.makeUnsafe(`mcv_${ulid()}`);
+	return Schema.decodeSync(MailConversationId)(`mcv_${ulid()}`);
 }
 
 export function createMailMessageId(): MailMessageId {
-	return MailMessageId.makeUnsafe(`mmg_${ulid()}`);
+	return Schema.decodeSync(MailMessageId)(`mmg_${ulid()}`);
 }
 
 export function createMailMessageMailboxId(): MailMessageMailboxId {
-	return MailMessageMailboxId.makeUnsafe(`mmb_${ulid()}`);
+	return Schema.decodeSync(MailMessageMailboxId)(`mmb_${ulid()}`);
 }
 
 export function createMailAttachmentId(): MailAttachmentId {
-	return MailAttachmentId.makeUnsafe(`mat_${ulid()}`);
+	return Schema.decodeSync(MailAttachmentId)(`mat_${ulid()}`);
 }
 
 export function createMailAccountSyncStateId(): MailAccountSyncStateId {
-	return MailAccountSyncStateId.makeUnsafe(`mas_${ulid()}`);
+	return Schema.decodeSync(MailAccountSyncStateId)(`mas_${ulid()}`);
 }
 
 export function createMailFolderSyncStateId(): MailFolderSyncStateId {
-	return MailFolderSyncStateId.makeUnsafe(`mfs_${ulid()}`);
+	return Schema.decodeSync(MailFolderSyncStateId)(`mfs_${ulid()}`);
 }
 
 export function createMailParticipantId(): MailParticipantId {
-	return MailParticipantId.makeUnsafe(`mpt_${ulid()}`);
+	return Schema.decodeSync(MailParticipantId)(`mpt_${ulid()}`);
 }
 
 export function createMailMessageParticipantId(): MailMessageParticipantId {
-	return MailMessageParticipantId.makeUnsafe(`mmp_${ulid()}`);
+	return Schema.decodeSync(MailMessageParticipantId)(`mmp_${ulid()}`);
 }
 
 export function createMailMessageSourceId(): MailMessageSourceId {
-	return MailMessageSourceId.makeUnsafe(`mms_${ulid()}`);
+	return Schema.decodeSync(MailMessageSourceId)(`mms_${ulid()}`);
 }
 
 export function createMailProviderStateId(): MailProviderStateId {
-	return MailProviderStateId.makeUnsafe(`mps_${ulid()}`);
+	return Schema.decodeSync(MailProviderStateId)(`mps_${ulid()}`);
 }
 
 export function createMailOAuthStateId(): MailOAuthStateId {
-	return MailOAuthStateId.makeUnsafe(`mos_${ulid()}`);
+	return Schema.decodeSync(MailOAuthStateId)(`mos_${ulid()}`);
 }
 
 export const StoredMailOAuthSecret = Schema.Struct({

@@ -32,4 +32,16 @@ export const hyperdrive = new cloudflare.HyperdriveConfig("ApiHyperdrive", {
 	},
 });
 
+export const hyperdriveBinding = new sst.Linkable("HYPERDRIVE", {
+	properties: {},
+	include: [
+		sst.cloudflare.binding({
+			type: "hyperdriveBindings",
+			properties: {
+				id: hyperdrive.id,
+			},
+		}),
+	],
+});
+
 export { branch, database, hyperdriveRole };

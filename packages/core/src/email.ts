@@ -1,5 +1,5 @@
 import { and, eq, gt, inArray } from "drizzle-orm";
-import { Effect, Layer, Schema, ServiceMap } from "effect";
+import { Effect, Layer, Schema, Context } from "effect";
 import type { CreateEmailResponseSuccess } from "resend";
 import { Resend } from "resend";
 import { Resource } from "sst";
@@ -111,7 +111,7 @@ export namespace Email {
 		readonly disconnectAccount: (accountId: string) => Effect.Effect<void, EmailError>;
 	}
 
-	export class Service extends ServiceMap.Service<Service, Interface>()("@leuchtturm/Email") {}
+	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/Email") {}
 
 	export const layer = Layer.effect(Service)(
 		Effect.gen(function* () {

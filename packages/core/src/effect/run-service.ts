@@ -1,9 +1,9 @@
-import { Effect, Layer, ManagedRuntime, ServiceMap } from "effect";
+import { Effect, Layer, ManagedRuntime, Context } from "effect";
 
 export const memoMap = Layer.makeMemoMapUnsafe();
 
 export function makeRuntime<R, S, E>(
-	service: ServiceMap.Service<R, S>,
+	service: Context.Service<R, S>,
 	layer: Layer.Layer<R, E>,
 	options?: {
 		memoize?: boolean;

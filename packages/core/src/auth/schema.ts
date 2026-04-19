@@ -1,4 +1,4 @@
-import { Schema } from "effect";
+import { Effect, Schema } from "effect";
 
 import { Email, TrimmedNonEmptyString, Ulid } from "@leuchtturm/core/schema";
 
@@ -21,7 +21,7 @@ export const User = Schema.Struct({
 	language: Schema.optional(Schema.NullOr(Schema.String)),
 	emailVerified: Schema.Boolean.pipe(
 		Schema.optional,
-		Schema.withDecodingDefault(() => false),
+		Schema.withDecodingDefault(Effect.succeed(false)),
 	),
 	createdAt: Schema.Date,
 	updatedAt: Schema.Date,

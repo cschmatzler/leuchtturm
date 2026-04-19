@@ -3,7 +3,7 @@ import { Polar } from "@polar-sh/sdk";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { multiSession } from "better-auth/plugins";
-import { Effect, Layer, Schema, ServiceMap } from "effect";
+import { Effect, Layer, Schema, Context } from "effect";
 import { Resource } from "sst";
 import { ulid } from "ulid";
 
@@ -29,14 +29,14 @@ export namespace Auth {
 		readonly getSession: (headers: Headers) => Effect.Effect<SessionData | null, AuthError>;
 	}
 
-	export class Service extends ServiceMap.Service<Service, Interface>()("@leuchtturm/Auth") {}
+	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/Auth") {}
 
 	export const layer = Layer.effect(Service)(
 		Effect.gen(function* () {
 			const { db } = yield* Database.Service;
 			const billing = yield* Billing.Service;
 			const email = yield* Email.Service;
-			const services = yield* Effect.services();
+			const services = yield* Effect.context();
 
 			const runCallback = <A, E>(effect: Effect.Effect<A, E>) =>
 				Effect.runPromiseWith(services)(effect);
@@ -168,13 +168,13 @@ export namespace Auth {
 						generateId: ({ model }) => {
 							switch (model) {
 								case "account":
-									return AccountId.makeUnsafe(`acc_${ulid()}`);
+									return Schema.decodeSync(AccountId)(`acc_${ulid()}`);
 								case "user":
-									return UserId.makeUnsafe(`usr_${ulid()}`);
+									return Schema.decodeSync(UserId)(`usr_${ulid()}`);
 								case "session":
-									return SessionId.makeUnsafe(`ses_${ulid()}`);
+									return Schema.decodeSync(SessionId)(`ses_${ulid()}`);
 								case "verification":
-									return VerificationId.makeUnsafe(`ver_${ulid()}`);
+									return Schema.decodeSync(VerificationId)(`ver_${ulid()}`);
 								default:
 									throw new Error(`Unknown auth model: ${model}`);
 							}

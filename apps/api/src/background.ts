@@ -1,4 +1,4 @@
-import { Effect, Fiber, Layer, ServiceMap } from "effect";
+import { Effect, Fiber, Layer, Context } from "effect";
 
 export namespace BackgroundTasks {
 	export interface Interface {
@@ -8,7 +8,7 @@ export namespace BackgroundTasks {
 		) => Effect.Effect<void, never, R>;
 	}
 
-	export class Service extends ServiceMap.Service<Service, Interface>()(
+	export class Service extends Context.Service<Service, Interface>()(
 		"@leuchtturm/BackgroundTasks",
 	) {}
 

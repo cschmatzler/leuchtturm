@@ -1,4 +1,4 @@
-import { Schema, ServiceMap } from "effect";
+import { Schema, Context } from "effect";
 import { HttpApiMiddleware } from "effect/unstable/httpapi";
 
 import { AuthError } from "@leuchtturm/core/auth/errors";
@@ -11,7 +11,7 @@ export namespace AuthMiddleware {
 		readonly session: Session;
 	}
 
-	export class CurrentUser extends ServiceMap.Service<CurrentUser, CurrentUserShape>()(
+	export class CurrentUser extends Context.Service<CurrentUser, CurrentUserShape>()(
 		"CurrentUser",
 	) {}
 

@@ -3,7 +3,7 @@ import type { CustomerState } from "@polar-sh/sdk/models/components/customerstat
 import type { Order } from "@polar-sh/sdk/models/components/order";
 import type { Subscription } from "@polar-sh/sdk/models/components/subscription";
 import { eq } from "drizzle-orm";
-import { Effect, Layer, Schema, ServiceMap } from "effect";
+import { Effect, Layer, Schema, Context } from "effect";
 import { Resource } from "sst";
 
 import { user } from "@leuchtturm/core/auth/auth.sql";
@@ -32,7 +32,7 @@ export namespace Billing {
 		readonly upsertOrder: (order: Order) => Effect.Effect<void, BillingError>;
 	}
 
-	export class Service extends ServiceMap.Service<Service, Interface>()("@leuchtturm/Billing") {}
+	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/Billing") {}
 
 	export const layer = Layer.effect(Service)(
 		Effect.gen(function* () {

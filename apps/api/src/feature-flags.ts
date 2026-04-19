@@ -1,4 +1,4 @@
-import { Effect, Layer, Schema, ServiceMap } from "effect";
+import { Effect, Layer, Schema, Context } from "effect";
 import { PostHog } from "posthog-node/edge";
 import { Resource } from "sst";
 
@@ -16,9 +16,7 @@ export namespace FeatureFlags {
 		) => Effect.Effect<Record<string, boolean>, FeatureFlagsError>;
 	}
 
-	export class Service extends ServiceMap.Service<Service, Interface>()(
-		"@leuchtturm/FeatureFlags",
-	) {}
+	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/FeatureFlags") {}
 
 	const toEnabledRecord = (flags: Record<string, boolean | string>): Record<string, boolean> => {
 		return Object.fromEntries(
