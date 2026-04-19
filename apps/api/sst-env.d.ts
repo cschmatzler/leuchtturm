@@ -66,6 +66,10 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
+    "Storage": {
+      "name": string
+      "type": "sst.cloudflare.Bucket"
+    }
     "Web": {
       "type": "sst.cloudflare.StaticSite"
       "url": string
@@ -90,6 +94,7 @@ declare module "sst" {
   export interface Resource {
     "ApiWorker": cloudflare.Service
     "HYPERDRIVE": cloudflare.Hyperdrive
+    "Storage": cloudflare.R2Bucket
   }
 }
 
