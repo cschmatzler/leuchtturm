@@ -37,9 +37,6 @@ namespace Api {
 
 	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/Api") {}
 
-	let cachedConnectionString: string | undefined;
-	let cachedRuntime: ReturnType<typeof makeRuntime<Service, Interface, never>> | undefined;
-
 	export const layer = (env: Env) => {
 		const handlers = Layer.mergeAll(HealthHandler.layer, ZeroHandler.layer, AuthHandler.layer);
 		const api = HttpRouter.toHttpEffect(
@@ -87,14 +84,7 @@ namespace Api {
 		);
 	};
 
-	export const create = (env: Env) => {
-		if (!cachedRuntime || cachedConnectionString !== env.Database.connectionString) {
-			cachedConnectionString = env.Database.connectionString;
-			cachedRuntime = makeRuntime(Service, layer(env));
-		}
-
-		return cachedRuntime;
-	};
+	export const create = (env: Env) => makeRuntime(Service, layer(env));
 }
 
 export default instrument(
