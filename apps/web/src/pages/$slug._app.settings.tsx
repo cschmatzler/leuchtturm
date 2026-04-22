@@ -6,20 +6,21 @@ import { Link } from "@leuchtturm/web/components/ui/link";
 import { cn } from "@leuchtturm/web/lib/cn";
 
 const SETTINGS_TABS = [
-	{ to: "/settings/preferences" as const, labelKey: "Preferences" },
-	{ to: "/settings/billing" as const, labelKey: "Billing" },
+	{ to: "/$slug/settings/preferences" as const, labelKey: "Preferences" },
+	{ to: "/$slug/settings/billing" as const, labelKey: "Billing" },
 ] as const;
 
-export const Route = createFileRoute("/_app/settings")({
-	beforeLoad: ({ location }) => {
-		if (location.pathname === "/settings") {
-			throw redirect({ to: "/settings/preferences" });
+export const Route = createFileRoute("/$slug/_app/settings")({
+	beforeLoad: ({ location, params: { slug } }) => {
+		if (location.pathname === `/${slug}/settings` || location.pathname === `/${slug}/settings/`) {
+			throw redirect({ to: "/$slug/settings/preferences", params: { slug } });
 		}
 	},
 	component: SettingsLayout,
 });
 
 function SettingsLayout() {
+	const { slug } = Route.useParams();
 	const { t } = useTranslation();
 
 	return (
@@ -32,6 +33,7 @@ function SettingsLayout() {
 							<Link
 								key={tab.to}
 								to={tab.to}
+								params={{ slug }}
 								className={cn(
 									"-mb-px inline-flex items-center border-b-2 border-transparent px-3 pb-2.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
 									"data-[active]:border-foreground data-[active]:text-foreground",

@@ -2,15 +2,15 @@ import { queryOptions } from "@tanstack/react-query";
 
 import { api } from "@leuchtturm/web/clients/api";
 
-export const billingOverviewQuery = () =>
+export const deviceSessionsQuery = () =>
 	queryOptions({
-		queryKey: ["billing", "overview"] as const,
+		queryKey: ["deviceSessions"] as const,
 		staleTime: 30 * 1000,
 		queryFn: async () => {
 			try {
-				return await api.billing.overview();
+				return await api.session.deviceSessions();
 			} catch {
-				return { activeSubscription: null };
+				return { sessions: [], organizations: [] };
 			}
 		},
 	});

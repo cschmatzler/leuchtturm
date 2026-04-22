@@ -9,11 +9,19 @@ import { queries } from "@leuchtturm/zero/queries";
 import { schema, type Zero } from "@leuchtturm/zero/schema";
 
 export type SessionData = {
-	session: Session;
+	session: Session & { activeOrganizationId?: string | null };
 	user: User;
 };
 
-export function ZeroProvider({ session, children }: { session: SessionData; children: ReactNode }) {
+export function ZeroProvider({
+	session,
+	slug,
+	children,
+}: {
+	session: SessionData;
+	slug: string;
+	children: ReactNode;
+}) {
 	const router = useRouter();
 	const [ready, setReady] = useState(false);
 	const hasInvalidatedRef = useRef(false);
@@ -37,9 +45,10 @@ export function ZeroProvider({ session, children }: { session: SessionData; chil
 			}
 
 			await zero.preload(queries.currentUser()).complete;
+			await zero.preload(queries.organization({ slug })).complete;
 			setReady(true);
 		},
-		[router],
+		[router, slug],
 	);
 
 	return (
@@ -49,7 +58,7 @@ export function ZeroProvider({ session, children }: { session: SessionData; chil
 			userID={userId}
 			context={context}
 			mutators={mutators}
-			storageKey={userId}
+			storageKey={slug}
 			init={init}
 		>
 			{ready ? children : <Loading />}

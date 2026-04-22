@@ -51,7 +51,7 @@ function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
 						<Button
 							size="sm"
 							className="bg-background text-foreground hover:bg-background/90"
-							render={<Link to="/settings/preferences" />}
+							render={<Link to="/app" />}
 						>
 							{t("Dashboard")}
 						</Button>
@@ -105,7 +105,7 @@ function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
 							<Button
 								size="lg"
 								className="bg-background text-foreground hover:bg-background/90"
-								render={<Link to="/settings/preferences" />}
+								render={<Link to="/app" />}
 							>
 								{t("Go to Dashboard")}
 								<ArrowRightIcon data-icon="inline-end" />
@@ -297,7 +297,7 @@ function MarketingFooter({ isAuthenticated }: { isAuthenticated: boolean }) {
 						<nav className="mt-4 flex flex-col gap-2.5">
 							{isAuthenticated ? (
 								<Link
-									to="/settings/preferences"
+									to="/app"
 									className="text-sm text-foreground/70 transition-colors hover:text-foreground"
 								>
 									{t("Dashboard")}

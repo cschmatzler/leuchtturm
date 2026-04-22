@@ -15,11 +15,14 @@ import { Route as ResetPasswordRouteImport } from './pages/reset-password'
 import { Route as PrivacyPolicyRouteImport } from './pages/privacy-policy'
 import { Route as LoginRouteImport } from './pages/login'
 import { Route as ForgotPasswordRouteImport } from './pages/forgot-password'
-import { Route as AppRouteImport } from './pages/_app'
+import { Route as CreateOrganizationRouteImport } from './pages/create-organization'
+import { Route as AppRouteImport } from './pages/app'
+import { Route as SlugRouteImport } from './pages/$slug'
 import { Route as IndexRouteImport } from './pages/index'
-import { Route as AppSettingsRouteImport } from './pages/_app.settings'
-import { Route as AppSettingsPreferencesRouteImport } from './pages/_app.settings.preferences'
-import { Route as AppSettingsBillingRouteImport } from './pages/_app.settings.billing'
+import { Route as SlugAppRouteImport } from './pages/$slug._app'
+import { Route as SlugAppSettingsRouteImport } from './pages/$slug._app.settings'
+import { Route as SlugAppSettingsPreferencesRouteImport } from './pages/$slug._app.settings.preferences'
+import { Route as SlugAppSettingsBillingRouteImport } from './pages/$slug._app.settings.billing'
 
 const TermsOfServiceRoute = TermsOfServiceRouteImport.update({
   id: '/terms-of-service',
@@ -51,8 +54,19 @@ const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CreateOrganizationRoute = CreateOrganizationRouteImport.update({
+  id: '/create-organization',
+  path: '/create-organization',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppRoute = AppRouteImport.update({
-  id: '/_app',
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SlugRoute = SlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -60,103 +74,128 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppSettingsRoute = AppSettingsRouteImport.update({
+const SlugAppRoute = SlugAppRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => SlugRoute,
+} as any)
+const SlugAppSettingsRoute = SlugAppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
-  getParentRoute: () => AppRoute,
+  getParentRoute: () => SlugAppRoute,
 } as any)
-const AppSettingsPreferencesRoute = AppSettingsPreferencesRouteImport.update({
-  id: '/preferences',
-  path: '/preferences',
-  getParentRoute: () => AppSettingsRoute,
-} as any)
-const AppSettingsBillingRoute = AppSettingsBillingRouteImport.update({
+const SlugAppSettingsPreferencesRoute =
+  SlugAppSettingsPreferencesRouteImport.update({
+    id: '/preferences',
+    path: '/preferences',
+    getParentRoute: () => SlugAppSettingsRoute,
+  } as any)
+const SlugAppSettingsBillingRoute = SlugAppSettingsBillingRouteImport.update({
   id: '/billing',
   path: '/billing',
-  getParentRoute: () => AppSettingsRoute,
+  getParentRoute: () => SlugAppSettingsRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/$slug': typeof SlugAppRouteWithChildren
+  '/app': typeof AppRoute
+  '/create-organization': typeof CreateOrganizationRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/terms-of-service': typeof TermsOfServiceRoute
-  '/settings': typeof AppSettingsRouteWithChildren
-  '/settings/billing': typeof AppSettingsBillingRoute
-  '/settings/preferences': typeof AppSettingsPreferencesRoute
+  '/$slug/settings': typeof SlugAppSettingsRouteWithChildren
+  '/$slug/settings/billing': typeof SlugAppSettingsBillingRoute
+  '/$slug/settings/preferences': typeof SlugAppSettingsPreferencesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/$slug': typeof SlugAppRouteWithChildren
+  '/app': typeof AppRoute
+  '/create-organization': typeof CreateOrganizationRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/terms-of-service': typeof TermsOfServiceRoute
-  '/settings': typeof AppSettingsRouteWithChildren
-  '/settings/billing': typeof AppSettingsBillingRoute
-  '/settings/preferences': typeof AppSettingsPreferencesRoute
+  '/$slug/settings': typeof SlugAppSettingsRouteWithChildren
+  '/$slug/settings/billing': typeof SlugAppSettingsBillingRoute
+  '/$slug/settings/preferences': typeof SlugAppSettingsPreferencesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/_app': typeof AppRouteWithChildren
+  '/$slug': typeof SlugRouteWithChildren
+  '/app': typeof AppRoute
+  '/create-organization': typeof CreateOrganizationRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/terms-of-service': typeof TermsOfServiceRoute
-  '/_app/settings': typeof AppSettingsRouteWithChildren
-  '/_app/settings/billing': typeof AppSettingsBillingRoute
-  '/_app/settings/preferences': typeof AppSettingsPreferencesRoute
+  '/$slug/_app': typeof SlugAppRouteWithChildren
+  '/$slug/_app/settings': typeof SlugAppSettingsRouteWithChildren
+  '/$slug/_app/settings/billing': typeof SlugAppSettingsBillingRoute
+  '/$slug/_app/settings/preferences': typeof SlugAppSettingsPreferencesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/$slug'
+    | '/app'
+    | '/create-organization'
     | '/forgot-password'
     | '/login'
     | '/privacy-policy'
     | '/reset-password'
     | '/signup'
     | '/terms-of-service'
-    | '/settings'
-    | '/settings/billing'
-    | '/settings/preferences'
+    | '/$slug/settings'
+    | '/$slug/settings/billing'
+    | '/$slug/settings/preferences'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/$slug'
+    | '/app'
+    | '/create-organization'
     | '/forgot-password'
     | '/login'
     | '/privacy-policy'
     | '/reset-password'
     | '/signup'
     | '/terms-of-service'
-    | '/settings'
-    | '/settings/billing'
-    | '/settings/preferences'
+    | '/$slug/settings'
+    | '/$slug/settings/billing'
+    | '/$slug/settings/preferences'
   id:
     | '__root__'
     | '/'
-    | '/_app'
+    | '/$slug'
+    | '/app'
+    | '/create-organization'
     | '/forgot-password'
     | '/login'
     | '/privacy-policy'
     | '/reset-password'
     | '/signup'
     | '/terms-of-service'
-    | '/_app/settings'
-    | '/_app/settings/billing'
-    | '/_app/settings/preferences'
+    | '/$slug/_app'
+    | '/$slug/_app/settings'
+    | '/$slug/_app/settings/billing'
+    | '/$slug/_app/settings/preferences'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AppRoute: typeof AppRouteWithChildren
+  SlugRoute: typeof SlugRouteWithChildren
+  AppRoute: typeof AppRoute
+  CreateOrganizationRoute: typeof CreateOrganizationRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
@@ -209,11 +248,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_app': {
-      id: '/_app'
-      path: ''
-      fullPath: '/'
+    '/create-organization': {
+      id: '/create-organization'
+      path: '/create-organization'
+      fullPath: '/create-organization'
+      preLoaderRoute: typeof CreateOrganizationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
       preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$slug': {
+      id: '/$slug'
+      path: '/$slug'
+      fullPath: '/$slug'
+      preLoaderRoute: typeof SlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -223,57 +276,77 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_app/settings': {
-      id: '/_app/settings'
+    '/$slug/_app': {
+      id: '/$slug/_app'
+      path: ''
+      fullPath: '/$slug'
+      preLoaderRoute: typeof SlugAppRouteImport
+      parentRoute: typeof SlugRoute
+    }
+    '/$slug/_app/settings': {
+      id: '/$slug/_app/settings'
       path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof AppSettingsRouteImport
-      parentRoute: typeof AppRoute
+      fullPath: '/$slug/settings'
+      preLoaderRoute: typeof SlugAppSettingsRouteImport
+      parentRoute: typeof SlugAppRoute
     }
-    '/_app/settings/preferences': {
-      id: '/_app/settings/preferences'
+    '/$slug/_app/settings/preferences': {
+      id: '/$slug/_app/settings/preferences'
       path: '/preferences'
-      fullPath: '/settings/preferences'
-      preLoaderRoute: typeof AppSettingsPreferencesRouteImport
-      parentRoute: typeof AppSettingsRoute
+      fullPath: '/$slug/settings/preferences'
+      preLoaderRoute: typeof SlugAppSettingsPreferencesRouteImport
+      parentRoute: typeof SlugAppSettingsRoute
     }
-    '/_app/settings/billing': {
-      id: '/_app/settings/billing'
+    '/$slug/_app/settings/billing': {
+      id: '/$slug/_app/settings/billing'
       path: '/billing'
-      fullPath: '/settings/billing'
-      preLoaderRoute: typeof AppSettingsBillingRouteImport
-      parentRoute: typeof AppSettingsRoute
+      fullPath: '/$slug/settings/billing'
+      preLoaderRoute: typeof SlugAppSettingsBillingRouteImport
+      parentRoute: typeof SlugAppSettingsRoute
     }
   }
 }
 
-interface AppSettingsRouteChildren {
-  AppSettingsBillingRoute: typeof AppSettingsBillingRoute
-  AppSettingsPreferencesRoute: typeof AppSettingsPreferencesRoute
+interface SlugAppSettingsRouteChildren {
+  SlugAppSettingsBillingRoute: typeof SlugAppSettingsBillingRoute
+  SlugAppSettingsPreferencesRoute: typeof SlugAppSettingsPreferencesRoute
 }
 
-const AppSettingsRouteChildren: AppSettingsRouteChildren = {
-  AppSettingsBillingRoute: AppSettingsBillingRoute,
-  AppSettingsPreferencesRoute: AppSettingsPreferencesRoute,
+const SlugAppSettingsRouteChildren: SlugAppSettingsRouteChildren = {
+  SlugAppSettingsBillingRoute: SlugAppSettingsBillingRoute,
+  SlugAppSettingsPreferencesRoute: SlugAppSettingsPreferencesRoute,
 }
 
-const AppSettingsRouteWithChildren = AppSettingsRoute._addFileChildren(
-  AppSettingsRouteChildren,
+const SlugAppSettingsRouteWithChildren = SlugAppSettingsRoute._addFileChildren(
+  SlugAppSettingsRouteChildren,
 )
 
-interface AppRouteChildren {
-  AppSettingsRoute: typeof AppSettingsRouteWithChildren
+interface SlugAppRouteChildren {
+  SlugAppSettingsRoute: typeof SlugAppSettingsRouteWithChildren
 }
 
-const AppRouteChildren: AppRouteChildren = {
-  AppSettingsRoute: AppSettingsRouteWithChildren,
+const SlugAppRouteChildren: SlugAppRouteChildren = {
+  SlugAppSettingsRoute: SlugAppSettingsRouteWithChildren,
 }
 
-const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+const SlugAppRouteWithChildren =
+  SlugAppRoute._addFileChildren(SlugAppRouteChildren)
+
+interface SlugRouteChildren {
+  SlugAppRoute: typeof SlugAppRouteWithChildren
+}
+
+const SlugRouteChildren: SlugRouteChildren = {
+  SlugAppRoute: SlugAppRouteWithChildren,
+}
+
+const SlugRouteWithChildren = SlugRoute._addFileChildren(SlugRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AppRoute: AppRouteWithChildren,
+  SlugRoute: SlugRouteWithChildren,
+  AppRoute: AppRoute,
+  CreateOrganizationRoute: CreateOrganizationRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,

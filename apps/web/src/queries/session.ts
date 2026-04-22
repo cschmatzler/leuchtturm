@@ -13,14 +13,3 @@ export const sessionQuery = () =>
 			return session?.session && session.user ? session : null;
 		},
 	});
-
-export const deviceSessionsQuery = () =>
-	queryOptions({
-		queryKey: ["deviceSessions"] as const,
-		staleTime: 30 * 1000,
-		queryFn: async () => {
-			const { data } = await authClient.multiSession.listDeviceSessions();
-
-			return data ?? [];
-		},
-	});

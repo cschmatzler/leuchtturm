@@ -33,7 +33,7 @@ function Page() {
 			{
 				email: value.email,
 				password: value.password,
-				callbackURL: "/settings/preferences",
+				callbackURL: "/app",
 			},
 			{
 				onRequest: () => {
@@ -42,9 +42,10 @@ function Page() {
 				onSuccess: async () => {
 					await queryClient.invalidateQueries({ queryKey: sessionQuery().queryKey });
 					await queryClient.fetchQuery(sessionQuery());
+					await queryClient.invalidateQueries({ queryKey: ["deviceSessions"] });
 					toast.dismiss();
 					toast.success(t("Welcome back!"));
-					navigate({ to: "/settings/preferences" });
+					navigate({ to: "/app" });
 				},
 				onError: (ctx) => {
 					toast.dismiss();

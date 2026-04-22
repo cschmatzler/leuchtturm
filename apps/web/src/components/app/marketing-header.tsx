@@ -47,7 +47,7 @@ export function MarketingHeader({ variant = "default" }: MarketingHeaderProps) {
 				{!isLoading && (
 					<div className="flex items-center gap-2">
 						{session ? (
-							<Button size="sm" render={<Link to="/settings/preferences" />}>
+							<Button size="sm" render={<Link to="/app" />}>
 								{t("Dashboard")}
 							</Button>
 						) : (

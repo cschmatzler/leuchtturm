@@ -24,6 +24,10 @@ export const session = pgTable(
 		userId: char("user_id", { length: 30 })
 			.notNull()
 			.references(() => user.id, { onDelete: "cascade" }),
+		activeOrganizationId: char("active_organization_id", { length: 30 }).references(
+			() => organization.id,
+			{ onDelete: "set null" },
+		),
 		createdAt: timestamp("created_at").notNull(),
 		updatedAt: timestamp("updated_at")
 			.$onUpdate(() => new Date())
@@ -74,5 +78,56 @@ export const verification = pgTable(
 	(table) => [
 		index("verification_identifier_idx").on(table.identifier),
 		unique("verification_identifier_value_uniq").on(table.identifier, table.value),
+	],
+);
+
+export const organization = pgTable("organization", {
+	id: char("id", { length: 30 }).primaryKey(),
+	name: text("name").notNull(),
+	slug: text("slug").notNull().unique(),
+	logo: text("logo"),
+	metadata: text("metadata"),
+	createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const member = pgTable(
+	"member",
+	{
+		id: char("id", { length: 30 }).primaryKey(),
+		organizationId: char("organization_id", { length: 30 })
+			.notNull()
+			.references(() => organization.id, { onDelete: "cascade" }),
+		userId: char("user_id", { length: 30 })
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		role: text("role").default("member").notNull(),
+		createdAt: timestamp("created_at").notNull(),
+	},
+	(table) => [
+		index("member_organization_id_idx").on(table.organizationId),
+		index("member_user_id_idx").on(table.userId),
+		unique("member_user_organization_uniq").on(table.userId, table.organizationId),
+	],
+);
+
+export const invitation = pgTable(
+	"invitation",
+	{
+		id: char("id", { length: 30 }).primaryKey(),
+		email: text("email").notNull(),
+		role: text("role"),
+		status: text("status").default("pending").notNull(),
+		expiresAt: timestamp("expires_at").notNull(),
+		organizationId: char("organization_id", { length: 30 })
+			.notNull()
+			.references(() => organization.id, { onDelete: "cascade" }),
+		inviterId: char("inviter_id", { length: 30 })
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		createdAt: timestamp("created_at").notNull(),
+	},
+	(table) => [
+		index("invitation_organization_id_idx").on(table.organizationId),
+		index("invitation_email_idx").on(table.email),
 	],
 );

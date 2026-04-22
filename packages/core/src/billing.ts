@@ -6,12 +6,13 @@ import { eq } from "drizzle-orm";
 import { Effect, Layer, Schema, Context } from "effect";
 import { Resource } from "sst";
 
-import { user } from "@leuchtturm/core/auth/auth.sql";
+import { organization } from "@leuchtturm/core/auth/auth.sql";
 import {
 	billingCustomer,
 	billingOrder,
 	billingSubscription,
 } from "@leuchtturm/core/billing/billing.sql";
+import { POLAR_PRO_PRODUCT_ID } from "@leuchtturm/core/billing/products";
 import {
 	BillingCustomerSnapshot,
 	BillingOrderSnapshot,
@@ -27,6 +28,26 @@ export namespace Billing {
 	) {}
 
 	export interface Interface {
+		readonly createCustomer: (params: {
+			readonly organizationId: string;
+			readonly name: string;
+			readonly slug: string;
+		}) => Effect.Effect<void, BillingError>;
+		readonly updateCustomer: (params: {
+			readonly organizationId: string;
+			readonly name: string;
+			readonly slug: string;
+		}) => Effect.Effect<void, BillingError>;
+		readonly getCustomerState: (organizationId: string) => Effect.Effect<CustomerState, BillingError>;
+		readonly createCheckoutUrl: (params: {
+			readonly organizationId: string;
+			readonly successUrl: string;
+			readonly returnUrl: string;
+		}) => Effect.Effect<string, BillingError>;
+		readonly createPortalUrl: (params: {
+			readonly organizationId: string;
+			readonly returnUrl: string;
+		}) => Effect.Effect<string, BillingError>;
 		readonly upsertCustomerState: (state: CustomerState) => Effect.Effect<void, BillingError>;
 		readonly upsertSubscription: (subscription: Subscription) => Effect.Effect<void, BillingError>;
 		readonly upsertOrder: (order: Order) => Effect.Effect<void, BillingError>;
@@ -51,12 +72,12 @@ export namespace Billing {
 
 			async function syncCustomerState(
 				tx: Database.Executor,
-				values: { userId: string; state: CustomerState },
+				values: { organizationId: string; state: CustomerState },
 			) {
 				const customerSnapshot = Schema.decodeUnknownSync(BillingCustomerSnapshot)({
-					userId: values.userId,
+					organizationId: values.organizationId,
 					polarCustomerId: values.state.id,
-					email: values.state.email,
+					email: values.state.email ?? null,
 					name: values.state.name,
 					deletedAt: values.state.deletedAt,
 					activeSubscriptionsCount: values.state.activeSubscriptions.length,
@@ -68,14 +89,14 @@ export namespace Billing {
 				});
 
 				await tx.insert(billingCustomer).values(customerSnapshot).onConflictDoUpdate({
-					target: billingCustomer.userId,
+					target: billingCustomer.organizationId,
 					set: customerSnapshot,
 				});
 
 				for (const subscription of values.state.activeSubscriptions) {
 					const subscriptionSnapshot = buildSubscriptionSnapshot({
 						id: subscription.id,
-						userId: values.userId,
+						organizationId: values.organizationId,
 						polarCustomerId: values.state.id,
 						productId: subscription.productId,
 						status: subscription.status,
@@ -106,18 +127,18 @@ export namespace Billing {
 			const assertCustomer = Effect.fn("Billing.assertCustomer")(function* (
 				resource: string,
 				externalId: string | null | undefined,
-				userId: string | null,
+				organizationId: string | null,
 			) {
-				if (userId) return userId;
+				if (organizationId) return organizationId;
 
 				if (!externalId) {
 					return yield* new BillingError({
-						message: `Polar ${resource} webhook payload is missing an external user id`,
+						message: `Polar ${resource} webhook payload is missing an external organization id`,
 					});
 				}
 
 				return yield* new BillingError({
-					message: `Polar ${resource} webhook references unknown local user: ${externalId}`,
+					message: `Polar ${resource} webhook references unknown local organization: ${externalId}`,
 				});
 			});
 
@@ -133,16 +154,29 @@ export namespace Billing {
 				});
 			});
 
-			const getKnownUserId = Effect.fn("Billing.getKnownUserId")(function* (
+			const loadCustomerStateExternal = Effect.fn("Billing.loadCustomerStateExternal")(function* (
+				organizationId: string,
+			) {
+				return yield* Effect.tryPromise({
+					try: () => polarClient.customers.getStateExternal({ externalId: organizationId }),
+					catch: (error) =>
+						new BillingError({
+							message: `Unable to load Polar customer state for organization ${organizationId}: ${String(error)}`,
+						}),
+				});
+			});
+
+			const getKnownOrganizationId = Effect.fn("Billing.getKnownOrganizationId")(function* (
 				externalId: string | null | undefined,
 			) {
 				if (!externalId) return null;
 
 				const rows = yield* Effect.tryPromise({
-					try: () => db.select({ id: user.id }).from(user).where(eq(user.id, externalId)).limit(1),
+					try: () =>
+						db.select({ id: organization.id }).from(organization).where(eq(organization.id, externalId)).limit(1),
 					catch: (error) =>
 						new BillingError({
-							message: `Failed to look up user ${externalId}: ${String(error)}`,
+							message: `Failed to look up organization ${externalId}: ${String(error)}`,
 						}),
 				});
 
@@ -152,16 +186,16 @@ export namespace Billing {
 			const upsertCustomerState = Effect.fn("Billing.upsertCustomerState")(function* (
 				state: CustomerState,
 			) {
-				const userId = yield* assertCustomer(
+				const organizationId = yield* assertCustomer(
 					"customer state",
 					state.externalId,
-					yield* getKnownUserId(state.externalId),
+					yield* getKnownOrganizationId(state.externalId),
 				);
 
 				yield* Effect.tryPromise({
 					try: () =>
 						db.transaction(async (tx) => {
-							await syncCustomerState(tx, { userId, state });
+							await syncCustomerState(tx, { organizationId, state });
 						}),
 					catch: (error) =>
 						new BillingError({
@@ -170,13 +204,107 @@ export namespace Billing {
 				});
 			});
 
+			const createCustomer = Effect.fn("Billing.createCustomer")(function* (params: {
+				readonly organizationId: string;
+				readonly name: string;
+				readonly slug: string;
+			}) {
+				yield* Effect.tryPromise({
+					try: () =>
+						polarClient.customers.create({
+							type: "team",
+							externalId: params.organizationId,
+							name: params.name,
+							metadata: { slug: params.slug },
+						}),
+					catch: (error) =>
+						new BillingError({
+							message: `Failed to create billing customer for organization ${params.organizationId}: ${String(error)}`,
+						}),
+				});
+
+				const state = yield* loadCustomerStateExternal(params.organizationId);
+				yield* upsertCustomerState(state);
+			});
+
+			const updateCustomer = Effect.fn("Billing.updateCustomer")(function* (params: {
+				readonly organizationId: string;
+				readonly name: string;
+				readonly slug: string;
+			}) {
+				yield* Effect.tryPromise({
+					try: () =>
+						polarClient.customers.updateExternal({
+							externalId: params.organizationId,
+							customerUpdateExternalID: {
+								name: params.name,
+								metadata: { slug: params.slug },
+							},
+						}),
+					catch: (error) =>
+						new BillingError({
+							message: `Failed to update billing customer for organization ${params.organizationId}: ${String(error)}`,
+						}),
+				});
+
+				const state = yield* loadCustomerStateExternal(params.organizationId);
+				yield* upsertCustomerState(state);
+			});
+
+			const getCustomerState = Effect.fn("Billing.getCustomerState")(function* (
+				organizationId: string,
+			) {
+				return yield* loadCustomerStateExternal(organizationId);
+			});
+
+			const createCheckoutUrl = Effect.fn("Billing.createCheckoutUrl")(function* (params: {
+				readonly organizationId: string;
+				readonly successUrl: string;
+				readonly returnUrl: string;
+			}) {
+				const checkout = yield* Effect.tryPromise({
+					try: () =>
+						polarClient.checkouts.create({
+							externalCustomerId: params.organizationId,
+							products: [POLAR_PRO_PRODUCT_ID],
+							successUrl: params.successUrl,
+							returnUrl: params.returnUrl,
+						}),
+					catch: (error) =>
+						new BillingError({
+							message: `Failed to create checkout for organization ${params.organizationId}: ${String(error)}`,
+						}),
+				});
+
+				return checkout.url;
+			});
+
+			const createPortalUrl = Effect.fn("Billing.createPortalUrl")(function* (params: {
+				readonly organizationId: string;
+				readonly returnUrl: string;
+			}) {
+				const customerSession = yield* Effect.tryPromise({
+					try: () =>
+						polarClient.customerSessions.create({
+							externalCustomerId: params.organizationId,
+							returnUrl: params.returnUrl,
+						}),
+					catch: (error) =>
+						new BillingError({
+							message: `Failed to create billing portal for organization ${params.organizationId}: ${String(error)}`,
+						}),
+				});
+
+				return customerSession.customerPortalUrl;
+			});
+
 			const upsertSubscription = Effect.fn("Billing.upsertSubscription")(function* (
 				subscription: Subscription,
 			) {
-				const userId = yield* assertCustomer(
+				const organizationId = yield* assertCustomer(
 					"subscription",
 					subscription.customer.externalId,
-					yield* getKnownUserId(subscription.customer.externalId),
+					yield* getKnownOrganizationId(subscription.customer.externalId),
 				);
 				const customerState = yield* loadCustomerState(subscription.customerId);
 
@@ -184,13 +312,13 @@ export namespace Billing {
 					try: () =>
 						db.transaction(async (tx) => {
 							await syncCustomerState(tx, {
-								userId,
+								organizationId,
 								state: customerState,
 							});
 
 							const subscriptionSnapshot = buildSubscriptionSnapshot({
 								id: subscription.id,
-								userId,
+								organizationId,
 								polarCustomerId: subscription.customerId,
 								productId: subscription.productId,
 								status: subscription.status,
@@ -224,15 +352,15 @@ export namespace Billing {
 			});
 
 			const upsertOrder = Effect.fn("Billing.upsertOrder")(function* (order: Order) {
-				const userId = yield* getKnownUserId(order.customer.externalId);
-				const customerState = userId ? yield* loadCustomerState(order.customerId) : null;
+				const organizationId = yield* getKnownOrganizationId(order.customer.externalId);
+				const customerState = organizationId ? yield* loadCustomerState(order.customerId) : null;
 
 				yield* Effect.tryPromise({
 					try: () =>
 						db.transaction(async (tx) => {
-							if (userId && customerState) {
+							if (organizationId && customerState) {
 								await syncCustomerState(tx, {
-									userId,
+									organizationId,
 									state: customerState,
 								});
 
@@ -241,7 +369,7 @@ export namespace Billing {
 										.select({
 											id: billingSubscription.id,
 											polarCustomerId: billingSubscription.polarCustomerId,
-											userId: billingSubscription.userId,
+											organizationId: billingSubscription.organizationId,
 										})
 										.from(billingSubscription)
 										.where(eq(billingSubscription.id, order.subscriptionId))
@@ -249,7 +377,7 @@ export namespace Billing {
 
 									if (existingSubscription) {
 										if (
-											existingSubscription.userId !== userId ||
+											existingSubscription.organizationId !== organizationId ||
 											existingSubscription.polarCustomerId !== order.customerId
 										) {
 											throw new BillingError({
@@ -277,7 +405,7 @@ export namespace Billing {
 
 										const subscriptionSnapshot = buildSubscriptionSnapshot({
 											id: order.subscription.id,
-											userId,
+											organizationId,
 											polarCustomerId: order.subscription.customerId,
 											productId: order.subscription.productId,
 											status: order.subscription.status,
@@ -311,7 +439,7 @@ export namespace Billing {
 
 							const orderSnapshot = Schema.decodeUnknownSync(BillingOrderSnapshot)({
 								id: order.id,
-								userId,
+								organizationId,
 								polarCustomerId: order.customerId,
 								productId: order.productId,
 								subscriptionId: order.subscriptionId,
@@ -354,6 +482,11 @@ export namespace Billing {
 			});
 
 			return Service.of({
+				createCustomer,
+				updateCustomer,
+				getCustomerState,
+				createCheckoutUrl,
+				createPortalUrl,
 				upsertCustomerState,
 				upsertSubscription,
 				upsertOrder,

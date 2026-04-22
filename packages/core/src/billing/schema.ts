@@ -1,11 +1,12 @@
 import { Schema } from "effect";
 
-import { UserId } from "@leuchtturm/core/auth/schema";
+import { OrganizationId } from "@leuchtturm/core/auth/schema";
 import { Email } from "@leuchtturm/core/schema";
 
 const NullableString = Schema.NullOr(Schema.String);
 const NullableDate = Schema.NullOr(Schema.Date);
-const NullableUserId = Schema.NullOr(UserId);
+const NullableEmail = Schema.NullOr(Email);
+const NullableOrganizationId = Schema.NullOr(OrganizationId);
 
 export const BillingCurrency = Schema.String.check(Schema.isPattern(/^[A-Z]{3}$/));
 export type BillingCurrency = typeof BillingCurrency.Type;
@@ -42,9 +43,9 @@ export const BillingOrderBillingReason = Schema.Literals([
 export type BillingOrderBillingReason = typeof BillingOrderBillingReason.Type;
 
 export const BillingCustomerSnapshot = Schema.Struct({
-	userId: UserId,
+	organizationId: OrganizationId,
 	polarCustomerId: Schema.String,
-	email: Email,
+	email: NullableEmail,
 	name: NullableString,
 	deletedAt: NullableDate,
 	activeSubscriptionsCount: Schema.Number,
@@ -54,12 +55,11 @@ export const BillingCustomerSnapshot = Schema.Struct({
 	remoteModifiedAt: NullableDate,
 	syncedAt: Schema.Date,
 });
-
 export type BillingCustomerSnapshot = typeof BillingCustomerSnapshot.Type;
 
 export const BillingSubscriptionSnapshot = Schema.Struct({
 	id: Schema.String,
-	userId: UserId,
+	organizationId: OrganizationId,
 	polarCustomerId: Schema.String,
 	productId: Schema.String,
 	status: BillingSubscriptionStatus,
@@ -80,12 +80,11 @@ export const BillingSubscriptionSnapshot = Schema.Struct({
 	remoteModifiedAt: NullableDate,
 	syncedAt: Schema.Date,
 });
-
 export type BillingSubscriptionSnapshot = typeof BillingSubscriptionSnapshot.Type;
 
 export const BillingOrderSnapshot = Schema.Struct({
 	id: Schema.String,
-	userId: NullableUserId,
+	organizationId: NullableOrganizationId,
 	polarCustomerId: Schema.String,
 	productId: NullableString,
 	subscriptionId: NullableString,
@@ -105,5 +104,4 @@ export const BillingOrderSnapshot = Schema.Struct({
 	remoteModifiedAt: NullableDate,
 	syncedAt: Schema.Date,
 });
-
 export type BillingOrderSnapshot = typeof BillingOrderSnapshot.Type;

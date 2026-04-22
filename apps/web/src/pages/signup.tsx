@@ -35,7 +35,7 @@ function Page() {
 				email: value.email,
 				password: value.password,
 				name: value.name,
-				callbackURL: "/settings/preferences",
+				callbackURL: "/app",
 			},
 			{
 				onRequest: () => {
@@ -44,9 +44,10 @@ function Page() {
 				onSuccess: async () => {
 					await queryClient.invalidateQueries({ queryKey: sessionQuery().queryKey });
 					await queryClient.fetchQuery(sessionQuery());
+					await queryClient.invalidateQueries({ queryKey: ["deviceSessions"] });
 					toast.dismiss();
-					toast.success(t("Account created!"));
-					navigate({ to: "/settings/preferences" });
+					toast.success(t("Account created!") );
+					navigate({ to: "/app" });
 				},
 				onError: (ctx) => {
 					toast.dismiss();

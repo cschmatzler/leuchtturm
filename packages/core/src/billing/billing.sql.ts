@@ -10,16 +10,16 @@ import {
 	unique,
 } from "drizzle-orm/pg-core";
 
-import { user } from "@leuchtturm/core/auth/auth.sql";
+import { organization } from "@leuchtturm/core/auth/auth.sql";
 
 export const billingCustomer = pgTable(
 	"billing_customer",
 	{
-		userId: char("user_id", { length: 30 })
+		organizationId: char("organization_id", { length: 30 })
 			.primaryKey()
-			.references(() => user.id, { onDelete: "cascade" }),
+			.references(() => organization.id, { onDelete: "cascade" }),
 		polarCustomerId: text("polar_customer_id").notNull().unique(),
-		email: text("email").notNull(),
+		email: text("email"),
 		name: text("name"),
 		deletedAt: timestamp("deleted_at"),
 		activeSubscriptionsCount: integer("active_subscriptions_count").default(0).notNull(),
@@ -31,7 +31,10 @@ export const billingCustomer = pgTable(
 	},
 	(table) => [
 		index("billing_customer_has_active_subscription_idx").on(table.hasActiveSubscription),
-		unique("billing_customer_user_polar_customer_uniq").on(table.userId, table.polarCustomerId),
+		unique("billing_customer_org_polar_customer_uniq").on(
+			table.organizationId,
+			table.polarCustomerId,
+		),
 	],
 );
 
@@ -39,9 +42,9 @@ export const billingSubscription = pgTable(
 	"billing_subscription",
 	{
 		id: text("id").primaryKey(),
-		userId: char("user_id", { length: 30 })
+		organizationId: char("organization_id", { length: 30 })
 			.notNull()
-			.references(() => user.id, { onDelete: "cascade" }),
+			.references(() => organization.id, { onDelete: "cascade" }),
 		polarCustomerId: text("polar_customer_id").notNull(),
 		productId: text("product_id").notNull(),
 		status: text("status").notNull(),
@@ -63,13 +66,13 @@ export const billingSubscription = pgTable(
 		syncedAt: timestamp("synced_at").notNull(),
 	},
 	(table) => [
-		index("billing_subscription_user_id_idx").on(table.userId),
+		index("billing_subscription_organization_id_idx").on(table.organizationId),
 		index("billing_subscription_status_idx").on(table.status),
-		unique("billing_subscription_id_user_id_uniq").on(table.id, table.userId),
+		unique("billing_subscription_id_organization_uniq").on(table.id, table.organizationId),
 		foreignKey({
 			name: "billing_subscription_customer_fkey",
-			columns: [table.userId, table.polarCustomerId],
-			foreignColumns: [billingCustomer.userId, billingCustomer.polarCustomerId],
+			columns: [table.organizationId, table.polarCustomerId],
+			foreignColumns: [billingCustomer.organizationId, billingCustomer.polarCustomerId],
 		}).onDelete("cascade"),
 	],
 );
@@ -78,7 +81,9 @@ export const billingOrder = pgTable(
 	"billing_order",
 	{
 		id: text("id").primaryKey(),
-		userId: char("user_id", { length: 30 }).references(() => user.id, { onDelete: "set null" }),
+		organizationId: char("organization_id", { length: 30 }).references(() => organization.id, {
+			onDelete: "set null",
+		}),
 		polarCustomerId: text("polar_customer_id").notNull(),
 		productId: text("product_id"),
 		subscriptionId: text("subscription_id"),
@@ -99,17 +104,17 @@ export const billingOrder = pgTable(
 		syncedAt: timestamp("synced_at").notNull(),
 	},
 	(table) => [
-		index("billing_order_user_id_idx").on(table.userId),
+		index("billing_order_organization_id_idx").on(table.organizationId),
 		index("billing_order_subscription_id_idx").on(table.subscriptionId),
 		foreignKey({
 			name: "billing_order_customer_fkey",
-			columns: [table.userId, table.polarCustomerId],
-			foreignColumns: [billingCustomer.userId, billingCustomer.polarCustomerId],
+			columns: [table.organizationId, table.polarCustomerId],
+			foreignColumns: [billingCustomer.organizationId, billingCustomer.polarCustomerId],
 		}),
 		foreignKey({
-			name: "billing_order_subscription_user_fkey",
-			columns: [table.subscriptionId, table.userId],
-			foreignColumns: [billingSubscription.id, billingSubscription.userId],
+			name: "billing_order_subscription_organization_fkey",
+			columns: [table.subscriptionId, table.organizationId],
+			foreignColumns: [billingSubscription.id, billingSubscription.organizationId],
 		}),
 	],
 );

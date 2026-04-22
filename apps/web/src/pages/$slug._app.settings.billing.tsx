@@ -3,8 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ExternalLinkIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { POLAR_PRO_PRODUCT_SLUG } from "@leuchtturm/core/billing/products";
-import { authClient } from "@leuchtturm/web/clients/auth";
+import { api } from "@leuchtturm/web/clients/api";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import {
 	Card,
@@ -14,16 +13,16 @@ import {
 	CardTitle,
 } from "@leuchtturm/web/components/ui/card";
 import { reportError } from "@leuchtturm/web/lib/report-error";
-import { customerStateQuery } from "@leuchtturm/web/queries/billing";
+import { billingOverviewQuery } from "@leuchtturm/web/queries/billing";
 
-export const Route = createFileRoute("/_app/settings/billing")({
+export const Route = createFileRoute("/$slug/_app/settings/billing")({
 	component: Page,
 });
 
 function Page() {
 	const { t } = useTranslation();
-	const { data: customerState } = useQuery(customerStateQuery());
-	const activeSubscription = customerState?.activeSubscriptions?.[0] ?? null;
+	const { data: billingOverview } = useQuery(billingOverviewQuery());
+	const activeSubscription = billingOverview?.activeSubscription ?? null;
 	const renewalDate = activeSubscription?.currentPeriodEnd.toLocaleDateString();
 	const accessMessage = activeSubscription
 		? activeSubscription.cancelAtPeriodEnd
@@ -33,7 +32,8 @@ function Page() {
 
 	const openPortal = async () => {
 		try {
-			await authClient.customer.portal();
+			const { url } = await api.billing.portal();
+			window.location.assign(url);
 		} catch (error) {
 			reportError(error, t("Could not open billing portal"), {
 				source: "billing-settings",
@@ -43,7 +43,8 @@ function Page() {
 
 	const startCheckout = async () => {
 		try {
-			await authClient.checkout({ slug: POLAR_PRO_PRODUCT_SLUG });
+			const { url } = await api.billing.checkout();
+			window.location.assign(url);
 		} catch (error) {
 			reportError(error, t("Could not open checkout"), {
 				source: "billing-settings",

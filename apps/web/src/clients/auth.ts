@@ -1,5 +1,4 @@
-import { polarClient } from "@polar-sh/better-auth/client";
-import { multiSessionClient } from "better-auth/client/plugins";
+import { multiSessionClient, organizationClient } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 
 export const authClient = createAuthClient({
@@ -7,5 +6,5 @@ export const authClient = createAuthClient({
 	fetchOptions: {
 		credentials: "include",
 	},
-	plugins: [multiSessionClient(), polarClient()],
+	plugins: [multiSessionClient(), organizationClient()],
 });

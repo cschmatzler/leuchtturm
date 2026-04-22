@@ -10,7 +10,9 @@ import { BackgroundTasks } from "@leuchtturm/api/background";
 import { LeuchtturmApi } from "@leuchtturm/api/contract";
 import { FeatureFlags } from "@leuchtturm/api/feature-flags";
 import { AuthHandler } from "@leuchtturm/api/handlers/auth";
+import { BillingHandler } from "@leuchtturm/api/handlers/billing";
 import { HealthHandler } from "@leuchtturm/api/handlers/health";
+import { SessionHandler } from "@leuchtturm/api/handlers/session";
 import { ZeroHandler } from "@leuchtturm/api/handlers/zero";
 import { RequestContext } from "@leuchtturm/api/middleware/request-context";
 import { Observability } from "@leuchtturm/api/observability";
@@ -38,7 +40,13 @@ namespace Api {
 	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/Api") {}
 
 	export const layer = (env: Env) => {
-		const handlers = Layer.mergeAll(HealthHandler.layer, ZeroHandler.layer, AuthHandler.layer);
+		const handlers = Layer.mergeAll(
+			HealthHandler.layer,
+			SessionHandler.layer,
+			BillingHandler.layer,
+			ZeroHandler.layer,
+			AuthHandler.layer,
+		);
 		const api = HttpRouter.toHttpEffect(
 			HttpApiBuilder.layer(LeuchtturmApi).pipe(
 				Layer.provide(handlers),

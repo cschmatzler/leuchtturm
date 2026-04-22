@@ -1,6 +1,14 @@
 import { defineRelationsPart } from "drizzle-orm";
 
-import { account, session, user, verification } from "@leuchtturm/core/auth/auth.sql";
+import {
+	account,
+	invitation,
+	member,
+	organization,
+	session,
+	user,
+	verification,
+} from "@leuchtturm/core/auth/auth.sql";
 import {
 	billingCustomer,
 	billingOrder,
@@ -13,6 +21,9 @@ export const relations = defineRelationsPart(
 		session,
 		account,
 		verification,
+		organization,
+		member,
+		invitation,
 		billingCustomer,
 		billingSubscription,
 		billingOrder,
@@ -21,54 +32,90 @@ export const relations = defineRelationsPart(
 		user: {
 			sessions: r.many.session({ from: r.user.id, to: r.session.userId }),
 			accounts: r.many.account({ from: r.user.id, to: r.account.userId }),
-			billingCustomer: r.one.billingCustomer({
-				from: r.user.id,
-				to: r.billingCustomer.userId,
-			}),
-			billingSubscriptions: r.many.billingSubscription({
-				from: r.user.id,
-				to: r.billingSubscription.userId,
-			}),
-			billingOrders: r.many.billingOrder({ from: r.user.id, to: r.billingOrder.userId }),
+			memberships: r.many.member({ from: r.user.id, to: r.member.userId }),
+			invitationsSent: r.many.invitation({ from: r.user.id, to: r.invitation.inviterId }),
 		},
 		session: {
 			user: r.one.user({ from: r.session.userId, to: r.user.id }),
+			activeOrganization: r.one.organization({
+				from: r.session.activeOrganizationId,
+				to: r.organization.id,
+			}),
 		},
 		account: {
 			user: r.one.user({ from: r.account.userId, to: r.user.id }),
 		},
 		verification: {},
+		organization: {
+			members: r.many.member({ from: r.organization.id, to: r.member.organizationId }),
+			invitations: r.many.invitation({
+				from: r.organization.id,
+				to: r.invitation.organizationId,
+			}),
+			billingCustomer: r.one.billingCustomer({
+				from: r.organization.id,
+				to: r.billingCustomer.organizationId,
+			}),
+			billingSubscriptions: r.many.billingSubscription({
+				from: r.organization.id,
+				to: r.billingSubscription.organizationId,
+			}),
+			billingOrders: r.many.billingOrder({
+				from: r.organization.id,
+				to: r.billingOrder.organizationId,
+			}),
+		},
+		member: {
+			organization: r.one.organization({ from: r.member.organizationId, to: r.organization.id }),
+			user: r.one.user({ from: r.member.userId, to: r.user.id }),
+		},
+		invitation: {
+			organization: r.one.organization({
+				from: r.invitation.organizationId,
+				to: r.organization.id,
+			}),
+			inviter: r.one.user({ from: r.invitation.inviterId, to: r.user.id }),
+		},
 		billingCustomer: {
-			user: r.one.user({ from: r.billingCustomer.userId, to: r.user.id }),
+			organization: r.one.organization({
+				from: r.billingCustomer.organizationId,
+				to: r.organization.id,
+			}),
 			subscriptions: r.many.billingSubscription({
-				from: [r.billingCustomer.userId, r.billingCustomer.polarCustomerId],
-				to: [r.billingSubscription.userId, r.billingSubscription.polarCustomerId],
+				from: [r.billingCustomer.organizationId, r.billingCustomer.polarCustomerId],
+				to: [r.billingSubscription.organizationId, r.billingSubscription.polarCustomerId],
 			}),
 			orders: r.many.billingOrder({
-				from: [r.billingCustomer.userId, r.billingCustomer.polarCustomerId],
-				to: [r.billingOrder.userId, r.billingOrder.polarCustomerId],
+				from: [r.billingCustomer.organizationId, r.billingCustomer.polarCustomerId],
+				to: [r.billingOrder.organizationId, r.billingOrder.polarCustomerId],
 			}),
 		},
 		billingSubscription: {
-			user: r.one.user({ from: r.billingSubscription.userId, to: r.user.id }),
+			organization: r.one.organization({
+				from: r.billingSubscription.organizationId,
+				to: r.organization.id,
+			}),
 			customer: r.one.billingCustomer({
-				from: [r.billingSubscription.userId, r.billingSubscription.polarCustomerId],
-				to: [r.billingCustomer.userId, r.billingCustomer.polarCustomerId],
+				from: [r.billingSubscription.organizationId, r.billingSubscription.polarCustomerId],
+				to: [r.billingCustomer.organizationId, r.billingCustomer.polarCustomerId],
 			}),
 			orders: r.many.billingOrder({
-				from: [r.billingSubscription.id, r.billingSubscription.userId],
-				to: [r.billingOrder.subscriptionId, r.billingOrder.userId],
+				from: [r.billingSubscription.id, r.billingSubscription.organizationId],
+				to: [r.billingOrder.subscriptionId, r.billingOrder.organizationId],
 			}),
 		},
 		billingOrder: {
-			user: r.one.user({ from: r.billingOrder.userId, to: r.user.id }),
+			organization: r.one.organization({
+				from: r.billingOrder.organizationId,
+				to: r.organization.id,
+			}),
 			customer: r.one.billingCustomer({
-				from: [r.billingOrder.userId, r.billingOrder.polarCustomerId],
-				to: [r.billingCustomer.userId, r.billingCustomer.polarCustomerId],
+				from: [r.billingOrder.organizationId, r.billingOrder.polarCustomerId],
+				to: [r.billingCustomer.organizationId, r.billingCustomer.polarCustomerId],
 			}),
 			subscription: r.one.billingSubscription({
-				from: [r.billingOrder.subscriptionId, r.billingOrder.userId],
-				to: [r.billingSubscription.id, r.billingSubscription.userId],
+				from: [r.billingOrder.subscriptionId, r.billingOrder.organizationId],
+				to: [r.billingSubscription.id, r.billingSubscription.organizationId],
 			}),
 		},
 	}),
