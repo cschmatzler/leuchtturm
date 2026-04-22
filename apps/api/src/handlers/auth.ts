@@ -1,5 +1,5 @@
 import { Effect } from "effect";
-import { Cookies, HttpServerRequest, HttpServerResponse } from "effect/unstable/http";
+import { HttpServerRequest, HttpServerResponse } from "effect/unstable/http";
 import { HttpApiBuilder } from "effect/unstable/httpapi";
 
 import { LeuchtturmApi } from "@leuchtturm/api/contract";
@@ -18,27 +18,7 @@ export namespace AuthHandler {
 						message: `Auth passthrough failed: ${error.message}`,
 					}),
 			),
-			Effect.flatMap((response) =>
-				Effect.tryPromise({
-					try: () => response.arrayBuffer(),
-					catch: (error) =>
-						new AuthError({
-							message: `Failed to read auth response body: ${String(error)}`,
-						}),
-				}).pipe(
-					Effect.map((body) => {
-						const headers = new Headers(response.headers);
-						const cookies = Cookies.fromSetCookie(headers.getSetCookie());
-						headers.delete("set-cookie");
-
-						return HttpServerResponse.raw(new Uint8Array(body), {
-							status: response.status,
-							headers,
-							cookies,
-						});
-					}),
-				),
-			),
+			Effect.map(HttpServerResponse.fromWeb),
 			Effect.match({
 				onFailure: (error) => HttpServerResponse.jsonUnsafe(error, { status: 500 }),
 				onSuccess: (response) => response,

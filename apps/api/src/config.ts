@@ -2,6 +2,9 @@ import { Resource } from "sst";
 
 export namespace ApiConfig {
 	type Resources = {
+		readonly ApiConfig?: {
+			readonly NODE_ENV?: string;
+		};
 		readonly AxiomDomain?: {
 			readonly value?: string;
 		};
@@ -44,7 +47,8 @@ export namespace ApiConfig {
 		return value;
 	};
 
-	export const deploymentEnvironment = () => Resource.ApiConfig.NODE_ENV;
+	export const deploymentEnvironment = () =>
+		requireValue("ApiConfig.NODE_ENV", getResources().ApiConfig?.NODE_ENV);
 
 	export const axiom = (): Axiom => {
 		const resources = getResources();

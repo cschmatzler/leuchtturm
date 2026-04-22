@@ -17,13 +17,32 @@ declare module "sst" {
       }
       "type": "sst.sst.Linkable"
     }
-    "ApiWorker": {
-      "type": "sst.cloudflare.Worker"
+    "ApiWorker": import("@cloudflare/workers-types").Service
+    "AxiomDomain": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "AxiomLogsDataset": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "AxiomMetricsDataset": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "AxiomToken": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "AxiomTracesDataset": {
+      "type": "sst.sst.Secret"
+      "value": string
     }
     "BetterAuthSecret": {
       "type": "sst.sst.Secret"
       "value": string
     }
+    "Database": import("@cloudflare/workers-types").Hyperdrive
     "GitHubClientId": {
       "type": "sst.sst.Secret"
       "value": string
@@ -31,9 +50,6 @@ declare module "sst" {
     "GitHubClientSecret": {
       "type": "sst.sst.Secret"
       "value": string
-    }
-    "HYPERDRIVE": {
-      "type": "sst.sst.Linkable"
     }
     "PlanetScaleDatabaseId": {
       "type": "sst.sst.Secret"
@@ -71,10 +87,7 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "Storage": {
-      "name": string
-      "type": "sst.cloudflare.Bucket"
-    }
+    "Storage": import("@cloudflare/workers-types").R2Bucket
     "Web": {
       "type": "sst.cloudflare.StaticSite"
       "url": string
@@ -93,7 +106,6 @@ declare module "sst" {
     }
   }
 }
-/// <reference path="sst-env.d.ts" />
 
 import "sst"
 export {}

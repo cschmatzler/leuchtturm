@@ -1,8 +1,27 @@
-import { Effect, Layer, Schema, Context } from "effect";
+import { Context, Effect, Layer, Schema } from "effect";
 import { PostHog } from "posthog-node/edge";
 import { Resource } from "sst";
 
 export namespace FeatureFlags {
+	type Resources = {
+		readonly PostHogHost?: {
+			readonly value?: string;
+		};
+		readonly PostHogProjectApiKey?: {
+			readonly value?: string;
+		};
+	};
+
+	const getResources = () => Resource as unknown as Resources;
+
+	const requireValue = (name: string, value: string | undefined) => {
+		if (!value) {
+			throw new Error(`Missing required config: ${name}`);
+		}
+
+		return value;
+	};
+
 	export class FeatureFlagsError extends Schema.TaggedErrorClass<FeatureFlagsError>()(
 		"FeatureFlagsError",
 		{ message: Schema.String },
@@ -29,8 +48,9 @@ export namespace FeatureFlags {
 
 	export const layer = Layer.effect(Service)(
 		Effect.sync(() => {
-			const apiKey = Resource.PostHogProjectApiKey.value;
-			const host = Resource.PostHogHost.value;
+			const resources = getResources();
+			const apiKey = requireValue("PostHogProjectApiKey", resources.PostHogProjectApiKey?.value);
+			const host = requireValue("PostHogHost", resources.PostHogHost?.value);
 
 			const client = new PostHog(apiKey, {
 				host,
