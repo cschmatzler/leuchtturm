@@ -53,8 +53,6 @@ describe("auth schema", () => {
 	it("rejects auth ids with the wrong prefixes", () => {
 		expect(Option.isNone(Schema.decodeUnknownOption(UserId)(`ses_${ulid()}`))).toBe(true);
 		expect(Option.isNone(Schema.decodeUnknownOption(SessionId)(`usr_${ulid()}`))).toBe(true);
-		expect(Option.isNone(Schema.decodeUnknownOption(OrganizationId)(`usr_${ulid()}`))).toBe(
-			true,
-		);
+		expect(Option.isNone(Schema.decodeUnknownOption(OrganizationId)(`usr_${ulid()}`))).toBe(true);
 	});
 });

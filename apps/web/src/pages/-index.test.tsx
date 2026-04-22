@@ -55,9 +55,9 @@ async function renderHomePage(session: unknown) {
 		path: "/",
 		component: Page as never,
 	});
-	const settingsRoute = createRoute({
+	const appRoute = createRoute({
 		getParentRoute: () => rootRoute,
-		path: "/settings/preferences",
+		path: "/app",
 		component: Empty,
 	});
 	const loginRoute = createRoute({
@@ -83,7 +83,7 @@ async function renderHomePage(session: unknown) {
 	const router = createRouter({
 		routeTree: rootRoute.addChildren([
 			indexRoute,
-			settingsRoute,
+			appRoute,
 			loginRoute,
 			signupRoute,
 			tosRoute,
@@ -126,8 +126,6 @@ describe("home page auth CTAs", () => {
 
 		const dashboardLinks = screen.getAllByRole("link", { name: /dashboard/i });
 		expect(dashboardLinks).toHaveLength(4);
-		expect(
-			dashboardLinks.every((link) => link.getAttribute("href") === "/settings/preferences"),
-		).toBe(true);
+		expect(dashboardLinks.every((link) => link.getAttribute("href") === "/app")).toBe(true);
 	});
 });

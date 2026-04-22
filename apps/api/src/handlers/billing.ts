@@ -6,9 +6,9 @@ import { AuthMiddleware } from "@leuchtturm/api/auth";
 import { LeuchtturmApi } from "@leuchtturm/api/contract";
 import { Auth } from "@leuchtturm/core/auth";
 import { Billing } from "@leuchtturm/core/billing";
-import { NotFoundError, ValidationError } from "@leuchtturm/core/errors";
+import { DatabaseError, NotFoundError, ValidationError } from "@leuchtturm/core/errors";
 
-	export namespace BillingHandler {
+export namespace BillingHandler {
 	const getActiveOrganization = Effect.fn("billing.activeOrganization")(function* () {
 		const { session } = yield* AuthMiddleware.CurrentUser;
 		const auth = yield* Auth.Service;
@@ -38,12 +38,14 @@ import { NotFoundError, ValidationError } from "@leuchtturm/core/errors";
 	const overview = Effect.fn("billing.overview")(function* () {
 		const activeOrganization = yield* getActiveOrganization();
 		const billing = yield* Billing.Service;
-		const state = yield* billing.getCustomerState(activeOrganization.id);
+		const state = yield* billing
+			.getCustomerState(activeOrganization.id)
+			.pipe(Effect.mapError((error) => new DatabaseError({ message: error.message })));
 		const activeSubscription = state.activeSubscriptions[0]
 			? {
-				currentPeriodEnd: state.activeSubscriptions[0].currentPeriodEnd,
-				cancelAtPeriodEnd: state.activeSubscriptions[0].cancelAtPeriodEnd,
-			}
+					currentPeriodEnd: state.activeSubscriptions[0].currentPeriodEnd,
+					cancelAtPeriodEnd: state.activeSubscriptions[0].cancelAtPeriodEnd,
+				}
 			: null;
 
 		return { activeSubscription };
@@ -54,11 +56,13 @@ import { NotFoundError, ValidationError } from "@leuchtturm/core/errors";
 		const origin = yield* currentOrigin();
 		const billing = yield* Billing.Service;
 		const billingUrl = `${origin}/${activeOrganization.slug}/settings/billing`;
-		const url = yield* billing.createCheckoutUrl({
-			organizationId: activeOrganization.id,
-			successUrl: billingUrl,
-			returnUrl: billingUrl,
-		});
+		const url = yield* billing
+			.createCheckoutUrl({
+				organizationId: activeOrganization.id,
+				successUrl: billingUrl,
+				returnUrl: billingUrl,
+			})
+			.pipe(Effect.mapError((error) => new DatabaseError({ message: error.message })));
 
 		return { url };
 	});
@@ -67,10 +71,12 @@ import { NotFoundError, ValidationError } from "@leuchtturm/core/errors";
 		const activeOrganization = yield* getActiveOrganization();
 		const origin = yield* currentOrigin();
 		const billing = yield* Billing.Service;
-		const url = yield* billing.createPortalUrl({
-			organizationId: activeOrganization.id,
-			returnUrl: `${origin}/${activeOrganization.slug}/settings/billing`,
-		});
+		const url = yield* billing
+			.createPortalUrl({
+				organizationId: activeOrganization.id,
+				returnUrl: `${origin}/${activeOrganization.slug}/settings/billing`,
+			})
+			.pipe(Effect.mapError((error) => new DatabaseError({ message: error.message })));
 
 		return { url };
 	});

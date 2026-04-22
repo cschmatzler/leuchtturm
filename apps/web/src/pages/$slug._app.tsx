@@ -1,14 +1,7 @@
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
-import {
-	BuildingIcon,
-	CheckIcon,
-	ChevronDownIcon,
-	CogIcon,
-	LogOutIcon,
-	PlusIcon,
-} from "lucide-react";
+import { BuildingIcon, ChevronDownIcon, CogIcon, LogOutIcon, PlusIcon } from "lucide-react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -42,7 +35,6 @@ import {
 	SidebarMenuItem,
 	SidebarProvider,
 } from "@leuchtturm/web/components/ui/sidebar";
-import type { SessionData } from "@leuchtturm/web/contexts/zero";
 import { useAuth } from "@leuchtturm/web/hooks/use-auth";
 import { useCommandBar } from "@leuchtturm/web/hooks/use-command-bar";
 import { useCommandProvider } from "@leuchtturm/web/hooks/use-command-provider";
@@ -59,12 +51,10 @@ export const Route = createFileRoute("/$slug/_app")({
 });
 
 function Layout() {
-	const { session } = Route.useRouteContext();
-
-	return <Shell session={session} />;
+	return <Shell />;
 }
 
-function Shell({ session }: { session: SessionData }) {
+function Shell() {
 	const { slug } = Route.useParams();
 	const navigate = useNavigate();
 	const { t, i18n } = useTranslation();

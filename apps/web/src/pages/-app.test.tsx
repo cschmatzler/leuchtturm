@@ -1,7 +1,10 @@
 import { QueryClient } from "@tanstack/react-query";
+import { Schema } from "effect";
 import { describe, expect, it } from "vite-plus/test";
 
-import { Route } from "@leuchtturm/web/pages/_app";
+import { OrganizationId } from "@leuchtturm/core/auth/schema";
+import { Route } from "@leuchtturm/web/pages/app";
+import { deviceSessionsQuery } from "@leuchtturm/web/queries/device-sessions";
 import { sessionQuery } from "@leuchtturm/web/queries/session";
 
 describe("app route auth caching", () => {
@@ -9,7 +12,7 @@ describe("app route auth caching", () => {
 		expect(sessionQuery().staleTime).toBe(5 * 60 * 1000);
 	});
 
-	it("reuses a fresh cached session in beforeLoad", async () => {
+	it("reuses cached session and device sessions in beforeLoad", async () => {
 		const queryClient = new QueryClient({
 			defaultOptions: {
 				queries: { retry: false },
@@ -19,12 +22,23 @@ describe("app route auth caching", () => {
 			session: { token: "session-token" },
 			user: { id: "user-1" },
 		};
+		const organizationId = Schema.decodeSync(OrganizationId)("org_01ARZ3NDEKTSV4RRFFQ69G5FAV");
 		queryClient.setQueryData(["session"], session);
+		queryClient.setQueryData(deviceSessionsQuery().queryKey, {
+			sessions: [],
+			organizations: [{ id: organizationId, name: "Acme", slug: "acme", token: "session-token" }],
+		});
 
-		const result = await Route.options.beforeLoad?.({
-			context: { queryClient },
-		} as never);
-
-		expect(result).toEqual({ session });
+		await expect(
+			Route.options.beforeLoad?.({
+				context: { queryClient },
+			} as never),
+		).rejects.toMatchObject({
+			status: 307,
+			options: {
+				to: "/$slug/settings/preferences",
+				params: { slug: "acme" },
+			},
+		});
 	});
 });

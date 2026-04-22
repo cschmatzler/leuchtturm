@@ -46,7 +46,7 @@ function Page() {
 					await queryClient.fetchQuery(sessionQuery());
 					await queryClient.invalidateQueries({ queryKey: ["deviceSessions"] });
 					toast.dismiss();
-					toast.success(t("Account created!") );
+					toast.success(t("Account created!"));
 					navigate({ to: "/app" });
 				},
 				onError: (ctx) => {

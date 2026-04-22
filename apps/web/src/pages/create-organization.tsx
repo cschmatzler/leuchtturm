@@ -86,7 +86,10 @@ function Page() {
 		<div className="grid min-h-svh w-full lg:grid-cols-2">
 			<div className="flex flex-col gap-4 p-6 md:p-10">
 				<div className="flex items-center justify-between gap-3">
-					<Link to="/" className="flex items-center gap-2.5 font-medium transition-colors hover:text-primary">
+					<Link
+						to="/"
+						className="flex items-center gap-2.5 font-medium transition-colors hover:text-primary"
+					>
 						<div className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
 							<SparklesIcon className="size-4" />
 						</div>
@@ -142,7 +145,9 @@ function Page() {
 							<FieldGroup>
 								<form.Field
 									name="name"
-									validators={{ onChange: Schema.toStandardSchemaV1(createOrganizationShape.fields.name) }}
+									validators={{
+										onChange: Schema.toStandardSchemaV1(createOrganizationShape.fields.name),
+									}}
 								>
 									{(field) => (
 										<Field>
@@ -164,7 +169,9 @@ function Page() {
 								</form.Field>
 								<form.Field
 									name="slug"
-									validators={{ onChange: Schema.toStandardSchemaV1(createOrganizationShape.fields.slug) }}
+									validators={{
+										onChange: Schema.toStandardSchemaV1(createOrganizationShape.fields.slug),
+									}}
 								>
 									{(field) => (
 										<Field>

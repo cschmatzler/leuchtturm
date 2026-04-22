@@ -19,6 +19,7 @@ import { Observability } from "@leuchtturm/api/observability";
 import { ProductAnalytics } from "@leuchtturm/api/posthog";
 import { RequestRuntime } from "@leuchtturm/api/request-runtime";
 import { Auth } from "@leuchtturm/core/auth";
+import { Billing } from "@leuchtturm/core/billing";
 import { Database } from "@leuchtturm/core/drizzle";
 import { makeRuntime } from "@leuchtturm/core/effect/run-service";
 import { DatabaseError } from "@leuchtturm/core/errors";
@@ -54,9 +55,11 @@ namespace Api {
 			),
 		).pipe(Effect.flatten);
 		const database = Database.layer(env.Database.connectionString);
-		const core = Layer.mergeAll(Auth.defaultLayer, FeatureFlags.defaultLayer).pipe(
-			Layer.provideMerge(database),
-		);
+		const core = Layer.mergeAll(
+			Auth.defaultLayer,
+			Billing.defaultLayer,
+			FeatureFlags.defaultLayer,
+		).pipe(Layer.provideMerge(database));
 		const runtime = Layer.mergeAll(
 			core,
 			HttpServer.layerServices,

@@ -8,13 +8,13 @@ import {
 	BillingSubscriptionSnapshot,
 } from "@leuchtturm/core/billing/schema";
 
-const userId = `usr_${ulid()}`;
+const organizationId = `org_${ulid()}`;
 const now = new Date();
 
 describe("billing snapshot schemas", () => {
 	it("normalizes persisted customer emails", () => {
 		const result = Schema.decodeUnknownOption(BillingCustomerSnapshot)({
-			userId,
+			organizationId,
 			polarCustomerId: "pol_123",
 			email: "User@Example.com",
 			name: "Ada",
@@ -33,10 +33,10 @@ describe("billing snapshot schemas", () => {
 		}
 	});
 
-	it("rejects an invalid local user id", () => {
+	it("rejects an invalid local organization id", () => {
 		const result = Schema.decodeUnknownOption(BillingSubscriptionSnapshot)({
 			id: "sub_123",
-			userId: "not-a-user-id",
+			organizationId: "not-an-organization-id",
 			polarCustomerId: "pol_123",
 			productId: "prod_123",
 			status: "active",
@@ -64,7 +64,7 @@ describe("billing snapshot schemas", () => {
 	it("rejects unsupported subscription enums and currencies", () => {
 		const result = Schema.decodeUnknownOption(BillingSubscriptionSnapshot)({
 			id: "sub_123",
-			userId,
+			organizationId,
 			polarCustomerId: "pol_123",
 			productId: "prod_123",
 			status: "paused",
@@ -89,10 +89,10 @@ describe("billing snapshot schemas", () => {
 		expect(Option.isNone(result)).toBe(true);
 	});
 
-	it("accepts nullable order ownership for unknown users", () => {
+	it("accepts nullable order ownership for unknown organizations", () => {
 		const result = Schema.decodeUnknownOption(BillingOrderSnapshot)({
 			id: "ord_123",
-			userId: null,
+			organizationId: null,
 			polarCustomerId: "pol_123",
 			productId: null,
 			subscriptionId: null,
@@ -119,7 +119,7 @@ describe("billing snapshot schemas", () => {
 	it("rejects unsupported order enums and currencies", () => {
 		const result = Schema.decodeUnknownOption(BillingOrderSnapshot)({
 			id: "ord_123",
-			userId,
+			organizationId,
 			polarCustomerId: "pol_123",
 			productId: null,
 			subscriptionId: null,

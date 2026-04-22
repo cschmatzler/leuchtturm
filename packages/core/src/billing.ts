@@ -38,7 +38,9 @@ export namespace Billing {
 			readonly name: string;
 			readonly slug: string;
 		}) => Effect.Effect<void, BillingError>;
-		readonly getCustomerState: (organizationId: string) => Effect.Effect<CustomerState, BillingError>;
+		readonly getCustomerState: (
+			organizationId: string,
+		) => Effect.Effect<CustomerState, BillingError>;
 		readonly createCheckoutUrl: (params: {
 			readonly organizationId: string;
 			readonly successUrl: string;
@@ -173,7 +175,11 @@ export namespace Billing {
 
 				const rows = yield* Effect.tryPromise({
 					try: () =>
-						db.select({ id: organization.id }).from(organization).where(eq(organization.id, externalId)).limit(1),
+						db
+							.select({ id: organization.id })
+							.from(organization)
+							.where(eq(organization.id, externalId))
+							.limit(1),
 					catch: (error) =>
 						new BillingError({
 							message: `Failed to look up organization ${externalId}: ${String(error)}`,

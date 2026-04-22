@@ -1,6 +1,10 @@
 import { polar, webhooks } from "@polar-sh/better-auth";
 import { Polar } from "@polar-sh/sdk";
-import { betterAuth, type Session as BetterAuthSession, type User as BetterAuthUser } from "better-auth";
+import {
+	betterAuth,
+	type Session as BetterAuthSession,
+	type User as BetterAuthUser,
+} from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { multiSession, organization as organizationPlugin } from "better-auth/plugins";
 import { eq, inArray } from "drizzle-orm";
@@ -125,7 +129,9 @@ export namespace Auth {
 		readonly getOrganization: (
 			organizationId: string,
 		) => Effect.Effect<OrganizationSummary | null, AuthError>;
-		readonly getDeviceSessions: (headers: Headers) => Effect.Effect<DeviceSessionsResponse, AuthError>;
+		readonly getDeviceSessions: (
+			headers: Headers,
+		) => Effect.Effect<DeviceSessionsResponse, AuthError>;
 	}
 
 	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/Auth") {}
@@ -162,29 +168,25 @@ export namespace Auth {
 				yield* billing.upsertSubscription(payload.data);
 			});
 
-			const createOrganizationCustomer = Effect.fn("Auth.createOrganizationCustomer")(function* (
-				payload: {
-					organization: { id: string; name: string; slug: string };
+			const createOrganizationCustomer = Effect.fn("Auth.createOrganizationCustomer")(
+				function* (payload: { organization: { id: string; name: string; slug: string } }) {
+					yield* billing.createCustomer({
+						organizationId: payload.organization.id,
+						name: payload.organization.name,
+						slug: payload.organization.slug,
+					});
 				},
-			) {
-				yield* billing.createCustomer({
-					organizationId: payload.organization.id,
-					name: payload.organization.name,
-					slug: payload.organization.slug,
-				});
-			});
+			);
 
-			const updateOrganizationCustomer = Effect.fn("Auth.updateOrganizationCustomer")(function* (
-				payload: {
-					organization: { id: string; name: string; slug: string };
+			const updateOrganizationCustomer = Effect.fn("Auth.updateOrganizationCustomer")(
+				function* (payload: { organization: { id: string; name: string; slug: string } }) {
+					yield* billing.updateCustomer({
+						organizationId: payload.organization.id,
+						name: payload.organization.name,
+						slug: payload.organization.slug,
+					});
 				},
-			) {
-				yield* billing.updateCustomer({
-					organizationId: payload.organization.id,
-					name: payload.organization.name,
-					slug: payload.organization.slug,
-				});
-			});
+			);
 
 			const sendResetPassword = Effect.fn("Auth.sendResetPassword")(function* (params: {
 				readonly user: { readonly email: string; readonly name: string };
@@ -261,18 +263,12 @@ export namespace Auth {
 								onOrderPaid: (payload) => runCallback(upsertOrder(payload)),
 								onOrderRefunded: (payload) => runCallback(upsertOrder(payload)),
 								onOrderUpdated: (payload) => runCallback(upsertOrder(payload)),
-								onSubscriptionCreated: (payload) =>
-									runCallback(upsertSubscription(payload)),
-								onSubscriptionUpdated: (payload) =>
-									runCallback(upsertSubscription(payload)),
-								onSubscriptionActive: (payload) =>
-									runCallback(upsertSubscription(payload)),
-								onSubscriptionCanceled: (payload) =>
-									runCallback(upsertSubscription(payload)),
-								onSubscriptionRevoked: (payload) =>
-									runCallback(upsertSubscription(payload)),
-								onSubscriptionUncanceled: (payload) =>
-									runCallback(upsertSubscription(payload)),
+								onSubscriptionCreated: (payload) => runCallback(upsertSubscription(payload)),
+								onSubscriptionUpdated: (payload) => runCallback(upsertSubscription(payload)),
+								onSubscriptionActive: (payload) => runCallback(upsertSubscription(payload)),
+								onSubscriptionCanceled: (payload) => runCallback(upsertSubscription(payload)),
+								onSubscriptionRevoked: (payload) => runCallback(upsertSubscription(payload)),
+								onSubscriptionUncanceled: (payload) => runCallback(upsertSubscription(payload)),
 							}),
 						],
 					}),

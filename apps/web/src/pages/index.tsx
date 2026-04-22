@@ -226,7 +226,7 @@ function CallToActionSection({ isAuthenticated }: { isAuthenticated: boolean }) 
 							<Button
 								size="lg"
 								className="bg-background text-foreground hover:bg-background/90"
-								render={<Link to="/settings/preferences" />}
+								render={<Link to="/app" />}
 							>
 								{t("Go to Dashboard")}
 								<ArrowRightIcon data-icon="inline-end" />
