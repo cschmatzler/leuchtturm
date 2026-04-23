@@ -11,7 +11,7 @@
 		"@effect/language-service": "^0.85.1",
 		"@leuchtturm/infra": "workspace:*",
 		"@types/node": "25.6.0",
-		"sst": "4.10.0",
+		"sst": "4.10.1",
 		"typescript": "6.0.3",
 		"vite-plus": "0.1.19"
 	},
@@ -27,6 +27,9 @@
 			"allowedVersions": {
 				"@effect/sql-pg": "4.0.0-beta.56"
 			}
+		},
+		"patchedDependencies": {
+			"drizzle-orm@1.0.0-beta.21": "patches/drizzle-orm@1.0.0-beta.21.patch"
 		}
 	},
 	"trustedDependencies": [

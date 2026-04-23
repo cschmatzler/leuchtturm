@@ -5,8 +5,8 @@ import type { Order } from "@polar-sh/sdk/models/components/order";
 import type { Subscription } from "@polar-sh/sdk/models/components/subscription";
 import { eq } from "drizzle-orm";
 import type {
-	TaggedDrizzleQueryError,
-	TaggedTransactionRollbackError,
+	EffectDrizzleQueryError,
+	EffectTransactionRollbackError,
 } from "drizzle-orm/effect-core/errors";
 import { Effect, Layer, Schema, Context } from "effect";
 import { Resource } from "sst";
@@ -27,7 +27,7 @@ import { Database } from "@leuchtturm/core/drizzle";
 
 type TransactionEffect<A> = Effect.Effect<
 	A,
-	TaggedDrizzleQueryError | TaggedTransactionRollbackError,
+	EffectDrizzleQueryError | EffectTransactionRollbackError,
 	never
 >;
 

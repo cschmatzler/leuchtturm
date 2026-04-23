@@ -1,5 +1,5 @@
 import { PgClient as EffectPgClient } from "@effect/sql-pg";
-import { drizzle as drizzleEffect, type EffectPgDatabase } from "drizzle-orm/effect-postgres";
+import { makeWithDefaults, type EffectPgDatabase } from "drizzle-orm/effect-postgres";
 import {
 	drizzle as drizzleRaw,
 	type NodePgClient,
@@ -72,14 +72,16 @@ export namespace Database {
 					Effect.mapError(toDatabaseError("Failed to connect Effect Postgres client")),
 				);
 
+				const db = yield* makeWithDefaults({
+					relations,
+				}).pipe(Effect.provideService(EffectPgClient.PgClient, effectClient));
+
 				return Service.of({
 					rawDb: drizzleRaw({
 						client: rawClient,
 						relations,
 					}),
-					db: drizzleEffect(effectClient, {
-						relations,
-					}),
+					db,
 				});
 			}),
 		);
