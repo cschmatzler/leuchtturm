@@ -27,10 +27,9 @@ import { CommandBarProvider } from "@leuchtturm/web/contexts/command-bar";
 import { sessionQuery } from "@leuchtturm/web/queries/session";
 import type { RouterContext } from "@leuchtturm/web/router";
 
-function RootErrorView({ error }: { error: unknown }) {
+function RootErrorView() {
 	const { t } = useTranslation();
 	const router = useRouter();
-	const message = (error as Error).message;
 
 	return (
 		<div role="alert" className="flex min-h-svh w-full flex-col items-center justify-center gap-4">
@@ -38,7 +37,7 @@ function RootErrorView({ error }: { error: unknown }) {
 				<AlertCircleIcon className="text-destructive size-6" />
 			</div>
 			<h1 className="text-xl font-semibold">{t("Something went wrong")}</h1>
-			<p className="text-muted-foreground max-w-md text-center text-sm">{message}</p>
+			<p className="text-muted-foreground max-w-md text-center text-sm">{t("Please try again.")}</p>
 			<Button variant="outline" onClick={() => router.invalidate()}>
 				{t("Try again")}
 			</Button>
@@ -46,12 +45,12 @@ function RootErrorView({ error }: { error: unknown }) {
 	);
 }
 
-function RootErrorComponent({ error }: ErrorComponentProps) {
-	return <RootErrorView error={error} />;
+function RootErrorComponent(_props: ErrorComponentProps) {
+	return <RootErrorView />;
 }
 
-function RootBoundaryFallback({ error }: PostHogErrorBoundaryFallbackProps) {
-	return <RootErrorView error={error} />;
+function RootBoundaryFallback(_props: PostHogErrorBoundaryFallbackProps) {
+	return <RootErrorView />;
 }
 
 export const Route = createRootRouteWithContext<RouterContext>()({

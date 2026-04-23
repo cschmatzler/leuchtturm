@@ -8,7 +8,6 @@ export const makeResourceConfig = () => ({
 	attributes: {
 		"cloud.platform": "cloudflare_workers",
 		"cloud.provider": "cloudflare",
-		"deployment.environment": ApiConfig.deploymentEnvironment(),
 		"service.namespace": serviceNamespace,
 	},
 });
@@ -33,7 +32,6 @@ export const getLogConfig = () => {
 
 	return {
 		dataset: config.logsDataset,
-		deploymentEnvironment: ApiConfig.deploymentEnvironment(),
 		domain: config.domain,
 		token: config.token,
 	};

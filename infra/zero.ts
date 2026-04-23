@@ -12,7 +12,6 @@ export const zero = new render.services.WebService("ZeroService", {
 		ownerId: secrets.renderOwnerId.value,
 	},
 	envVars: [
-		{ key: "NODE_ENV", value: "production" },
 		{ key: "ZERO_ADMIN_PASSWORD", value: secrets.zeroAdminPassword.value },
 		{ key: "ZERO_APP_ID", value: "leuchtturm" },
 		{

@@ -35,7 +35,7 @@ namespace Api {
 		readonly handle: (
 			request: Request,
 			waitUntil?: (promise: Promise<unknown>) => void,
-		) => Effect.Effect<Response, Error>;
+		) => Effect.Effect<Response, DatabaseError>;
 	}
 
 	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/Api") {}
@@ -90,9 +90,9 @@ namespace Api {
 										context: ReturnType<typeof RequestRuntime.makeContext>,
 									) => Promise<Response>
 								)(request, requestContext),
-							catch: (error) =>
+							catch: () =>
 								new DatabaseError({
-									message: `API handler failed: ${(error as Error).message}`,
+									message: "API handler failed",
 								}),
 						});
 					},

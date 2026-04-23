@@ -12,17 +12,14 @@ export namespace AuthHandler {
 		request: HttpServerRequest.HttpServerRequest,
 	) {
 		return yield* auth.handle(request.source as Request).pipe(
-			Effect.mapError(
-				(error) =>
+			Effect.catch(() =>
+				Effect.fail(
 					new AuthError({
-						message: `Auth passthrough failed: ${error.message}`,
+						message: "Auth passthrough failed",
 					}),
+				),
 			),
 			Effect.map(HttpServerResponse.fromWeb),
-			Effect.match({
-				onFailure: (error) => HttpServerResponse.jsonUnsafe(error, { status: 500 }),
-				onSuccess: (response) => response,
-			}),
 		);
 	});
 

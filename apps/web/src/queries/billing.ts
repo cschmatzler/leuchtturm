@@ -6,11 +6,5 @@ export const billingOverviewQuery = () =>
 	queryOptions({
 		queryKey: ["billing", "overview"] as const,
 		staleTime: 30 * 1000,
-		queryFn: async () => {
-			try {
-				return await api.billing.overview();
-			} catch {
-				return { activeSubscription: null };
-			}
-		},
+		queryFn: () => api.billing.overview(),
 	});

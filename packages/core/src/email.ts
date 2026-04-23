@@ -22,9 +22,9 @@ export namespace Email {
 		Effect.gen(function* () {
 			yield* Effect.logInfo("Email initialized");
 
-			const fail = (context: string) => (error: unknown) =>
+			const fail = (message: string) => () =>
 				new EmailError({
-					message: `${context}: ${(error as Error).message}`,
+					message,
 				});
 
 			const send = Effect.fn("Email.send")(function* (params: SendParams) {
@@ -35,7 +35,7 @@ export namespace Email {
 
 				if (result.error || !result.data) {
 					return yield* new EmailError({
-						message: result.error?.message ?? "Email sent but received no response data",
+						message: "Email sent but received no response data",
 					});
 				}
 

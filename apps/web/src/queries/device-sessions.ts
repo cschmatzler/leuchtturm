@@ -6,11 +6,5 @@ export const deviceSessionsQuery = () =>
 	queryOptions({
 		queryKey: ["deviceSessions"] as const,
 		staleTime: 30 * 1000,
-		queryFn: async () => {
-			try {
-				return await api.session.deviceSessions();
-			} catch {
-				return { sessions: [], organizations: [] };
-			}
-		},
+		queryFn: () => api.session.deviceSessions(),
 	});

@@ -1,27 +1,9 @@
 import { Context, Effect, Layer, Schema } from "effect";
 import { PostHog } from "posthog-node/edge";
-import { Resource } from "sst";
+
+import { ApiConfig } from "@leuchtturm/api/config";
 
 export namespace FeatureFlags {
-	type Resources = {
-		readonly PostHogHost?: {
-			readonly value?: string;
-		};
-		readonly PostHogProjectApiKey?: {
-			readonly value?: string;
-		};
-	};
-
-	const getResources = () => Resource as unknown as Resources;
-
-	const requireValue = (name: string, value: string | undefined) => {
-		if (!value) {
-			throw new Error(`Missing required config: ${name}`);
-		}
-
-		return value;
-	};
-
 	export class FeatureFlagsError extends Schema.TaggedErrorClass<FeatureFlagsError>()(
 		"FeatureFlagsError",
 		{ message: Schema.String },
@@ -48,39 +30,39 @@ export namespace FeatureFlags {
 
 	export const layer = Layer.effect(Service)(
 		Effect.sync(() => {
-			const resources = getResources();
-			const apiKey = requireValue("PostHogProjectApiKey", resources.PostHogProjectApiKey?.value);
-			const host = requireValue("PostHogHost", resources.PostHogHost?.value);
-
-			const client = new PostHog(apiKey, {
-				host,
+			const config = ApiConfig.posthog();
+			const client = new PostHog(config.apiKey, {
+				host: config.host,
 			});
 
 			return Service.of({
 				isEnabled: (key, userId) =>
-					Effect.tryPromise({
-						try: async () => {
-							const enabled = await client.isFeatureEnabled(key, userId, {
-								sendFeatureFlagEvents: false,
+					Effect.gen(function* () {
+						const enabled = yield* Effect.tryPromise({
+							try: () =>
+								client.isFeatureEnabled(key, userId, {
+									sendFeatureFlagEvents: false,
+								}),
+							catch: () =>
+								new FeatureFlagsError({
+									message: `Failed to evaluate PostHog feature flag ${key} for user ${userId}`,
+								}),
+						});
+
+						if (enabled === undefined) {
+							return yield* new FeatureFlagsError({
+								message: `PostHog returned no feature flag evaluation result for ${key} and user ${userId}`,
 							});
+						}
 
-							if (enabled === undefined) {
-								throw new Error("PostHog returned no feature flag evaluation result");
-							}
-
-							return enabled;
-						},
-						catch: (error) =>
-							new FeatureFlagsError({
-								message: `Failed to evaluate PostHog feature flag ${key} for user ${userId}: ${(error as Error).message}`,
-							}),
+						return enabled;
 					}),
 				listForUser: (userId) =>
 					Effect.tryPromise({
 						try: async () => toEnabledRecord(await client.getAllFlags(userId)),
-						catch: (error) =>
+						catch: () =>
 							new FeatureFlagsError({
-								message: `Failed to list PostHog feature flags for user ${userId}: ${(error as Error).message}`,
+								message: `Failed to list PostHog feature flags for user ${userId}`,
 							}),
 					}),
 			});

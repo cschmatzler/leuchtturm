@@ -13,9 +13,7 @@ export namespace BackgroundTasks {
 				attributes: { label },
 				kind: "internal",
 			}),
-			Effect.tapError((error) =>
-				Observability.logError(`${label}: ${(error as Error).message}`, { label }),
-			),
+			Effect.tapError(() => Observability.logError(`${label} failed`, { label })),
 			Effect.forkDetach({ startImmediately: true }),
 		);
 

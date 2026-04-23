@@ -4,6 +4,7 @@ import { HttpApi, HttpApiEndpoint, HttpApiGroup } from "effect/unstable/httpapi"
 import { AuthMiddleware } from "@leuchtturm/api/auth";
 import { AuthError } from "@leuchtturm/core/auth/errors";
 import { DeviceSessionsResponse } from "@leuchtturm/core/auth/schema";
+import { BillingError } from "@leuchtturm/core/billing/errors";
 import {
 	DatabaseError,
 	NotFoundError,
@@ -36,7 +37,7 @@ const BillingUrlResponse = Schema.Struct({
 const AuthRouteError = Schema.Union([UnauthorizedError, AuthError]);
 const ProtectedRouteError = Schema.Union([DatabaseError, UnauthorizedError, AuthError]);
 const BillingRouteError = Schema.Union([
-	DatabaseError,
+	BillingError,
 	UnauthorizedError,
 	AuthError,
 	ValidationError,

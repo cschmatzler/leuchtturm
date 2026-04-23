@@ -6,7 +6,7 @@ import { AuthMiddleware } from "@leuchtturm/api/auth";
 import { LeuchtturmApi } from "@leuchtturm/api/contract";
 import { Auth } from "@leuchtturm/core/auth";
 import { Billing } from "@leuchtturm/core/billing";
-import { DatabaseError, NotFoundError, ValidationError } from "@leuchtturm/core/errors";
+import { NotFoundError, ValidationError } from "@leuchtturm/core/errors";
 
 export namespace BillingHandler {
 	const getActiveOrganization = Effect.fn("billing.activeOrganization")(function* () {
@@ -38,9 +38,7 @@ export namespace BillingHandler {
 	const overview = Effect.fn("billing.overview")(function* () {
 		const activeOrganization = yield* getActiveOrganization();
 		const billing = yield* Billing.Service;
-		const state = yield* billing
-			.getCustomerState(activeOrganization.id)
-			.pipe(Effect.mapError((error) => new DatabaseError({ message: error.message })));
+		const state = yield* billing.getCustomerState(activeOrganization.id);
 		const activeSubscription = state.activeSubscriptions[0]
 			? {
 					currentPeriodEnd: state.activeSubscriptions[0].currentPeriodEnd,
@@ -56,13 +54,11 @@ export namespace BillingHandler {
 		const origin = yield* currentOrigin();
 		const billing = yield* Billing.Service;
 		const billingUrl = `${origin}/${activeOrganization.slug}/settings/billing`;
-		const url = yield* billing
-			.createCheckoutUrl({
-				organizationId: activeOrganization.id,
-				successUrl: billingUrl,
-				returnUrl: billingUrl,
-			})
-			.pipe(Effect.mapError((error) => new DatabaseError({ message: error.message })));
+		const url = yield* billing.createCheckoutUrl({
+			organizationId: activeOrganization.id,
+			successUrl: billingUrl,
+			returnUrl: billingUrl,
+		});
 
 		return { url };
 	});
@@ -71,12 +67,10 @@ export namespace BillingHandler {
 		const activeOrganization = yield* getActiveOrganization();
 		const origin = yield* currentOrigin();
 		const billing = yield* Billing.Service;
-		const url = yield* billing
-			.createPortalUrl({
-				organizationId: activeOrganization.id,
-				returnUrl: `${origin}/${activeOrganization.slug}/settings/billing`,
-			})
-			.pipe(Effect.mapError((error) => new DatabaseError({ message: error.message })));
+		const url = yield* billing.createPortalUrl({
+			organizationId: activeOrganization.id,
+			returnUrl: `${origin}/${activeOrganization.slug}/settings/billing`,
+		});
 
 		return { url };
 	});

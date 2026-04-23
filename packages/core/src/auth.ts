@@ -205,9 +205,9 @@ export namespace Auth {
 							send: (emailParams) => runCallback(email.send(emailParams)),
 							userName: params.user.name,
 						}),
-					catch: (error) =>
+					catch: () =>
 						new AuthError({
-							message: `Failed to send password reset email: ${(error as Error).message}`,
+							message: "Failed to send password reset email",
 						}),
 				});
 			});
@@ -317,9 +317,9 @@ export namespace Auth {
 			const handle = Effect.fn("Auth.handle")(function* (request: Request) {
 				return yield* Effect.tryPromise({
 					try: () => auth.handler(request),
-					catch: (error) =>
+					catch: () =>
 						new AuthError({
-							message: `Auth handler failed: ${(error as Error).message}`,
+							message: "Auth handler failed",
 						}),
 				});
 			});
@@ -327,9 +327,9 @@ export namespace Auth {
 			const getSession = Effect.fn("Auth.getSession")(function* (headers: Headers) {
 				const currentSession = yield* Effect.tryPromise({
 					try: () => auth.api.getSession({ headers }),
-					catch: (error) =>
+					catch: () =>
 						new AuthError({
-							message: `Auth getSession failed: ${(error as Error).message}`,
+							message: "Auth getSession failed",
 						}),
 				});
 
@@ -338,11 +338,12 @@ export namespace Auth {
 				}
 
 				return yield* Schema.decodeUnknownEffect(SessionData)(currentSession).pipe(
-					Effect.mapError(
-						(error) =>
+					Effect.catch(() =>
+						Effect.fail(
 							new AuthError({
-								message: `Invalid auth session payload: ${error.message}`,
+								message: "Invalid auth session payload",
 							}),
+						),
 					),
 				);
 			});
@@ -358,11 +359,12 @@ export namespace Auth {
 					.where(eq(organization.id, organizationId))
 					.limit(1)
 					.pipe(
-						Effect.mapError(
-							(error) =>
+						Effect.catch(() =>
+							Effect.fail(
 								new AuthError({
-									message: `Auth organization lookup failed: ${error.message}`,
+									message: "Auth organization lookup failed",
 								}),
+							),
 						),
 					);
 
@@ -372,17 +374,17 @@ export namespace Auth {
 			const getDeviceSessions = Effect.fn("Auth.getDeviceSessions")(function* (headers: Headers) {
 				const currentSession = yield* Effect.tryPromise({
 					try: () => auth.api.getSession({ headers }),
-					catch: (error) =>
+					catch: () =>
 						new AuthError({
-							message: `Auth getSession failed while loading device sessions: ${(error as Error).message}`,
+							message: "Auth getSession failed while loading device sessions",
 						}),
 				});
 
 				const deviceSessions = yield* Effect.tryPromise({
 					try: () => auth.api.listDeviceSessions({ headers }),
-					catch: (error) =>
+					catch: () =>
 						new AuthError({
-							message: `Auth listDeviceSessions failed: ${(error as Error).message}`,
+							message: "Auth listDeviceSessions failed",
 						}),
 				});
 
@@ -404,9 +406,9 @@ export namespace Auth {
 							.innerJoin(member, eq(member.userId, session.userId))
 							.innerJoin(organization, eq(member.organizationId, organization.id))
 							.where(inArray(session.id, sessionIds)),
-					catch: (error) =>
+					catch: () =>
 						new AuthError({
-							message: `Auth device session organization lookup failed: ${(error as Error).message}`,
+							message: "Auth device session organization lookup failed",
 						}),
 				});
 

@@ -14,11 +14,12 @@ export namespace HealthHandler {
 		const databaseStartedAt = performance.now();
 
 		yield* database.execute("select 1").pipe(
-			Effect.mapError(
-				(error) =>
+			Effect.catch(() =>
+				Effect.fail(
 					new DatabaseError({
-						message: `Health database check failed: ${(error as Error).message}`,
+						message: "Health database check failed",
 					}),
+				),
 			),
 		);
 

@@ -7,9 +7,6 @@ import { RequestRuntime } from "@leuchtturm/api/request-runtime";
 export namespace ProductAnalytics {
 	const createClient = (waitUntil?: (promise: Promise<unknown>) => void) => {
 		const config = ApiConfig.posthog();
-		if (!config) {
-			return undefined;
-		}
 
 		return new PostHog(config.apiKey, {
 			host: config.host,
@@ -38,10 +35,6 @@ export namespace ProductAnalytics {
 					const client = createClient(runtime.waitUntil);
 
 					yield* Effect.sync(() => {
-						if (!client) {
-							return;
-						}
-
 						client.capture({
 							distinctId,
 							event,

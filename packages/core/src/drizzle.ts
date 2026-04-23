@@ -49,9 +49,9 @@ export namespace Database {
 							await client.connect();
 							return client;
 						},
-						catch: (error) =>
+						catch: () =>
 							new DatabaseError({
-								message: `Failed to connect raw Postgres client: ${(error as Error).message}`,
+								message: "Failed to connect raw Postgres client",
 							}),
 					}),
 					(client) => Effect.promise(() => client.end()),
@@ -62,11 +62,12 @@ export namespace Database {
 					types: drizzleTypes,
 				}).pipe(
 					Effect.provide(Reactivity.layer),
-					Effect.mapError(
-						(error) =>
+					Effect.catch(() =>
+						Effect.fail(
 							new DatabaseError({
-								message: `Failed to connect Effect Postgres client: ${(error as Error).message}`,
+								message: "Failed to connect Effect Postgres client",
 							}),
+						),
 					),
 				);
 

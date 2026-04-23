@@ -29,13 +29,13 @@ export namespace ZeroHandler {
 					schema,
 					rawRequest,
 				),
-			catch: (error) =>
+			catch: () =>
 				new DatabaseError({
-					message: `Query execution failed: ${(error as Error).message}`,
+					message: "Query execution failed",
 				}),
 		});
 
-		return HttpServerResponse.jsonUnsafe(result);
+		return yield* HttpServerResponse.json(result).pipe(Effect.orDie);
 	});
 
 	const handleMutate = Effect.fn("zero.mutate")(function* () {
@@ -59,13 +59,13 @@ export namespace ZeroHandler {
 						}),
 					rawRequest,
 				),
-			catch: (error) =>
+			catch: () =>
 				new DatabaseError({
-					message: `Mutation execution failed: ${(error as Error).message}`,
+					message: "Mutation execution failed",
 				}),
 		});
 
-		return HttpServerResponse.jsonUnsafe(result);
+		return yield* HttpServerResponse.json(result).pipe(Effect.orDie);
 	});
 
 	export const layer = HttpApiBuilder.group(LeuchtturmApi, "zero", (handlers) =>

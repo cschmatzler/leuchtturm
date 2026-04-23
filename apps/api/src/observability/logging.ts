@@ -15,6 +15,9 @@ type LogEvent = {
 };
 
 const rawFetch = globalThis.fetch.bind(globalThis);
+const objectType = Object.prototype.toString;
+
+const isDate = (value: unknown): value is Date => objectType.call(value) === "[object Date]";
 
 const serializeLogValue = (value: unknown, depth = 0): JsonValue => {
 	if (depth > 5) {
@@ -33,7 +36,7 @@ const serializeLogValue = (value: unknown, depth = 0): JsonValue => {
 		return value.toString();
 	}
 
-	if (value instanceof Date) {
+	if (isDate(value)) {
 		return value.toISOString();
 	}
 
@@ -137,7 +140,6 @@ const emit = (event: LogEvent) =>
 		};
 		const payload = {
 			_time: new Date().toISOString(),
-			deployment_environment: config.deploymentEnvironment,
 			level: event.level,
 			log_spans: logSpans,
 			message: formatLogMessage(event.message),
