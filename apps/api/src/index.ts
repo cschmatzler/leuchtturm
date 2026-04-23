@@ -5,7 +5,7 @@ import { HttpEffect, HttpRouter, HttpServer } from "effect/unstable/http";
 import { HttpApiBuilder } from "effect/unstable/httpapi";
 import { fromCloudflareEnv } from "sst/resource/cloudflare";
 
-import { AuthMiddleware } from "@leuchtturm/api/auth";
+import { authMiddlewareLayer } from "@leuchtturm/api/auth-layer";
 import { BackgroundTasks } from "@leuchtturm/api/background";
 import { LeuchtturmApi } from "@leuchtturm/api/contract";
 import { FeatureFlags } from "@leuchtturm/api/feature-flags";
@@ -51,7 +51,7 @@ namespace Api {
 		const api = HttpRouter.toHttpEffect(
 			HttpApiBuilder.layer(LeuchtturmApi).pipe(
 				Layer.provide(handlers),
-				Layer.provide(AuthMiddleware.layer),
+				Layer.provide(authMiddlewareLayer),
 			),
 		).pipe(Effect.flatten);
 		const database = Database.layer(env.Database.connectionString);

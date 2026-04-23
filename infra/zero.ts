@@ -51,18 +51,3 @@ new render.services.CustomDomain("ZeroCustomDomain", {
 	name: syncDomain,
 	serviceId: zero.id,
 });
-
-new cloudflare.DnsRecord("ZeroCustomDomainRecord", {
-	zoneId: zone.zoneId,
-	name: syncDomain,
-	type: "CNAME",
-	content: zero.serviceDetails.apply((details) => {
-		if (!details?.url) {
-			throw new Error("Render did not return a URL for the Zero service.");
-		}
-
-		return new URL(details.url).hostname;
-	}),
-	proxied: false,
-	ttl: 1,
-});

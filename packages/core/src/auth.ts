@@ -169,11 +169,16 @@ export namespace Auth {
 			});
 
 			const createOrganizationCustomer = Effect.fn("Auth.createOrganizationCustomer")(
-				function* (payload: { organization: { id: string; name: string; slug: string } }) {
+				function* (payload: {
+					organization: { id: string; name: string; slug: string };
+					user: { email: string; name: string };
+				}) {
 					yield* billing.createCustomer({
 						organizationId: payload.organization.id,
 						name: payload.organization.name,
 						slug: payload.organization.slug,
+						ownerEmail: payload.user.email,
+						ownerName: payload.user.name,
 					});
 				},
 			);
@@ -244,8 +249,8 @@ export namespace Auth {
 					multiSession(),
 					organizationPlugin({
 						organizationHooks: {
-							afterCreateOrganization: ({ organization }) =>
-								runCallback(createOrganizationCustomer({ organization })),
+							afterCreateOrganization: ({ organization, user }) =>
+								runCallback(createOrganizationCustomer({ organization, user })),
 							afterUpdateOrganization: ({ organization }) => {
 								if (!organization) return Promise.resolve();
 								return runCallback(updateOrganizationCustomer({ organization }));

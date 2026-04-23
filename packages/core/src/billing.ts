@@ -1,5 +1,6 @@
 import { Polar } from "@polar-sh/sdk";
 import type { CustomerState } from "@polar-sh/sdk/models/components/customerstate";
+import type { CustomerTeamCreate } from "@polar-sh/sdk/models/components/customerteamcreate";
 import type { Order } from "@polar-sh/sdk/models/components/order";
 import type { Subscription } from "@polar-sh/sdk/models/components/subscription";
 import { eq } from "drizzle-orm";
@@ -20,6 +21,25 @@ import {
 } from "@leuchtturm/core/billing/schema";
 import { Database } from "@leuchtturm/core/drizzle";
 
+export function buildOrganizationCustomerCreate(params: {
+	readonly organizationId: string;
+	readonly name: string;
+	readonly slug: string;
+	readonly ownerEmail: string;
+	readonly ownerName: string;
+}): CustomerTeamCreate {
+	return {
+		type: "team",
+		externalId: params.organizationId,
+		name: params.name,
+		metadata: { slug: params.slug },
+		owner: {
+			email: params.ownerEmail,
+			name: params.ownerName,
+		},
+	};
+}
+
 export namespace Billing {
 	export class BillingError extends Schema.TaggedErrorClass<BillingError>()(
 		"BillingError",
@@ -32,6 +52,8 @@ export namespace Billing {
 			readonly organizationId: string;
 			readonly name: string;
 			readonly slug: string;
+			readonly ownerEmail: string;
+			readonly ownerName: string;
 		}) => Effect.Effect<void, BillingError>;
 		readonly updateCustomer: (params: {
 			readonly organizationId: string;
@@ -214,15 +236,11 @@ export namespace Billing {
 				readonly organizationId: string;
 				readonly name: string;
 				readonly slug: string;
+				readonly ownerEmail: string;
+				readonly ownerName: string;
 			}) {
 				yield* Effect.tryPromise({
-					try: () =>
-						polarClient.customers.create({
-							type: "team",
-							externalId: params.organizationId,
-							name: params.name,
-							metadata: { slug: params.slug },
-						}),
+					try: () => polarClient.customers.create(buildOrganizationCustomerCreate(params)),
 					catch: (error) =>
 						new BillingError({
 							message: `Failed to create billing customer for organization ${params.organizationId}: ${String(error)}`,
