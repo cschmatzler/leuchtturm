@@ -335,36 +335,25 @@ diff --git a/effect-core/query-effect.cjs b/effect-core/query-effect.cjs
 index c8d7fa1f1518d469a5abd3c17f555b2368a9e0bc..8f8930070048a351d2b33102222d6a463e7f2288 100644
 --- a/effect-core/query-effect.cjs
 +++ b/effect-core/query-effect.cjs
-@@ -1,14 +1,27 @@
+@@ -1,14 +1,19 @@
  Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
--const require_runtime = require('../_virtual/_rolldown/runtime.cjs');
--let effect_Effectable = require("effect/Effectable");
--effect_Effectable = require_runtime.__toESM(effect_Effectable);
+ const require_runtime = require('../_virtual/_rolldown/runtime.cjs');
+ let effect_Effectable = require("effect/Effectable");
+ effect_Effectable = require_runtime.__toESM(effect_Effectable);
  
  //#region src/effect-core/query-effect.ts
-+class SingleShotGen {
-+	constructor(self) {
-+		this.self = self;
-+		this.called = false;
-+	}
-+	next(value) {
-+		if (this.called) return { value, done: true };
-+		this.called = true;
-+		return { value: this.self, done: false };
-+	}
-+	return(value) { return { value, done: true }; }
-+	throw(error) { throw error; }
-+	[Symbol.iterator]() { return this; }
-+}
  function applyEffectWrapper(baseClass) {
 -	Object.assign(baseClass.prototype, effect_Effectable.CommitPrototype);
 -	baseClass.prototype.commit = function() {
++	Object.assign(baseClass.prototype, effect_Effectable.Prototype({
++		label: baseClass.name || "DrizzleEffectQuery",
++		evaluate() {
++			return this.asEffect();
++		}
++	}));
 +	baseClass.prototype.asEffect = function() {
  		return this.execute();
  	};
-+	baseClass.prototype[Symbol.iterator] = function() {
-+		return new SingleShotGen(this);
-+	};
  }
  
  //#endregion
@@ -372,33 +361,22 @@ diff --git a/effect-core/query-effect.js b/effect-core/query-effect.js
 index b841ac5c22b8db2043e04d6b3f39d145ac21c5eb..4104c3bc1e8a5015197e5ff8653ff483a6b7fb34 100644
 --- a/effect-core/query-effect.js
 +++ b/effect-core/query-effect.js
-@@ -1,11 +1,25 @@
--import * as Effectable from "effect/Effectable";
--
+@@ -1,11 +1,16 @@
++import * as Effectable from "effect/Effectable";
++
  //#region src/effect-core/query-effect.ts
-+class SingleShotGen {
-+	constructor(self) {
-+		this.self = self;
-+		this.called = false;
-+	}
-+	next(value) {
-+		if (this.called) return { value, done: true };
-+		this.called = true;
-+		return { value: this.self, done: false };
-+	}
-+	return(value) { return { value, done: true }; }
-+	throw(error) { throw error; }
-+	[Symbol.iterator]() { return this; }
-+}
  function applyEffectWrapper(baseClass) {
 -	Object.assign(baseClass.prototype, Effectable.CommitPrototype);
 -	baseClass.prototype.commit = function() {
++	Object.assign(baseClass.prototype, Effectable.Prototype({
++		label: baseClass.name || "DrizzleEffectQuery",
++		evaluate() {
++			return this.asEffect();
++		}
++	}));
 +	baseClass.prototype.asEffect = function() {
  		return this.execute();
  	};
-+	baseClass.prototype[Symbol.iterator] = function() {
-+		return new SingleShotGen(this);
-+	};
  }
  
  //#endregion

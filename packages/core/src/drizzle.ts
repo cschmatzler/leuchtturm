@@ -2,9 +2,8 @@ import { PgClient } from "@effect/sql-pg";
 import { makeWithDefaults, type EffectPgDatabase } from "drizzle-orm/effect-postgres";
 import { drizzle, type NodePgClient, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Context, Effect, Layer, Redacted } from "effect";
-import * as Reactivity from "effect/unstable/reactivity/Reactivity";
-import * as pg from "pg";
-import type { CustomTypesConfig } from "pg";
+import { Reactivity } from "effect/unstable/reactivity";
+import { Client, types, type CustomTypesConfig } from "pg";
 
 import { relations } from "@leuchtturm/core/drizzle/relations";
 import { DatabaseError } from "@leuchtturm/core/errors";
@@ -15,24 +14,24 @@ const drizzleTypes: CustomTypesConfig = {
 			return (value: string) => value;
 		}
 
-		return pg.types.getTypeParser(typeId, format);
+		return types.getTypeParser(typeId, format);
 	},
 };
 
 export namespace Database {
-	export type RawClient = NodePgDatabase<Record<string, never>, typeof relations> & {
+	export type RawDatabase = NodePgDatabase<Record<string, never>, typeof relations> & {
 		$client: NodePgClient;
 	};
 
-	export type Client = EffectPgDatabase<Record<string, never>, typeof relations> & {
+	export type Database = EffectPgDatabase<Record<string, never>, typeof relations> & {
 		$client: PgClient.PgClient;
 	};
 
-	export type Executor = Omit<Client, "$client" | "$cache">;
+	export type Executor = Omit<Database, "$client" | "$cache">;
 
 	export interface Interface {
-		readonly rawDatabase: RawClient;
-		readonly database: Client;
+		readonly rawDatabase: RawDatabase;
+		readonly database: Database;
 	}
 
 	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/Database") {}
@@ -43,7 +42,7 @@ export namespace Database {
 				const rawClient = yield* Effect.acquireRelease(
 					Effect.tryPromise({
 						try: async () => {
-							const client = new pg.Client({
+							const client = new Client({
 								connectionString,
 							});
 							await client.connect();

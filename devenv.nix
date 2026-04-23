@@ -58,28 +58,6 @@
 		};
 	};
 
-	# Services
-	# --------
-
-	services.caddy = {
-		enable = true;
-		config = ''
-			:34600 {
-				handle /api/* {
-					reverse_proxy localhost:3005
-				}
-
-				handle /sync/* {
-					reverse_proxy localhost:4848
-				}
-
-				handle /* {
-					reverse_proxy localhost:5173
-				}
-			}
-		'';
-	};
-
 	services.postgres = {
 		enable = true;
 		listen_addresses = "*";
