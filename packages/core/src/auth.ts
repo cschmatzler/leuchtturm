@@ -391,25 +391,24 @@ export namespace Auth {
 				}
 
 				const sessionIds = deviceSessions.map((deviceSession) => deviceSession.session.id);
-				const memberships = yield* db
-					.select({
-						sessionId: session.id,
-						id: organization.id,
-						name: organization.name,
-						slug: organization.slug,
-					})
-					.from(session)
-					.innerJoin(member, eq(member.userId, session.userId))
-					.innerJoin(organization, eq(member.organizationId, organization.id))
-					.where(inArray(session.id, sessionIds))
-					.pipe(
-						Effect.mapError(
-							(error) =>
-								new AuthError({
-									message: `Auth device session organization lookup failed: ${error.message}`,
-								}),
-						),
-					);
+				const memberships = yield* Effect.tryPromise({
+					try: () =>
+						rawDb
+							.select({
+								sessionId: session.id,
+								id: organization.id,
+								name: organization.name,
+								slug: organization.slug,
+							})
+							.from(session)
+							.innerJoin(member, eq(member.userId, session.userId))
+							.innerJoin(organization, eq(member.organizationId, organization.id))
+							.where(inArray(session.id, sessionIds)),
+					catch: (error) =>
+						new AuthError({
+							message: `Auth device session organization lookup failed: ${String(error)}`,
+						}),
+				});
 
 				return transformDeviceSessions(
 					deviceSessions as RawDeviceSession[],
