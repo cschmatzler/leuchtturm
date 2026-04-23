@@ -13,13 +13,14 @@ export namespace HealthHandler {
 		const { db } = yield* Database.Service;
 		const databaseStartedAt = performance.now();
 
-		yield* Effect.tryPromise({
-			try: () => db.$client.query("select 1"),
-			catch: (error) =>
-				new DatabaseError({
-					message: `Health database check failed: ${String(error)}`,
-				}),
-		});
+		yield* db.execute("select 1").pipe(
+			Effect.mapError(
+				(error) =>
+					new DatabaseError({
+						message: `Health database check failed: ${error.message}`,
+					}),
+			),
+		);
 
 		return {
 			success: true as const,

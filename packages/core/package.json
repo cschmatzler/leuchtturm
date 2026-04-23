@@ -11,13 +11,14 @@
 		"db:studio": "drizzle-kit studio"
 	},
 	"dependencies": {
+		"@effect/sql-pg": "4.0.0-beta.56",
 		"@leuchtturm/email": "workspace:",
 		"@polar-sh/better-auth": "^1.8.3",
 		"@polar-sh/sdk": "^0.47.0",
 		"better-auth": "1.6.6",
 		"drizzle-kit": "1.0.0-beta.12-a5629fb",
 		"drizzle-orm": "1.0.0-beta.12-a5629fb",
-		"effect": "4.0.0-beta.50",
+		"effect": "4.0.0-beta.56",
 		"pg": "8.20.0",
 		"resend": "6.12.2",
 		"ulid": "3.0.2"

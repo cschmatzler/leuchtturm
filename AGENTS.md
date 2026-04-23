@@ -3,8 +3,6 @@
 - Talk to the user. Do not go ahead on your own. Make sure the requirements are abundantly clear before editing files. Use the questions tool a lot.
 - Never try to generate migrations yourself. Tell the user to.
 - Do not stop at "yeah, you're right" or similar acknowledgement when the user is clearly pointing out a mistake that should be corrected. Fix it in the same turn.
-- Treat rhetorical questions and frustrated follow-ups as requests for action, not invitations to explain at length.
-- Prefer the fix over the explanation. Keep explanations minimal and spend the effort on making the requested correction.
 
 # Vite+ Toolchain
 

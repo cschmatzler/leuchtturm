@@ -138,7 +138,7 @@ export namespace Auth {
 
 	export const layer = Layer.effect(Service)(
 		Effect.gen(function* () {
-			const { db } = yield* Database.Service;
+			const { db, rawDb } = yield* Database.Service;
 			const billing = yield* Billing.Service;
 			const email = yield* Email.Service;
 			const services = yield* Effect.context();
@@ -220,7 +220,7 @@ export namespace Auth {
 				baseURL: `${Resource.ApiConfig.BASE_URL}/api/auth`,
 				secret: Resource.BetterAuthSecret.value,
 				trustedOrigins: [Resource.ApiConfig.BASE_URL],
-				database: drizzleAdapter(db, {
+				database: drizzleAdapter(rawDb, {
 					provider: "pg",
 					schema: { account, session, user, verification, organization, member, invitation },
 				}),
@@ -348,22 +348,23 @@ export namespace Auth {
 			});
 
 			const getOrganization = Effect.fn("Auth.getOrganization")(function* (organizationId: string) {
-				const rows = yield* Effect.tryPromise({
-					try: () =>
-						db
-							.select({
-								id: organization.id,
-								name: organization.name,
-								slug: organization.slug,
-							})
-							.from(organization)
-							.where(eq(organization.id, organizationId))
-							.limit(1),
-					catch: (error) =>
-						new AuthError({
-							message: `Auth organization lookup failed: ${String(error)}`,
-						}),
-				});
+				const rows = yield* db
+					.select({
+						id: organization.id,
+						name: organization.name,
+						slug: organization.slug,
+					})
+					.from(organization)
+					.where(eq(organization.id, organizationId))
+					.limit(1)
+					.pipe(
+						Effect.mapError(
+							(error) =>
+								new AuthError({
+									message: `Auth organization lookup failed: ${error.message}`,
+								}),
+						),
+					);
 
 				return rows[0] ?? null;
 			});
@@ -390,24 +391,25 @@ export namespace Auth {
 				}
 
 				const sessionIds = deviceSessions.map((deviceSession) => deviceSession.session.id);
-				const memberships = yield* Effect.tryPromise({
-					try: () =>
-						db
-							.select({
-								sessionId: session.id,
-								id: organization.id,
-								name: organization.name,
-								slug: organization.slug,
-							})
-							.from(session)
-							.innerJoin(member, eq(member.userId, session.userId))
-							.innerJoin(organization, eq(member.organizationId, organization.id))
-							.where(inArray(session.id, sessionIds)),
-					catch: (error) =>
-						new AuthError({
-							message: `Auth device session organization lookup failed: ${String(error)}`,
-						}),
-				});
+				const memberships = yield* db
+					.select({
+						sessionId: session.id,
+						id: organization.id,
+						name: organization.name,
+						slug: organization.slug,
+					})
+					.from(session)
+					.innerJoin(member, eq(member.userId, session.userId))
+					.innerJoin(organization, eq(member.organizationId, organization.id))
+					.where(inArray(session.id, sessionIds))
+					.pipe(
+						Effect.mapError(
+							(error) =>
+								new AuthError({
+									message: `Auth device session organization lookup failed: ${error.message}`,
+								}),
+						),
+					);
 
 				return transformDeviceSessions(
 					deviceSessions as RawDeviceSession[],

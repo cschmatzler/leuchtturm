@@ -40,11 +40,11 @@ export namespace ZeroHandler {
 
 	const handleMutate = Effect.fn("zero.mutate")(function* () {
 		const { user } = yield* AuthMiddleware.CurrentUser;
-		const { db } = yield* Database.Service;
+		const { rawDb } = yield* Database.Service;
 		const ctx = { userId: user.id };
 		const request = yield* HttpServerRequest.HttpServerRequest;
 		const rawRequest = yield* HttpServerRequest.toWeb(request).pipe(Effect.orDie);
-		const dbProvider = zeroDrizzle(schema, db);
+		const dbProvider = zeroDrizzle(schema, rawDb);
 
 		const result = yield* Effect.tryPromise({
 			try: () =>
