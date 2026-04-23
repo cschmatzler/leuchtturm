@@ -91,7 +91,7 @@ export namespace Billing {
 
 	export const layer = Layer.effect(Service)(
 		Effect.gen(function* () {
-			const { db } = yield* Database.Service;
+			const { database } = yield* Database.Service;
 			const polarClient = new Polar({
 				accessToken: Resource.PolarAccessToken.value,
 				server: Resource.ApiConfig.POLAR_SERVER as "production" | "sandbox",
@@ -103,21 +103,6 @@ export namespace Billing {
 					syncedAt: new Date(),
 				});
 			}
-
-			const toBillingError = (message: string) => (error: unknown) => {
-				if (
-					error &&
-					typeof error === "object" &&
-					"_tag" in error &&
-					error._tag === "BillingError"
-				) {
-					return error as BillingError;
-				}
-
-				return new BillingError({
-					message: `${message}: ${String(error)}`,
-				});
-			};
 
 			const syncCustomerState = (
 				tx: Database.Executor,
@@ -199,7 +184,7 @@ export namespace Billing {
 					try: () => polarClient.customers.getState({ id: customerId }),
 					catch: (error) =>
 						new BillingError({
-							message: `Unable to load Polar customer state for ${customerId}: ${String(error)}`,
+							message: `Unable to load Polar customer state for ${customerId}: ${(error as Error).message}`,
 						}),
 				});
 			});
@@ -211,7 +196,7 @@ export namespace Billing {
 					try: () => polarClient.customers.getStateExternal({ externalId: organizationId }),
 					catch: (error) =>
 						new BillingError({
-							message: `Unable to load Polar customer state for organization ${organizationId}: ${String(error)}`,
+							message: `Unable to load Polar customer state for organization ${organizationId}: ${(error as Error).message}`,
 						}),
 				});
 			});
@@ -221,12 +206,19 @@ export namespace Billing {
 			) {
 				if (!externalId) return null;
 
-				const rows = yield* db
+				const rows = yield* database
 					.select({ id: organization.id })
 					.from(organization)
 					.where(eq(organization.id, externalId))
 					.limit(1)
-					.pipe(Effect.mapError(toBillingError(`Failed to look up organization ${externalId}`)));
+					.pipe(
+						Effect.mapError(
+							(error) =>
+								new BillingError({
+									message: `Failed to look up organization ${externalId}: ${(error as Error).message}`,
+								}),
+						),
+					);
 
 				return rows[0]?.id ?? null;
 			});
@@ -240,9 +232,16 @@ export namespace Billing {
 					yield* getKnownOrganizationId(state.externalId),
 				);
 
-				yield* db
+				yield* database
 					.transaction((tx) => syncCustomerState(tx, { organizationId, state }))
-					.pipe(Effect.mapError(toBillingError("Failed to upsert customer state")));
+					.pipe(
+						Effect.mapError(
+							(error) =>
+								new BillingError({
+									message: `Failed to upsert customer state: ${(error as Error).message}`,
+								}),
+						),
+					);
 			});
 
 			const createCustomer = Effect.fn("Billing.createCustomer")(function* (params: {
@@ -256,7 +255,7 @@ export namespace Billing {
 					try: () => polarClient.customers.create(buildOrganizationCustomerCreate(params)),
 					catch: (error) =>
 						new BillingError({
-							message: `Failed to create billing customer for organization ${params.organizationId}: ${String(error)}`,
+							message: `Failed to create billing customer for organization ${params.organizationId}: ${(error as Error).message}`,
 						}),
 				});
 
@@ -280,7 +279,7 @@ export namespace Billing {
 						}),
 					catch: (error) =>
 						new BillingError({
-							message: `Failed to update billing customer for organization ${params.organizationId}: ${String(error)}`,
+							message: `Failed to update billing customer for organization ${params.organizationId}: ${(error as Error).message}`,
 						}),
 				});
 
@@ -309,7 +308,7 @@ export namespace Billing {
 						}),
 					catch: (error) =>
 						new BillingError({
-							message: `Failed to create checkout for organization ${params.organizationId}: ${String(error)}`,
+							message: `Failed to create checkout for organization ${params.organizationId}: ${(error as Error).message}`,
 						}),
 				});
 
@@ -328,7 +327,7 @@ export namespace Billing {
 						}),
 					catch: (error) =>
 						new BillingError({
-							message: `Failed to create billing portal for organization ${params.organizationId}: ${String(error)}`,
+							message: `Failed to create billing portal for organization ${params.organizationId}: ${(error as Error).message}`,
 						}),
 				});
 
@@ -345,7 +344,7 @@ export namespace Billing {
 				);
 				const customerState = yield* loadCustomerState(subscription.customerId);
 
-				yield* db
+				yield* database
 					.transaction(
 						(tx) =>
 							Effect.gen(function* () {
@@ -386,14 +385,21 @@ export namespace Billing {
 									});
 							}) as TransactionEffect<void>,
 					)
-					.pipe(Effect.mapError(toBillingError("Failed to upsert subscription")));
+					.pipe(
+						Effect.mapError(
+							(error) =>
+								new BillingError({
+									message: `Failed to upsert subscription: ${(error as Error).message}`,
+								}),
+						),
+					);
 			});
 
 			const upsertOrder = Effect.fn("Billing.upsertOrder")(function* (order: Order) {
 				const organizationId = yield* getKnownOrganizationId(order.customer.externalId);
 				const customerState = organizationId ? yield* loadCustomerState(order.customerId) : null;
 
-				yield* db
+				yield* database
 					.transaction(
 						(tx) =>
 							Effect.gen(function* () {
@@ -505,7 +511,14 @@ export namespace Billing {
 								});
 							}) as TransactionEffect<void>,
 					)
-					.pipe(Effect.mapError(toBillingError("Failed to upsert order")));
+					.pipe(
+						Effect.mapError(
+							(error) =>
+								new BillingError({
+									message: `Failed to upsert order: ${(error as Error).message}`,
+								}),
+						),
+					);
 			});
 
 			return Service.of({

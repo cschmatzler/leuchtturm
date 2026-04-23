@@ -37,14 +37,6 @@ const serializeLogValue = (value: unknown, depth = 0): JsonValue => {
 		return value.toISOString();
 	}
 
-	if (value instanceof Error) {
-		return {
-			message: value.message,
-			name: value.name,
-			stack: value.stack ?? null,
-		};
-	}
-
 	if (Array.isArray(value)) {
 		return value.map((item) => serializeLogValue(item, depth + 1));
 	}

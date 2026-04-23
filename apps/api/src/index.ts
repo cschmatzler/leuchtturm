@@ -83,10 +83,16 @@ namespace Api {
 						});
 
 						return Effect.tryPromise({
-							try: () => handler.handler(request, requestContext),
+							try: () =>
+								(
+									handler.handler as (
+										request: Request,
+										context: ReturnType<typeof RequestRuntime.makeContext>,
+									) => Promise<Response>
+								)(request, requestContext),
 							catch: (error) =>
 								new DatabaseError({
-									message: `API handler failed: ${String(error)}`,
+									message: `API handler failed: ${(error as Error).message}`,
 								}),
 						});
 					},

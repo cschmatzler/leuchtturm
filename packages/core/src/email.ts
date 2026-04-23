@@ -24,7 +24,7 @@ export namespace Email {
 
 			const fail = (context: string) => (error: unknown) =>
 				new EmailError({
-					message: `${context}: ${String(error)}`,
+					message: `${context}: ${(error as Error).message}`,
 				});
 
 			const send = Effect.fn("Email.send")(function* (params: SendParams) {

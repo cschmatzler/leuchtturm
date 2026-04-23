@@ -31,7 +31,7 @@ export namespace ZeroHandler {
 				),
 			catch: (error) =>
 				new DatabaseError({
-					message: `Query execution failed: ${String(error)}`,
+					message: `Query execution failed: ${(error as Error).message}`,
 				}),
 		});
 
@@ -40,16 +40,16 @@ export namespace ZeroHandler {
 
 	const handleMutate = Effect.fn("zero.mutate")(function* () {
 		const { user } = yield* AuthMiddleware.CurrentUser;
-		const { rawDb } = yield* Database.Service;
+		const { rawDatabase } = yield* Database.Service;
 		const ctx = { userId: user.id };
 		const request = yield* HttpServerRequest.HttpServerRequest;
 		const rawRequest = yield* HttpServerRequest.toWeb(request).pipe(Effect.orDie);
-		const dbProvider = zeroDrizzle(schema, rawDb);
+		const databaseProvider = zeroDrizzle(schema, rawDatabase);
 
 		const result = yield* Effect.tryPromise({
 			try: () =>
 				handleMutateRequest(
-					dbProvider,
+					databaseProvider,
 					async (transact) =>
 						transact(async (tx, name, args) => {
 							return Promise.resolve().then(() => {
@@ -61,7 +61,7 @@ export namespace ZeroHandler {
 				),
 			catch: (error) =>
 				new DatabaseError({
-					message: `Mutation execution failed: ${String(error)}`,
+					message: `Mutation execution failed: ${(error as Error).message}`,
 				}),
 		});
 

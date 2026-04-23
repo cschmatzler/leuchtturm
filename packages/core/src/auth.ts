@@ -138,7 +138,7 @@ export namespace Auth {
 
 	export const layer = Layer.effect(Service)(
 		Effect.gen(function* () {
-			const { db, rawDb } = yield* Database.Service;
+			const { database, rawDatabase } = yield* Database.Service;
 			const billing = yield* Billing.Service;
 			const email = yield* Email.Service;
 			const services = yield* Effect.context();
@@ -207,7 +207,7 @@ export namespace Auth {
 						}),
 					catch: (error) =>
 						new AuthError({
-							message: `Failed to send password reset email: ${String(error)}`,
+							message: `Failed to send password reset email: ${(error as Error).message}`,
 						}),
 				});
 			});
@@ -220,7 +220,7 @@ export namespace Auth {
 				baseURL: `${Resource.ApiConfig.BASE_URL}/api/auth`,
 				secret: Resource.BetterAuthSecret.value,
 				trustedOrigins: [Resource.ApiConfig.BASE_URL],
-				database: drizzleAdapter(rawDb, {
+				database: drizzleAdapter(rawDatabase, {
 					provider: "pg",
 					schema: { account, session, user, verification, organization, member, invitation },
 				}),
@@ -319,7 +319,7 @@ export namespace Auth {
 					try: () => auth.handler(request),
 					catch: (error) =>
 						new AuthError({
-							message: `Auth handler failed: ${String(error)}`,
+							message: `Auth handler failed: ${(error as Error).message}`,
 						}),
 				});
 			});
@@ -329,7 +329,7 @@ export namespace Auth {
 					try: () => auth.api.getSession({ headers }),
 					catch: (error) =>
 						new AuthError({
-							message: `Auth getSession failed: ${String(error)}`,
+							message: `Auth getSession failed: ${(error as Error).message}`,
 						}),
 				});
 
@@ -348,7 +348,7 @@ export namespace Auth {
 			});
 
 			const getOrganization = Effect.fn("Auth.getOrganization")(function* (organizationId: string) {
-				const rows = yield* db
+				const rows = yield* database
 					.select({
 						id: organization.id,
 						name: organization.name,
@@ -374,7 +374,7 @@ export namespace Auth {
 					try: () => auth.api.getSession({ headers }),
 					catch: (error) =>
 						new AuthError({
-							message: `Auth getSession failed while loading device sessions: ${String(error)}`,
+							message: `Auth getSession failed while loading device sessions: ${(error as Error).message}`,
 						}),
 				});
 
@@ -382,7 +382,7 @@ export namespace Auth {
 					try: () => auth.api.listDeviceSessions({ headers }),
 					catch: (error) =>
 						new AuthError({
-							message: `Auth listDeviceSessions failed: ${String(error)}`,
+							message: `Auth listDeviceSessions failed: ${(error as Error).message}`,
 						}),
 				});
 
@@ -393,7 +393,7 @@ export namespace Auth {
 				const sessionIds = deviceSessions.map((deviceSession) => deviceSession.session.id);
 				const memberships = yield* Effect.tryPromise({
 					try: () =>
-						rawDb
+						rawDatabase
 							.select({
 								sessionId: session.id,
 								id: organization.id,
@@ -406,7 +406,7 @@ export namespace Auth {
 							.where(inArray(session.id, sessionIds)),
 					catch: (error) =>
 						new AuthError({
-							message: `Auth device session organization lookup failed: ${String(error)}`,
+							message: `Auth device session organization lookup failed: ${(error as Error).message}`,
 						}),
 				});
 

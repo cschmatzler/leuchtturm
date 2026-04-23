@@ -72,7 +72,7 @@ export namespace FeatureFlags {
 						},
 						catch: (error) =>
 							new FeatureFlagsError({
-								message: `Failed to evaluate PostHog feature flag ${key} for user ${userId}: ${String(error)}`,
+								message: `Failed to evaluate PostHog feature flag ${key} for user ${userId}: ${(error as Error).message}`,
 							}),
 					}),
 				listForUser: (userId) =>
@@ -80,7 +80,7 @@ export namespace FeatureFlags {
 						try: async () => toEnabledRecord(await client.getAllFlags(userId)),
 						catch: (error) =>
 							new FeatureFlagsError({
-								message: `Failed to list PostHog feature flags for user ${userId}: ${String(error)}`,
+								message: `Failed to list PostHog feature flags for user ${userId}: ${(error as Error).message}`,
 							}),
 					}),
 			});

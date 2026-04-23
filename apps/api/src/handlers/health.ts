@@ -10,14 +10,14 @@ export namespace HealthHandler {
 
 	export const healthCheck = Effect.fn("health.check")(function* () {
 		const startedAt = performance.now();
-		const { db } = yield* Database.Service;
+		const { database } = yield* Database.Service;
 		const databaseStartedAt = performance.now();
 
-		yield* db.execute("select 1").pipe(
+		yield* database.execute("select 1").pipe(
 			Effect.mapError(
 				(error) =>
 					new DatabaseError({
-						message: `Health database check failed: ${error.message}`,
+						message: `Health database check failed: ${(error as Error).message}`,
 					}),
 			),
 		);

@@ -30,7 +30,7 @@ import type { RouterContext } from "@leuchtturm/web/router";
 function RootErrorView({ error }: { error: unknown }) {
 	const { t } = useTranslation();
 	const router = useRouter();
-	const message = error instanceof Error ? error.message : String(error);
+	const message = (error as Error).message;
 
 	return (
 		<div role="alert" className="flex min-h-svh w-full flex-col items-center justify-center gap-4">
