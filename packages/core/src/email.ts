@@ -6,14 +6,27 @@ import { Resource } from "sst";
 import type { SendParams } from "@leuchtturm/core/email/schema";
 
 export namespace Email {
-	export class EmailError extends Schema.TaggedErrorClass<EmailError>()(
-		"EmailError",
+	export class EmailProviderRequestError extends Schema.TaggedErrorClass<EmailProviderRequestError>()(
+		"EmailProviderRequestError",
 		{ message: Schema.String },
 		{ httpApiStatus: 500 },
 	) {}
 
+	export class EmailMissingResponseDataError extends Schema.TaggedErrorClass<EmailMissingResponseDataError>()(
+		"EmailMissingResponseDataError",
+		{ message: Schema.String },
+		{ httpApiStatus: 500 },
+	) {}
+
+	export const EmailError = Schema.Union([
+		EmailProviderRequestError,
+		EmailMissingResponseDataError,
+	]);
+
 	export interface Interface {
-		readonly send: (params: SendParams) => Effect.Effect<CreateEmailResponseSuccess, EmailError>;
+		readonly send: (
+			params: SendParams,
+		) => Effect.Effect<CreateEmailResponseSuccess, typeof EmailError.Type>;
 	}
 
 	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/Email") {}
@@ -30,7 +43,9 @@ export namespace Email {
 					Effect.catchCause((cause) =>
 						Effect.gen(function* () {
 							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-							return yield* Effect.fail(new EmailError({ message: "Resend API request failed" }));
+							return yield* Effect.fail(
+								new EmailProviderRequestError({ message: "Resend API request failed" }),
+							);
 						}),
 					),
 				);
@@ -42,7 +57,7 @@ export namespace Email {
 						);
 					}
 
-					return yield* new EmailError({
+					return yield* new EmailMissingResponseDataError({
 						message: "Email sent but received no response data",
 					});
 				}

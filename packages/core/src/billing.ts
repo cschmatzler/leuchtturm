@@ -17,7 +17,19 @@ import {
 	billingOrder,
 	billingSubscription,
 } from "@leuchtturm/core/billing/billing.sql";
-import { BillingError as BillingErrorClass } from "@leuchtturm/core/billing/errors";
+import {
+	BillingError,
+	BillingInvalidSnapshotError,
+	BillingMissingExternalOrganizationError,
+	BillingMissingSubscriptionSnapshotError,
+	BillingOrganizationLookupError,
+	BillingPersistenceError,
+	BillingPolarRequestError,
+	BillingSubscriptionOwnershipMismatchError,
+	BillingSubscriptionReferenceMismatchError,
+	BillingUnknownOrganizationError,
+	type BillingErrorType,
+} from "@leuchtturm/core/billing/errors";
 import { POLAR_PRO_PRODUCT_ID } from "@leuchtturm/core/billing/products";
 import {
 	BillingCustomerSnapshot,
@@ -28,7 +40,7 @@ import { Database } from "@leuchtturm/core/drizzle";
 
 type TransactionEffect<A> = Effect.Effect<
 	A,
-	EffectDrizzleQueryError | EffectTransactionRollbackError | BillingErrorClass,
+	EffectDrizzleQueryError | EffectTransactionRollbackError | BillingErrorType,
 	never
 >;
 
@@ -52,9 +64,6 @@ export function buildOrganizationCustomerCreate(params: {
 }
 
 export namespace Billing {
-	export const BillingError = BillingErrorClass;
-	export type BillingError = BillingErrorClass;
-
 	export interface Interface {
 		readonly createCustomer: (params: {
 			readonly organizationId: string;
@@ -62,27 +71,31 @@ export namespace Billing {
 			readonly slug: string;
 			readonly ownerEmail: string;
 			readonly ownerName: string;
-		}) => Effect.Effect<void, BillingError>;
+		}) => Effect.Effect<void, typeof BillingError.Type>;
 		readonly updateCustomer: (params: {
 			readonly organizationId: string;
 			readonly name: string;
 			readonly slug: string;
-		}) => Effect.Effect<void, BillingError>;
+		}) => Effect.Effect<void, typeof BillingError.Type>;
 		readonly getCustomerState: (
 			organizationId: string,
-		) => Effect.Effect<CustomerState, BillingError>;
+		) => Effect.Effect<CustomerState, typeof BillingError.Type>;
 		readonly createCheckoutUrl: (params: {
 			readonly organizationId: string;
 			readonly successUrl: string;
 			readonly returnUrl: string;
-		}) => Effect.Effect<string, BillingError>;
+		}) => Effect.Effect<string, typeof BillingError.Type>;
 		readonly createPortalUrl: (params: {
 			readonly organizationId: string;
 			readonly returnUrl: string;
-		}) => Effect.Effect<string, BillingError>;
-		readonly upsertCustomerState: (state: CustomerState) => Effect.Effect<void, BillingError>;
-		readonly upsertSubscription: (subscription: Subscription) => Effect.Effect<void, BillingError>;
-		readonly upsertOrder: (order: Order) => Effect.Effect<void, BillingError>;
+		}) => Effect.Effect<string, typeof BillingError.Type>;
+		readonly upsertCustomerState: (
+			state: CustomerState,
+		) => Effect.Effect<void, typeof BillingError.Type>;
+		readonly upsertSubscription: (
+			subscription: Subscription,
+		) => Effect.Effect<void, typeof BillingError.Type>;
+		readonly upsertOrder: (order: Order) => Effect.Effect<void, typeof BillingError.Type>;
 	}
 
 	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/Billing") {}
@@ -97,7 +110,18 @@ export namespace Billing {
 
 			const billingErrorFromCause = (cause: Cause.Cause<unknown>) => {
 				for (const reason of cause.reasons) {
-					if (Cause.isFailReason(reason) && reason.error instanceof BillingError) {
+					if (
+						Cause.isFailReason(reason) &&
+						(reason.error instanceof BillingPolarRequestError ||
+							reason.error instanceof BillingPersistenceError ||
+							reason.error instanceof BillingInvalidSnapshotError ||
+							reason.error instanceof BillingMissingExternalOrganizationError ||
+							reason.error instanceof BillingUnknownOrganizationError ||
+							reason.error instanceof BillingOrganizationLookupError ||
+							reason.error instanceof BillingSubscriptionOwnershipMismatchError ||
+							reason.error instanceof BillingMissingSubscriptionSnapshotError ||
+							reason.error instanceof BillingSubscriptionReferenceMismatchError)
+					) {
 						return reason.error;
 					}
 				}
@@ -109,7 +133,7 @@ export namespace Billing {
 				(message: string) =>
 				(
 					cause: Cause.Cause<
-						BillingError | EffectDrizzleQueryError | EffectTransactionRollbackError
+						typeof BillingError.Type | EffectDrizzleQueryError | EffectTransactionRollbackError
 					>,
 				) => {
 					const billingError = billingErrorFromCause(cause);
@@ -117,11 +141,11 @@ export namespace Billing {
 
 					return Effect.gen(function* () {
 						yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-						return yield* Effect.fail(new BillingError({ message }));
+						return yield* Effect.fail(new BillingPersistenceError({ message }));
 					});
 				};
 
-			const tryPolar = <A>(message: string, try_: () => PromiseLike<A>) =>
+			const tryPolar = <A>(operation: string, try_: () => PromiseLike<A>) =>
 				Effect.tryPromise({
 					try: try_,
 					catch: (cause) => cause,
@@ -129,7 +153,12 @@ export namespace Billing {
 					Effect.catchCause((cause) =>
 						Effect.gen(function* () {
 							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-							return yield* Effect.fail(new BillingError({ message }));
+							return yield* Effect.fail(
+								new BillingPolarRequestError({
+									operation,
+									message: `Polar request failed: ${operation}`,
+								}),
+							);
 						}),
 					),
 				);
@@ -145,7 +174,10 @@ export namespace Billing {
 						Effect.gen(function* () {
 							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
 							return yield* Effect.fail(
-								new BillingError({ message: "Invalid billing subscription snapshot" }),
+								new BillingInvalidSnapshotError({
+									resource: "subscription",
+									message: "Invalid billing subscription snapshot",
+								}),
 							);
 						}),
 					),
@@ -174,7 +206,10 @@ export namespace Billing {
 							Effect.gen(function* () {
 								yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
 								return yield* Effect.fail(
-									new BillingError({ message: "Invalid billing customer snapshot" }),
+									new BillingInvalidSnapshotError({
+										resource: "customer",
+										message: "Invalid billing customer snapshot",
+									}),
 								);
 							}),
 						),
@@ -224,12 +259,15 @@ export namespace Billing {
 				if (organizationId) return organizationId;
 
 				if (!externalId) {
-					return yield* new BillingError({
+					return yield* new BillingMissingExternalOrganizationError({
+						resource,
 						message: `Polar ${resource} webhook payload is missing an external organization id`,
 					});
 				}
 
-				return yield* new BillingError({
+				return yield* new BillingUnknownOrganizationError({
+					resource,
+					externalId,
 					message: `Polar ${resource} webhook references unknown local organization: ${externalId}`,
 				});
 			});
@@ -266,7 +304,10 @@ export namespace Billing {
 							Effect.gen(function* () {
 								yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
 								return yield* Effect.fail(
-									new BillingError({ message: `Failed to look up organization ${externalId}` }),
+									new BillingOrganizationLookupError({
+										externalId,
+										message: `Failed to look up organization ${externalId}`,
+									}),
 								);
 							}),
 						),
@@ -451,25 +492,25 @@ export namespace Billing {
 												existingSubscription.organizationId !== organizationId ||
 												existingSubscription.polarCustomerId !== order.customerId
 											) {
-												return yield* new BillingError({
+												return yield* new BillingSubscriptionOwnershipMismatchError({
 													message: `Polar order ${order.id} references subscription ${order.subscriptionId} with mismatched local ownership`,
 												});
 											}
 										} else {
 											if (!order.subscription) {
-												return yield* new BillingError({
+												return yield* new BillingMissingSubscriptionSnapshotError({
 													message: `Polar order ${order.id} references subscription ${order.subscriptionId} before its snapshot is available`,
 												});
 											}
 
 											if (order.subscription.id !== order.subscriptionId) {
-												return yield* new BillingError({
+												return yield* new BillingSubscriptionReferenceMismatchError({
 													message: `Polar order ${order.id} embeds subscription ${order.subscription.id} but references ${order.subscriptionId}`,
 												});
 											}
 
 											if (order.subscription.customerId !== order.customerId) {
-												return yield* new BillingError({
+												return yield* new BillingSubscriptionOwnershipMismatchError({
 													message: `Polar order ${order.id} subscription customer ${order.subscription.customerId} does not match order customer ${order.customerId}`,
 												});
 											}
@@ -536,7 +577,10 @@ export namespace Billing {
 												"error.original_cause": Cause.pretty(cause),
 											});
 											return yield* Effect.fail(
-												new BillingError({ message: "Invalid billing order snapshot" }),
+												new BillingInvalidSnapshotError({
+													resource: "order",
+													message: "Invalid billing order snapshot",
+												}),
 											);
 										}),
 									),

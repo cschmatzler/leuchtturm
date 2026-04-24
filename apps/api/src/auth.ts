@@ -2,13 +2,13 @@ import { Context, Schema } from "effect";
 import { HttpApiMiddleware } from "effect/unstable/httpapi";
 
 import { AuthError } from "@leuchtturm/core/auth/errors";
-import type { Session, User } from "@leuchtturm/core/auth/schema";
+import { Session, User } from "@leuchtturm/core/auth/schema";
 import { UnauthorizedError } from "@leuchtturm/core/errors";
 
 export namespace AuthMiddleware {
 	export interface CurrentUserShape {
-		readonly user: User;
-		readonly session: Session;
+		readonly user: typeof User.Type;
+		readonly session: typeof Session.Type;
 	}
 
 	export class CurrentUser extends Context.Service<CurrentUser, CurrentUserShape>()(

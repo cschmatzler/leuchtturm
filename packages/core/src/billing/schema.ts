@@ -9,7 +9,6 @@ const NullableEmail = Schema.NullOr(Email);
 const NullableOrganizationId = Schema.NullOr(OrganizationId);
 
 export const BillingCurrency = Schema.String.check(Schema.isPattern(/^[A-Z]{3}$/));
-export type BillingCurrency = typeof BillingCurrency.Type;
 
 export const BillingSubscriptionStatus = Schema.Literals([
 	"incomplete",
@@ -20,10 +19,8 @@ export const BillingSubscriptionStatus = Schema.Literals([
 	"canceled",
 	"unpaid",
 ]);
-export type BillingSubscriptionStatus = typeof BillingSubscriptionStatus.Type;
 
 export const BillingRecurringInterval = Schema.Literals(["day", "week", "month", "year"]);
-export type BillingRecurringInterval = typeof BillingRecurringInterval.Type;
 
 export const BillingOrderStatus = Schema.Literals([
 	"pending",
@@ -32,7 +29,6 @@ export const BillingOrderStatus = Schema.Literals([
 	"partially_refunded",
 	"void",
 ]);
-export type BillingOrderStatus = typeof BillingOrderStatus.Type;
 
 export const BillingOrderBillingReason = Schema.Literals([
 	"purchase",
@@ -40,7 +36,6 @@ export const BillingOrderBillingReason = Schema.Literals([
 	"subscription_cycle",
 	"subscription_update",
 ]);
-export type BillingOrderBillingReason = typeof BillingOrderBillingReason.Type;
 
 export const BillingCustomerSnapshot = Schema.Struct({
 	organizationId: OrganizationId,
@@ -55,7 +50,6 @@ export const BillingCustomerSnapshot = Schema.Struct({
 	remoteModifiedAt: NullableDate,
 	syncedAt: Schema.Date,
 });
-export type BillingCustomerSnapshot = typeof BillingCustomerSnapshot.Type;
 
 export const BillingSubscriptionSnapshot = Schema.Struct({
 	id: Schema.String,
@@ -80,7 +74,6 @@ export const BillingSubscriptionSnapshot = Schema.Struct({
 	remoteModifiedAt: NullableDate,
 	syncedAt: Schema.Date,
 });
-export type BillingSubscriptionSnapshot = typeof BillingSubscriptionSnapshot.Type;
 
 export const BillingOrderSnapshot = Schema.Struct({
 	id: Schema.String,
@@ -104,4 +97,3 @@ export const BillingOrderSnapshot = Schema.Struct({
 	remoteModifiedAt: NullableDate,
 	syncedAt: Schema.Date,
 });
-export type BillingOrderSnapshot = typeof BillingOrderSnapshot.Type;

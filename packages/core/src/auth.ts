@@ -17,7 +17,14 @@ import {
 	user,
 	verification,
 } from "@leuchtturm/core/auth/auth.sql";
-import { AuthError } from "@leuchtturm/core/auth/errors";
+import {
+	AuthInvalidDeviceSessionsPayloadError,
+	AuthInvalidOrganizationPayloadError,
+	AuthInvalidSessionPayloadError,
+	AuthOrganizationLookupError,
+	AuthProviderError,
+	AuthError,
+} from "@leuchtturm/core/auth/errors";
 import {
 	AccountId,
 	DeviceSessionsResponse,
@@ -29,7 +36,6 @@ import {
 	SessionId,
 	UserId,
 	VerificationId,
-	PASSWORD_MIN_LENGTH,
 } from "@leuchtturm/core/auth/schema";
 import { Billing } from "@leuchtturm/core/billing";
 import { Database } from "@leuchtturm/core/drizzle";
@@ -38,14 +44,16 @@ import { sendPasswordResetEmail } from "@leuchtturm/email/password-reset";
 
 export namespace Auth {
 	export interface Interface {
-		readonly handle: (request: Request) => Effect.Effect<Response, AuthError>;
-		readonly getSession: (headers: Headers) => Effect.Effect<SessionData | null, AuthError>;
+		readonly handle: (request: Request) => Effect.Effect<Response, typeof AuthError.Type>;
+		readonly getSession: (
+			headers: Headers,
+		) => Effect.Effect<typeof SessionData.Type | null, typeof AuthError.Type>;
 		readonly getOrganization: (
 			organizationId: string,
-		) => Effect.Effect<OrganizationSummary | null, AuthError>;
+		) => Effect.Effect<typeof OrganizationSummary.Type | null, typeof AuthError.Type>;
 		readonly getDeviceSessions: (
 			headers: Headers,
-		) => Effect.Effect<DeviceSessionsResponse, AuthError>;
+		) => Effect.Effect<typeof DeviceSessionsResponse.Type, typeof AuthError.Type>;
 	}
 
 	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/Auth") {}
@@ -57,7 +65,7 @@ export namespace Auth {
 			const email = yield* Email.Service;
 			const services = yield* Effect.context();
 
-			const tryAuth = <A>(message: string, try_: () => PromiseLike<A>) =>
+			const tryAuth = <A>(operation: string, try_: () => PromiseLike<A>) =>
 				Effect.tryPromise({
 					try: try_,
 					catch: (cause) => cause,
@@ -65,7 +73,12 @@ export namespace Auth {
 					Effect.catchCause((cause) =>
 						Effect.gen(function* () {
 							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-							return yield* Effect.fail(new AuthError({ message }));
+							return yield* Effect.fail(
+								new AuthProviderError({
+									operation,
+									message: `Auth provider operation failed: ${operation}`,
+								}),
+							);
 						}),
 					),
 				);
@@ -148,7 +161,7 @@ export namespace Auth {
 				}),
 				emailAndPassword: {
 					enabled: true,
-					minPasswordLength: PASSWORD_MIN_LENGTH,
+					minPasswordLength: 13,
 					sendResetPassword: ({ user, url }, _request) =>
 						runCallback(sendResetPassword({ user, url })),
 				},
@@ -253,7 +266,9 @@ export namespace Auth {
 					Effect.catchCause((cause) =>
 						Effect.gen(function* () {
 							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-							return yield* Effect.fail(new AuthError({ message: "Invalid auth session payload" }));
+							return yield* Effect.fail(
+								new AuthInvalidSessionPayloadError({ message: "Invalid auth session payload" }),
+							);
 						}),
 					),
 				);
@@ -274,7 +289,7 @@ export namespace Auth {
 							Effect.gen(function* () {
 								yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
 								return yield* Effect.fail(
-									new AuthError({ message: "Auth organization lookup failed" }),
+									new AuthOrganizationLookupError({ message: "Auth organization lookup failed" }),
 								);
 							}),
 						),
@@ -288,7 +303,9 @@ export namespace Auth {
 						Effect.gen(function* () {
 							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
 							return yield* Effect.fail(
-								new AuthError({ message: "Invalid auth organization payload" }),
+								new AuthInvalidOrganizationPayloadError({
+									message: "Invalid auth organization payload",
+								}),
 							);
 						}),
 					),
@@ -306,7 +323,7 @@ export namespace Auth {
 				);
 
 				if (!deviceSessions.length) {
-					return { sessions: [], organizations: [] } satisfies DeviceSessionsResponse;
+					return { sessions: [], organizations: [] } satisfies typeof DeviceSessionsResponse.Type;
 				}
 
 				const sessionIds = deviceSessions.map((deviceSession) => deviceSession.session.id);
@@ -372,7 +389,9 @@ export namespace Auth {
 						Effect.gen(function* () {
 							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
 							return yield* Effect.fail(
-								new AuthError({ message: "Invalid auth device sessions payload" }),
+								new AuthInvalidDeviceSessionsPayloadError({
+									message: "Invalid auth device sessions payload",
+								}),
 							);
 						}),
 					),

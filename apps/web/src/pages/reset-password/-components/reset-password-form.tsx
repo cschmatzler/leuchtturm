@@ -4,7 +4,7 @@ import { Schema } from "effect";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
-import { PASSWORD_VALIDATION_MESSAGE, Password } from "@leuchtturm/core/auth/schema";
+import { Password } from "@leuchtturm/core/auth/schema";
 import { authClient } from "@leuchtturm/web/clients/auth";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@leuchtturm/web/components/ui/field";
@@ -73,7 +73,7 @@ export function ResetPasswordForm() {
 								required
 							/>
 							{field.state.meta.errors.length > 0 && (
-								<FieldError>{t(PASSWORD_VALIDATION_MESSAGE)}</FieldError>
+								<FieldError>{t("Password must be more than 12 characters")}</FieldError>
 							)}
 						</Field>
 					)}

@@ -4,17 +4,31 @@ import { PostHog } from "posthog-node/edge";
 import { ApiConfig } from "@leuchtturm/api/config";
 
 export namespace FeatureFlags {
-	export class FeatureFlagsError extends Schema.TaggedErrorClass<FeatureFlagsError>()(
-		"FeatureFlagsError",
+	export class FeatureFlagProviderRequestError extends Schema.TaggedErrorClass<FeatureFlagProviderRequestError>()(
+		"FeatureFlagProviderRequestError",
 		{ message: Schema.String },
 		{ httpApiStatus: 500 },
 	) {}
 
+	export class FeatureFlagMissingEvaluationError extends Schema.TaggedErrorClass<FeatureFlagMissingEvaluationError>()(
+		"FeatureFlagMissingEvaluationError",
+		{ message: Schema.String },
+		{ httpApiStatus: 500 },
+	) {}
+
+	export const FeatureFlagsError = Schema.Union([
+		FeatureFlagProviderRequestError,
+		FeatureFlagMissingEvaluationError,
+	]);
+
 	export interface Interface {
-		readonly isEnabled: (key: string, userId: string) => Effect.Effect<boolean, FeatureFlagsError>;
+		readonly isEnabled: (
+			key: string,
+			userId: string,
+		) => Effect.Effect<boolean, typeof FeatureFlagsError.Type>;
 		readonly listForUser: (
 			userId: string,
-		) => Effect.Effect<Record<string, boolean>, FeatureFlagsError>;
+		) => Effect.Effect<Record<string, boolean>, typeof FeatureFlagsError.Type>;
 	}
 
 	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/FeatureFlags") {}
@@ -50,7 +64,7 @@ export namespace FeatureFlags {
 										"error.original_cause": Cause.pretty(cause),
 									});
 									return yield* Effect.fail(
-										new FeatureFlagsError({
+										new FeatureFlagProviderRequestError({
 											message: `Failed to evaluate PostHog feature flag ${key} for user ${userId}`,
 										}),
 									);
@@ -59,7 +73,7 @@ export namespace FeatureFlags {
 						);
 
 						if (enabled === undefined) {
-							return yield* new FeatureFlagsError({
+							return yield* new FeatureFlagMissingEvaluationError({
 								message: `PostHog returned no feature flag evaluation result for ${key} and user ${userId}`,
 							});
 						}
@@ -77,7 +91,7 @@ export namespace FeatureFlags {
 									"error.original_cause": Cause.pretty(cause),
 								});
 								return yield* Effect.fail(
-									new FeatureFlagsError({
+									new FeatureFlagProviderRequestError({
 										message: `Failed to list PostHog feature flags for user ${userId}`,
 									}),
 								);
