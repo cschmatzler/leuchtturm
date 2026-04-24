@@ -22,20 +22,18 @@ export namespace Email {
 		Effect.gen(function* () {
 			yield* Effect.logInfo("Email initialized");
 
-			const logAndFail = (message: string) => (cause: Cause.Cause<unknown>) =>
-				Effect.gen(function* () {
-					const prettyCause = Cause.pretty(cause);
-					yield* Effect.annotateCurrentSpan({ "error.original_cause": prettyCause });
-					yield* Effect.logError(message).pipe(Effect.annotateLogs({ cause: prettyCause }));
-
-					return yield* Effect.fail(new EmailError({ message }));
-				});
-
 			const send = Effect.fn("Email.send")(function* (params: SendParams) {
 				const result = yield* Effect.tryPromise({
 					try: () => new Resend(Resource.ResendApiKey.value).emails.send(params),
 					catch: (cause) => cause,
-				}).pipe(Effect.catchCause(logAndFail("Resend API request failed")));
+				}).pipe(
+					Effect.catchCause((cause) =>
+						Effect.gen(function* () {
+							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
+							return yield* Effect.fail(new EmailError({ message: "Resend API request failed" }));
+						}),
+					),
+				);
 
 				if (result.error || !result.data) {
 					if (result.error) {

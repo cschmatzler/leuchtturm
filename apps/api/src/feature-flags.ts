@@ -34,19 +34,6 @@ export namespace FeatureFlags {
 			const client = new PostHog(config.apiKey, {
 				host: config.host,
 			});
-			const logAndFail =
-				(message: string, annotations: Record<string, unknown> = {}) =>
-				(cause: Cause.Cause<unknown>) =>
-					Effect.gen(function* () {
-						const prettyCause = Cause.pretty(cause);
-						yield* Effect.annotateCurrentSpan({ "error.original_cause": prettyCause });
-						yield* Effect.logError(message).pipe(
-							Effect.annotateLogs({ ...annotations, cause: prettyCause }),
-						);
-
-						return yield* Effect.fail(new FeatureFlagsError({ message }));
-					});
-
 			return Service.of({
 				isEnabled: (key, userId) =>
 					Effect.gen(function* () {
@@ -57,10 +44,16 @@ export namespace FeatureFlags {
 								}),
 							catch: (cause) => cause,
 						}).pipe(
-							Effect.catchCause(
-								logAndFail(`Failed to evaluate PostHog feature flag ${key} for user ${userId}`, {
-									featureFlagKey: key,
-									userId,
+							Effect.catchCause((cause) =>
+								Effect.gen(function* () {
+									yield* Effect.annotateCurrentSpan({
+										"error.original_cause": Cause.pretty(cause),
+									});
+									return yield* Effect.fail(
+										new FeatureFlagsError({
+											message: `Failed to evaluate PostHog feature flag ${key} for user ${userId}`,
+										}),
+									);
 								}),
 							),
 						);
@@ -78,8 +71,17 @@ export namespace FeatureFlags {
 						try: async () => toEnabledRecord(await client.getAllFlags(userId)),
 						catch: (cause) => cause,
 					}).pipe(
-						Effect.catchCause(
-							logAndFail(`Failed to list PostHog feature flags for user ${userId}`, { userId }),
+						Effect.catchCause((cause) =>
+							Effect.gen(function* () {
+								yield* Effect.annotateCurrentSpan({
+									"error.original_cause": Cause.pretty(cause),
+								});
+								return yield* Effect.fail(
+									new FeatureFlagsError({
+										message: `Failed to list PostHog feature flags for user ${userId}`,
+									}),
+								);
+							}),
 						),
 					),
 			});

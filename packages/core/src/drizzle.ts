@@ -39,15 +39,6 @@ export namespace Database {
 	export const layer = (connectionString: string) =>
 		Layer.effect(Service)(
 			Effect.gen(function* () {
-				const logAndFail = (message: string) => (cause: Cause.Cause<unknown>) =>
-					Effect.gen(function* () {
-						const prettyCause = Cause.pretty(cause);
-						yield* Effect.annotateCurrentSpan({ "error.original_cause": prettyCause });
-						yield* Effect.logError(message).pipe(Effect.annotateLogs({ cause: prettyCause }));
-
-						return yield* Effect.fail(new DatabaseError({ message }));
-					});
-
 				const rawClient = yield* Effect.acquireRelease(
 					Effect.tryPromise({
 						try: async () => {
@@ -58,7 +49,16 @@ export namespace Database {
 							return client;
 						},
 						catch: (cause) => cause,
-					}).pipe(Effect.catchCause(logAndFail("Failed to connect raw Postgres client"))),
+					}).pipe(
+						Effect.catchCause((cause) =>
+							Effect.gen(function* () {
+								yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
+								return yield* Effect.fail(
+									new DatabaseError({ message: "Failed to connect raw Postgres client" }),
+								);
+							}),
+						),
+					),
 					(client) => Effect.promise(() => client.end()),
 				);
 
@@ -67,7 +67,14 @@ export namespace Database {
 					types: drizzleTypes,
 				}).pipe(
 					Effect.provide(Reactivity.layer),
-					Effect.catchCause(logAndFail("Failed to connect Effect Postgres client")),
+					Effect.catchCause((cause) =>
+						Effect.gen(function* () {
+							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
+							return yield* Effect.fail(
+								new DatabaseError({ message: "Failed to connect Effect Postgres client" }),
+							);
+						}),
+					),
 				);
 
 				const database = yield* makeWithDefaults({

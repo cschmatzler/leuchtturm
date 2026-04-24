@@ -143,28 +143,18 @@ export namespace Auth {
 			const email = yield* Email.Service;
 			const services = yield* Effect.context();
 
-			const logAndFail =
-				(message: string, annotations: Record<string, unknown> = {}) =>
-				(cause: Cause.Cause<unknown>) =>
-					Effect.gen(function* () {
-						const prettyCause = Cause.pretty(cause);
-						yield* Effect.annotateCurrentSpan({ "error.original_cause": prettyCause });
-						yield* Effect.logError(message).pipe(
-							Effect.annotateLogs({ ...annotations, cause: prettyCause }),
-						);
-
-						return yield* Effect.fail(new AuthError({ message }));
-					});
-
-			const tryAuth = <A>(
-				message: string,
-				try_: () => PromiseLike<A>,
-				annotations: Record<string, unknown> = {},
-			) =>
+			const tryAuth = <A>(message: string, try_: () => PromiseLike<A>) =>
 				Effect.tryPromise({
 					try: try_,
 					catch: (cause) => cause,
-				}).pipe(Effect.catchCause(logAndFail(message, annotations)));
+				}).pipe(
+					Effect.catchCause((cause) =>
+						Effect.gen(function* () {
+							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
+							return yield* Effect.fail(new AuthError({ message }));
+						}),
+					),
+				);
 
 			const runCallback = <A, E>(effect: Effect.Effect<A, E>) =>
 				Effect.runPromiseWith(services)(effect);
@@ -220,16 +210,13 @@ export namespace Auth {
 				readonly user: { readonly email: string; readonly name: string };
 				readonly url: string;
 			}) {
-				yield* tryAuth(
-					"Failed to send password reset email",
-					() =>
-						sendPasswordResetEmail({
-							email: params.user.email,
-							resetUrl: params.url,
-							send: (emailParams) => runCallback(email.send(emailParams)),
-							userName: params.user.name,
-						}),
-					{ email: params.user.email },
+				yield* tryAuth("Failed to send password reset email", () =>
+					sendPasswordResetEmail({
+						email: params.user.email,
+						resetUrl: params.url,
+						send: (emailParams) => runCallback(email.send(emailParams)),
+						userName: params.user.name,
+					}),
 				);
 			});
 
@@ -336,10 +323,7 @@ export namespace Auth {
 			});
 
 			const handle = Effect.fn("Auth.handle")(function* (request: Request) {
-				return yield* tryAuth("Auth handler failed", () => auth.handler(request), {
-					method: request.method,
-					url: request.url,
-				});
+				return yield* tryAuth("Auth handler failed", () => auth.handler(request));
 			});
 
 			const getSession = Effect.fn("Auth.getSession")(function* (headers: Headers) {
@@ -352,7 +336,12 @@ export namespace Auth {
 				}
 
 				return yield* Schema.decodeUnknownEffect(SessionData)(currentSession).pipe(
-					Effect.catchCause(logAndFail("Invalid auth session payload")),
+					Effect.catchCause((cause) =>
+						Effect.gen(function* () {
+							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
+							return yield* Effect.fail(new AuthError({ message: "Invalid auth session payload" }));
+						}),
+					),
 				);
 			});
 
@@ -367,7 +356,14 @@ export namespace Auth {
 					.where(eq(organization.id, organizationId))
 					.limit(1)
 					.pipe(
-						Effect.catchCause(logAndFail("Auth organization lookup failed", { organizationId })),
+						Effect.catchCause((cause) =>
+							Effect.gen(function* () {
+								yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
+								return yield* Effect.fail(
+									new AuthError({ message: "Auth organization lookup failed" }),
+								);
+							}),
+						),
 					);
 
 				return rows[0] ?? null;
@@ -408,7 +404,16 @@ export namespace Auth {
 						memberships,
 						currentSession?.session.token,
 					),
-				).pipe(Effect.catchCause(logAndFail("Invalid auth device sessions payload")));
+				).pipe(
+					Effect.catchCause((cause) =>
+						Effect.gen(function* () {
+							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
+							return yield* Effect.fail(
+								new AuthError({ message: "Invalid auth device sessions payload" }),
+							);
+						}),
+					),
+				);
 			});
 
 			return Service.of({ handle, getSession, getOrganization, getDeviceSessions });
