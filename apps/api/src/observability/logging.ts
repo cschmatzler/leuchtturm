@@ -116,6 +116,22 @@ const emit = (event: LogEvent) =>
 		);
 		const currentSpan = yield* Effect.option(Effect.currentSpan);
 		const currentRequest = yield* Effect.serviceOption(RequestContext.Current);
+		const spanAnnotations = Option.isSome(currentSpan)
+			? {
+					...(currentSpan.value.attributes.has("error.original_cause")
+						? {
+								original_cause: serializeLogValue(
+									currentSpan.value.attributes.get("error.original_cause"),
+								),
+							}
+						: {}),
+					...(currentSpan.value.attributes.has("request.error")
+						? {
+								request_error: serializeLogValue(currentSpan.value.attributes.get("request.error")),
+							}
+						: {}),
+				}
+			: {};
 		const requestAnnotations = Option.isSome(currentRequest)
 			? {
 					method: currentRequest.value.method,
@@ -130,6 +146,7 @@ const emit = (event: LogEvent) =>
 		);
 		const mergedAnnotations = {
 			...requestAnnotations,
+			...spanAnnotations,
 			...logAnnotations,
 			...Object.fromEntries(
 				Object.entries(event.annotations ?? {}).map(([key, value]) => [

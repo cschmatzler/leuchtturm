@@ -8,7 +8,7 @@ import {
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { multiSession, organization as organizationPlugin } from "better-auth/plugins";
 import { eq, inArray } from "drizzle-orm";
-import { Effect, Layer, Schema, Context } from "effect";
+import { Cause, Effect, Layer, Schema, Context } from "effect";
 import { Resource } from "sst";
 import { ulid } from "ulid";
 
@@ -59,7 +59,7 @@ function transformDeviceSessions(
 	deviceSessions: RawDeviceSession[],
 	memberships: Membership[],
 	currentSessionToken: string | null | undefined,
-): DeviceSessionsResponse {
+): unknown {
 	if (!deviceSessions.length) return { sessions: [], organizations: [] };
 
 	const sessionIds = deviceSessions.map((deviceSession) => deviceSession.session.id);
@@ -116,10 +116,10 @@ function transformDeviceSessions(
 
 	organizations.sort(byName);
 
-	return Schema.decodeUnknownSync(DeviceSessionsResponseSchema)({
+	return {
 		sessions,
 		organizations,
-	});
+	};
 }
 
 export namespace Auth {
@@ -142,6 +142,29 @@ export namespace Auth {
 			const billing = yield* Billing.Service;
 			const email = yield* Email.Service;
 			const services = yield* Effect.context();
+
+			const logAndFail =
+				(message: string, annotations: Record<string, unknown> = {}) =>
+				(cause: Cause.Cause<unknown>) =>
+					Effect.gen(function* () {
+						const prettyCause = Cause.pretty(cause);
+						yield* Effect.annotateCurrentSpan({ "error.original_cause": prettyCause });
+						yield* Effect.logError(message).pipe(
+							Effect.annotateLogs({ ...annotations, cause: prettyCause }),
+						);
+
+						return yield* Effect.fail(new AuthError({ message }));
+					});
+
+			const tryAuth = <A>(
+				message: string,
+				try_: () => PromiseLike<A>,
+				annotations: Record<string, unknown> = {},
+			) =>
+				Effect.tryPromise({
+					try: try_,
+					catch: (cause) => cause,
+				}).pipe(Effect.catchCause(logAndFail(message, annotations)));
 
 			const runCallback = <A, E>(effect: Effect.Effect<A, E>) =>
 				Effect.runPromiseWith(services)(effect);
@@ -197,19 +220,17 @@ export namespace Auth {
 				readonly user: { readonly email: string; readonly name: string };
 				readonly url: string;
 			}) {
-				yield* Effect.tryPromise({
-					try: () =>
+				yield* tryAuth(
+					"Failed to send password reset email",
+					() =>
 						sendPasswordResetEmail({
 							email: params.user.email,
 							resetUrl: params.url,
 							send: (emailParams) => runCallback(email.send(emailParams)),
 							userName: params.user.name,
 						}),
-					catch: () =>
-						new AuthError({
-							message: "Failed to send password reset email",
-						}),
-				});
+					{ email: params.user.email },
+				);
 			});
 
 			const polarClient = new Polar({
@@ -315,36 +336,23 @@ export namespace Auth {
 			});
 
 			const handle = Effect.fn("Auth.handle")(function* (request: Request) {
-				return yield* Effect.tryPromise({
-					try: () => auth.handler(request),
-					catch: () =>
-						new AuthError({
-							message: "Auth handler failed",
-						}),
+				return yield* tryAuth("Auth handler failed", () => auth.handler(request), {
+					method: request.method,
+					url: request.url,
 				});
 			});
 
 			const getSession = Effect.fn("Auth.getSession")(function* (headers: Headers) {
-				const currentSession = yield* Effect.tryPromise({
-					try: () => auth.api.getSession({ headers }),
-					catch: () =>
-						new AuthError({
-							message: "Auth getSession failed",
-						}),
-				});
+				const currentSession = yield* tryAuth("Auth getSession failed", () =>
+					auth.api.getSession({ headers }),
+				);
 
 				if (!currentSession) {
 					return null;
 				}
 
 				return yield* Schema.decodeUnknownEffect(SessionData)(currentSession).pipe(
-					Effect.catch(() =>
-						Effect.fail(
-							new AuthError({
-								message: "Invalid auth session payload",
-							}),
-						),
-					),
+					Effect.catchCause(logAndFail("Invalid auth session payload")),
 				);
 			});
 
@@ -359,64 +367,48 @@ export namespace Auth {
 					.where(eq(organization.id, organizationId))
 					.limit(1)
 					.pipe(
-						Effect.catch(() =>
-							Effect.fail(
-								new AuthError({
-									message: "Auth organization lookup failed",
-								}),
-							),
-						),
+						Effect.catchCause(logAndFail("Auth organization lookup failed", { organizationId })),
 					);
 
 				return rows[0] ?? null;
 			});
 
 			const getDeviceSessions = Effect.fn("Auth.getDeviceSessions")(function* (headers: Headers) {
-				const currentSession = yield* Effect.tryPromise({
-					try: () => auth.api.getSession({ headers }),
-					catch: () =>
-						new AuthError({
-							message: "Auth getSession failed while loading device sessions",
-						}),
-				});
+				const currentSession = yield* tryAuth(
+					"Auth getSession failed while loading device sessions",
+					() => auth.api.getSession({ headers }),
+				);
 
-				const deviceSessions = yield* Effect.tryPromise({
-					try: () => auth.api.listDeviceSessions({ headers }),
-					catch: () =>
-						new AuthError({
-							message: "Auth listDeviceSessions failed",
-						}),
-				});
+				const deviceSessions = yield* tryAuth("Auth listDeviceSessions failed", () =>
+					auth.api.listDeviceSessions({ headers }),
+				);
 
 				if (!deviceSessions.length) {
 					return { sessions: [], organizations: [] } satisfies DeviceSessionsResponse;
 				}
 
 				const sessionIds = deviceSessions.map((deviceSession) => deviceSession.session.id);
-				const memberships = yield* Effect.tryPromise({
-					try: () =>
-						rawDatabase
-							.select({
-								sessionId: session.id,
-								id: organization.id,
-								name: organization.name,
-								slug: organization.slug,
-							})
-							.from(session)
-							.innerJoin(member, eq(member.userId, session.userId))
-							.innerJoin(organization, eq(member.organizationId, organization.id))
-							.where(inArray(session.id, sessionIds)),
-					catch: () =>
-						new AuthError({
-							message: "Auth device session organization lookup failed",
-						}),
-				});
-
-				return transformDeviceSessions(
-					deviceSessions as RawDeviceSession[],
-					memberships,
-					currentSession?.session.token,
+				const memberships = yield* tryAuth("Auth device session organization lookup failed", () =>
+					rawDatabase
+						.select({
+							sessionId: session.id,
+							id: organization.id,
+							name: organization.name,
+							slug: organization.slug,
+						})
+						.from(session)
+						.innerJoin(member, eq(member.userId, session.userId))
+						.innerJoin(organization, eq(member.organizationId, organization.id))
+						.where(inArray(session.id, sessionIds)),
 				);
+
+				return yield* Schema.decodeUnknownEffect(DeviceSessionsResponseSchema)(
+					transformDeviceSessions(
+						deviceSessions as RawDeviceSession[],
+						memberships,
+						currentSession?.session.token,
+					),
+				).pipe(Effect.catchCause(logAndFail("Invalid auth device sessions payload")));
 			});
 
 			return Service.of({ handle, getSession, getOrganization, getDeviceSessions });

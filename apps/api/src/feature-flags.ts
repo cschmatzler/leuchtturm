@@ -1,4 +1,4 @@
-import { Context, Effect, Layer, Schema } from "effect";
+import { Cause, Context, Effect, Layer, Schema } from "effect";
 import { PostHog } from "posthog-node/edge";
 
 import { ApiConfig } from "@leuchtturm/api/config";
@@ -34,6 +34,18 @@ export namespace FeatureFlags {
 			const client = new PostHog(config.apiKey, {
 				host: config.host,
 			});
+			const logAndFail =
+				(message: string, annotations: Record<string, unknown> = {}) =>
+				(cause: Cause.Cause<unknown>) =>
+					Effect.gen(function* () {
+						const prettyCause = Cause.pretty(cause);
+						yield* Effect.annotateCurrentSpan({ "error.original_cause": prettyCause });
+						yield* Effect.logError(message).pipe(
+							Effect.annotateLogs({ ...annotations, cause: prettyCause }),
+						);
+
+						return yield* Effect.fail(new FeatureFlagsError({ message }));
+					});
 
 			return Service.of({
 				isEnabled: (key, userId) =>
@@ -43,11 +55,15 @@ export namespace FeatureFlags {
 								client.isFeatureEnabled(key, userId, {
 									sendFeatureFlagEvents: false,
 								}),
-							catch: () =>
-								new FeatureFlagsError({
-									message: `Failed to evaluate PostHog feature flag ${key} for user ${userId}`,
+							catch: (cause) => cause,
+						}).pipe(
+							Effect.catchCause(
+								logAndFail(`Failed to evaluate PostHog feature flag ${key} for user ${userId}`, {
+									featureFlagKey: key,
+									userId,
 								}),
-						});
+							),
+						);
 
 						if (enabled === undefined) {
 							return yield* new FeatureFlagsError({
@@ -60,11 +76,12 @@ export namespace FeatureFlags {
 				listForUser: (userId) =>
 					Effect.tryPromise({
 						try: async () => toEnabledRecord(await client.getAllFlags(userId)),
-						catch: () =>
-							new FeatureFlagsError({
-								message: `Failed to list PostHog feature flags for user ${userId}`,
-							}),
-					}),
+						catch: (cause) => cause,
+					}).pipe(
+						Effect.catchCause(
+							logAndFail(`Failed to list PostHog feature flags for user ${userId}`, { userId }),
+						),
+					),
 			});
 		}),
 	);

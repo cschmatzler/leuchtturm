@@ -50,3 +50,9 @@ export class DatabaseError extends Schema.TaggedErrorClass<DatabaseError>()(
 	{ message: Schema.String },
 	{ httpApiStatus: 500 },
 ) {}
+
+export class InternalServerError extends Schema.TaggedErrorClass<InternalServerError>()(
+	"InternalServerError",
+	{ message: Schema.String },
+	{ httpApiStatus: 500 },
+) {}

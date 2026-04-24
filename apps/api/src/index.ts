@@ -1,6 +1,6 @@
 import { instrument } from "@microlabs/otel-cf-workers";
 import { trace } from "@opentelemetry/api";
-import { Context, Effect, Layer } from "effect";
+import { Cause, Context, Effect, Layer } from "effect";
 import { HttpEffect, HttpRouter, HttpServer } from "effect/unstable/http";
 import { HttpApiBuilder } from "effect/unstable/httpapi";
 import { fromCloudflareEnv } from "sst/resource/cloudflare";
@@ -22,7 +22,7 @@ import { Auth } from "@leuchtturm/core/auth";
 import { Billing } from "@leuchtturm/core/billing";
 import { Database } from "@leuchtturm/core/drizzle";
 import { makeRuntime } from "@leuchtturm/core/effect/run-service";
-import { DatabaseError } from "@leuchtturm/core/errors";
+import { InternalServerError } from "@leuchtturm/core/errors";
 
 namespace Api {
 	export interface Env {
@@ -35,7 +35,7 @@ namespace Api {
 		readonly handle: (
 			request: Request,
 			waitUntil?: (promise: Promise<unknown>) => void,
-		) => Effect.Effect<Response, DatabaseError>;
+		) => Effect.Effect<Response, InternalServerError>;
 	}
 
 	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/Api") {}
@@ -90,11 +90,22 @@ namespace Api {
 										context: ReturnType<typeof RequestRuntime.makeContext>,
 									) => Promise<Response>
 								)(request, requestContext),
-							catch: () =>
-								new DatabaseError({
-									message: "API handler failed",
+							catch: (cause) => cause,
+						}).pipe(
+							Effect.catchCause((cause) =>
+								Effect.gen(function* () {
+									const prettyCause = Cause.pretty(cause);
+									yield* Effect.annotateCurrentSpan({ "error.original_cause": prettyCause });
+									yield* Effect.logError("API handler failed").pipe(
+										Effect.annotateLogs({ cause: prettyCause, url: request.url }),
+									);
+
+									return yield* Effect.fail(
+										new InternalServerError({ message: "API handler failed" }),
+									);
 								}),
-						});
+							),
+						);
 					},
 				),
 			}),

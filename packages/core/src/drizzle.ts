@@ -1,7 +1,7 @@
 import { PgClient } from "@effect/sql-pg";
 import { makeWithDefaults, type EffectPgDatabase } from "drizzle-orm/effect-postgres";
 import { drizzle, type NodePgClient, type NodePgDatabase } from "drizzle-orm/node-postgres";
-import { Context, Effect, Layer, Redacted } from "effect";
+import { Cause, Context, Effect, Layer, Redacted } from "effect";
 import { Reactivity } from "effect/unstable/reactivity";
 import { Client, types, type CustomTypesConfig } from "pg";
 
@@ -39,6 +39,15 @@ export namespace Database {
 	export const layer = (connectionString: string) =>
 		Layer.effect(Service)(
 			Effect.gen(function* () {
+				const logAndFail = (message: string) => (cause: Cause.Cause<unknown>) =>
+					Effect.gen(function* () {
+						const prettyCause = Cause.pretty(cause);
+						yield* Effect.annotateCurrentSpan({ "error.original_cause": prettyCause });
+						yield* Effect.logError(message).pipe(Effect.annotateLogs({ cause: prettyCause }));
+
+						return yield* Effect.fail(new DatabaseError({ message }));
+					});
+
 				const rawClient = yield* Effect.acquireRelease(
 					Effect.tryPromise({
 						try: async () => {
@@ -48,11 +57,8 @@ export namespace Database {
 							await client.connect();
 							return client;
 						},
-						catch: () =>
-							new DatabaseError({
-								message: "Failed to connect raw Postgres client",
-							}),
-					}),
+						catch: (cause) => cause,
+					}).pipe(Effect.catchCause(logAndFail("Failed to connect raw Postgres client"))),
 					(client) => Effect.promise(() => client.end()),
 				);
 
@@ -61,13 +67,7 @@ export namespace Database {
 					types: drizzleTypes,
 				}).pipe(
 					Effect.provide(Reactivity.layer),
-					Effect.catch(() =>
-						Effect.fail(
-							new DatabaseError({
-								message: "Failed to connect Effect Postgres client",
-							}),
-						),
-					),
+					Effect.catchCause(logAndFail("Failed to connect Effect Postgres client")),
 				);
 
 				const database = yield* makeWithDefaults({

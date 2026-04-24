@@ -31,10 +31,13 @@ const recordRequestResponse = (
 	request: RequestLike,
 	response: HttpServerResponse.HttpServerResponse,
 	durationMs: number,
+	errorCause?: Cause.Cause<unknown>,
 ) =>
 	Effect.gen(function* () {
+		const prettyCause = errorCause ? Cause.pretty(errorCause) : undefined;
 		const annotations = requestLogAnnotations(request, {
 			duration_ms: durationMs,
+			...(prettyCause ? { request_error: prettyCause } : {}),
 			status: response.status,
 			status_group: statusGroup(response.status),
 		});
@@ -83,11 +86,12 @@ export const Middleware = HttpMiddleware.make((app) =>
 
 		const [response] = yield* HttpServerError.causeResponse(exit.cause);
 		if (response.status >= 500) {
+			const prettyCause = Cause.pretty(exit.cause);
 			yield* Effect.annotateCurrentSpan({
-				"request.error": Cause.pretty(exit.cause),
+				"request.error": prettyCause,
 			});
 		}
-		yield* recordRequestResponse(request, response, durationMs);
+		yield* recordRequestResponse(request, response, durationMs, exit.cause);
 		return yield* Effect.failCause(exit.cause);
 	}),
 );

@@ -8,7 +8,7 @@ import type {
 	EffectDrizzleQueryError,
 	EffectTransactionRollbackError,
 } from "drizzle-orm/effect-core/errors";
-import { Effect, Layer, Schema, Context } from "effect";
+import { Cause, Effect, Layer, Schema, Context } from "effect";
 import { Resource } from "sst";
 
 import { organization } from "@leuchtturm/core/auth/auth.sql";
@@ -28,7 +28,7 @@ import { Database } from "@leuchtturm/core/drizzle";
 
 type TransactionEffect<A> = Effect.Effect<
 	A,
-	EffectDrizzleQueryError | EffectTransactionRollbackError,
+	EffectDrizzleQueryError | EffectTransactionRollbackError | BillingErrorClass,
 	never
 >;
 
@@ -95,19 +95,67 @@ export namespace Billing {
 				server: Resource.ApiConfig.POLAR_SERVER as "production" | "sandbox",
 			});
 
-			function buildSubscriptionSnapshot(values: Record<string, unknown>) {
-				return Schema.decodeUnknownSync(BillingSubscriptionSnapshot)({
+			const logAndFail =
+				(message: string, annotations: Record<string, unknown> = {}) =>
+				(cause: Cause.Cause<unknown>) =>
+					Effect.gen(function* () {
+						const prettyCause = Cause.pretty(cause);
+						yield* Effect.annotateCurrentSpan({ "error.original_cause": prettyCause });
+						yield* Effect.logError(message).pipe(
+							Effect.annotateLogs({ ...annotations, cause: prettyCause }),
+						);
+
+						return yield* Effect.fail(new BillingError({ message }));
+					});
+
+			const billingErrorFromCause = (cause: Cause.Cause<unknown>) => {
+				for (const reason of cause.reasons) {
+					if (Cause.isFailReason(reason) && reason.error instanceof BillingError) {
+						return reason.error;
+					}
+				}
+
+				return null;
+			};
+
+			const mapBillingFailure =
+				(message: string, annotations: Record<string, unknown> = {}) =>
+				(
+					cause: Cause.Cause<
+						BillingError | EffectDrizzleQueryError | EffectTransactionRollbackError
+					>,
+				) => {
+					const billingError = billingErrorFromCause(cause);
+					if (billingError) return Effect.fail(billingError);
+
+					return logAndFail(message, annotations)(cause);
+				};
+
+			const tryPolar = <A>(
+				message: string,
+				try_: () => PromiseLike<A>,
+				annotations: Record<string, unknown> = {},
+			) =>
+				Effect.tryPromise({
+					try: try_,
+					catch: (cause) => cause,
+				}).pipe(Effect.catchCause(logAndFail(message, annotations)));
+
+			const buildSubscriptionSnapshot = Effect.fn("Billing.buildSubscriptionSnapshot")(function* (
+				values: Record<string, unknown>,
+			) {
+				return yield* Schema.decodeUnknownEffect(BillingSubscriptionSnapshot)({
 					...values,
 					syncedAt: new Date(),
-				});
-			}
+				}).pipe(Effect.catchCause(logAndFail("Invalid billing subscription snapshot")));
+			});
 
 			const syncCustomerState = (
 				tx: Database.Executor,
 				values: { organizationId: string; state: CustomerState },
 			): TransactionEffect<void> =>
 				Effect.gen(function* () {
-					const customerSnapshot = Schema.decodeUnknownSync(BillingCustomerSnapshot)({
+					const customerSnapshot = yield* Schema.decodeUnknownEffect(BillingCustomerSnapshot)({
 						organizationId: values.organizationId,
 						polarCustomerId: values.state.id,
 						email: values.state.email ?? null,
@@ -119,7 +167,7 @@ export namespace Billing {
 						remoteCreatedAt: values.state.createdAt,
 						remoteModifiedAt: values.state.modifiedAt,
 						syncedAt: new Date(),
-					});
+					}).pipe(Effect.catchCause(logAndFail("Invalid billing customer snapshot")));
 
 					yield* tx.insert(billingCustomer).values(customerSnapshot).onConflictDoUpdate({
 						target: billingCustomer.organizationId,
@@ -127,7 +175,7 @@ export namespace Billing {
 					});
 
 					for (const subscription of values.state.activeSubscriptions) {
-						const subscriptionSnapshot = buildSubscriptionSnapshot({
+						const subscriptionSnapshot = yield* buildSubscriptionSnapshot({
 							id: subscription.id,
 							organizationId: values.organizationId,
 							polarCustomerId: values.state.id,
@@ -178,25 +226,21 @@ export namespace Billing {
 			const loadCustomerState = Effect.fn("Billing.loadCustomerState")(function* (
 				customerId: string,
 			) {
-				return yield* Effect.tryPromise({
-					try: () => polarClient.customers.getState({ id: customerId }),
-					catch: () =>
-						new BillingError({
-							message: `Unable to load Polar customer state for ${customerId}`,
-						}),
-				});
+				return yield* tryPolar(
+					`Unable to load Polar customer state for ${customerId}`,
+					() => polarClient.customers.getState({ id: customerId }),
+					{ polarCustomerId: customerId },
+				);
 			});
 
 			const loadCustomerStateExternal = Effect.fn("Billing.loadCustomerStateExternal")(function* (
 				organizationId: string,
 			) {
-				return yield* Effect.tryPromise({
-					try: () => polarClient.customers.getStateExternal({ externalId: organizationId }),
-					catch: () =>
-						new BillingError({
-							message: `Unable to load Polar customer state for organization ${organizationId}`,
-						}),
-				});
+				return yield* tryPolar(
+					`Unable to load Polar customer state for organization ${organizationId}`,
+					() => polarClient.customers.getStateExternal({ externalId: organizationId }),
+					{ organizationId },
+				);
 			});
 
 			const getKnownOrganizationId = Effect.fn("Billing.getKnownOrganizationId")(function* (
@@ -210,12 +254,10 @@ export namespace Billing {
 					.where(eq(organization.id, externalId))
 					.limit(1)
 					.pipe(
-						Effect.catch(() =>
-							Effect.fail(
-								new BillingError({
-									message: `Failed to look up organization ${externalId}`,
-								}),
-							),
+						Effect.catchCause(
+							logAndFail(`Failed to look up organization ${externalId}`, {
+								organizationId: externalId,
+							}),
 						),
 					);
 
@@ -233,15 +275,7 @@ export namespace Billing {
 
 				yield* database
 					.transaction((tx) => syncCustomerState(tx, { organizationId, state }))
-					.pipe(
-						Effect.catch(() =>
-							Effect.fail(
-								new BillingError({
-									message: "Failed to upsert customer state",
-								}),
-							),
-						),
-					);
+					.pipe(Effect.catchCause(mapBillingFailure("Failed to upsert customer state")));
 			});
 
 			const createCustomer = Effect.fn("Billing.createCustomer")(function* (params: {
@@ -251,13 +285,11 @@ export namespace Billing {
 				readonly ownerEmail: string;
 				readonly ownerName: string;
 			}) {
-				yield* Effect.tryPromise({
-					try: () => polarClient.customers.create(buildOrganizationCustomerCreate(params)),
-					catch: () =>
-						new BillingError({
-							message: `Failed to create billing customer for organization ${params.organizationId}`,
-						}),
-				});
+				yield* tryPolar(
+					`Failed to create billing customer for organization ${params.organizationId}`,
+					() => polarClient.customers.create(buildOrganizationCustomerCreate(params)),
+					{ organizationId: params.organizationId },
+				);
 
 				const state = yield* loadCustomerStateExternal(params.organizationId);
 				yield* upsertCustomerState(state);
@@ -268,8 +300,9 @@ export namespace Billing {
 				readonly name: string;
 				readonly slug: string;
 			}) {
-				yield* Effect.tryPromise({
-					try: () =>
+				yield* tryPolar(
+					`Failed to update billing customer for organization ${params.organizationId}`,
+					() =>
 						polarClient.customers.updateExternal({
 							externalId: params.organizationId,
 							customerUpdateExternalID: {
@@ -277,11 +310,8 @@ export namespace Billing {
 								metadata: { slug: params.slug },
 							},
 						}),
-					catch: () =>
-						new BillingError({
-							message: `Failed to update billing customer for organization ${params.organizationId}`,
-						}),
-				});
+					{ organizationId: params.organizationId },
+				);
 
 				const state = yield* loadCustomerStateExternal(params.organizationId);
 				yield* upsertCustomerState(state);
@@ -298,19 +328,17 @@ export namespace Billing {
 				readonly successUrl: string;
 				readonly returnUrl: string;
 			}) {
-				const checkout = yield* Effect.tryPromise({
-					try: () =>
+				const checkout = yield* tryPolar(
+					`Failed to create checkout for organization ${params.organizationId}`,
+					() =>
 						polarClient.checkouts.create({
 							externalCustomerId: params.organizationId,
 							products: [POLAR_PRO_PRODUCT_ID],
 							successUrl: params.successUrl,
 							returnUrl: params.returnUrl,
 						}),
-					catch: () =>
-						new BillingError({
-							message: `Failed to create checkout for organization ${params.organizationId}`,
-						}),
-				});
+					{ organizationId: params.organizationId },
+				);
 
 				return checkout.url;
 			});
@@ -319,17 +347,15 @@ export namespace Billing {
 				readonly organizationId: string;
 				readonly returnUrl: string;
 			}) {
-				const customerSession = yield* Effect.tryPromise({
-					try: () =>
+				const customerSession = yield* tryPolar(
+					`Failed to create billing portal for organization ${params.organizationId}`,
+					() =>
 						polarClient.customerSessions.create({
 							externalCustomerId: params.organizationId,
 							returnUrl: params.returnUrl,
 						}),
-					catch: () =>
-						new BillingError({
-							message: `Failed to create billing portal for organization ${params.organizationId}`,
-						}),
-				});
+					{ organizationId: params.organizationId },
+				);
 
 				return customerSession.customerPortalUrl;
 			});
@@ -353,7 +379,7 @@ export namespace Billing {
 									state: customerState,
 								});
 
-								const subscriptionSnapshot = buildSubscriptionSnapshot({
+								const subscriptionSnapshot = yield* buildSubscriptionSnapshot({
 									id: subscription.id,
 									organizationId,
 									polarCustomerId: subscription.customerId,
@@ -385,15 +411,7 @@ export namespace Billing {
 									});
 							}) as TransactionEffect<void>,
 					)
-					.pipe(
-						Effect.catch(() =>
-							Effect.fail(
-								new BillingError({
-									message: "Failed to upsert subscription",
-								}),
-							),
-						),
-					);
+					.pipe(Effect.catchCause(mapBillingFailure("Failed to upsert subscription")));
 			});
 
 			const upsertOrder = Effect.fn("Billing.upsertOrder")(function* (order: Order) {
@@ -449,7 +467,7 @@ export namespace Billing {
 												});
 											}
 
-											const subscriptionSnapshot = buildSubscriptionSnapshot({
+											const subscriptionSnapshot = yield* buildSubscriptionSnapshot({
 												id: order.subscription.id,
 												organizationId,
 												polarCustomerId: order.subscription.customerId,
@@ -483,7 +501,7 @@ export namespace Billing {
 									}
 								}
 
-								const orderSnapshot = Schema.decodeUnknownSync(BillingOrderSnapshot)({
+								const orderSnapshot = yield* Schema.decodeUnknownEffect(BillingOrderSnapshot)({
 									id: order.id,
 									organizationId,
 									polarCustomerId: order.customerId,
@@ -504,7 +522,7 @@ export namespace Billing {
 									remoteCreatedAt: order.createdAt,
 									remoteModifiedAt: order.modifiedAt,
 									syncedAt: new Date(),
-								});
+								}).pipe(Effect.catchCause(logAndFail("Invalid billing order snapshot")));
 
 								yield* tx.insert(billingOrder).values(orderSnapshot).onConflictDoUpdate({
 									target: billingOrder.id,
@@ -512,15 +530,7 @@ export namespace Billing {
 								});
 							}) as TransactionEffect<void>,
 					)
-					.pipe(
-						Effect.catch(() =>
-							Effect.fail(
-								new BillingError({
-									message: "Failed to upsert order",
-								}),
-							),
-						),
-					);
+					.pipe(Effect.catchCause(mapBillingFailure("Failed to upsert order")));
 			});
 
 			return Service.of({

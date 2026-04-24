@@ -1,7 +1,7 @@
 import { mustGetMutator, mustGetQuery, type ReadonlyJSONValue } from "@rocicorp/zero";
 import { handleMutateRequest, handleQueryRequest } from "@rocicorp/zero/server";
 import { zeroDrizzle } from "@rocicorp/zero/server/adapters/drizzle";
-import { Effect } from "effect";
+import { Cause, Effect } from "effect";
 import { HttpServerRequest, HttpServerResponse } from "effect/unstable/http";
 import { HttpApiBuilder } from "effect/unstable/httpapi";
 
@@ -14,6 +14,15 @@ import { queries } from "@leuchtturm/zero/queries";
 import { schema } from "@leuchtturm/zero/schema";
 
 export namespace ZeroHandler {
+	const logAndFail = (message: string) => (cause: Cause.Cause<unknown>) =>
+		Effect.gen(function* () {
+			const prettyCause = Cause.pretty(cause);
+			yield* Effect.annotateCurrentSpan({ "error.original_cause": prettyCause });
+			yield* Effect.logError(message).pipe(Effect.annotateLogs({ cause: prettyCause }));
+
+			return yield* Effect.fail(new DatabaseError({ message }));
+		});
+
 	const handleQuery = Effect.fn("zero.query")(function* () {
 		const { user } = yield* AuthMiddleware.CurrentUser;
 		const request = yield* HttpServerRequest.HttpServerRequest;
@@ -29,11 +38,8 @@ export namespace ZeroHandler {
 					schema,
 					rawRequest,
 				),
-			catch: () =>
-				new DatabaseError({
-					message: "Query execution failed",
-				}),
-		});
+			catch: (cause) => cause,
+		}).pipe(Effect.catchCause(logAndFail("Query execution failed")));
 
 		return yield* HttpServerResponse.json(result).pipe(Effect.orDie);
 	});
@@ -59,11 +65,8 @@ export namespace ZeroHandler {
 						}),
 					rawRequest,
 				),
-			catch: () =>
-				new DatabaseError({
-					message: "Mutation execution failed",
-				}),
-		});
+			catch: (cause) => cause,
+		}).pipe(Effect.catchCause(logAndFail("Mutation execution failed")));
 
 		return yield* HttpServerResponse.json(result).pipe(Effect.orDie);
 	});

@@ -1,4 +1,4 @@
-import { Context, Effect, Layer, Schema } from "effect";
+import { Cause, Context, Effect, Layer, Schema } from "effect";
 import type { CreateEmailResponseSuccess } from "resend";
 import { Resend } from "resend";
 import { Resource } from "sst";
@@ -22,18 +22,28 @@ export namespace Email {
 		Effect.gen(function* () {
 			yield* Effect.logInfo("Email initialized");
 
-			const fail = (message: string) => () =>
-				new EmailError({
-					message,
+			const logAndFail = (message: string) => (cause: Cause.Cause<unknown>) =>
+				Effect.gen(function* () {
+					const prettyCause = Cause.pretty(cause);
+					yield* Effect.annotateCurrentSpan({ "error.original_cause": prettyCause });
+					yield* Effect.logError(message).pipe(Effect.annotateLogs({ cause: prettyCause }));
+
+					return yield* Effect.fail(new EmailError({ message }));
 				});
 
 			const send = Effect.fn("Email.send")(function* (params: SendParams) {
 				const result = yield* Effect.tryPromise({
 					try: () => new Resend(Resource.ResendApiKey.value).emails.send(params),
-					catch: fail("Resend API request failed"),
-				});
+					catch: (cause) => cause,
+				}).pipe(Effect.catchCause(logAndFail("Resend API request failed")));
 
 				if (result.error || !result.data) {
+					if (result.error) {
+						yield* Effect.logError("Resend API returned an error").pipe(
+							Effect.annotateLogs({ error: result.error }),
+						);
+					}
+
 					return yield* new EmailError({
 						message: "Email sent but received no response data",
 					});
