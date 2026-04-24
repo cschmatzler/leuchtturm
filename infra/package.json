@@ -4,8 +4,5 @@
 	"type": "module",
 	"exports": {
 		"./*": "./*.ts"
-	},
-	"dependencies": {
-		"@pulumi/pulumi": "^3.231.0"
 	}
 }

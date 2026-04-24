@@ -186,10 +186,7 @@ function Shell() {
 						<MenuTrigger
 							render={
 								<SidebarMenuButton className="inline-flex justify-between">
-									<div className="flex items-center gap-2">
-										<BuildingIcon className="size-4" />
-										<span>{currentOrganization?.name ?? slug}</span>
-									</div>
+									<BuildingIcon className="size-4" />
 									<ChevronDownIcon className="size-4" />
 								</SidebarMenuButton>
 							}
