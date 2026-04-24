@@ -127,14 +127,14 @@ export const OrganizationSummary = Schema.Struct({
 	slug: OrganizationSlug,
 });
 
-export const DeviceSession = Schema.Struct({
-	session: Session,
-	user: User,
-	organizations: Schema.Array(OrganizationSummary),
-});
-
-export const DeviceSessionsResponse = Schema.Struct({
-	sessions: Schema.Array(DeviceSession),
+export const DeviceSessions = Schema.Struct({
+	sessions: Schema.Array(
+		Schema.Struct({
+			session: Session,
+			user: User,
+			organizations: Schema.Array(OrganizationSummary),
+		}),
+	),
 	organizations: Schema.Array(
 		Schema.Struct({
 			...OrganizationSummary.fields,

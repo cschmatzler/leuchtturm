@@ -31,7 +31,7 @@ import {
 } from "@leuchtturm/core/auth/errors";
 import {
 	AccountId,
-	DeviceSessionsResponse,
+	DeviceSessions,
 	InvitationId,
 	MemberId,
 	OrganizationId,
@@ -57,7 +57,7 @@ export namespace Auth {
 		) => Effect.Effect<typeof OrganizationSummary.Type | null, typeof AuthError.Type>;
 		readonly getDeviceSessions: (
 			headers: Headers,
-		) => Effect.Effect<typeof DeviceSessionsResponse.Type, typeof AuthError.Type>;
+		) => Effect.Effect<typeof DeviceSessions.Type, typeof AuthError.Type>;
 	}
 
 	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/Auth") {}
@@ -68,83 +68,6 @@ export namespace Auth {
 			const billing = yield* Billing.Service;
 			const email = yield* Email.Service;
 			const services = yield* Effect.context();
-
-			const runCallback = <A, E>(effect: Effect.Effect<A, E>) =>
-				Effect.runPromiseWith(services)(effect);
-
-			const logWebhook = Effect.fn("Auth.logWebhook")(function* (type: string) {
-				yield* Effect.logInfo("Polar webhook received").pipe(Effect.annotateLogs("type", type));
-			});
-
-			const upsertCustomerState = Effect.fn("Auth.upsertCustomerState")(function* (payload: {
-				data: Parameters<Billing.Interface["upsertCustomerState"]>[0];
-			}) {
-				yield* billing.upsertCustomerState(payload.data);
-			});
-
-			const upsertOrder = Effect.fn("Auth.upsertOrder")(function* (payload: {
-				data: Parameters<Billing.Interface["upsertOrder"]>[0];
-			}) {
-				yield* billing.upsertOrder(payload.data);
-			});
-
-			const upsertSubscription = Effect.fn("Auth.upsertSubscription")(function* (payload: {
-				data: Parameters<Billing.Interface["upsertSubscription"]>[0];
-			}) {
-				yield* billing.upsertSubscription(payload.data);
-			});
-
-			const createOrganizationCustomer = Effect.fn("Auth.createOrganizationCustomer")(
-				function* (payload: {
-					organization: { id: string; name: string; slug: string };
-					user: { email: string; name: string };
-				}) {
-					yield* billing.createCustomer({
-						organizationId: payload.organization.id,
-						name: payload.organization.name,
-						slug: payload.organization.slug,
-						ownerEmail: payload.user.email,
-						ownerName: payload.user.name,
-					});
-				},
-			);
-
-			const updateOrganizationCustomer = Effect.fn("Auth.updateOrganizationCustomer")(
-				function* (payload: { organization: { id: string; name: string; slug: string } }) {
-					yield* billing.updateCustomer({
-						organizationId: payload.organization.id,
-						name: payload.organization.name,
-						slug: payload.organization.slug,
-					});
-				},
-			);
-
-			const sendResetPassword = Effect.fn("Auth.sendResetPassword")(function* (params: {
-				readonly user: { readonly email: string; readonly name: string };
-				readonly url: string;
-			}) {
-				yield* Effect.tryPromise({
-					try: () =>
-						sendPasswordResetEmail({
-							email: params.user.email,
-							resetUrl: params.url,
-							send: (emailParams) => runCallback(email.send(emailParams)),
-							userName: params.user.name,
-						}),
-					catch: (cause) => cause,
-				}).pipe(
-					Effect.catchCause((cause) =>
-						Effect.gen(function* () {
-							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-							return yield* Effect.fail(
-								new AuthPasswordResetEmailError({
-									message: "Failed to send password reset email",
-								}),
-							);
-						}),
-					),
-				);
-			});
 
 			const polarClient = new Polar({
 				accessToken: Resource.PolarAccessToken.value,
@@ -162,7 +85,31 @@ export namespace Auth {
 					enabled: true,
 					minPasswordLength: 13,
 					sendResetPassword: ({ user, url }, _request) =>
-						runCallback(sendResetPassword({ user, url })),
+						Effect.runPromiseWith(services)(
+							Effect.tryPromise({
+								try: () =>
+									sendPasswordResetEmail({
+										email: user.email,
+										resetUrl: url,
+										send: (emailParams) => Effect.runPromiseWith(services)(email.send(emailParams)),
+										userName: user.name,
+									}),
+								catch: (cause) => cause,
+							}).pipe(
+								Effect.catchCause((cause) =>
+									Effect.gen(function* () {
+										yield* Effect.annotateCurrentSpan({
+											"error.original_cause": Cause.pretty(cause),
+										});
+										return yield* Effect.fail(
+											new AuthPasswordResetEmailError({
+												message: "Failed to send password reset email",
+											}),
+										);
+									}),
+								),
+							),
+						),
 				},
 				user: {
 					additionalFields: {
@@ -184,10 +131,24 @@ export namespace Auth {
 					organizationPlugin({
 						organizationHooks: {
 							afterCreateOrganization: ({ organization, user }) =>
-								runCallback(createOrganizationCustomer({ organization, user })),
+								Effect.runPromiseWith(services)(
+									billing.createCustomer({
+										organizationId: organization.id,
+										name: organization.name,
+										slug: organization.slug,
+										ownerEmail: user.email,
+										ownerName: user.name,
+									}),
+								),
 							afterUpdateOrganization: ({ organization }) => {
 								if (!organization) return Promise.resolve();
-								return runCallback(updateOrganizationCustomer({ organization }));
+								return Effect.runPromiseWith(services)(
+									billing.updateCustomer({
+										organizationId: organization.id,
+										name: organization.name,
+										slug: organization.slug,
+									}),
+								);
 							},
 						},
 					}),
@@ -196,18 +157,34 @@ export namespace Auth {
 						use: [
 							webhooks({
 								secret: Resource.PolarWebhookSecret.value,
-								onPayload: (payload) => runCallback(logWebhook(payload.type)),
-								onCustomerStateChanged: (payload) => runCallback(upsertCustomerState(payload)),
-								onOrderCreated: (payload) => runCallback(upsertOrder(payload)),
-								onOrderPaid: (payload) => runCallback(upsertOrder(payload)),
-								onOrderRefunded: (payload) => runCallback(upsertOrder(payload)),
-								onOrderUpdated: (payload) => runCallback(upsertOrder(payload)),
-								onSubscriptionCreated: (payload) => runCallback(upsertSubscription(payload)),
-								onSubscriptionUpdated: (payload) => runCallback(upsertSubscription(payload)),
-								onSubscriptionActive: (payload) => runCallback(upsertSubscription(payload)),
-								onSubscriptionCanceled: (payload) => runCallback(upsertSubscription(payload)),
-								onSubscriptionRevoked: (payload) => runCallback(upsertSubscription(payload)),
-								onSubscriptionUncanceled: (payload) => runCallback(upsertSubscription(payload)),
+								onPayload: (payload) =>
+									Effect.runPromiseWith(services)(
+										Effect.logInfo("Polar webhook received").pipe(
+											Effect.annotateLogs("type", payload.type),
+										),
+									),
+								onCustomerStateChanged: (payload) =>
+									Effect.runPromiseWith(services)(billing.upsertCustomerState(payload.data)),
+								onOrderCreated: (payload) =>
+									Effect.runPromiseWith(services)(billing.upsertOrder(payload.data)),
+								onOrderPaid: (payload) =>
+									Effect.runPromiseWith(services)(billing.upsertOrder(payload.data)),
+								onOrderRefunded: (payload) =>
+									Effect.runPromiseWith(services)(billing.upsertOrder(payload.data)),
+								onOrderUpdated: (payload) =>
+									Effect.runPromiseWith(services)(billing.upsertOrder(payload.data)),
+								onSubscriptionCreated: (payload) =>
+									Effect.runPromiseWith(services)(billing.upsertSubscription(payload.data)),
+								onSubscriptionUpdated: (payload) =>
+									Effect.runPromiseWith(services)(billing.upsertSubscription(payload.data)),
+								onSubscriptionActive: (payload) =>
+									Effect.runPromiseWith(services)(billing.upsertSubscription(payload.data)),
+								onSubscriptionCanceled: (payload) =>
+									Effect.runPromiseWith(services)(billing.upsertSubscription(payload.data)),
+								onSubscriptionRevoked: (payload) =>
+									Effect.runPromiseWith(services)(billing.upsertSubscription(payload.data)),
+								onSubscriptionUncanceled: (payload) =>
+									Effect.runPromiseWith(services)(billing.upsertSubscription(payload.data)),
 							}),
 						],
 					}),
@@ -363,7 +340,7 @@ export namespace Auth {
 				);
 
 				if (!deviceSessions.length) {
-					return { sessions: [], organizations: [] } satisfies typeof DeviceSessionsResponse.Type;
+					return { sessions: [], organizations: [] } satisfies typeof DeviceSessions.Type;
 				}
 
 				const sessionIds = deviceSessions.map((deviceSession) => deviceSession.session.id);
@@ -434,7 +411,7 @@ export namespace Auth {
 					)
 					.sort((left, right) => left.name.localeCompare(right.name));
 
-				return yield* Schema.decodeUnknownEffect(DeviceSessionsResponse)({
+				return yield* Schema.decodeUnknownEffect(DeviceSessions)({
 					sessions,
 					organizations,
 				}).pipe(

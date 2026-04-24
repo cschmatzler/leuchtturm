@@ -3,7 +3,7 @@ import { HttpApi, HttpApiEndpoint, HttpApiGroup } from "effect/unstable/httpapi"
 
 import { AuthMiddleware } from "@leuchtturm/api/auth";
 import { AuthError } from "@leuchtturm/core/auth/errors";
-import { DeviceSessionsResponse } from "@leuchtturm/core/auth/schema";
+import { DeviceSessions } from "@leuchtturm/core/auth/schema";
 import { BillingError } from "@leuchtturm/core/billing/errors";
 import {
 	DatabaseError,
@@ -34,7 +34,7 @@ const BillingUrlResponse = Schema.Struct({
 	url: Schema.String,
 });
 
-const AuthRouteError = Schema.Union([UnauthorizedError, AuthError]);
+export const AuthRouteError = Schema.Union([UnauthorizedError, AuthError]);
 const ProtectedRouteError = Schema.Union([DatabaseError, UnauthorizedError, AuthError]);
 const BillingRouteError = Schema.Union([
 	BillingError,
@@ -59,7 +59,7 @@ export const zero = HttpApiGroup.make("zero")
 export const session = HttpApiGroup.make("session")
 	.add(
 		HttpApiEndpoint.get("deviceSessions", "/device-sessions", {
-			success: DeviceSessionsResponse,
+			success: DeviceSessions,
 			error: ProtectedRouteError,
 		}),
 	)
