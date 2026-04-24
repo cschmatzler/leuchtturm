@@ -1,10 +1,6 @@
 import { polar, webhooks } from "@polar-sh/better-auth";
 import { Polar } from "@polar-sh/sdk";
-import {
-	betterAuth,
-	type Session as BetterAuthSession,
-	type User as BetterAuthUser,
-} from "better-auth";
+import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { multiSession, organization as organizationPlugin } from "better-auth/plugins";
 import { eq, inArray } from "drizzle-orm";
@@ -24,11 +20,11 @@ import {
 import { AuthError } from "@leuchtturm/core/auth/errors";
 import {
 	AccountId,
-	type DeviceSessionsResponse,
-	DeviceSessionsResponse as DeviceSessionsResponseSchema,
+	DeviceSessionsResponse,
 	InvitationId,
 	MemberId,
 	OrganizationId,
+	OrganizationSummary,
 	SessionData,
 	SessionId,
 	UserId,
@@ -39,88 +35,6 @@ import { Billing } from "@leuchtturm/core/billing";
 import { Database } from "@leuchtturm/core/drizzle";
 import { Email } from "@leuchtturm/core/email";
 import { sendPasswordResetEmail } from "@leuchtturm/email/password-reset";
-
-type OrganizationSummary = {
-	id: string;
-	name: string;
-	slug: string;
-};
-
-type RawDeviceSession = {
-	session: BetterAuthSession & { activeOrganizationId?: string | null };
-	user: BetterAuthUser;
-};
-
-type Membership = OrganizationSummary & {
-	sessionId: string;
-};
-
-function transformDeviceSessions(
-	deviceSessions: RawDeviceSession[],
-	memberships: Membership[],
-	currentSessionToken: string | null | undefined,
-): unknown {
-	if (!deviceSessions.length) return { sessions: [], organizations: [] };
-
-	const sessionIds = deviceSessions.map((deviceSession) => deviceSession.session.id);
-	const sessionIndexMap = new Map(sessionIds.map((id, index) => [id, index]));
-
-	const sessions = deviceSessions.map((deviceSession) => ({
-		...deviceSession,
-		organizations: [] as OrganizationSummary[],
-	}));
-
-	for (const membership of memberships) {
-		const index = sessionIndexMap.get(membership.sessionId);
-		if (index !== undefined) {
-			sessions[index].organizations.push({
-				id: membership.id,
-				name: membership.name,
-				slug: membership.slug,
-			});
-		}
-	}
-
-	const byName = (left: { name: string }, right: { name: string }) =>
-		left.name.localeCompare(right.name);
-
-	for (const deviceSession of sessions) {
-		deviceSession.organizations.sort(byName);
-	}
-
-	sessions.sort((left, right) => {
-		const leftIsCurrent = left.session.token === currentSessionToken;
-		const rightIsCurrent = right.session.token === currentSessionToken;
-
-		if (leftIsCurrent !== rightIsCurrent) {
-			return leftIsCurrent ? -1 : 1;
-		}
-
-		return left.user.email.localeCompare(right.user.email);
-	});
-
-	const seenOrganizationIds = new Set<string>();
-	const organizations = sessions.flatMap((deviceSession) => {
-		return deviceSession.organizations.flatMap((currentOrganization) => {
-			if (seenOrganizationIds.has(currentOrganization.id)) return [];
-			seenOrganizationIds.add(currentOrganization.id);
-
-			return [
-				{
-					...currentOrganization,
-					token: deviceSession.session.token,
-				},
-			];
-		});
-	});
-
-	organizations.sort(byName);
-
-	return {
-		sessions,
-		organizations,
-	};
-}
 
 export namespace Auth {
 	export interface Interface {
@@ -366,7 +280,19 @@ export namespace Auth {
 						),
 					);
 
-				return rows[0] ?? null;
+				const selectedOrganization = rows[0];
+				if (!selectedOrganization) return null;
+
+				return yield* Schema.decodeUnknownEffect(OrganizationSummary)(selectedOrganization).pipe(
+					Effect.catchCause((cause) =>
+						Effect.gen(function* () {
+							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
+							return yield* Effect.fail(
+								new AuthError({ message: "Invalid auth organization payload" }),
+							);
+						}),
+					),
+				);
 			});
 
 			const getDeviceSessions = Effect.fn("Auth.getDeviceSessions")(function* (headers: Headers) {
@@ -398,13 +324,50 @@ export namespace Auth {
 						.where(inArray(session.id, sessionIds)),
 				);
 
-				return yield* Schema.decodeUnknownEffect(DeviceSessionsResponseSchema)(
-					transformDeviceSessions(
-						deviceSessions as RawDeviceSession[],
-						memberships,
-						currentSession?.session.token,
-					),
-				).pipe(
+				const sessions = deviceSessions
+					.map((deviceSession) => ({
+						...deviceSession,
+						organizations: memberships
+							.filter((membership) => membership.sessionId === deviceSession.session.id)
+							.map((membership) => ({
+								id: membership.id,
+								name: membership.name,
+								slug: membership.slug,
+							}))
+							.sort((left, right) => left.name.localeCompare(right.name)),
+					}))
+					.sort((left, right) => {
+						const leftIsCurrent = left.session.token === currentSession?.session.token;
+						const rightIsCurrent = right.session.token === currentSession?.session.token;
+
+						if (leftIsCurrent !== rightIsCurrent) {
+							return leftIsCurrent ? -1 : 1;
+						}
+
+						return left.user.email.localeCompare(right.user.email);
+					});
+
+				const seenOrganizationIds = new Set<string>();
+				const organizations = sessions
+					.flatMap((deviceSession) =>
+						deviceSession.organizations.flatMap((currentOrganization) => {
+							if (seenOrganizationIds.has(currentOrganization.id)) return [];
+							seenOrganizationIds.add(currentOrganization.id);
+
+							return [
+								{
+									...currentOrganization,
+									token: deviceSession.session.token,
+								},
+							];
+						}),
+					)
+					.sort((left, right) => left.name.localeCompare(right.name));
+
+				return yield* Schema.decodeUnknownEffect(DeviceSessionsResponse)({
+					sessions,
+					organizations,
+				}).pipe(
 					Effect.catchCause((cause) =>
 						Effect.gen(function* () {
 							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
