@@ -3,7 +3,7 @@ import { Schema } from "effect";
 
 import { User } from "@leuchtturm/core/auth/schema";
 import { ForbiddenError } from "@leuchtturm/core/errors";
-import { SupportedLanguageSchema } from "@leuchtturm/core/i18n";
+import { SupportedLanguage } from "@leuchtturm/core/i18n";
 import { assertLoggedIn } from "@leuchtturm/zero/mutators/shared";
 
 export const userMutators = {
@@ -12,7 +12,7 @@ export const userMutators = {
 			Schema.Struct({
 				id: Schema.String,
 				name: Schema.optional(User.fields.name),
-				language: Schema.optional(SupportedLanguageSchema),
+				language: Schema.optional(SupportedLanguage),
 			}),
 		),
 		async ({ tx, ctx, args }) => {

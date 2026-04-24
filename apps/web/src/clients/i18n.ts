@@ -3,14 +3,14 @@ import LanguageDetector from "i18next-browser-languagedetector";
 import Backend from "i18next-http-backend";
 import { initReactI18next } from "react-i18next";
 
-import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES } from "@leuchtturm/core/i18n";
+import { DEFAULT_LANGUAGE, SupportedLanguage } from "@leuchtturm/core/i18n";
 
 i18n
 	.use(LanguageDetector)
 	.use(Backend)
 	.use(initReactI18next)
 	.init({
-		supportedLngs: [...SUPPORTED_LANGUAGES],
+		supportedLngs: [...SupportedLanguage.literals],
 		fallbackLng: DEFAULT_LANGUAGE,
 		keySeparator: false,
 		interpolation: {

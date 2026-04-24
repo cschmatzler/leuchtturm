@@ -9,14 +9,14 @@ import {
 	type Zero,
 } from "@rocicorp/zero";
 
-import { type SupportedLanguage } from "@leuchtturm/core/i18n";
+import { SupportedLanguage } from "@leuchtturm/core/i18n";
 
 const user = table("user")
 	.columns({
 		id: string(),
 		name: string(),
 		email: string(),
-		language: string<SupportedLanguage>().optional(),
+		language: string<typeof SupportedLanguage.Type>().optional(),
 		createdAt: number().from("created_at"),
 		updatedAt: number().from("updated_at"),
 	})

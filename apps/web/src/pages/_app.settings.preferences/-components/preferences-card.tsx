@@ -3,12 +3,7 @@ import { Loader2Icon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
-import {
-	DEFAULT_LANGUAGE,
-	resolveLanguage,
-	SUPPORTED_LANGUAGES,
-	type SupportedLanguage,
-} from "@leuchtturm/core/i18n";
+import { DEFAULT_LANGUAGE, resolveLanguage, SupportedLanguage } from "@leuchtturm/core/i18n";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import {
 	Card,
@@ -38,9 +33,9 @@ const LANGUAGE_LABELS = {
 	fr: "Français",
 	it: "Italiano",
 	sq: "Shqip",
-} satisfies Record<SupportedLanguage, string>;
+} satisfies Record<typeof SupportedLanguage.Type, string>;
 
-const LANGUAGE_ITEMS = SUPPORTED_LANGUAGES.map((value) => ({
+const LANGUAGE_ITEMS = SupportedLanguage.literals.map((value) => ({
 	value,
 	label: LANGUAGE_LABELS[value],
 }));
