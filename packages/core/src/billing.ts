@@ -1,3 +1,4 @@
+import { polar, webhooks } from "@polar-sh/better-auth";
 import { Polar } from "@polar-sh/sdk";
 import type { CustomerState } from "@polar-sh/sdk/models/components/customerstate";
 import type { CustomerTeamCreate } from "@polar-sh/sdk/models/components/customerteamcreate";
@@ -65,6 +66,7 @@ export function buildOrganizationCustomerCreate(params: {
 
 export namespace Billing {
 	export interface Interface {
+		readonly authPlugin: ReturnType<typeof polar>;
 		readonly createCustomer: (params: {
 			readonly organizationId: string;
 			readonly name: string;
@@ -144,24 +146,6 @@ export namespace Billing {
 						return yield* Effect.fail(new BillingPersistenceError({ message }));
 					});
 				};
-
-			const tryPolar = <A>(operation: string, try_: () => PromiseLike<A>) =>
-				Effect.tryPromise({
-					try: try_,
-					catch: (cause) => cause,
-				}).pipe(
-					Effect.catchCause((cause) =>
-						Effect.gen(function* () {
-							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-							return yield* Effect.fail(
-								new BillingPolarRequestError({
-									operation,
-									message: `Polar request failed: ${operation}`,
-								}),
-							);
-						}),
-					),
-				);
 
 			const buildSubscriptionSnapshot = Effect.fn("Billing.buildSubscriptionSnapshot")(function* (
 				values: Record<string, unknown>,
@@ -275,17 +259,42 @@ export namespace Billing {
 			const loadCustomerState = Effect.fn("Billing.loadCustomerState")(function* (
 				customerId: string,
 			) {
-				return yield* tryPolar(`Unable to load Polar customer state for ${customerId}`, () =>
-					polarClient.customers.getState({ id: customerId }),
+				return yield* Effect.tryPromise({
+					try: () => polarClient.customers.getState({ id: customerId }),
+					catch: (cause) => cause,
+				}).pipe(
+					Effect.catchCause((cause) =>
+						Effect.gen(function* () {
+							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
+							return yield* Effect.fail(
+								new BillingPolarRequestError({
+									operation: `Unable to load Polar customer state for ${customerId}`,
+									message: `Polar request failed: Unable to load Polar customer state for ${customerId}`,
+								}),
+							);
+						}),
+					),
 				);
 			});
 
 			const loadCustomerStateExternal = Effect.fn("Billing.loadCustomerStateExternal")(function* (
 				organizationId: string,
 			) {
-				return yield* tryPolar(
-					`Unable to load Polar customer state for organization ${organizationId}`,
-					() => polarClient.customers.getStateExternal({ externalId: organizationId }),
+				return yield* Effect.tryPromise({
+					try: () => polarClient.customers.getStateExternal({ externalId: organizationId }),
+					catch: (cause) => cause,
+				}).pipe(
+					Effect.catchCause((cause) =>
+						Effect.gen(function* () {
+							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
+							return yield* Effect.fail(
+								new BillingPolarRequestError({
+									operation: `Unable to load Polar customer state for organization ${organizationId}`,
+									message: `Polar request failed: Unable to load Polar customer state for organization ${organizationId}`,
+								}),
+							);
+						}),
+					),
 				);
 			});
 
@@ -337,9 +346,21 @@ export namespace Billing {
 				readonly ownerEmail: string;
 				readonly ownerName: string;
 			}) {
-				yield* tryPolar(
-					`Failed to create billing customer for organization ${params.organizationId}`,
-					() => polarClient.customers.create(buildOrganizationCustomerCreate(params)),
+				yield* Effect.tryPromise({
+					try: () => polarClient.customers.create(buildOrganizationCustomerCreate(params)),
+					catch: (cause) => cause,
+				}).pipe(
+					Effect.catchCause((cause) =>
+						Effect.gen(function* () {
+							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
+							return yield* Effect.fail(
+								new BillingPolarRequestError({
+									operation: `Failed to create billing customer for organization ${params.organizationId}`,
+									message: `Polar request failed: Failed to create billing customer for organization ${params.organizationId}`,
+								}),
+							);
+						}),
+					),
 				);
 
 				const state = yield* loadCustomerStateExternal(params.organizationId);
@@ -351,9 +372,8 @@ export namespace Billing {
 				readonly name: string;
 				readonly slug: string;
 			}) {
-				yield* tryPolar(
-					`Failed to update billing customer for organization ${params.organizationId}`,
-					() =>
+				yield* Effect.tryPromise({
+					try: () =>
 						polarClient.customers.updateExternal({
 							externalId: params.organizationId,
 							customerUpdateExternalID: {
@@ -361,6 +381,19 @@ export namespace Billing {
 								metadata: { slug: params.slug },
 							},
 						}),
+					catch: (cause) => cause,
+				}).pipe(
+					Effect.catchCause((cause) =>
+						Effect.gen(function* () {
+							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
+							return yield* Effect.fail(
+								new BillingPolarRequestError({
+									operation: `Failed to update billing customer for organization ${params.organizationId}`,
+									message: `Polar request failed: Failed to update billing customer for organization ${params.organizationId}`,
+								}),
+							);
+						}),
+					),
 				);
 
 				const state = yield* loadCustomerStateExternal(params.organizationId);
@@ -378,15 +411,27 @@ export namespace Billing {
 				readonly successUrl: string;
 				readonly returnUrl: string;
 			}) {
-				const checkout = yield* tryPolar(
-					`Failed to create checkout for organization ${params.organizationId}`,
-					() =>
+				const checkout = yield* Effect.tryPromise({
+					try: () =>
 						polarClient.checkouts.create({
 							externalCustomerId: params.organizationId,
 							products: [POLAR_PRO_PRODUCT_ID],
 							successUrl: params.successUrl,
 							returnUrl: params.returnUrl,
 						}),
+					catch: (cause) => cause,
+				}).pipe(
+					Effect.catchCause((cause) =>
+						Effect.gen(function* () {
+							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
+							return yield* Effect.fail(
+								new BillingPolarRequestError({
+									operation: `Failed to create checkout for organization ${params.organizationId}`,
+									message: `Polar request failed: Failed to create checkout for organization ${params.organizationId}`,
+								}),
+							);
+						}),
+					),
 				);
 
 				return checkout.url;
@@ -396,13 +441,25 @@ export namespace Billing {
 				readonly organizationId: string;
 				readonly returnUrl: string;
 			}) {
-				const customerSession = yield* tryPolar(
-					`Failed to create billing portal for organization ${params.organizationId}`,
-					() =>
+				const customerSession = yield* Effect.tryPromise({
+					try: () =>
 						polarClient.customerSessions.create({
 							externalCustomerId: params.organizationId,
 							returnUrl: params.returnUrl,
 						}),
+					catch: (cause) => cause,
+				}).pipe(
+					Effect.catchCause((cause) =>
+						Effect.gen(function* () {
+							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
+							return yield* Effect.fail(
+								new BillingPolarRequestError({
+									operation: `Failed to create billing portal for organization ${params.organizationId}`,
+									message: `Polar request failed: Failed to create billing portal for organization ${params.organizationId}`,
+								}),
+							);
+						}),
+					),
 				);
 
 				return customerSession.customerPortalUrl;
@@ -595,7 +652,37 @@ export namespace Billing {
 					.pipe(Effect.catchCause(mapBillingFailure("Failed to upsert order")));
 			});
 
+			const authPlugin = polar({
+				client: polarClient,
+				use: [
+					webhooks({
+						secret: Resource.PolarWebhookSecret.value,
+						onPayload: (payload) =>
+							Effect.runPromise(
+								Effect.logInfo("Polar webhook received").pipe(
+									Effect.annotateLogs("type", payload.type),
+								),
+							),
+						onCustomerStateChanged: (payload) =>
+							Effect.runPromise(upsertCustomerState(payload.data)),
+						onOrderCreated: (payload) => Effect.runPromise(upsertOrder(payload.data)),
+						onOrderPaid: (payload) => Effect.runPromise(upsertOrder(payload.data)),
+						onOrderRefunded: (payload) => Effect.runPromise(upsertOrder(payload.data)),
+						onOrderUpdated: (payload) => Effect.runPromise(upsertOrder(payload.data)),
+						onSubscriptionCreated: (payload) => Effect.runPromise(upsertSubscription(payload.data)),
+						onSubscriptionUpdated: (payload) => Effect.runPromise(upsertSubscription(payload.data)),
+						onSubscriptionActive: (payload) => Effect.runPromise(upsertSubscription(payload.data)),
+						onSubscriptionCanceled: (payload) =>
+							Effect.runPromise(upsertSubscription(payload.data)),
+						onSubscriptionRevoked: (payload) => Effect.runPromise(upsertSubscription(payload.data)),
+						onSubscriptionUncanceled: (payload) =>
+							Effect.runPromise(upsertSubscription(payload.data)),
+					}),
+				],
+			});
+
 			return Service.of({
+				authPlugin,
 				createCustomer,
 				updateCustomer,
 				getCustomerState,

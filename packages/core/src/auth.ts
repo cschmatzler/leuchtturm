@@ -1,5 +1,3 @@
-import { polar, webhooks } from "@polar-sh/better-auth";
-import { Polar } from "@polar-sh/sdk";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { multiSession, organization as organizationPlugin } from "better-auth/plugins";
@@ -67,12 +65,7 @@ export namespace Auth {
 			const { database, rawDatabase } = yield* Database.Service;
 			const billing = yield* Billing.Service;
 			const email = yield* Email.Service;
-			const services = yield* Effect.context();
 
-			const polarClient = new Polar({
-				accessToken: Resource.PolarAccessToken.value,
-				server: Resource.ApiConfig.POLAR_SERVER as "production" | "sandbox",
-			});
 			const auth = betterAuth({
 				baseURL: `${Resource.ApiConfig.BASE_URL}/api/auth`,
 				secret: Resource.BetterAuthSecret.value,
@@ -85,13 +78,13 @@ export namespace Auth {
 					enabled: true,
 					minPasswordLength: 13,
 					sendResetPassword: ({ user, url }, _request) =>
-						Effect.runPromiseWith(services)(
+						Effect.runPromise(
 							Effect.tryPromise({
 								try: () =>
 									sendPasswordResetEmail({
 										email: user.email,
 										resetUrl: url,
-										send: (emailParams) => Effect.runPromiseWith(services)(email.send(emailParams)),
+										send: (emailParams) => Effect.runPromise(email.send(emailParams)),
 										userName: user.name,
 									}),
 								catch: (cause) => cause,
@@ -131,7 +124,7 @@ export namespace Auth {
 					organizationPlugin({
 						organizationHooks: {
 							afterCreateOrganization: ({ organization, user }) =>
-								Effect.runPromiseWith(services)(
+								Effect.runPromise(
 									billing.createCustomer({
 										organizationId: organization.id,
 										name: organization.name,
@@ -142,7 +135,7 @@ export namespace Auth {
 								),
 							afterUpdateOrganization: ({ organization }) => {
 								if (!organization) return Promise.resolve();
-								return Effect.runPromiseWith(services)(
+								return Effect.runPromise(
 									billing.updateCustomer({
 										organizationId: organization.id,
 										name: organization.name,
@@ -152,42 +145,7 @@ export namespace Auth {
 							},
 						},
 					}),
-					polar({
-						client: polarClient,
-						use: [
-							webhooks({
-								secret: Resource.PolarWebhookSecret.value,
-								onPayload: (payload) =>
-									Effect.runPromiseWith(services)(
-										Effect.logInfo("Polar webhook received").pipe(
-											Effect.annotateLogs("type", payload.type),
-										),
-									),
-								onCustomerStateChanged: (payload) =>
-									Effect.runPromiseWith(services)(billing.upsertCustomerState(payload.data)),
-								onOrderCreated: (payload) =>
-									Effect.runPromiseWith(services)(billing.upsertOrder(payload.data)),
-								onOrderPaid: (payload) =>
-									Effect.runPromiseWith(services)(billing.upsertOrder(payload.data)),
-								onOrderRefunded: (payload) =>
-									Effect.runPromiseWith(services)(billing.upsertOrder(payload.data)),
-								onOrderUpdated: (payload) =>
-									Effect.runPromiseWith(services)(billing.upsertOrder(payload.data)),
-								onSubscriptionCreated: (payload) =>
-									Effect.runPromiseWith(services)(billing.upsertSubscription(payload.data)),
-								onSubscriptionUpdated: (payload) =>
-									Effect.runPromiseWith(services)(billing.upsertSubscription(payload.data)),
-								onSubscriptionActive: (payload) =>
-									Effect.runPromiseWith(services)(billing.upsertSubscription(payload.data)),
-								onSubscriptionCanceled: (payload) =>
-									Effect.runPromiseWith(services)(billing.upsertSubscription(payload.data)),
-								onSubscriptionRevoked: (payload) =>
-									Effect.runPromiseWith(services)(billing.upsertSubscription(payload.data)),
-								onSubscriptionUncanceled: (payload) =>
-									Effect.runPromiseWith(services)(billing.upsertSubscription(payload.data)),
-							}),
-						],
-					}),
+					billing.authPlugin,
 				],
 				session: {
 					cookieCache: {

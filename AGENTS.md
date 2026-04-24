@@ -1,5 +1,6 @@
 # Workflow
 
+- IF YOU ARE ASKED A QUESTION, STOP EDITING FILES AND ANSWER IT.
 - Talk to the user. Do not go ahead on your own. Make sure the requirements are abundantly clear before editing files. Use the questions tool a lot.
 - Collaborate with the user. You are _not_ alone. If there's any ambiguity, stop editing files and use the questions tool. Do not _just_ go ahead.
 - Never try to generate migrations yourself. Tell the user to.
@@ -24,3 +25,7 @@ import { defineConfig } from "vite-plus";
 ```
 
 Always run `vp check` and `vp test` after making changes.
+
+---
+
+- IF YOU ARE ASKED A QUESTION, STOP EDITING FILES AND ANSWER IT.
