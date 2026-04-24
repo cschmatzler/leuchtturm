@@ -362,8 +362,8 @@ index b841ac5c22b8db2043e04d6b3f39d145ac21c5eb..4104c3bc1e8a5015197e5ff8653ff483
 --- a/effect-core/query-effect.js
 +++ b/effect-core/query-effect.js
 @@ -1,11 +1,16 @@
-+import * as Effectable from "effect/Effectable";
-+
+ import * as Effectable from "effect/Effectable";
+ 
  //#region src/effect-core/query-effect.ts
  function applyEffectWrapper(baseClass) {
 -	Object.assign(baseClass.prototype, Effectable.CommitPrototype);
