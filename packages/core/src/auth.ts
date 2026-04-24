@@ -1,7 +1,7 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { setCookieToHeader } from "better-auth/cookies";
 import { multiSession, organization as organizationPlugin } from "better-auth/plugins";
-import { eq, inArray } from "drizzle-orm";
 import { Cause, Effect, Layer, Schema, Context } from "effect";
 import { Resource } from "sst";
 import { ulid } from "ulid";
@@ -19,7 +19,6 @@ import {
 	AuthDeviceSessionOrganizationLookupError,
 	AuthDeviceSessionsListError,
 	AuthError,
-	AuthHandlerError,
 	AuthInvalidDeviceSessionsPayloadError,
 	AuthInvalidOrganizationPayloadError,
 	AuthInvalidSessionPayloadError,
@@ -46,11 +45,12 @@ import { sendPasswordResetEmail } from "@leuchtturm/email/password-reset";
 
 export namespace Auth {
 	export interface Interface {
-		readonly handle: (request: Request) => Effect.Effect<Response, typeof AuthError.Type>;
+		readonly client: { readonly handler: (request: Request) => Promise<Response> };
 		readonly getSession: (
 			headers: Headers,
 		) => Effect.Effect<typeof SessionData.Type | null, typeof AuthError.Type>;
 		readonly getOrganization: (
+			headers: Headers,
 			organizationId: string,
 		) => Effect.Effect<typeof OrganizationSummary.Type | null, typeof AuthError.Type>;
 		readonly getDeviceSessions: (
@@ -62,7 +62,7 @@ export namespace Auth {
 
 	export const layer = Layer.effect(Service)(
 		Effect.gen(function* () {
-			const { database, rawDatabase } = yield* Database.Service;
+			const { rawDatabase } = yield* Database.Service;
 			const billing = yield* Billing.Service;
 			const email = yield* Email.Service;
 
@@ -183,20 +183,6 @@ export namespace Auth {
 				},
 			});
 
-			const handle = Effect.fn("Auth.handle")(function* (request: Request) {
-				return yield* Effect.tryPromise({
-					try: () => auth.handler(request),
-					catch: (cause) => cause,
-				}).pipe(
-					Effect.catchCause((cause) =>
-						Effect.gen(function* () {
-							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-							return yield* Effect.fail(new AuthHandlerError({ message: "Auth handler failed" }));
-						}),
-					),
-				);
-			});
-
 			const getSession = Effect.fn("Auth.getSession")(function* (headers: Headers) {
 				const currentSession = yield* Effect.tryPromise({
 					try: () => auth.api.getSession({ headers }),
@@ -228,28 +214,28 @@ export namespace Auth {
 				);
 			});
 
-			const getOrganization = Effect.fn("Auth.getOrganization")(function* (organizationId: string) {
-				const rows = yield* database
-					.select({
-						id: organization.id,
-						name: organization.name,
-						slug: organization.slug,
-					})
-					.from(organization)
-					.where(eq(organization.id, organizationId))
-					.limit(1)
-					.pipe(
-						Effect.catchCause((cause) =>
-							Effect.gen(function* () {
-								yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-								return yield* Effect.fail(
-									new AuthOrganizationLookupError({ message: "Auth organization lookup failed" }),
-								);
-							}),
-						),
-					);
+			const getOrganization = Effect.fn("Auth.getOrganization")(function* (
+				headers: Headers,
+				organizationId: string,
+			) {
+				const selectedOrganization = yield* Effect.tryPromise({
+					try: () =>
+						auth.api.getFullOrganization({
+							headers,
+							query: { organizationId },
+						}),
+					catch: (cause) => cause,
+				}).pipe(
+					Effect.catchCause((cause) =>
+						Effect.gen(function* () {
+							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
+							return yield* Effect.fail(
+								new AuthOrganizationLookupError({ message: "Auth organization lookup failed" }),
+							);
+						}),
+					),
+				);
 
-				const selectedOrganization = rows[0];
 				if (!selectedOrganization) return null;
 
 				return yield* Schema.decodeUnknownEffect(OrganizationSummary)(selectedOrganization).pipe(
@@ -301,20 +287,35 @@ export namespace Auth {
 					return { sessions: [], organizations: [] } satisfies typeof DeviceSessions.Type;
 				}
 
-				const sessionIds = deviceSessions.map((deviceSession) => deviceSession.session.id);
-				const memberships = yield* Effect.tryPromise({
+				const sessions = yield* Effect.tryPromise({
 					try: () =>
-						rawDatabase
-							.select({
-								sessionId: session.id,
-								id: organization.id,
-								name: organization.name,
-								slug: organization.slug,
-							})
-							.from(session)
-							.innerJoin(member, eq(member.userId, session.userId))
-							.innerJoin(organization, eq(member.organizationId, organization.id))
-							.where(inArray(session.id, sessionIds)),
+						Promise.all(
+							deviceSessions.map(async (deviceSession) => {
+								const deviceSessionHeaders = new Headers(headers);
+								const activeSession = await auth.api.setActiveSession({
+									headers: deviceSessionHeaders,
+									body: { sessionToken: deviceSession.session.token },
+									returnHeaders: true,
+								});
+								setCookieToHeader(deviceSessionHeaders)({
+									response: new Response(null, { headers: activeSession.headers }),
+								});
+								const organizations = await auth.api.listOrganizations({
+									headers: deviceSessionHeaders,
+								});
+
+								return {
+									...deviceSession,
+									organizations: organizations
+										.map((currentOrganization) => ({
+											id: currentOrganization.id,
+											name: currentOrganization.name,
+											slug: currentOrganization.slug,
+										}))
+										.sort((left, right) => left.name.localeCompare(right.name)),
+								};
+							}),
+						),
 					catch: (cause) => cause,
 				}).pipe(
 					Effect.catchCause((cause) =>
@@ -329,31 +330,19 @@ export namespace Auth {
 					),
 				);
 
-				const sessions = deviceSessions
-					.map((deviceSession) => ({
-						...deviceSession,
-						organizations: memberships
-							.filter((membership) => membership.sessionId === deviceSession.session.id)
-							.map((membership) => ({
-								id: membership.id,
-								name: membership.name,
-								slug: membership.slug,
-							}))
-							.sort((left, right) => left.name.localeCompare(right.name)),
-					}))
-					.sort((left, right) => {
-						const leftIsCurrent = left.session.token === currentSession?.session.token;
-						const rightIsCurrent = right.session.token === currentSession?.session.token;
+				const sortedSessions = sessions.sort((left, right) => {
+					const leftIsCurrent = left.session.token === currentSession?.session.token;
+					const rightIsCurrent = right.session.token === currentSession?.session.token;
 
-						if (leftIsCurrent !== rightIsCurrent) {
-							return leftIsCurrent ? -1 : 1;
-						}
+					if (leftIsCurrent !== rightIsCurrent) {
+						return leftIsCurrent ? -1 : 1;
+					}
 
-						return left.user.email.localeCompare(right.user.email);
-					});
+					return left.user.email.localeCompare(right.user.email);
+				});
 
 				const seenOrganizationIds = new Set<string>();
-				const organizations = sessions
+				const organizations = sortedSessions
 					.flatMap((deviceSession) =>
 						deviceSession.organizations.flatMap((currentOrganization) => {
 							if (seenOrganizationIds.has(currentOrganization.id)) return [];
@@ -370,7 +359,7 @@ export namespace Auth {
 					.sort((left, right) => left.name.localeCompare(right.name));
 
 				return yield* Schema.decodeUnknownEffect(DeviceSessions)({
-					sessions,
+					sessions: sortedSessions,
 					organizations,
 				}).pipe(
 					Effect.catchCause((cause) =>
@@ -386,7 +375,7 @@ export namespace Auth {
 				);
 			});
 
-			return Service.of({ handle, getSession, getOrganization, getDeviceSessions });
+			return Service.of({ client: auth, getSession, getOrganization, getDeviceSessions });
 		}),
 	);
 

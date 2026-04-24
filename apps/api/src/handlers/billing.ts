@@ -12,6 +12,7 @@ export namespace BillingHandler {
 	const getActiveOrganization = Effect.fn("billing.activeOrganization")(function* () {
 		const { session } = yield* AuthMiddleware.CurrentUser;
 		const auth = yield* Auth.Service;
+		const request = yield* HttpServerRequest.HttpServerRequest;
 
 		if (!session.activeOrganizationId) {
 			return yield* new ValidationError({
@@ -19,7 +20,10 @@ export namespace BillingHandler {
 			});
 		}
 
-		const activeOrganization = yield* auth.getOrganization(session.activeOrganizationId);
+		const activeOrganization = yield* auth.getOrganization(
+			new Headers(request.headers as Record<string, string>),
+			session.activeOrganizationId,
+		);
 		if (!activeOrganization) {
 			return yield* new NotFoundError({
 				resource: "organization",
