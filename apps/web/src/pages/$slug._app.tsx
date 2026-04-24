@@ -62,7 +62,7 @@ function Shell() {
 	const commandBar = useCommandBar();
 
 	const [currentUser] = useZeroQuery(queries.currentUser());
-	const [currentOrganization] = useZeroQuery(queries.organization({ slug }));
+	useZeroQuery(queries.organization({ slug }));
 	const { data: deviceSessions } = useQuery(deviceSessionsQuery());
 
 	useHotkey("Mod+K", () => commandBar.show(), { ignoreInputs: false });

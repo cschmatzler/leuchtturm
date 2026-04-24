@@ -18,12 +18,16 @@ import {
 	verification,
 } from "@leuchtturm/core/auth/auth.sql";
 import {
+	AuthDeviceSessionOrganizationLookupError,
+	AuthDeviceSessionsListError,
+	AuthError,
+	AuthHandlerError,
 	AuthInvalidDeviceSessionsPayloadError,
 	AuthInvalidOrganizationPayloadError,
 	AuthInvalidSessionPayloadError,
 	AuthOrganizationLookupError,
-	AuthProviderError,
-	AuthError,
+	AuthPasswordResetEmailError,
+	AuthSessionLookupError,
 } from "@leuchtturm/core/auth/errors";
 import {
 	AccountId,
@@ -64,24 +68,6 @@ export namespace Auth {
 			const billing = yield* Billing.Service;
 			const email = yield* Email.Service;
 			const services = yield* Effect.context();
-
-			const tryAuth = <A>(operation: string, try_: () => PromiseLike<A>) =>
-				Effect.tryPromise({
-					try: try_,
-					catch: (cause) => cause,
-				}).pipe(
-					Effect.catchCause((cause) =>
-						Effect.gen(function* () {
-							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-							return yield* Effect.fail(
-								new AuthProviderError({
-									operation,
-									message: `Auth provider operation failed: ${operation}`,
-								}),
-							);
-						}),
-					),
-				);
 
 			const runCallback = <A, E>(effect: Effect.Effect<A, E>) =>
 				Effect.runPromiseWith(services)(effect);
@@ -137,13 +123,26 @@ export namespace Auth {
 				readonly user: { readonly email: string; readonly name: string };
 				readonly url: string;
 			}) {
-				yield* tryAuth("Failed to send password reset email", () =>
-					sendPasswordResetEmail({
-						email: params.user.email,
-						resetUrl: params.url,
-						send: (emailParams) => runCallback(email.send(emailParams)),
-						userName: params.user.name,
-					}),
+				yield* Effect.tryPromise({
+					try: () =>
+						sendPasswordResetEmail({
+							email: params.user.email,
+							resetUrl: params.url,
+							send: (emailParams) => runCallback(email.send(emailParams)),
+							userName: params.user.name,
+						}),
+					catch: (cause) => cause,
+				}).pipe(
+					Effect.catchCause((cause) =>
+						Effect.gen(function* () {
+							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
+							return yield* Effect.fail(
+								new AuthPasswordResetEmailError({
+									message: "Failed to send password reset email",
+								}),
+							);
+						}),
+					),
 				);
 			});
 
@@ -250,12 +249,32 @@ export namespace Auth {
 			});
 
 			const handle = Effect.fn("Auth.handle")(function* (request: Request) {
-				return yield* tryAuth("Auth handler failed", () => auth.handler(request));
+				return yield* Effect.tryPromise({
+					try: () => auth.handler(request),
+					catch: (cause) => cause,
+				}).pipe(
+					Effect.catchCause((cause) =>
+						Effect.gen(function* () {
+							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
+							return yield* Effect.fail(new AuthHandlerError({ message: "Auth handler failed" }));
+						}),
+					),
+				);
 			});
 
 			const getSession = Effect.fn("Auth.getSession")(function* (headers: Headers) {
-				const currentSession = yield* tryAuth("Auth getSession failed", () =>
-					auth.api.getSession({ headers }),
+				const currentSession = yield* Effect.tryPromise({
+					try: () => auth.api.getSession({ headers }),
+					catch: (cause) => cause,
+				}).pipe(
+					Effect.catchCause((cause) =>
+						Effect.gen(function* () {
+							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
+							return yield* Effect.fail(
+								new AuthSessionLookupError({ message: "Auth session lookup failed" }),
+							);
+						}),
+					),
 				);
 
 				if (!currentSession) {
@@ -313,13 +332,34 @@ export namespace Auth {
 			});
 
 			const getDeviceSessions = Effect.fn("Auth.getDeviceSessions")(function* (headers: Headers) {
-				const currentSession = yield* tryAuth(
-					"Auth getSession failed while loading device sessions",
-					() => auth.api.getSession({ headers }),
+				const currentSession = yield* Effect.tryPromise({
+					try: () => auth.api.getSession({ headers }),
+					catch: (cause) => cause,
+				}).pipe(
+					Effect.catchCause((cause) =>
+						Effect.gen(function* () {
+							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
+							return yield* Effect.fail(
+								new AuthSessionLookupError({
+									message: "Auth session lookup failed while loading device sessions",
+								}),
+							);
+						}),
+					),
 				);
 
-				const deviceSessions = yield* tryAuth("Auth listDeviceSessions failed", () =>
-					auth.api.listDeviceSessions({ headers }),
+				const deviceSessions = yield* Effect.tryPromise({
+					try: () => auth.api.listDeviceSessions({ headers }),
+					catch: (cause) => cause,
+				}).pipe(
+					Effect.catchCause((cause) =>
+						Effect.gen(function* () {
+							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
+							return yield* Effect.fail(
+								new AuthDeviceSessionsListError({ message: "Auth device session list failed" }),
+							);
+						}),
+					),
 				);
 
 				if (!deviceSessions.length) {
@@ -327,18 +367,31 @@ export namespace Auth {
 				}
 
 				const sessionIds = deviceSessions.map((deviceSession) => deviceSession.session.id);
-				const memberships = yield* tryAuth("Auth device session organization lookup failed", () =>
-					rawDatabase
-						.select({
-							sessionId: session.id,
-							id: organization.id,
-							name: organization.name,
-							slug: organization.slug,
-						})
-						.from(session)
-						.innerJoin(member, eq(member.userId, session.userId))
-						.innerJoin(organization, eq(member.organizationId, organization.id))
-						.where(inArray(session.id, sessionIds)),
+				const memberships = yield* Effect.tryPromise({
+					try: () =>
+						rawDatabase
+							.select({
+								sessionId: session.id,
+								id: organization.id,
+								name: organization.name,
+								slug: organization.slug,
+							})
+							.from(session)
+							.innerJoin(member, eq(member.userId, session.userId))
+							.innerJoin(organization, eq(member.organizationId, organization.id))
+							.where(inArray(session.id, sessionIds)),
+					catch: (cause) => cause,
+				}).pipe(
+					Effect.catchCause((cause) =>
+						Effect.gen(function* () {
+							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
+							return yield* Effect.fail(
+								new AuthDeviceSessionOrganizationLookupError({
+									message: "Auth device session organization lookup failed",
+								}),
+							);
+						}),
+					),
 				);
 
 				const sessions = deviceSessions
