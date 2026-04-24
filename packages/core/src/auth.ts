@@ -1,6 +1,5 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { setCookieToHeader } from "better-auth/cookies";
 import { multiSession, organization as organizationPlugin } from "better-auth/plugins";
 import { Cause, Effect, Layer, Schema, Context } from "effect";
 import { Resource } from "sst";
@@ -16,10 +15,8 @@ import {
 	verification,
 } from "@leuchtturm/core/auth/auth.sql";
 import {
-	AuthDeviceSessionOrganizationLookupError,
 	AuthDeviceSessionsListError,
 	AuthError,
-	AuthInvalidDeviceSessionsPayloadError,
 	AuthInvalidOrganizationPayloadError,
 	AuthInvalidSessionPayloadError,
 	AuthOrganizationLookupError,
@@ -253,23 +250,7 @@ export namespace Auth {
 			});
 
 			const getDeviceSessions = Effect.fn("Auth.getDeviceSessions")(function* (headers: Headers) {
-				const currentSession = yield* Effect.tryPromise({
-					try: () => auth.api.getSession({ headers }),
-					catch: (cause) => cause,
-				}).pipe(
-					Effect.catchCause((cause) =>
-						Effect.gen(function* () {
-							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-							return yield* Effect.fail(
-								new AuthSessionLookupError({
-									message: "Auth session lookup failed while loading device sessions",
-								}),
-							);
-						}),
-					),
-				);
-
-				const deviceSessions = yield* Effect.tryPromise({
+				return yield* Effect.tryPromise({
 					try: () => auth.api.listDeviceSessions({ headers }),
 					catch: (cause) => cause,
 				}).pipe(
@@ -278,97 +259,6 @@ export namespace Auth {
 							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
 							return yield* Effect.fail(
 								new AuthDeviceSessionsListError({ message: "Auth device session list failed" }),
-							);
-						}),
-					),
-				);
-
-				if (!deviceSessions.length) {
-					return { sessions: [], organizations: [] } satisfies typeof DeviceSessions.Type;
-				}
-
-				const sessions = yield* Effect.tryPromise({
-					try: () =>
-						Promise.all(
-							deviceSessions.map(async (deviceSession) => {
-								const deviceSessionHeaders = new Headers(headers);
-								const activeSession = await auth.api.setActiveSession({
-									headers: deviceSessionHeaders,
-									body: { sessionToken: deviceSession.session.token },
-									returnHeaders: true,
-								});
-								setCookieToHeader(deviceSessionHeaders)({
-									response: new Response(null, { headers: activeSession.headers }),
-								});
-								const organizations = await auth.api.listOrganizations({
-									headers: deviceSessionHeaders,
-								});
-
-								return {
-									...deviceSession,
-									organizations: organizations
-										.map((currentOrganization) => ({
-											id: currentOrganization.id,
-											name: currentOrganization.name,
-											slug: currentOrganization.slug,
-										}))
-										.sort((left, right) => left.name.localeCompare(right.name)),
-								};
-							}),
-						),
-					catch: (cause) => cause,
-				}).pipe(
-					Effect.catchCause((cause) =>
-						Effect.gen(function* () {
-							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-							return yield* Effect.fail(
-								new AuthDeviceSessionOrganizationLookupError({
-									message: "Auth device session organization lookup failed",
-								}),
-							);
-						}),
-					),
-				);
-
-				const sortedSessions = sessions.sort((left, right) => {
-					const leftIsCurrent = left.session.token === currentSession?.session.token;
-					const rightIsCurrent = right.session.token === currentSession?.session.token;
-
-					if (leftIsCurrent !== rightIsCurrent) {
-						return leftIsCurrent ? -1 : 1;
-					}
-
-					return left.user.email.localeCompare(right.user.email);
-				});
-
-				const seenOrganizationIds = new Set<string>();
-				const organizations = sortedSessions
-					.flatMap((deviceSession) =>
-						deviceSession.organizations.flatMap((currentOrganization) => {
-							if (seenOrganizationIds.has(currentOrganization.id)) return [];
-							seenOrganizationIds.add(currentOrganization.id);
-
-							return [
-								{
-									...currentOrganization,
-									token: deviceSession.session.token,
-								},
-							];
-						}),
-					)
-					.sort((left, right) => left.name.localeCompare(right.name));
-
-				return yield* Schema.decodeUnknownEffect(DeviceSessions)({
-					sessions: sortedSessions,
-					organizations,
-				}).pipe(
-					Effect.catchCause((cause) =>
-						Effect.gen(function* () {
-							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-							return yield* Effect.fail(
-								new AuthInvalidDeviceSessionsPayloadError({
-									message: "Invalid auth device sessions payload",
-								}),
 							);
 						}),
 					),

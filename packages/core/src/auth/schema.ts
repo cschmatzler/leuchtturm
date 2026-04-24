@@ -127,21 +127,35 @@ export const OrganizationSummary = Schema.Struct({
 	slug: OrganizationSlug,
 });
 
-export const DeviceSessions = Schema.Struct({
-	sessions: Schema.Array(
-		Schema.Struct({
-			session: Session,
-			user: User,
-			organizations: Schema.Array(OrganizationSummary),
-		}),
-	),
-	organizations: Schema.Array(
-		Schema.Struct({
-			...OrganizationSummary.fields,
-			token: Schema.String,
-		}),
-	),
+const DeviceSessionSession = Schema.Struct({
+	id: Schema.String,
+	token: Schema.String,
+	ipAddress: Schema.optional(Schema.NullOr(Schema.String)),
+	userAgent: Schema.optional(Schema.NullOr(Schema.String)),
+	expiresAt: Schema.Date,
+	userId: Schema.String,
+	activeOrganizationId: Schema.optional(Schema.NullOr(Schema.String)),
+	createdAt: Schema.Date,
+	updatedAt: Schema.Date,
 });
+
+const DeviceSessionUser = Schema.Struct({
+	id: Schema.String,
+	name: Schema.String,
+	email: Schema.String,
+	image: Schema.optional(Schema.NullOr(Schema.String)),
+	language: Schema.optional(Schema.NullOr(Schema.String)),
+	emailVerified: Schema.Boolean,
+	createdAt: Schema.Date,
+	updatedAt: Schema.Date,
+});
+
+export const DeviceSession = Schema.Struct({
+	session: DeviceSessionSession,
+	user: DeviceSessionUser,
+});
+
+export const DeviceSessions = Schema.Array(DeviceSession);
 
 export const SessionData = Schema.Struct({
 	user: User,

@@ -10,6 +10,7 @@
 		"./no-generic-domain-error-class": "./src/no-generic-domain-error-class.ts",
 		"./no-live-suffix": "./src/no-live-suffix.ts",
 		"./no-local-effect-callback-wrapper": "./src/no-local-effect-callback-wrapper.ts",
+		"./no-local-web-schema": "./src/no-local-web-schema.ts",
 		"./no-process-env": "./src/no-process-env.ts",
 		"./no-vi-mock": "./src/no-vi-mock.ts",
 		"./no-relative-imports": "./src/no-relative-imports.ts",

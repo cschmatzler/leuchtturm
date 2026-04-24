@@ -13,9 +13,7 @@ import {
 	Menu,
 	MenuCheckboxItem,
 	MenuContent,
-	MenuGroup,
 	MenuItem,
-	MenuLabel,
 	MenuSeparator,
 	MenuSub,
 	MenuSubContent,
@@ -40,6 +38,8 @@ import { useCommandBar } from "@leuchtturm/web/hooks/use-command-bar";
 import { useCommandProvider } from "@leuchtturm/web/hooks/use-command-provider";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { deviceSessionsQuery } from "@leuchtturm/web/queries/device-sessions";
+import { organizationsQuery } from "@leuchtturm/web/queries/organizations";
+import { sessionQuery } from "@leuchtturm/web/queries/session";
 import { queries } from "@leuchtturm/zero/queries";
 
 function LogOutShortcut() {
@@ -58,12 +58,14 @@ function Shell() {
 	const { slug } = Route.useParams();
 	const navigate = useNavigate();
 	const { t, i18n } = useTranslation();
-	const { signOutCurrent, signOutAll } = useAuth();
+	const { signOutCurrent, signOutAll, setActiveSession } = useAuth();
 	const commandBar = useCommandBar();
 
 	const [currentUser] = useZeroQuery(queries.currentUser());
 	useZeroQuery(queries.organization({ slug }));
+	const { data: session } = useQuery(sessionQuery());
 	const { data: deviceSessions } = useQuery(deviceSessionsQuery());
+	const { data: organizations } = useQuery(organizationsQuery());
 
 	useHotkey("Mod+K", () => commandBar.show(), { ignoreInputs: false });
 	useHotkey("Alt+Shift+Q", () => {
@@ -97,7 +99,7 @@ function Shell() {
 				category: t("Account"),
 				global: true,
 				icon: LogOutIcon,
-				disabled: (deviceSessions?.sessions.length ?? 0) < 2,
+				disabled: (deviceSessions?.length ?? 0) < 2,
 				async run() {
 					await signOutAll();
 				},
@@ -123,24 +125,24 @@ function Shell() {
 				category: t("Organization"),
 				global: true,
 				icon: BuildingIcon,
-				disabled: !deviceSessions?.organizations.some((organization) => organization.slug !== slug),
+				disabled: !organizations?.some((organization) => organization.slug !== slug),
 				run() {
 					commandBar.show("select-organization");
 				},
 			},
 		],
-		[commandBar, deviceSessions, navigate, slug, t],
+		[commandBar, navigate, organizations, slug, t],
 	);
 
 	useCommandProvider(
 		"select-organization",
 		async () => {
-			const organizations = deviceSessions?.organizations.filter(
+			const selectableOrganizations = organizations?.filter(
 				(organization) => organization.slug !== slug,
 			);
-			if (!organizations) return [];
+			if (!selectableOrganizations) return [];
 
-			return organizations.map((organization) => ({
+			return selectableOrganizations.map((organization) => ({
 				title: t("Go to {{organization}}", { organization: organization.name }),
 				value: organization.slug,
 				category: t("Organization"),
@@ -153,7 +155,7 @@ function Shell() {
 				},
 			}));
 		},
-		[deviceSessions, navigate, slug, t],
+		[navigate, organizations, slug, t],
 	);
 
 	useCommandProvider(
@@ -195,26 +197,19 @@ function Shell() {
 							<MenuSub>
 								<MenuSubTrigger>{t("Change organization")}</MenuSubTrigger>
 								<MenuSubContent>
-									{deviceSessions?.sessions.map((deviceSession) => (
-										<MenuGroup key={deviceSession.session.id}>
-											<MenuLabel className="text-muted-foreground text-xs">
-												{deviceSession.user.email}
-											</MenuLabel>
-											{deviceSession.organizations.map((organization) => (
-												<MenuCheckboxItem
-													key={organization.id}
-													checked={organization.slug === slug}
-													onClick={() => {
-														void navigate({
-															to: "/$slug/settings/preferences",
-															params: { slug: organization.slug },
-														});
-													}}
-												>
-													{organization.name}
-												</MenuCheckboxItem>
-											))}
-										</MenuGroup>
+									{organizations?.map((organization) => (
+										<MenuCheckboxItem
+											key={organization.id}
+											checked={organization.slug === slug}
+											onClick={() => {
+												void navigate({
+													to: "/$slug/settings/preferences",
+													params: { slug: organization.slug },
+												});
+											}}
+										>
+											{organization.name}
+										</MenuCheckboxItem>
 									))}
 								</MenuSubContent>
 							</MenuSub>
@@ -272,6 +267,27 @@ function Shell() {
 								<p className="text-xs text-muted-foreground">{currentUser?.email}</p>
 							</div>
 							<MenuSeparator />
+							{deviceSessions && deviceSessions.length > 1 && (
+								<>
+									<MenuSub>
+										<MenuSubTrigger>{t("Switch account")}</MenuSubTrigger>
+										<MenuSubContent>
+											{deviceSessions.map((deviceSession) => (
+												<MenuCheckboxItem
+													key={deviceSession.session.id}
+													checked={deviceSession.session.token === session?.session.token}
+													onClick={() => {
+														void setActiveSession(deviceSession.session.token);
+													}}
+												>
+													{deviceSession.user.email}
+												</MenuCheckboxItem>
+											))}
+										</MenuSubContent>
+									</MenuSub>
+									<MenuSeparator />
+								</>
+							)}
 							<MenuItem
 								onClick={() => {
 									void navigate({ to: "/login" });
@@ -292,7 +308,7 @@ function Shell() {
 									<LogOutShortcut />
 								</div>
 							</MenuItem>
-							{deviceSessions && deviceSessions.sessions.length > 1 && (
+							{deviceSessions && deviceSessions.length > 1 && (
 								<MenuItem
 									onClick={() => {
 										void signOutAll();

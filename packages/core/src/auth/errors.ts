@@ -42,18 +42,6 @@ export class AuthInvalidOrganizationPayloadError extends Schema.TaggedErrorClass
 	{ httpApiStatus: 500 },
 ) {}
 
-export class AuthDeviceSessionOrganizationLookupError extends Schema.TaggedErrorClass<AuthDeviceSessionOrganizationLookupError>()(
-	"AuthDeviceSessionOrganizationLookupError",
-	{ message: Schema.String },
-	{ httpApiStatus: 500 },
-) {}
-
-export class AuthInvalidDeviceSessionsPayloadError extends Schema.TaggedErrorClass<AuthInvalidDeviceSessionsPayloadError>()(
-	"AuthInvalidDeviceSessionsPayloadError",
-	{ message: Schema.String },
-	{ httpApiStatus: 500 },
-) {}
-
 export const AuthError = Schema.Union([
 	AuthHandlerError,
 	AuthSessionLookupError,
@@ -62,6 +50,4 @@ export const AuthError = Schema.Union([
 	AuthInvalidSessionPayloadError,
 	AuthOrganizationLookupError,
 	AuthInvalidOrganizationPayloadError,
-	AuthDeviceSessionOrganizationLookupError,
-	AuthInvalidDeviceSessionsPayloadError,
 ]);

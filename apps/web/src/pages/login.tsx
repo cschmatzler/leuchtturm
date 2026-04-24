@@ -12,12 +12,8 @@ import { AuthSidePanel } from "@leuchtturm/web/components/app/auth-side-panel";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@leuchtturm/web/components/ui/field";
 import { Input } from "@leuchtturm/web/components/ui/input";
+import { organizationsQuery } from "@leuchtturm/web/queries/organizations";
 import { sessionQuery } from "@leuchtturm/web/queries/session";
-
-const loginShape = Schema.Struct({
-	email: User.fields.email,
-	password: Password,
-});
 
 export const Route = createFileRoute("/login")({
 	component: Page,
@@ -28,39 +24,38 @@ function Page() {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 
-	const onSubmit = async (value: typeof loginShape.Type) => {
-		await authClient.signIn.email(
-			{
-				email: value.email,
-				password: value.password,
-				callbackURL: "/app",
-			},
-			{
-				onRequest: () => {
-					toast.loading(t("Signing in..."));
-				},
-				onSuccess: async () => {
-					await queryClient.invalidateQueries({ queryKey: sessionQuery().queryKey });
-					await queryClient.fetchQuery(sessionQuery());
-					await queryClient.invalidateQueries({ queryKey: ["deviceSessions"] });
-					toast.dismiss();
-					toast.success(t("Welcome back!"));
-					navigate({ to: "/app" });
-				},
-				onError: (ctx) => {
-					toast.dismiss();
-					toast.error(ctx.error.message);
-				},
-			},
-		);
-	};
-
 	const form = useForm({
 		defaultValues: {
 			email: "",
 			password: "",
 		},
-		onSubmit: ({ value }) => onSubmit(value),
+		onSubmit: async ({ value }) => {
+			await authClient.signIn.email(
+				{
+					email: Schema.decodeSync(User.fields.email)(value.email),
+					password: Schema.decodeSync(Password)(value.password),
+					callbackURL: "/app",
+				},
+				{
+					onRequest: () => {
+						toast.loading(t("Signing in..."));
+					},
+					onSuccess: async () => {
+						await queryClient.invalidateQueries({ queryKey: sessionQuery().queryKey });
+						await queryClient.fetchQuery(sessionQuery());
+						await queryClient.invalidateQueries({ queryKey: ["deviceSessions"] });
+						await queryClient.invalidateQueries({ queryKey: organizationsQuery().queryKey });
+						toast.dismiss();
+						toast.success(t("Welcome back!"));
+						navigate({ to: "/app" });
+					},
+					onError: (ctx) => {
+						toast.dismiss();
+						toast.error(ctx.error.message);
+					},
+				},
+			);
+		},
 	});
 
 	return (
@@ -90,7 +85,7 @@ function Page() {
 								<form.Field
 									name="email"
 									validators={{
-										onChange: Schema.toStandardSchemaV1(loginShape.fields.email),
+										onChange: Schema.toStandardSchemaV1(User.fields.email),
 									}}
 								>
 									{(field) => (
@@ -115,7 +110,7 @@ function Page() {
 								<form.Field
 									name="password"
 									validators={{
-										onChange: Schema.toStandardSchemaV1(loginShape.fields.password),
+										onChange: Schema.toStandardSchemaV1(Password),
 									}}
 								>
 									{(field) => (

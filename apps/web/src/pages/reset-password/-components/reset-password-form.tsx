@@ -10,35 +10,29 @@ import { Button } from "@leuchtturm/web/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@leuchtturm/web/components/ui/field";
 import { Input } from "@leuchtturm/web/components/ui/input";
 
-const resetPasswordShape = Schema.Struct({
-	password: Password,
-});
-
 export function ResetPasswordForm() {
 	const navigate = useNavigate();
 	const { token } = useSearch({ from: "/reset-password" });
 	const { t } = useTranslation();
 
-	const onSubmit = async (value: typeof resetPasswordShape.Type) => {
-		const { error } = await authClient.resetPassword({
-			token,
-			newPassword: value.password,
-		});
-
-		if (error) {
-			toast.error(error.message);
-			return;
-		}
-
-		toast.success(t("Password updated. Please log in."));
-		navigate({ to: "/login" });
-	};
-
 	const form = useForm({
 		defaultValues: {
 			password: "",
 		},
-		onSubmit: ({ value }) => onSubmit(value),
+		onSubmit: async ({ value }) => {
+			const { error } = await authClient.resetPassword({
+				token,
+				newPassword: Schema.decodeSync(Password)(value.password),
+			});
+
+			if (error) {
+				toast.error(error.message);
+				return;
+			}
+
+			toast.success(t("Password updated. Please log in."));
+			navigate({ to: "/login" });
+		},
 	});
 	const submitForm = async () => {
 		await form.handleSubmit();
@@ -57,7 +51,7 @@ export function ResetPasswordForm() {
 				<form.Field
 					name="password"
 					validators={{
-						onChange: Schema.toStandardSchemaV1(resetPasswordShape.fields.password),
+						onChange: Schema.toStandardSchemaV1(Password),
 					}}
 				>
 					{(field) => (

@@ -10,30 +10,24 @@ import { Button } from "@leuchtturm/web/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@leuchtturm/web/components/ui/field";
 import { Input } from "@leuchtturm/web/components/ui/input";
 
-const forgotPasswordShape = Schema.Struct({
-	email: User.fields.email,
-});
-
 export function ForgotPasswordForm() {
 	const { t } = useTranslation();
 
-	const onSubmit = async (value: typeof forgotPasswordShape.Type) => {
-		const { error } = await authClient.requestPasswordReset({
-			email: value.email,
-			redirectTo: `${window.location.origin}/reset-password`,
-		});
-
-		if (error) {
-			toast.error(error.message);
-			return;
-		}
-
-		toast.success(t("If an account exists for that email, we sent a reset link."));
-	};
-
 	const form = useForm({
 		defaultValues: { email: "" },
-		onSubmit: ({ value }) => onSubmit(value),
+		onSubmit: async ({ value }) => {
+			const { error } = await authClient.requestPasswordReset({
+				email: Schema.decodeSync(User.fields.email)(value.email),
+				redirectTo: `${window.location.origin}/reset-password`,
+			});
+
+			if (error) {
+				toast.error(error.message);
+				return;
+			}
+
+			toast.success(t("If an account exists for that email, we sent a reset link."));
+		},
 	});
 	const submitForm = async () => {
 		await form.handleSubmit();
@@ -51,7 +45,7 @@ export function ForgotPasswordForm() {
 				<form.Field
 					name="email"
 					validators={{
-						onChange: Schema.toStandardSchemaV1(forgotPasswordShape.fields.email),
+						onChange: Schema.toStandardSchemaV1(User.fields.email),
 					}}
 				>
 					{(field) => (

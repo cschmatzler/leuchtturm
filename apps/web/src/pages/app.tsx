@@ -1,6 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
-import { deviceSessionsQuery } from "@leuchtturm/web/queries/device-sessions";
+import { organizationsQuery } from "@leuchtturm/web/queries/organizations";
 import { sessionQuery } from "@leuchtturm/web/queries/session";
 
 export const Route = createFileRoute("/app")({
@@ -8,8 +8,8 @@ export const Route = createFileRoute("/app")({
 		const session = await queryClient.ensureQueryData(sessionQuery());
 		if (!session) throw redirect({ to: "/login" });
 
-		const deviceSessions = await queryClient.ensureQueryData(deviceSessionsQuery());
-		const firstOrganization = deviceSessions.organizations[0];
+		const organizations = await queryClient.ensureQueryData(organizationsQuery());
+		const firstOrganization = organizations[0];
 		if (!firstOrganization) throw redirect({ to: "/create-organization" });
 
 		throw redirect({

@@ -12,13 +12,8 @@ import { AuthSidePanel } from "@leuchtturm/web/components/app/auth-side-panel";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@leuchtturm/web/components/ui/field";
 import { Input } from "@leuchtturm/web/components/ui/input";
+import { organizationsQuery } from "@leuchtturm/web/queries/organizations";
 import { sessionQuery } from "@leuchtturm/web/queries/session";
-
-const signupShape = Schema.Struct({
-	name: User.fields.name,
-	email: User.fields.email,
-	password: Password,
-});
 
 export const Route = createFileRoute("/signup")({
 	component: Page,
@@ -29,37 +24,36 @@ function Page() {
 	const { t } = useTranslation();
 	const queryClient = useQueryClient();
 
-	const onSubmit = async (value: typeof signupShape.Type) => {
-		await authClient.signUp.email(
-			{
-				email: value.email,
-				password: value.password,
-				name: value.name,
-				callbackURL: "/app",
-			},
-			{
-				onRequest: () => {
-					toast.loading(t("Creating account..."));
-				},
-				onSuccess: async () => {
-					await queryClient.invalidateQueries({ queryKey: sessionQuery().queryKey });
-					await queryClient.fetchQuery(sessionQuery());
-					await queryClient.invalidateQueries({ queryKey: ["deviceSessions"] });
-					toast.dismiss();
-					toast.success(t("Account created!"));
-					navigate({ to: "/app" });
-				},
-				onError: (ctx) => {
-					toast.dismiss();
-					toast.error(ctx.error.message);
-				},
-			},
-		);
-	};
-
 	const form = useForm({
 		defaultValues: { name: "", email: "", password: "" },
-		onSubmit: ({ value }) => onSubmit(value),
+		onSubmit: async ({ value }) => {
+			const user = Schema.decodeSync(User.mapFields(({ name, email }) => ({ name, email })))(value);
+			await authClient.signUp.email(
+				{
+					...user,
+					password: Schema.decodeSync(Password)(value.password),
+					callbackURL: "/app",
+				},
+				{
+					onRequest: () => {
+						toast.loading(t("Creating account..."));
+					},
+					onSuccess: async () => {
+						await queryClient.invalidateQueries({ queryKey: sessionQuery().queryKey });
+						await queryClient.fetchQuery(sessionQuery());
+						await queryClient.invalidateQueries({ queryKey: ["deviceSessions"] });
+						await queryClient.invalidateQueries({ queryKey: organizationsQuery().queryKey });
+						toast.dismiss();
+						toast.success(t("Account created!"));
+						navigate({ to: "/app" });
+					},
+					onError: (ctx) => {
+						toast.dismiss();
+						toast.error(ctx.error.message);
+					},
+				},
+			);
+		},
 	});
 	const submitForm = async () => {
 		await form.handleSubmit();
@@ -92,7 +86,7 @@ function Page() {
 								<form.Field
 									name="name"
 									validators={{
-										onChange: Schema.toStandardSchemaV1(signupShape.fields.name),
+										onChange: Schema.toStandardSchemaV1(User.fields.name),
 									}}
 								>
 									{(field) => (
@@ -116,7 +110,7 @@ function Page() {
 								<form.Field
 									name="email"
 									validators={{
-										onChange: Schema.toStandardSchemaV1(signupShape.fields.email),
+										onChange: Schema.toStandardSchemaV1(User.fields.email),
 									}}
 								>
 									{(field) => (
@@ -141,7 +135,7 @@ function Page() {
 								<form.Field
 									name="password"
 									validators={{
-										onChange: Schema.toStandardSchemaV1(signupShape.fields.password),
+										onChange: Schema.toStandardSchemaV1(Password),
 									}}
 								>
 									{(field) => (

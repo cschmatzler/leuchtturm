@@ -25,27 +25,26 @@ import { useZero, useZeroQuery } from "@leuchtturm/web/lib/query";
 import { mutators } from "@leuchtturm/zero/mutators";
 import { queries } from "@leuchtturm/zero/queries";
 
-const profileShape = Schema.Struct({
-	name: User.fields.name,
-});
-
 export function ProfileCard() {
 	const zero = useZero();
 	const { t } = useTranslation();
 
 	const [currentUser] = useZeroQuery(queries.currentUser());
 
-	const onSubmit = async (value: typeof profileShape.Type) => {
-		if (!currentUser) return;
-		zero.mutate(mutators.user.update({ id: currentUser.id, name: value.name }));
-		toast.success(t("Profile updated"));
-	};
-
 	const form = useForm({
 		defaultValues: {
 			name: currentUser?.name ?? "",
 		},
-		onSubmit: ({ value }) => onSubmit(value),
+		onSubmit: async ({ value }) => {
+			if (!currentUser) return;
+			zero.mutate(
+				mutators.user.update({
+					id: currentUser.id,
+					name: Schema.decodeSync(User.fields.name)(value.name),
+				}),
+			);
+			toast.success(t("Profile updated"));
+		},
 	});
 	const submitForm = async () => {
 		await form.handleSubmit();
@@ -63,7 +62,7 @@ export function ProfileCard() {
 						<form.Field
 							name="name"
 							validators={{
-								onChange: Schema.toStandardSchemaV1(profileShape.fields.name),
+								onChange: Schema.toStandardSchemaV1(User.fields.name),
 							}}
 						>
 							{(field) => (

@@ -5,12 +5,12 @@ import { SparklesIcon } from "lucide-react";
 import { AuthSidePanel } from "@leuchtturm/web/components/app/auth-side-panel";
 import { ResetPasswordForm } from "@leuchtturm/web/pages/reset-password/-components/reset-password-form";
 
-const searchSchema = Schema.Struct({
-	token: Schema.String,
-});
-
 export const Route = createFileRoute("/reset-password")({
-	validateSearch: Schema.toStandardSchemaV1(searchSchema),
+	validateSearch: Schema.toStandardSchemaV1(
+		Schema.Struct({
+			token: Schema.String,
+		}),
+	),
 	component: Page,
 });
 

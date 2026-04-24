@@ -23,12 +23,8 @@ import {
 import { useAuth } from "@leuchtturm/web/hooks/use-auth";
 import { useReactQuery } from "@leuchtturm/web/lib/query";
 import { deviceSessionsQuery } from "@leuchtturm/web/queries/device-sessions";
+import { organizationsQuery } from "@leuchtturm/web/queries/organizations";
 import { sessionQuery } from "@leuchtturm/web/queries/session";
-
-const createOrganizationShape = Schema.Struct({
-	name: Organization.fields.name,
-	slug: Organization.fields.slug,
-});
 
 export const Route = createFileRoute("/create-organization")({
 	beforeLoad: async ({ context: { queryClient } }) => {
@@ -55,10 +51,10 @@ function Page() {
 			slug: "",
 		},
 		onSubmit: async ({ value }) => {
-			const { data, error } = await authClient.organization.create({
-				name: value.name,
-				slug: value.slug,
-			});
+			const organization = Schema.decodeSync(
+				Organization.mapFields(({ name, slug }) => ({ name, slug })),
+			)(value);
+			const { data, error } = await authClient.organization.create(organization);
 
 			if (error) {
 				if (error.code === "ORGANIZATION_ALREADY_EXISTS") {
@@ -75,6 +71,7 @@ function Page() {
 
 			await queryClient.invalidateQueries({ queryKey: ["session"] });
 			await queryClient.invalidateQueries({ queryKey: ["deviceSessions"] });
+			await queryClient.invalidateQueries({ queryKey: organizationsQuery().queryKey });
 			await navigate({
 				to: "/$slug/settings/preferences",
 				params: { slug: data.slug },
@@ -101,7 +98,7 @@ function Page() {
 							{session.user.email}
 						</MenuTrigger>
 						<MenuContent>
-							{deviceSessions?.sessions.map((deviceSession) => (
+							{deviceSessions?.map((deviceSession) => (
 								<MenuCheckboxItem
 									key={deviceSession.session.id}
 									checked={deviceSession.session.token === session.session.token}
@@ -146,7 +143,7 @@ function Page() {
 								<form.Field
 									name="name"
 									validators={{
-										onChange: Schema.toStandardSchemaV1(createOrganizationShape.fields.name),
+										onChange: Schema.toStandardSchemaV1(Organization.fields.name),
 									}}
 								>
 									{(field) => (
@@ -170,7 +167,7 @@ function Page() {
 								<form.Field
 									name="slug"
 									validators={{
-										onChange: Schema.toStandardSchemaV1(createOrganizationShape.fields.slug),
+										onChange: Schema.toStandardSchemaV1(Organization.fields.slug),
 									}}
 								>
 									{(field) => (
