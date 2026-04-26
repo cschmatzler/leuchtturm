@@ -4,6 +4,7 @@ import { authClient } from "@leuchtturm/web/clients/auth";
 import { ZeroProvider } from "@leuchtturm/web/contexts/zero";
 import { organizationsQuery } from "@leuchtturm/web/queries/organizations";
 import { sessionQuery } from "@leuchtturm/web/queries/session";
+import { teamsQuery } from "@leuchtturm/web/queries/teams";
 
 export const Route = createFileRoute("/$slug")({
 	beforeLoad: async ({ params: { slug }, location, context: { queryClient } }) => {
@@ -42,8 +43,17 @@ export const Route = createFileRoute("/$slug")({
 			if (!refreshedSession) throw redirect({ to: "/login" });
 
 			if (location.pathname === `/${slug}` || location.pathname === `/${slug}/`) {
+				const teams = await queryClient.ensureQueryData(teamsQuery(targetOrganization.id));
+				const nextTeam =
+					teams.find((team) => team.id === refreshedSession.session.activeTeamId) ?? teams[0];
+				if (nextTeam) {
+					throw redirect({
+						to: "/$slug/teams/$teamId",
+						params: { slug, teamId: nextTeam.id },
+					});
+				}
 				throw redirect({
-					to: "/$slug/settings/preferences",
+					to: "/$slug/settings/teams",
 					params: { slug },
 				});
 			}
@@ -52,8 +62,16 @@ export const Route = createFileRoute("/$slug")({
 		}
 
 		if (location.pathname === `/${slug}` || location.pathname === `/${slug}/`) {
+			const teams = await queryClient.ensureQueryData(teamsQuery(targetOrganization.id));
+			const nextTeam = teams.find((team) => team.id === session.session.activeTeamId) ?? teams[0];
+			if (nextTeam) {
+				throw redirect({
+					to: "/$slug/teams/$teamId",
+					params: { slug, teamId: nextTeam.id },
+				});
+			}
 			throw redirect({
-				to: "/$slug/settings/preferences",
+				to: "/$slug/settings/teams",
 				params: { slug },
 			});
 		}

@@ -11,6 +11,8 @@ import {
 	member,
 	organization,
 	session,
+	team,
+	teamMember,
 	user,
 	verification,
 } from "@leuchtturm/core/auth/auth.sql";
@@ -32,6 +34,8 @@ import {
 	OrganizationSummary,
 	SessionData,
 	SessionId,
+	TeamId,
+	TeamMemberId,
 	UserId,
 	VerificationId,
 } from "@leuchtturm/core/auth/schema";
@@ -69,7 +73,17 @@ export namespace Auth {
 				trustedOrigins: [Resource.ApiConfig.BASE_URL],
 				database: drizzleAdapter(rawDatabase, {
 					provider: "pg",
-					schema: { account, session, user, verification, organization, member, invitation },
+					schema: {
+						account,
+						session,
+						user,
+						verification,
+						organization,
+						member,
+						invitation,
+						team,
+						teamMember,
+					},
 				}),
 				emailAndPassword: {
 					enabled: true,
@@ -119,6 +133,12 @@ export namespace Auth {
 				plugins: [
 					multiSession(),
 					organizationPlugin({
+						teams: {
+							enabled: true,
+							defaultTeam: {
+								enabled: true,
+							},
+						},
 						organizationHooks: {
 							afterCreateOrganization: ({ organization, user }) =>
 								Effect.runPromise(
@@ -172,6 +192,10 @@ export namespace Auth {
 									return Schema.decodeSync(MemberId)(`mem_${ulid()}`);
 								case "invitation":
 									return Schema.decodeSync(InvitationId)(`inv_${ulid()}`);
+								case "team":
+									return Schema.decodeSync(TeamId)(`tea_${ulid()}`);
+								case "teamMember":
+									return Schema.decodeSync(TeamMemberId)(`tmb_${ulid()}`);
 								default:
 									throw new Error(`Unknown auth model: ${model}`);
 							}

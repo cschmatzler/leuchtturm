@@ -9,7 +9,7 @@ import { queries } from "@leuchtturm/zero/queries";
 import { schema, type Zero } from "@leuchtturm/zero/schema";
 
 export type SessionData = {
-	session: Session & { activeOrganizationId?: string | null };
+	session: Session & { activeOrganizationId?: string | null; activeTeamId?: string | null };
 	user: User;
 };
 

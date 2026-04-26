@@ -28,6 +28,9 @@ export const session = pgTable(
 			() => organization.id,
 			{ onDelete: "set null" },
 		),
+		activeTeamId: char("active_team_id", { length: 30 }).references(() => team.id, {
+			onDelete: "set null",
+		}),
 		createdAt: timestamp("created_at").notNull(),
 		updatedAt: timestamp("updated_at")
 			.$onUpdate(() => new Date())
@@ -110,6 +113,41 @@ export const member = pgTable(
 	],
 );
 
+export const team = pgTable(
+	"team",
+	{
+		id: char("id", { length: 30 }).primaryKey(),
+		name: text("name").notNull(),
+		organizationId: char("organization_id", { length: 30 })
+			.notNull()
+			.references(() => organization.id, { onDelete: "cascade" }),
+		createdAt: timestamp("created_at").notNull(),
+		updatedAt: timestamp("updated_at")
+			.$onUpdate(() => new Date())
+			.notNull(),
+	},
+	(table) => [index("team_organization_id_idx").on(table.organizationId)],
+);
+
+export const teamMember = pgTable(
+	"team_member",
+	{
+		id: char("id", { length: 30 }).primaryKey(),
+		teamId: char("team_id", { length: 30 })
+			.notNull()
+			.references(() => team.id, { onDelete: "cascade" }),
+		userId: char("user_id", { length: 30 })
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		createdAt: timestamp("created_at").notNull(),
+	},
+	(table) => [
+		index("team_member_team_id_idx").on(table.teamId),
+		index("team_member_user_id_idx").on(table.userId),
+		unique("team_member_user_team_uniq").on(table.userId, table.teamId),
+	],
+);
+
 export const invitation = pgTable(
 	"invitation",
 	{
@@ -121,6 +159,7 @@ export const invitation = pgTable(
 		organizationId: char("organization_id", { length: 30 })
 			.notNull()
 			.references(() => organization.id, { onDelete: "cascade" }),
+		teamId: char("team_id", { length: 30 }).references(() => team.id, { onDelete: "set null" }),
 		inviterId: char("inviter_id", { length: 30 })
 			.notNull()
 			.references(() => user.id, { onDelete: "cascade" }),

@@ -14,6 +14,12 @@ export const OrganizationId = Schema.TemplateLiteral(["org_", Ulid]).pipe(
 
 export const MemberId = Schema.TemplateLiteral(["mem_", Ulid]).pipe(Schema.brand("MemberId"));
 
+export const TeamId = Schema.TemplateLiteral(["tea_", Ulid]).pipe(Schema.brand("TeamId"));
+
+export const TeamMemberId = Schema.TemplateLiteral(["tmb_", Ulid]).pipe(
+	Schema.brand("TeamMemberId"),
+);
+
 export const InvitationId = Schema.TemplateLiteral(["inv_", Ulid]).pipe(
 	Schema.brand("InvitationId"),
 );
@@ -55,6 +61,7 @@ export const Session = Schema.Struct({
 	expiresAt: Schema.Date,
 	userId: UserId,
 	activeOrganizationId: Schema.optional(Schema.NullOr(OrganizationId)),
+	activeTeamId: Schema.optional(Schema.NullOr(TeamId)),
 	createdAt: Schema.Date,
 	updatedAt: Schema.Date,
 });
@@ -109,7 +116,22 @@ export const Member = Schema.Struct({
 	createdAt: Schema.Date,
 });
 
-export const InvitationStatus = Schema.Literals(["pending", "accepted", "rejected"]);
+export const Team = Schema.Struct({
+	id: TeamId,
+	name: TrimmedNonEmptyString.annotate({ message: "Team name is required" }),
+	organizationId: OrganizationId,
+	createdAt: Schema.Date,
+	updatedAt: Schema.optional(Schema.Date),
+});
+
+export const TeamMember = Schema.Struct({
+	id: TeamMemberId,
+	teamId: TeamId,
+	userId: UserId,
+	createdAt: Schema.Date,
+});
+
+export const InvitationStatus = Schema.Literals(["pending", "accepted", "rejected", "canceled"]);
 
 export const Invitation = Schema.Struct({
 	id: InvitationId,
@@ -118,6 +140,7 @@ export const Invitation = Schema.Struct({
 	status: InvitationStatus,
 	expiresAt: Schema.Date,
 	organizationId: OrganizationId,
+	teamId: Schema.optional(Schema.NullOr(TeamId)),
 	inviterId: UserId,
 	createdAt: Schema.Date,
 });
@@ -136,6 +159,7 @@ const DeviceSessionSession = Schema.Struct({
 	expiresAt: Schema.Date,
 	userId: Schema.String,
 	activeOrganizationId: Schema.optional(Schema.NullOr(Schema.String)),
+	activeTeamId: Schema.optional(Schema.NullOr(Schema.String)),
 	createdAt: Schema.Date,
 	updatedAt: Schema.Date,
 });

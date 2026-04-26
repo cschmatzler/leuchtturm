@@ -12,15 +12,15 @@
 		"@leuchtturm/zero": "workspace:*",
 		"@microlabs/otel-cf-workers": "1.0.0-rc.52",
 		"@opentelemetry/api": "1.9.1",
-		"@opentelemetry/resources": "2.6.1",
+		"@opentelemetry/resources": "2.7.0",
 		"@opentelemetry/semantic-conventions": "1.40.0",
 		"@rocicorp/zero": "1.3.0",
 		"effect": "4.0.0-beta.56",
-		"posthog-node": "^5.29.2",
-		"sst": "4.10.1"
+		"posthog-node": "^5.30.4",
+		"sst": "4.12.2"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20260418.1",
+		"@cloudflare/workers-types": "^4.20260426.1",
 		"typescript": "6.0.3"
 	}
 }
