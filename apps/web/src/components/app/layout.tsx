@@ -1,7 +1,5 @@
 import { Children, type ReactNode } from "react";
 
-import { Separator } from "@leuchtturm/web/components/ui/separator";
-import { SidebarTrigger } from "@leuchtturm/web/components/ui/sidebar";
 import { cn } from "@leuchtturm/web/lib/cn";
 
 type HeaderProps = {
@@ -25,8 +23,6 @@ export function Header({ children, className }: HeaderProps) {
 				className,
 			)}
 		>
-			<SidebarTrigger className="-ml-1 md:hidden" />
-			<Separator orientation="vertical" className="mr-2 self-stretch md:hidden" />
 			<div className="flex min-w-0 flex-1 items-center justify-between gap-2">
 				<div className="min-w-0 truncate text-base font-semibold">{titleChild}</div>
 				{actionChildren.length > 0 && (

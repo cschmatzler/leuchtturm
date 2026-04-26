@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
-import { Content, Header } from "@leuchtturm/web/components/app/layout";
+import { Content } from "@leuchtturm/web/components/app/layout";
 import { Link } from "@leuchtturm/web/components/ui/link";
 import { cn } from "@leuchtturm/web/lib/cn";
 
@@ -25,7 +25,6 @@ function SettingsLayout() {
 
 	return (
 		<>
-			<Header>{t("Settings")}</Header>
 			<Content>
 				<div className="mx-auto w-full max-w-3xl">
 					<nav className="flex gap-1 border-b border-border">

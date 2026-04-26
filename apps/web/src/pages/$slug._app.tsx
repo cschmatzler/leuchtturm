@@ -1,7 +1,14 @@
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
-import { BuildingIcon, ChevronDownIcon, CogIcon, LogOutIcon, PlusIcon } from "lucide-react";
+import {
+	BuildingIcon,
+	ChevronDownIcon,
+	CogIcon,
+	LogOutIcon,
+	PlusIcon,
+	SparklesIcon,
+} from "lucide-react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -20,22 +27,10 @@ import {
 	MenuSubTrigger,
 	MenuTrigger,
 } from "@leuchtturm/web/components/ui/menu";
-import {
-	Sidebar,
-	SidebarContent,
-	SidebarFooter,
-	SidebarHeader,
-	SidebarInset,
-	SidebarGroup,
-	SidebarGroupContent,
-	SidebarMenu,
-	SidebarMenuButton,
-	SidebarMenuItem,
-	SidebarProvider,
-} from "@leuchtturm/web/components/ui/sidebar";
 import { useAuth } from "@leuchtturm/web/hooks/use-auth";
 import { useCommandBar } from "@leuchtturm/web/hooks/use-command-bar";
 import { useCommandProvider } from "@leuchtturm/web/hooks/use-command-provider";
+import { cn } from "@leuchtturm/web/lib/cn";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { deviceSessionsQuery } from "@leuchtturm/web/queries/device-sessions";
 import { organizationsQuery } from "@leuchtturm/web/queries/organizations";
@@ -66,6 +61,7 @@ function Shell() {
 	const { data: session } = useQuery(sessionQuery());
 	const { data: deviceSessions } = useQuery(deviceSessionsQuery());
 	const { data: organizations } = useQuery(organizationsQuery());
+	const currentOrganization = organizations?.find((organization) => organization.slug === slug);
 
 	useHotkey("Mod+K", () => commandBar.show(), { ignoreInputs: false });
 	useHotkey("Alt+Shift+Q", () => {
@@ -181,87 +177,102 @@ function Shell() {
 	}, [currentUser, i18n]);
 
 	return (
-		<SidebarProvider open={false}>
-			<Sidebar variant="inset" collapsible="icon">
-				<SidebarHeader>
+		<div className="min-h-svh bg-background">
+			<header className="bg-background/80 sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-border px-4 backdrop-blur-md">
+				<Link
+					to="/$slug"
+					params={{ slug }}
+					aria-label="Leuchtturm"
+					className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-opacity hover:opacity-90"
+				>
+					<SparklesIcon className="size-4" />
+				</Link>
+				<div aria-hidden className="h-6 w-px shrink-0 bg-border" />
+
+				<div className="flex-1" />
+
+				<div className="ml-auto flex shrink-0 items-center gap-3">
+					<nav className="flex items-center">
+						<Link
+							to="/$slug/settings"
+							params={{ slug }}
+							className={cn(
+								"inline-flex h-9 items-center gap-2 rounded-md px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
+								"data-[active]:bg-accent data-[active]:text-accent-foreground",
+							)}
+						>
+							<CogIcon className="size-4" />
+							<span>{t("Settings")}</span>
+						</Link>
+					</nav>
+					<div aria-hidden className="h-6 w-px shrink-0 bg-border" />
+
 					<Menu>
 						<MenuTrigger
 							render={
-								<SidebarMenuButton className="inline-flex justify-between">
-									<BuildingIcon className="size-4" />
-									<ChevronDownIcon className="size-4" />
-								</SidebarMenuButton>
+								<button
+									type="button"
+									className="inline-flex h-9 max-w-48 items-center gap-2 rounded-md border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
+								>
+									<BuildingIcon className="size-4 shrink-0" />
+									<span className="hidden truncate sm:inline">
+										{currentOrganization?.name ?? t("Organization")}
+									</span>
+									<ChevronDownIcon className="size-4 shrink-0" />
+								</button>
 							}
 						/>
-						<MenuContent side="right" align="start">
-							<MenuSub>
-								<MenuSubTrigger>{t("Change organization")}</MenuSubTrigger>
-								<MenuSubContent>
-									{organizations?.map((organization) => (
-										<MenuCheckboxItem
-											key={organization.id}
-											checked={organization.slug === slug}
-											onClick={() => {
-												void navigate({
-													to: "/$slug/settings/preferences",
-													params: { slug: organization.slug },
-												});
-											}}
-										>
-											{organization.name}
-										</MenuCheckboxItem>
-									))}
-								</MenuSubContent>
-							</MenuSub>
+						<MenuContent align="end" className="min-w-56">
+							{organizations?.map((organization) => (
+								<MenuCheckboxItem
+									key={organization.id}
+									checked={organization.slug === slug}
+									onClick={() => {
+										void navigate({
+											to: "/$slug/settings/preferences",
+											params: { slug: organization.slug },
+										});
+									}}
+								>
+									{organization.name}
+								</MenuCheckboxItem>
+							))}
 							<MenuSeparator />
 							<MenuItem
 								onClick={() => {
 									void navigate({ to: "/create-organization" });
 								}}
 							>
-								{t("Create organization")}
+								<PlusIcon />
+								<span>{t("Create organization")}</span>
 							</MenuItem>
 						</MenuContent>
 					</Menu>
-				</SidebarHeader>
-				<SidebarContent>
-					<SidebarGroup>
-						<SidebarGroupContent>
-							<SidebarMenu>
-								<SidebarMenuItem>
-									<SidebarMenuButton
-										tooltip={t("Settings")}
-										render={<Link to="/$slug/settings" params={{ slug }} />}
-									>
-										<CogIcon />
-										<span>{t("Settings")}</span>
-									</SidebarMenuButton>
-								</SidebarMenuItem>
-							</SidebarMenu>
-						</SidebarGroupContent>
-					</SidebarGroup>
-				</SidebarContent>
-				<SidebarFooter>
+					<div aria-hidden className="h-6 w-px shrink-0 bg-border" />
+
 					<Menu>
 						<MenuTrigger
 							render={
-								<SidebarMenuButton
-									size="lg"
-									className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+								<button
+									type="button"
+									className="inline-flex h-11 max-w-64 items-center gap-2 rounded-md px-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
 								>
 									<Avatar className="size-8 rounded-lg">
 										<AvatarFallback className="rounded-lg">
 											{currentUser?.name.slice(0, 1)}
 										</AvatarFallback>
 									</Avatar>
-									<div className="grid flex-1 text-left text-sm leading-tight">
+									<div className="hidden min-w-0 text-left leading-tight sm:grid">
 										<span className="truncate font-medium">{currentUser?.name}</span>
-										<span className="truncate text-xs">{currentUser?.email}</span>
+										<span className="truncate text-xs text-muted-foreground">
+											{currentUser?.email}
+										</span>
 									</div>
-								</SidebarMenuButton>
+									<ChevronDownIcon className="hidden size-4 shrink-0 sm:block" />
+								</button>
 							}
 						/>
-						<MenuContent side="right" align="end">
+						<MenuContent align="end" className="min-w-64">
 							<div className="px-2 py-1.5">
 								<p className="text-sm font-medium">{currentUser?.name}</p>
 								<p className="text-xs text-muted-foreground">{currentUser?.email}</p>
@@ -320,11 +331,12 @@ function Shell() {
 							)}
 						</MenuContent>
 					</Menu>
-				</SidebarFooter>
-			</Sidebar>
-			<SidebarInset id="main-content">
+				</div>
+			</header>
+
+			<main id="main-content">
 				<Outlet />
-			</SidebarInset>
-		</SidebarProvider>
+			</main>
+		</div>
 	);
 }
