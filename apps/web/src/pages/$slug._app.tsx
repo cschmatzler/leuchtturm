@@ -8,12 +8,12 @@ import {
 	LogOutIcon,
 	PlusIcon,
 	SparklesIcon,
+	UsersIcon,
 } from "lucide-react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 import { resolveLanguage } from "@leuchtturm/core/i18n";
-import { Avatar, AvatarFallback } from "@leuchtturm/web/components/ui/avatar";
 import { OptionShiftShortcut } from "@leuchtturm/web/components/ui/kbd";
 import { Link } from "@leuchtturm/web/components/ui/link";
 import {
@@ -255,20 +255,10 @@ function Shell() {
 							render={
 								<button
 									type="button"
-									className="inline-flex h-11 max-w-64 items-center gap-2 rounded-md px-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
+									aria-label={t("Account")}
+									className="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
 								>
-									<Avatar className="size-8 rounded-lg">
-										<AvatarFallback className="rounded-lg">
-											{currentUser?.name.slice(0, 1)}
-										</AvatarFallback>
-									</Avatar>
-									<div className="hidden min-w-0 text-left leading-tight sm:grid">
-										<span className="truncate font-medium">{currentUser?.name}</span>
-										<span className="truncate text-xs text-muted-foreground">
-											{currentUser?.email}
-										</span>
-									</div>
-									<ChevronDownIcon className="hidden size-4 shrink-0 sm:block" />
+									<UsersIcon className="size-4" />
 								</button>
 							}
 						/>
