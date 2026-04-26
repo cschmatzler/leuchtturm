@@ -19,7 +19,7 @@ import { Input } from "@leuchtturm/web/components/ui/input";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { queries } from "@leuchtturm/zero/queries";
 
-export const Route = createFileRoute("/$slug/_app/teams/$teamSlug/settings/general")({
+export const Route = createFileRoute("/$slug/teams/$teamSlug/settings/general")({
 	component: Page,
 });
 

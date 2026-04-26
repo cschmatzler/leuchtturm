@@ -5,23 +5,27 @@ import { Link } from "@leuchtturm/web/components/ui/link";
 import { cn } from "@leuchtturm/web/lib/cn";
 
 const SETTINGS_TABS = [
-	{ to: "/$slug/settings/preferences" as const, labelKey: "Preferences" },
-	{ to: "/$slug/settings/members" as const, labelKey: "Members" },
-	{ to: "/$slug/settings/teams" as const, labelKey: "Teams" },
-	{ to: "/$slug/settings/billing" as const, labelKey: "Billing" },
+	{ to: "/$slug/teams/$teamSlug/settings/general" as const, labelKey: "General" },
+	{ to: "/$slug/teams/$teamSlug/settings/members" as const, labelKey: "Members" },
 ] as const;
 
-export const Route = createFileRoute("/$slug/_app/settings")({
-	beforeLoad: ({ location, params: { slug } }) => {
-		if (location.pathname === `/${slug}/settings` || location.pathname === `/${slug}/settings/`) {
-			throw redirect({ to: "/$slug/settings/preferences", params: { slug } });
+export const Route = createFileRoute("/$slug/teams/$teamSlug/settings")({
+	beforeLoad: ({ location, params: { slug, teamSlug } }) => {
+		if (
+			location.pathname === `/${slug}/teams/${teamSlug}/settings` ||
+			location.pathname === `/${slug}/teams/${teamSlug}/settings/`
+		) {
+			throw redirect({
+				to: "/$slug/teams/$teamSlug/settings/general",
+				params: { slug, teamSlug },
+			});
 		}
 	},
 	component: SettingsLayout,
 });
 
 function SettingsLayout() {
-	const { slug } = Route.useParams();
+	const { slug, teamSlug } = Route.useParams();
 	const { t } = useTranslation();
 
 	return (
@@ -33,7 +37,7 @@ function SettingsLayout() {
 							<Link
 								key={tab.to}
 								to={tab.to}
-								params={{ slug }}
+								params={{ slug, teamSlug }}
 								className={cn(
 									"-mb-px inline-flex items-center border-b-2 border-transparent px-3 pb-2.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
 									"data-[active]:border-foreground data-[active]:text-foreground",

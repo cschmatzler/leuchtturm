@@ -15,7 +15,7 @@ import {
 import { reportError } from "@leuchtturm/web/lib/report-error";
 import { billingOverviewQuery } from "@leuchtturm/web/queries/billing";
 
-export const Route = createFileRoute("/$slug/_app/settings/billing")({
+export const Route = createFileRoute("/$slug/settings/billing")({
 	component: Page,
 });
 

@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PreferencesCard } from "@leuchtturm/web/pages/_app.settings.preferences/-components/preferences-card";
 import { ProfileCard } from "@leuchtturm/web/pages/_app.settings.preferences/-components/profile-card";
 
-export const Route = createFileRoute("/$slug/_app/settings/preferences")({
+export const Route = createFileRoute("/$slug/settings/preferences")({
 	component: Page,
 });
 

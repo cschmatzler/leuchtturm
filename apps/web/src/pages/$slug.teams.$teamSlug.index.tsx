@@ -14,7 +14,7 @@ import { Link } from "@leuchtturm/web/components/ui/link";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { queries } from "@leuchtturm/zero/queries";
 
-export const Route = createFileRoute("/$slug/_app/teams/$teamSlug/")({
+export const Route = createFileRoute("/$slug/teams/$teamSlug/")({
 	component: Page,
 });
 
