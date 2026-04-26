@@ -11,15 +11,18 @@ import {
 	CardTitle,
 } from "@leuchtturm/web/components/ui/card";
 import { Link } from "@leuchtturm/web/components/ui/link";
+import { useZeroQuery } from "@leuchtturm/web/lib/query";
+import { queries } from "@leuchtturm/zero/queries";
 
-export const Route = createFileRoute("/$slug/_app/teams/$teamId/")({
+export const Route = createFileRoute("/$slug/_app/teams/$teamSlug/")({
 	component: Page,
 });
 
 function Page() {
-	const { slug, teamId } = Route.useParams();
-	const { team } = Route.useRouteContext();
+	const { slug, teamSlug } = Route.useParams();
+	const { organizationId } = Route.useRouteContext();
 	const { t } = useTranslation();
+	const [team] = useZeroQuery(queries.team({ organizationId, teamSlug }));
 
 	return (
 		<div className="flex grow justify-center bg-background">
@@ -27,13 +30,15 @@ function Page() {
 				<div className="mx-auto w-full max-w-3xl">
 					<Card className="gap-0 overflow-hidden p-0">
 						<CardHeader className="px-6 py-5">
-							<CardTitle className="text-base">{team.name}</CardTitle>
+							<CardTitle className="text-base">{team?.name}</CardTitle>
 							<CardDescription>{t("This is your team workspace.")}</CardDescription>
 						</CardHeader>
 						<CardContent className="border-t border-border px-6 py-5">
 							<Button
 								variant="outline"
-								render={<Link to="/$slug/teams/$teamId/settings" params={{ slug, teamId }} />}
+								render={
+									<Link to="/$slug/teams/$teamSlug/settings/general" params={{ slug, teamSlug }} />
+								}
 							>
 								<SettingsIcon className="size-4" />
 								{t("Team settings")}

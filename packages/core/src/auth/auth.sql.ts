@@ -118,6 +118,7 @@ export const team = pgTable(
 	{
 		id: char("id", { length: 30 }).primaryKey(),
 		name: text("name").notNull(),
+		slug: text("slug").notNull(),
 		organizationId: char("organization_id", { length: 30 })
 			.notNull()
 			.references(() => organization.id, { onDelete: "cascade" }),
@@ -126,7 +127,10 @@ export const team = pgTable(
 			.$onUpdate(() => new Date())
 			.notNull(),
 	},
-	(table) => [index("team_organization_id_idx").on(table.organizationId)],
+	(table) => [
+		index("team_organization_id_idx").on(table.organizationId),
+		unique("team_organization_slug_uniq").on(table.organizationId, table.slug),
+	],
 );
 
 export const teamMember = pgTable(

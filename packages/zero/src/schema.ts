@@ -41,6 +41,26 @@ const member = table("member")
 	})
 	.primaryKey("id");
 
+const team = table("team")
+	.columns({
+		id: string(),
+		name: string(),
+		slug: string(),
+		organizationId: string().from("organization_id"),
+		createdAt: number().from("created_at"),
+		updatedAt: number().from("updated_at").optional(),
+	})
+	.primaryKey("id");
+
+const teamMember = table("team_member")
+	.columns({
+		id: string(),
+		teamId: string().from("team_id"),
+		userId: string().from("user_id"),
+		createdAt: number().from("created_at"),
+	})
+	.primaryKey("id");
+
 const userRelationships = relationships(user, ({ many }) => ({
 	memberships: many({
 		sourceField: ["id"],
@@ -53,6 +73,11 @@ const organizationRelationships = relationships(organization, ({ many }) => ({
 	members: many({
 		sourceField: ["id"],
 		destSchema: member,
+		destField: ["organizationId"],
+	}),
+	teams: many({
+		sourceField: ["id"],
+		destSchema: team,
 		destField: ["organizationId"],
 	}),
 }));
@@ -70,9 +95,41 @@ const memberRelationships = relationships(member, ({ one }) => ({
 	}),
 }));
 
+const teamRelationships = relationships(team, ({ many, one }) => ({
+	organization: one({
+		sourceField: ["organizationId"],
+		destSchema: organization,
+		destField: ["id"],
+	}),
+	members: many({
+		sourceField: ["id"],
+		destSchema: teamMember,
+		destField: ["teamId"],
+	}),
+}));
+
+const teamMemberRelationships = relationships(teamMember, ({ one }) => ({
+	team: one({
+		sourceField: ["teamId"],
+		destSchema: team,
+		destField: ["id"],
+	}),
+	user: one({
+		sourceField: ["userId"],
+		destSchema: user,
+		destField: ["id"],
+	}),
+}));
+
 export const schema = createSchema({
-	tables: [user, organization, member],
-	relationships: [userRelationships, organizationRelationships, memberRelationships],
+	tables: [user, organization, member, team, teamMember],
+	relationships: [
+		userRelationships,
+		organizationRelationships,
+		memberRelationships,
+		teamRelationships,
+		teamMemberRelationships,
+	],
 });
 
 export const zql = createBuilder(schema);
@@ -91,5 +148,7 @@ declare module "@rocicorp/zero" {
 export type User = Row<typeof schema.tables.user>;
 export type Organization = Row<typeof schema.tables.organization>;
 export type Member = Row<typeof schema.tables.member>;
+export type Team = Row<typeof schema.tables.team>;
+export type TeamMember = Row<typeof schema.tables.team_member>;
 
 export type { Zero };

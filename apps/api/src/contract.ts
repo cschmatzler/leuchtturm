@@ -34,6 +34,10 @@ const BillingUrlResponse = Schema.Struct({
 	url: Schema.String,
 });
 
+const BillingOrganizationQuery = Schema.Struct({
+	organizationId: Schema.String,
+});
+
 export const AuthRouteError = Schema.Union([UnauthorizedError, AuthError]);
 const ProtectedRouteError = Schema.Union([DatabaseError, UnauthorizedError, AuthError]);
 const BillingRouteError = Schema.Union([
@@ -68,18 +72,21 @@ export const session = HttpApiGroup.make("session")
 export const billing = HttpApiGroup.make("billing")
 	.add(
 		HttpApiEndpoint.get("overview", "/billing/overview", {
+			query: BillingOrganizationQuery,
 			success: BillingOverviewResponse,
 			error: BillingRouteError,
 		}),
 	)
 	.add(
 		HttpApiEndpoint.post("checkout", "/billing/checkout", {
+			query: BillingOrganizationQuery,
 			success: BillingUrlResponse,
 			error: BillingRouteError,
 		}),
 	)
 	.add(
 		HttpApiEndpoint.post("portal", "/billing/portal", {
+			query: BillingOrganizationQuery,
 			success: BillingUrlResponse,
 			error: BillingRouteError,
 		}),

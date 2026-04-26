@@ -6,6 +6,8 @@ import {
 	member,
 	organization,
 	session,
+	team,
+	teamMember,
 	user,
 	verification,
 } from "@leuchtturm/core/auth/auth.sql";
@@ -23,6 +25,8 @@ export const relations = defineRelationsPart(
 		verification,
 		organization,
 		member,
+		team,
+		teamMember,
 		invitation,
 		billingCustomer,
 		billingSubscription,
@@ -41,6 +45,7 @@ export const relations = defineRelationsPart(
 				from: r.session.activeOrganizationId,
 				to: r.organization.id,
 			}),
+			activeTeam: r.one.team({ from: r.session.activeTeamId, to: r.team.id }),
 		},
 		account: {
 			user: r.one.user({ from: r.account.userId, to: r.user.id }),
@@ -48,6 +53,7 @@ export const relations = defineRelationsPart(
 		verification: {},
 		organization: {
 			members: r.many.member({ from: r.organization.id, to: r.member.organizationId }),
+			teams: r.many.team({ from: r.organization.id, to: r.team.organizationId }),
 			invitations: r.many.invitation({
 				from: r.organization.id,
 				to: r.invitation.organizationId,
@@ -68,6 +74,14 @@ export const relations = defineRelationsPart(
 		member: {
 			organization: r.one.organization({ from: r.member.organizationId, to: r.organization.id }),
 			user: r.one.user({ from: r.member.userId, to: r.user.id }),
+		},
+		team: {
+			organization: r.one.organization({ from: r.team.organizationId, to: r.organization.id }),
+			members: r.many.teamMember({ from: r.team.id, to: r.teamMember.teamId }),
+		},
+		teamMember: {
+			team: r.one.team({ from: r.teamMember.teamId, to: r.team.id }),
+			user: r.one.user({ from: r.teamMember.userId, to: r.user.id }),
 		},
 		invitation: {
 			organization: r.one.organization({

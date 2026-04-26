@@ -24,7 +24,7 @@ export const InvitationId = Schema.TemplateLiteral(["inv_", Ulid]).pipe(
 	Schema.brand("InvitationId"),
 );
 
-export const OrganizationSlug = Schema.String.pipe(
+const Slug = Schema.String.pipe(
 	Schema.decodeTo(
 		Schema.String.check(Schema.isPattern(/^[a-z0-9]+(?:-[a-z0-9]+)*$/))
 			.annotate({ message: "Slug must contain only lowercase letters, numbers, and dashes" })
@@ -36,6 +36,10 @@ export const OrganizationSlug = Schema.String.pipe(
 		},
 	),
 );
+
+export const OrganizationSlug = Slug.pipe(Schema.brand("OrganizationSlug"));
+
+export const TeamSlug = Slug.pipe(Schema.brand("TeamSlug"));
 
 export const User = Schema.Struct({
 	id: UserId,
@@ -119,6 +123,7 @@ export const Member = Schema.Struct({
 export const Team = Schema.Struct({
 	id: TeamId,
 	name: TrimmedNonEmptyString.annotate({ message: "Team name is required" }),
+	slug: TeamSlug,
 	organizationId: OrganizationId,
 	createdAt: Schema.Date,
 	updatedAt: Schema.optional(Schema.Date),

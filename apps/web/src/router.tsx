@@ -12,7 +12,7 @@ export interface RouterContext {
 	zero: Zero;
 	session:
 		| {
-				session: Session & { activeOrganizationId?: string | null; activeTeamId?: string | null };
+				session: Session;
 				user: User;
 		  }
 		| null

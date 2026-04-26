@@ -1,4 +1,3 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { PlusIcon, Trash2Icon } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -13,55 +12,44 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@leuchtturm/web/components/ui/card";
-import {
-	organizationMembersQuery,
-	teamMembersQuery,
-	teamsQuery,
-} from "@leuchtturm/web/queries/teams";
+import { useZeroQuery } from "@leuchtturm/web/lib/query";
+import { queries } from "@leuchtturm/zero/queries";
 
-export const Route = createFileRoute("/$slug/_app/teams/$teamId/settings/members")({
+export const Route = createFileRoute("/$slug/_app/teams/$teamSlug/settings/members")({
 	component: Page,
 });
 
 function Page() {
-	const { teamId } = Route.useParams();
-	const { team, session } = Route.useRouteContext();
-	const organizationId = session.session.activeOrganizationId;
-	const queryClient = useQueryClient();
+	const { teamSlug } = Route.useParams();
+	const { organizationId } = Route.useRouteContext();
 	const { t } = useTranslation();
-	const { data: organizationMembers } = useQuery(
-		organizationMembersQuery(organizationId ?? team.organizationId),
-	);
-	const { data: teamMembers } = useQuery(teamMembersQuery(teamId));
-	const teamMemberUserIds = new Set(teamMembers?.map((member) => member.userId));
-	const availableMembers = organizationMembers?.filter(
+	const [team] = useZeroQuery(queries.team({ organizationId, teamSlug }));
+	const [organizationMembers] = useZeroQuery(queries.organizationMembers({ organizationId }));
+	const [teamMembers] = useZeroQuery(queries.teamMembers({ teamId: team?.id ?? "" }));
+	const teamMemberUserIds = new Set(teamMembers.map((member) => member.userId));
+	const availableMembers = organizationMembers.filter(
 		(member) => !teamMemberUserIds.has(member.userId),
 	);
 
-	const invalidate = async () => {
-		await queryClient.invalidateQueries({ queryKey: teamMembersQuery(teamId).queryKey });
-		await queryClient.invalidateQueries({ queryKey: teamsQuery(team.organizationId).queryKey });
-	};
-
 	const addMember = async (userId: string) => {
+		if (!team) return;
 		const { error } = await authClient.organization.addTeamMember({
-			teamId,
+			teamId: team.id,
 			userId,
-			organizationId: team.organizationId,
+			organizationId,
 		});
 		if (error) throw error;
-		await invalidate();
 		toast.success(t("Team member added"));
 	};
 
 	const removeMember = async (userId: string) => {
+		if (!team) return;
 		const { error } = await authClient.organization.removeTeamMember({
-			teamId,
+			teamId: team.id,
 			userId,
-			organizationId: team.organizationId,
+			organizationId,
 		});
 		if (error) throw error;
-		await invalidate();
 		toast.success(t("Team member removed"));
 	};
 
@@ -73,10 +61,10 @@ function Page() {
 					<CardDescription>{t("Members who can access this team.")}</CardDescription>
 				</CardHeader>
 				<CardContent className="border-t border-border p-0">
-					{teamMembers?.length ? (
+					{teamMembers.length ? (
 						<ul className="divide-y divide-border">
 							{teamMembers.map((teamMember) => {
-								const organizationMember = organizationMembers?.find(
+								const organizationMember = organizationMembers.find(
 									(member) => member.userId === teamMember.userId,
 								);
 								return (
@@ -86,11 +74,13 @@ function Page() {
 									>
 										<div>
 											<p className="text-sm font-medium">
-												{organizationMember?.user?.name ?? teamMember.userId}
+												{organizationMember?.user?.name ??
+													teamMember.user?.name ??
+													teamMember.userId}
 											</p>
-											{organizationMember?.user?.email && (
+											{(organizationMember?.user?.email ?? teamMember.user?.email) && (
 												<p className="text-xs text-muted-foreground">
-													{organizationMember.user.email}
+													{organizationMember?.user?.email ?? teamMember.user?.email}
 												</p>
 											)}
 										</div>
@@ -120,7 +110,7 @@ function Page() {
 					<CardDescription>{t("Add existing organization members to this team.")}</CardDescription>
 				</CardHeader>
 				<CardContent className="border-t border-border p-0">
-					{availableMembers?.length ? (
+					{availableMembers.length ? (
 						<ul className="divide-y divide-border">
 							{availableMembers.map((member) => (
 								<li key={member.id} className="flex items-center justify-between gap-4 px-6 py-4">

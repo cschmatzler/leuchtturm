@@ -36,7 +36,6 @@ import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { deviceSessionsQuery } from "@leuchtturm/web/queries/device-sessions";
 import { organizationsQuery } from "@leuchtturm/web/queries/organizations";
 import { sessionQuery } from "@leuchtturm/web/queries/session";
-import { teamsQuery } from "@leuchtturm/web/queries/teams";
 import { queries } from "@leuchtturm/zero/queries";
 
 function LogOutShortcut() {
@@ -53,6 +52,7 @@ function Layout() {
 
 function Shell() {
 	const { slug } = Route.useParams();
+	const { organizationId } = Route.useRouteContext();
 	const navigate = useNavigate();
 	const { t, i18n } = useTranslation();
 	const { signOutCurrent, signOutAll, setActiveSession } = useAuth();
@@ -60,16 +60,14 @@ function Shell() {
 
 	const [currentUser] = useZeroQuery(queries.currentUser());
 	useZeroQuery(queries.organization({ slug }));
+	const [teams] = useZeroQuery(queries.organizationTeams({ organizationId }));
 	const { data: session } = useQuery(sessionQuery());
 	const { data: deviceSessions } = useQuery(deviceSessionsQuery());
 	const { data: organizations } = useQuery(organizationsQuery());
 	const currentOrganization = organizations?.find((organization) => organization.slug === slug);
-	const { data: teams } = useQuery({
-		...teamsQuery(currentOrganization?.id ?? ""),
-		enabled: Boolean(currentOrganization),
-	});
-	const currentTeam =
-		teams?.find((team) => team.id === session?.session.activeTeamId) ?? teams?.[0];
+	const currentTeam = teams.find((team) =>
+		location.pathname.startsWith(`/${slug}/teams/${team.slug}`),
+	);
 
 	useHotkey("Mod+K", () => commandBar.show(), { ignoreInputs: false });
 	useHotkey("Alt+Shift+Q", () => {
@@ -179,7 +177,7 @@ function Shell() {
 				category: t("Team"),
 				global: true,
 				icon: LayersIcon,
-				disabled: (teams?.length ?? 0) === 0,
+				disabled: teams.length === 0,
 				run() {
 					commandBar.show("select-team");
 				},
@@ -191,15 +189,19 @@ function Shell() {
 	useCommandProvider(
 		"select-team",
 		async () =>
-			teams?.map((team) => ({
+			teams.map((team) => ({
 				title: t("Go to {{team}}", { team: team.name }),
 				value: team.id,
 				category: t("Team"),
 				icon: LayersIcon,
 				run() {
-					navigate({ to: "/$slug/teams/$teamId", params: { slug, teamId: team.id } });
+					navigate({
+						to: "/$slug/teams/$teamSlug",
+						params: { slug, teamSlug: team.slug },
+					});
 				},
-			})) ?? [],
+			})),
+
 		[navigate, slug, t, teams],
 	);
 
@@ -257,14 +259,14 @@ function Shell() {
 							}
 						/>
 						<MenuContent align="end" className="min-w-56">
-							{teams?.map((team) => (
+							{teams.map((team) => (
 								<MenuCheckboxItem
 									key={team.id}
 									checked={team.id === currentTeam?.id}
 									onClick={() => {
 										void navigate({
-											to: "/$slug/teams/$teamId",
-											params: { slug, teamId: team.id },
+											to: "/$slug/teams/$teamSlug",
+											params: { slug, teamSlug: team.slug },
 										});
 									}}
 								>

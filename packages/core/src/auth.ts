@@ -36,6 +36,7 @@ import {
 	SessionId,
 	TeamId,
 	TeamMemberId,
+	TeamSlug,
 	UserId,
 	VerificationId,
 } from "@leuchtturm/core/auth/schema";
@@ -43,6 +44,37 @@ import { Billing } from "@leuchtturm/core/billing";
 import { Database } from "@leuchtturm/core/drizzle";
 import { Email } from "@leuchtturm/core/email";
 import { sendPasswordResetEmail } from "@leuchtturm/email/password-reset";
+
+function slugify(value: string) {
+	const slug = value
+		.trim()
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, "-")
+		.replace(/^-+|-+$/g, "");
+
+	if (!slug) return "team";
+	if (slug.length < 4) return `${slug}-team`;
+	return slug;
+}
+
+async function uniqueTeamSlug(
+	rawDatabase: Database.RawDatabase,
+	organizationId: string,
+	value: string,
+) {
+	const baseSlug = slugify(value);
+	const { rows } = await rawDatabase.$client.query<{ slug: string }>(
+		`select slug from "team" where organization_id = $1 and (slug = $2 or slug like $3)`,
+		[organizationId, baseSlug, `${baseSlug}-%`],
+	);
+	const existingSlugs = new Set(rows.map((row) => row.slug));
+	if (!existingSlugs.has(baseSlug)) return Schema.decodeSync(TeamSlug)(baseSlug);
+
+	for (let suffix = 2; ; suffix++) {
+		const candidate = `${baseSlug}-${suffix}`;
+		if (!existingSlugs.has(candidate)) return Schema.decodeSync(TeamSlug)(candidate);
+	}
+}
 
 export namespace Auth {
 	export interface Interface {
@@ -139,7 +171,27 @@ export namespace Auth {
 								enabled: true,
 							},
 						},
+						schema: {
+							team: {
+								additionalFields: {
+									slug: {
+										type: "string",
+										required: true,
+									},
+								},
+							},
+						},
 						organizationHooks: {
+							beforeCreateTeam: async ({ team }) => ({
+								data: {
+									...team,
+									slug: await uniqueTeamSlug(
+										rawDatabase,
+										team.organizationId,
+										typeof team.slug === "string" ? team.slug : team.name,
+									),
+								},
+							}),
 							afterCreateOrganization: ({ organization, user }) =>
 								Effect.runPromise(
 									billing.createCustomer({

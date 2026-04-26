@@ -1,8 +1,8 @@
 {
 	"version": "8",
 	"dialect": "postgres",
-	"id": "354ba1b3-d7a4-4ca4-b965-58c99df79b6b",
-	"prevIds": ["24fa10b7-df93-4f3c-8d6d-b93a0c84db9b"],
+	"id": "edbc2423-3386-4715-8722-1e7e620938ad",
+	"prevIds": ["354ba1b3-d7a4-4ca4-b965-58c99df79b6b"],
 	"ddl": [
 		{
 			"isRlsEnabled": false,
@@ -657,6 +657,19 @@
 			"generated": null,
 			"identity": null,
 			"name": "name",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "team"
+		},
+		{
+			"type": "text",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "slug",
 			"entityType": "columns",
 			"schema": "public",
 			"table": "team"
@@ -2272,6 +2285,15 @@
 			"entityType": "uniques",
 			"schema": "public",
 			"table": "member"
+		},
+		{
+			"nameExplicit": true,
+			"columns": ["organization_id", "slug"],
+			"nullsNotDistinct": false,
+			"name": "team_organization_slug_uniq",
+			"entityType": "uniques",
+			"schema": "public",
+			"table": "team"
 		},
 		{
 			"nameExplicit": true,

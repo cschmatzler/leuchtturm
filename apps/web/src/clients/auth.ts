@@ -6,5 +6,20 @@ export const authClient = createAuthClient({
 	fetchOptions: {
 		credentials: "include",
 	},
-	plugins: [multiSessionClient(), organizationClient({ teams: { enabled: true } })],
+	plugins: [
+		multiSessionClient(),
+		organizationClient({
+			teams: { enabled: true },
+			schema: {
+				team: {
+					additionalFields: {
+						slug: {
+							type: "string",
+							required: true,
+						},
+					},
+				},
+			},
+		}),
+	],
 });

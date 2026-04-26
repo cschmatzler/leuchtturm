@@ -1,5 +1,4 @@
 import { useForm } from "@tanstack/react-form";
-import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Loader2Icon, Trash2Icon } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -17,54 +16,45 @@ import {
 } from "@leuchtturm/web/components/ui/card";
 import { FieldError, FieldGroup, FieldLabel } from "@leuchtturm/web/components/ui/field";
 import { Input } from "@leuchtturm/web/components/ui/input";
-import { sessionQuery } from "@leuchtturm/web/queries/session";
-import { teamsQuery } from "@leuchtturm/web/queries/teams";
+import { useZeroQuery } from "@leuchtturm/web/lib/query";
+import { queries } from "@leuchtturm/zero/queries";
 
-export const Route = createFileRoute("/$slug/_app/teams/$teamId/settings/general")({
+export const Route = createFileRoute("/$slug/_app/teams/$teamSlug/settings/general")({
 	component: Page,
 });
 
 function Page() {
-	const { slug, teamId } = Route.useParams();
-	const { team, session } = Route.useRouteContext();
-	const queryClient = useQueryClient();
+	const { slug, teamSlug } = Route.useParams();
+	const { organizationId } = Route.useRouteContext();
 	const navigate = useNavigate();
 	const { t } = useTranslation();
-	const organizationId = session.session.activeOrganizationId;
+	const [team] = useZeroQuery(queries.team({ organizationId, teamSlug }));
 
 	const form = useForm({
 		defaultValues: {
-			name: team.name,
+			name: team?.name ?? "",
 		},
 		onSubmit: async ({ value }) => {
 			const name = value.name.trim();
-			if (!name) return;
+			if (!name || !team) return;
 			const { error } = await authClient.organization.updateTeam({
-				teamId,
-				data: { name, organizationId: organizationId ?? undefined },
+				teamId: team.id,
+				data: { name, organizationId },
 			});
 			if (error) throw error;
-			if (organizationId)
-				await queryClient.invalidateQueries({ queryKey: teamsQuery(organizationId).queryKey });
 			toast.success(t("Team updated"));
 		},
 	});
 
 	const removeTeam = async () => {
-		if (!organizationId) return;
+		if (!team) return;
 		if (!window.confirm(t("Delete this team?"))) return;
-		const { error } = await authClient.organization.removeTeam({ teamId, organizationId });
+		const { error } = await authClient.organization.removeTeam({
+			teamId: team.id,
+			organizationId,
+		});
 		if (error) throw error;
-		await authClient.organization.setActiveTeam({ teamId: null });
-		await queryClient.invalidateQueries({ queryKey: teamsQuery(organizationId).queryKey });
-		await queryClient.invalidateQueries({ queryKey: sessionQuery().queryKey });
-		const teams = await queryClient.fetchQuery(teamsQuery(organizationId));
-		const nextTeam = teams[0];
 		toast.success(t("Team deleted"));
-		if (nextTeam) {
-			await navigate({ to: "/$slug/teams/$teamId", params: { slug, teamId: nextTeam.id } });
-			return;
-		}
 		await navigate({ to: "/$slug/settings/teams", params: { slug } });
 	};
 

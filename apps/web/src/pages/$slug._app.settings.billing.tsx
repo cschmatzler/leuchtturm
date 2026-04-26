@@ -20,8 +20,9 @@ export const Route = createFileRoute("/$slug/_app/settings/billing")({
 });
 
 function Page() {
+	const { organizationId } = Route.useRouteContext();
 	const { t } = useTranslation();
-	const { data: billingOverview } = useQuery(billingOverviewQuery());
+	const { data: billingOverview } = useQuery(billingOverviewQuery(organizationId));
 	const activeSubscription = billingOverview?.activeSubscription ?? null;
 	const renewalDate = activeSubscription?.currentPeriodEnd.toLocaleDateString();
 	const accessMessage = activeSubscription
@@ -32,7 +33,7 @@ function Page() {
 
 	const openPortal = async () => {
 		try {
-			const { url } = await api.billing.portal();
+			const { url } = await api.billing.portal({ query: { organizationId } });
 			window.location.assign(url);
 		} catch (error) {
 			reportError(error, t("Could not open billing portal"), {
@@ -43,7 +44,7 @@ function Page() {
 
 	const startCheckout = async () => {
 		try {
-			const { url } = await api.billing.checkout();
+			const { url } = await api.billing.checkout({ query: { organizationId } });
 			window.location.assign(url);
 		} catch (error) {
 			reportError(error, t("Could not open checkout"), {

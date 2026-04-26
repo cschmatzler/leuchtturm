@@ -21,15 +21,15 @@ import { Route as SlugRouteImport } from './pages/$slug'
 import { Route as IndexRouteImport } from './pages/index'
 import { Route as SlugAppRouteImport } from './pages/$slug._app'
 import { Route as SlugAppSettingsRouteImport } from './pages/$slug._app.settings'
-import { Route as SlugAppTeamsTeamIdRouteImport } from './pages/$slug._app.teams.$teamId'
+import { Route as SlugAppTeamsTeamSlugRouteImport } from './pages/$slug._app.teams.$teamSlug'
 import { Route as SlugAppSettingsTeamsRouteImport } from './pages/$slug._app.settings.teams'
 import { Route as SlugAppSettingsPreferencesRouteImport } from './pages/$slug._app.settings.preferences'
 import { Route as SlugAppSettingsMembersRouteImport } from './pages/$slug._app.settings.members'
 import { Route as SlugAppSettingsBillingRouteImport } from './pages/$slug._app.settings.billing'
-import { Route as SlugAppTeamsTeamIdIndexRouteImport } from './pages/$slug._app.teams.$teamId.index'
-import { Route as SlugAppTeamsTeamIdSettingsRouteImport } from './pages/$slug._app.teams.$teamId.settings'
-import { Route as SlugAppTeamsTeamIdSettingsMembersRouteImport } from './pages/$slug._app.teams.$teamId.settings.members'
-import { Route as SlugAppTeamsTeamIdSettingsGeneralRouteImport } from './pages/$slug._app.teams.$teamId.settings.general'
+import { Route as SlugAppTeamsTeamSlugIndexRouteImport } from './pages/$slug._app.teams.$teamSlug.index'
+import { Route as SlugAppTeamsTeamSlugSettingsRouteImport } from './pages/$slug._app.teams.$teamSlug.settings'
+import { Route as SlugAppTeamsTeamSlugSettingsMembersRouteImport } from './pages/$slug._app.teams.$teamSlug.settings.members'
+import { Route as SlugAppTeamsTeamSlugSettingsGeneralRouteImport } from './pages/$slug._app.teams.$teamSlug.settings.general'
 
 const TermsOfServiceRoute = TermsOfServiceRouteImport.update({
   id: '/terms-of-service',
@@ -90,9 +90,9 @@ const SlugAppSettingsRoute = SlugAppSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => SlugAppRoute,
 } as any)
-const SlugAppTeamsTeamIdRoute = SlugAppTeamsTeamIdRouteImport.update({
-  id: '/teams/$teamId',
-  path: '/teams/$teamId',
+const SlugAppTeamsTeamSlugRoute = SlugAppTeamsTeamSlugRouteImport.update({
+  id: '/teams/$teamSlug',
+  path: '/teams/$teamSlug',
   getParentRoute: () => SlugAppRoute,
 } as any)
 const SlugAppSettingsTeamsRoute = SlugAppSettingsTeamsRouteImport.update({
@@ -116,28 +116,29 @@ const SlugAppSettingsBillingRoute = SlugAppSettingsBillingRouteImport.update({
   path: '/billing',
   getParentRoute: () => SlugAppSettingsRoute,
 } as any)
-const SlugAppTeamsTeamIdIndexRoute = SlugAppTeamsTeamIdIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => SlugAppTeamsTeamIdRoute,
-} as any)
-const SlugAppTeamsTeamIdSettingsRoute =
-  SlugAppTeamsTeamIdSettingsRouteImport.update({
+const SlugAppTeamsTeamSlugIndexRoute =
+  SlugAppTeamsTeamSlugIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => SlugAppTeamsTeamSlugRoute,
+  } as any)
+const SlugAppTeamsTeamSlugSettingsRoute =
+  SlugAppTeamsTeamSlugSettingsRouteImport.update({
     id: '/settings',
     path: '/settings',
-    getParentRoute: () => SlugAppTeamsTeamIdRoute,
+    getParentRoute: () => SlugAppTeamsTeamSlugRoute,
   } as any)
-const SlugAppTeamsTeamIdSettingsMembersRoute =
-  SlugAppTeamsTeamIdSettingsMembersRouteImport.update({
+const SlugAppTeamsTeamSlugSettingsMembersRoute =
+  SlugAppTeamsTeamSlugSettingsMembersRouteImport.update({
     id: '/members',
     path: '/members',
-    getParentRoute: () => SlugAppTeamsTeamIdSettingsRoute,
+    getParentRoute: () => SlugAppTeamsTeamSlugSettingsRoute,
   } as any)
-const SlugAppTeamsTeamIdSettingsGeneralRoute =
-  SlugAppTeamsTeamIdSettingsGeneralRouteImport.update({
+const SlugAppTeamsTeamSlugSettingsGeneralRoute =
+  SlugAppTeamsTeamSlugSettingsGeneralRouteImport.update({
     id: '/general',
     path: '/general',
-    getParentRoute: () => SlugAppTeamsTeamIdSettingsRoute,
+    getParentRoute: () => SlugAppTeamsTeamSlugSettingsRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -156,11 +157,11 @@ export interface FileRoutesByFullPath {
   '/$slug/settings/members': typeof SlugAppSettingsMembersRoute
   '/$slug/settings/preferences': typeof SlugAppSettingsPreferencesRoute
   '/$slug/settings/teams': typeof SlugAppSettingsTeamsRoute
-  '/$slug/teams/$teamId': typeof SlugAppTeamsTeamIdRouteWithChildren
-  '/$slug/teams/$teamId/settings': typeof SlugAppTeamsTeamIdSettingsRouteWithChildren
-  '/$slug/teams/$teamId/': typeof SlugAppTeamsTeamIdIndexRoute
-  '/$slug/teams/$teamId/settings/general': typeof SlugAppTeamsTeamIdSettingsGeneralRoute
-  '/$slug/teams/$teamId/settings/members': typeof SlugAppTeamsTeamIdSettingsMembersRoute
+  '/$slug/teams/$teamSlug': typeof SlugAppTeamsTeamSlugRouteWithChildren
+  '/$slug/teams/$teamSlug/settings': typeof SlugAppTeamsTeamSlugSettingsRouteWithChildren
+  '/$slug/teams/$teamSlug/': typeof SlugAppTeamsTeamSlugIndexRoute
+  '/$slug/teams/$teamSlug/settings/general': typeof SlugAppTeamsTeamSlugSettingsGeneralRoute
+  '/$slug/teams/$teamSlug/settings/members': typeof SlugAppTeamsTeamSlugSettingsMembersRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -178,10 +179,10 @@ export interface FileRoutesByTo {
   '/$slug/settings/members': typeof SlugAppSettingsMembersRoute
   '/$slug/settings/preferences': typeof SlugAppSettingsPreferencesRoute
   '/$slug/settings/teams': typeof SlugAppSettingsTeamsRoute
-  '/$slug/teams/$teamId/settings': typeof SlugAppTeamsTeamIdSettingsRouteWithChildren
-  '/$slug/teams/$teamId': typeof SlugAppTeamsTeamIdIndexRoute
-  '/$slug/teams/$teamId/settings/general': typeof SlugAppTeamsTeamIdSettingsGeneralRoute
-  '/$slug/teams/$teamId/settings/members': typeof SlugAppTeamsTeamIdSettingsMembersRoute
+  '/$slug/teams/$teamSlug/settings': typeof SlugAppTeamsTeamSlugSettingsRouteWithChildren
+  '/$slug/teams/$teamSlug': typeof SlugAppTeamsTeamSlugIndexRoute
+  '/$slug/teams/$teamSlug/settings/general': typeof SlugAppTeamsTeamSlugSettingsGeneralRoute
+  '/$slug/teams/$teamSlug/settings/members': typeof SlugAppTeamsTeamSlugSettingsMembersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -201,11 +202,11 @@ export interface FileRoutesById {
   '/$slug/_app/settings/members': typeof SlugAppSettingsMembersRoute
   '/$slug/_app/settings/preferences': typeof SlugAppSettingsPreferencesRoute
   '/$slug/_app/settings/teams': typeof SlugAppSettingsTeamsRoute
-  '/$slug/_app/teams/$teamId': typeof SlugAppTeamsTeamIdRouteWithChildren
-  '/$slug/_app/teams/$teamId/settings': typeof SlugAppTeamsTeamIdSettingsRouteWithChildren
-  '/$slug/_app/teams/$teamId/': typeof SlugAppTeamsTeamIdIndexRoute
-  '/$slug/_app/teams/$teamId/settings/general': typeof SlugAppTeamsTeamIdSettingsGeneralRoute
-  '/$slug/_app/teams/$teamId/settings/members': typeof SlugAppTeamsTeamIdSettingsMembersRoute
+  '/$slug/_app/teams/$teamSlug': typeof SlugAppTeamsTeamSlugRouteWithChildren
+  '/$slug/_app/teams/$teamSlug/settings': typeof SlugAppTeamsTeamSlugSettingsRouteWithChildren
+  '/$slug/_app/teams/$teamSlug/': typeof SlugAppTeamsTeamSlugIndexRoute
+  '/$slug/_app/teams/$teamSlug/settings/general': typeof SlugAppTeamsTeamSlugSettingsGeneralRoute
+  '/$slug/_app/teams/$teamSlug/settings/members': typeof SlugAppTeamsTeamSlugSettingsMembersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -225,11 +226,11 @@ export interface FileRouteTypes {
     | '/$slug/settings/members'
     | '/$slug/settings/preferences'
     | '/$slug/settings/teams'
-    | '/$slug/teams/$teamId'
-    | '/$slug/teams/$teamId/settings'
-    | '/$slug/teams/$teamId/'
-    | '/$slug/teams/$teamId/settings/general'
-    | '/$slug/teams/$teamId/settings/members'
+    | '/$slug/teams/$teamSlug'
+    | '/$slug/teams/$teamSlug/settings'
+    | '/$slug/teams/$teamSlug/'
+    | '/$slug/teams/$teamSlug/settings/general'
+    | '/$slug/teams/$teamSlug/settings/members'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -247,10 +248,10 @@ export interface FileRouteTypes {
     | '/$slug/settings/members'
     | '/$slug/settings/preferences'
     | '/$slug/settings/teams'
-    | '/$slug/teams/$teamId/settings'
-    | '/$slug/teams/$teamId'
-    | '/$slug/teams/$teamId/settings/general'
-    | '/$slug/teams/$teamId/settings/members'
+    | '/$slug/teams/$teamSlug/settings'
+    | '/$slug/teams/$teamSlug'
+    | '/$slug/teams/$teamSlug/settings/general'
+    | '/$slug/teams/$teamSlug/settings/members'
   id:
     | '__root__'
     | '/'
@@ -269,11 +270,11 @@ export interface FileRouteTypes {
     | '/$slug/_app/settings/members'
     | '/$slug/_app/settings/preferences'
     | '/$slug/_app/settings/teams'
-    | '/$slug/_app/teams/$teamId'
-    | '/$slug/_app/teams/$teamId/settings'
-    | '/$slug/_app/teams/$teamId/'
-    | '/$slug/_app/teams/$teamId/settings/general'
-    | '/$slug/_app/teams/$teamId/settings/members'
+    | '/$slug/_app/teams/$teamSlug'
+    | '/$slug/_app/teams/$teamSlug/settings'
+    | '/$slug/_app/teams/$teamSlug/'
+    | '/$slug/_app/teams/$teamSlug/settings/general'
+    | '/$slug/_app/teams/$teamSlug/settings/members'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -375,11 +376,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SlugAppSettingsRouteImport
       parentRoute: typeof SlugAppRoute
     }
-    '/$slug/_app/teams/$teamId': {
-      id: '/$slug/_app/teams/$teamId'
-      path: '/teams/$teamId'
-      fullPath: '/$slug/teams/$teamId'
-      preLoaderRoute: typeof SlugAppTeamsTeamIdRouteImport
+    '/$slug/_app/teams/$teamSlug': {
+      id: '/$slug/_app/teams/$teamSlug'
+      path: '/teams/$teamSlug'
+      fullPath: '/$slug/teams/$teamSlug'
+      preLoaderRoute: typeof SlugAppTeamsTeamSlugRouteImport
       parentRoute: typeof SlugAppRoute
     }
     '/$slug/_app/settings/teams': {
@@ -410,33 +411,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SlugAppSettingsBillingRouteImport
       parentRoute: typeof SlugAppSettingsRoute
     }
-    '/$slug/_app/teams/$teamId/': {
-      id: '/$slug/_app/teams/$teamId/'
+    '/$slug/_app/teams/$teamSlug/': {
+      id: '/$slug/_app/teams/$teamSlug/'
       path: '/'
-      fullPath: '/$slug/teams/$teamId/'
-      preLoaderRoute: typeof SlugAppTeamsTeamIdIndexRouteImport
-      parentRoute: typeof SlugAppTeamsTeamIdRoute
+      fullPath: '/$slug/teams/$teamSlug/'
+      preLoaderRoute: typeof SlugAppTeamsTeamSlugIndexRouteImport
+      parentRoute: typeof SlugAppTeamsTeamSlugRoute
     }
-    '/$slug/_app/teams/$teamId/settings': {
-      id: '/$slug/_app/teams/$teamId/settings'
+    '/$slug/_app/teams/$teamSlug/settings': {
+      id: '/$slug/_app/teams/$teamSlug/settings'
       path: '/settings'
-      fullPath: '/$slug/teams/$teamId/settings'
-      preLoaderRoute: typeof SlugAppTeamsTeamIdSettingsRouteImport
-      parentRoute: typeof SlugAppTeamsTeamIdRoute
+      fullPath: '/$slug/teams/$teamSlug/settings'
+      preLoaderRoute: typeof SlugAppTeamsTeamSlugSettingsRouteImport
+      parentRoute: typeof SlugAppTeamsTeamSlugRoute
     }
-    '/$slug/_app/teams/$teamId/settings/members': {
-      id: '/$slug/_app/teams/$teamId/settings/members'
+    '/$slug/_app/teams/$teamSlug/settings/members': {
+      id: '/$slug/_app/teams/$teamSlug/settings/members'
       path: '/members'
-      fullPath: '/$slug/teams/$teamId/settings/members'
-      preLoaderRoute: typeof SlugAppTeamsTeamIdSettingsMembersRouteImport
-      parentRoute: typeof SlugAppTeamsTeamIdSettingsRoute
+      fullPath: '/$slug/teams/$teamSlug/settings/members'
+      preLoaderRoute: typeof SlugAppTeamsTeamSlugSettingsMembersRouteImport
+      parentRoute: typeof SlugAppTeamsTeamSlugSettingsRoute
     }
-    '/$slug/_app/teams/$teamId/settings/general': {
-      id: '/$slug/_app/teams/$teamId/settings/general'
+    '/$slug/_app/teams/$teamSlug/settings/general': {
+      id: '/$slug/_app/teams/$teamSlug/settings/general'
       path: '/general'
-      fullPath: '/$slug/teams/$teamId/settings/general'
-      preLoaderRoute: typeof SlugAppTeamsTeamIdSettingsGeneralRouteImport
-      parentRoute: typeof SlugAppTeamsTeamIdSettingsRoute
+      fullPath: '/$slug/teams/$teamSlug/settings/general'
+      preLoaderRoute: typeof SlugAppTeamsTeamSlugSettingsGeneralRouteImport
+      parentRoute: typeof SlugAppTeamsTeamSlugSettingsRoute
     }
   }
 }
@@ -459,45 +460,46 @@ const SlugAppSettingsRouteWithChildren = SlugAppSettingsRoute._addFileChildren(
   SlugAppSettingsRouteChildren,
 )
 
-interface SlugAppTeamsTeamIdSettingsRouteChildren {
-  SlugAppTeamsTeamIdSettingsGeneralRoute: typeof SlugAppTeamsTeamIdSettingsGeneralRoute
-  SlugAppTeamsTeamIdSettingsMembersRoute: typeof SlugAppTeamsTeamIdSettingsMembersRoute
+interface SlugAppTeamsTeamSlugSettingsRouteChildren {
+  SlugAppTeamsTeamSlugSettingsGeneralRoute: typeof SlugAppTeamsTeamSlugSettingsGeneralRoute
+  SlugAppTeamsTeamSlugSettingsMembersRoute: typeof SlugAppTeamsTeamSlugSettingsMembersRoute
 }
 
-const SlugAppTeamsTeamIdSettingsRouteChildren: SlugAppTeamsTeamIdSettingsRouteChildren =
+const SlugAppTeamsTeamSlugSettingsRouteChildren: SlugAppTeamsTeamSlugSettingsRouteChildren =
   {
-    SlugAppTeamsTeamIdSettingsGeneralRoute:
-      SlugAppTeamsTeamIdSettingsGeneralRoute,
-    SlugAppTeamsTeamIdSettingsMembersRoute:
-      SlugAppTeamsTeamIdSettingsMembersRoute,
+    SlugAppTeamsTeamSlugSettingsGeneralRoute:
+      SlugAppTeamsTeamSlugSettingsGeneralRoute,
+    SlugAppTeamsTeamSlugSettingsMembersRoute:
+      SlugAppTeamsTeamSlugSettingsMembersRoute,
   }
 
-const SlugAppTeamsTeamIdSettingsRouteWithChildren =
-  SlugAppTeamsTeamIdSettingsRoute._addFileChildren(
-    SlugAppTeamsTeamIdSettingsRouteChildren,
+const SlugAppTeamsTeamSlugSettingsRouteWithChildren =
+  SlugAppTeamsTeamSlugSettingsRoute._addFileChildren(
+    SlugAppTeamsTeamSlugSettingsRouteChildren,
   )
 
-interface SlugAppTeamsTeamIdRouteChildren {
-  SlugAppTeamsTeamIdSettingsRoute: typeof SlugAppTeamsTeamIdSettingsRouteWithChildren
-  SlugAppTeamsTeamIdIndexRoute: typeof SlugAppTeamsTeamIdIndexRoute
+interface SlugAppTeamsTeamSlugRouteChildren {
+  SlugAppTeamsTeamSlugSettingsRoute: typeof SlugAppTeamsTeamSlugSettingsRouteWithChildren
+  SlugAppTeamsTeamSlugIndexRoute: typeof SlugAppTeamsTeamSlugIndexRoute
 }
 
-const SlugAppTeamsTeamIdRouteChildren: SlugAppTeamsTeamIdRouteChildren = {
-  SlugAppTeamsTeamIdSettingsRoute: SlugAppTeamsTeamIdSettingsRouteWithChildren,
-  SlugAppTeamsTeamIdIndexRoute: SlugAppTeamsTeamIdIndexRoute,
+const SlugAppTeamsTeamSlugRouteChildren: SlugAppTeamsTeamSlugRouteChildren = {
+  SlugAppTeamsTeamSlugSettingsRoute:
+    SlugAppTeamsTeamSlugSettingsRouteWithChildren,
+  SlugAppTeamsTeamSlugIndexRoute: SlugAppTeamsTeamSlugIndexRoute,
 }
 
-const SlugAppTeamsTeamIdRouteWithChildren =
-  SlugAppTeamsTeamIdRoute._addFileChildren(SlugAppTeamsTeamIdRouteChildren)
+const SlugAppTeamsTeamSlugRouteWithChildren =
+  SlugAppTeamsTeamSlugRoute._addFileChildren(SlugAppTeamsTeamSlugRouteChildren)
 
 interface SlugAppRouteChildren {
   SlugAppSettingsRoute: typeof SlugAppSettingsRouteWithChildren
-  SlugAppTeamsTeamIdRoute: typeof SlugAppTeamsTeamIdRouteWithChildren
+  SlugAppTeamsTeamSlugRoute: typeof SlugAppTeamsTeamSlugRouteWithChildren
 }
 
 const SlugAppRouteChildren: SlugAppRouteChildren = {
   SlugAppSettingsRoute: SlugAppSettingsRouteWithChildren,
-  SlugAppTeamsTeamIdRoute: SlugAppTeamsTeamIdRouteWithChildren,
+  SlugAppTeamsTeamSlugRoute: SlugAppTeamsTeamSlugRouteWithChildren,
 }
 
 const SlugAppRouteWithChildren =

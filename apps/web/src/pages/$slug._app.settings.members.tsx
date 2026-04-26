@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
@@ -9,7 +8,8 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@leuchtturm/web/components/ui/card";
-import { organizationMembersQuery } from "@leuchtturm/web/queries/teams";
+import { useZeroQuery } from "@leuchtturm/web/lib/query";
+import { queries } from "@leuchtturm/zero/queries";
 
 export const Route = createFileRoute("/$slug/_app/settings/members")({
 	component: Page,
@@ -18,7 +18,7 @@ export const Route = createFileRoute("/$slug/_app/settings/members")({
 function Page() {
 	const { organizationId } = Route.useRouteContext();
 	const { t } = useTranslation();
-	const { data: members } = useQuery(organizationMembersQuery(organizationId));
+	const [members] = useZeroQuery(queries.organizationMembers({ organizationId }));
 
 	return (
 		<Card className="gap-0 overflow-hidden p-0">
@@ -27,7 +27,7 @@ function Page() {
 				<CardDescription>{t("Manage access at the organization level.")}</CardDescription>
 			</CardHeader>
 			<CardContent className="border-t border-border p-0">
-				{members?.length ? (
+				{members.length ? (
 					<ul className="divide-y divide-border">
 						{members.map((member) => (
 							<li key={member.id} className="flex items-center justify-between gap-4 px-6 py-4">

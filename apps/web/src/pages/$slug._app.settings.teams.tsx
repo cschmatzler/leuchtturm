@@ -1,6 +1,5 @@
 import { useForm } from "@tanstack/react-form";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { Loader2Icon, PlusIcon, SettingsIcon, Trash2Icon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -18,7 +17,8 @@ import {
 import { FieldError, FieldGroup, FieldLabel } from "@leuchtturm/web/components/ui/field";
 import { Input } from "@leuchtturm/web/components/ui/input";
 import { Link } from "@leuchtturm/web/components/ui/link";
-import { teamsQuery } from "@leuchtturm/web/queries/teams";
+import { useZeroQuery } from "@leuchtturm/web/lib/query";
+import { queries } from "@leuchtturm/zero/queries";
 
 export const Route = createFileRoute("/$slug/_app/settings/teams")({
 	component: Page,
@@ -26,11 +26,9 @@ export const Route = createFileRoute("/$slug/_app/settings/teams")({
 
 function Page() {
 	const { slug } = Route.useParams();
-	const { organizationId } = Route.useRouteContext();
+	const { organizationId, session } = Route.useRouteContext();
 	const { t } = useTranslation();
-	const queryClient = useQueryClient();
-	const navigate = useNavigate();
-	const { data: teams } = useQuery(teamsQuery(organizationId));
+	const [teams] = useZeroQuery(queries.organizationTeams({ organizationId }));
 
 	const form = useForm({
 		defaultValues: {
@@ -41,13 +39,19 @@ function Page() {
 			if (!name) return;
 			const { data, error } = await authClient.organization.createTeam({
 				name,
+				slug: name,
 				organizationId,
 			});
 			if (error) throw error;
-			await queryClient.invalidateQueries({ queryKey: teamsQuery(organizationId).queryKey });
+			const userId = session.user.id;
+			const { error: addMemberError } = await authClient.organization.addTeamMember({
+				teamId: data.id,
+				userId,
+				organizationId,
+			});
+			if (addMemberError) throw addMemberError;
 			form.reset();
 			toast.success(t("Team created"));
-			await navigate({ to: "/$slug/teams/$teamId", params: { slug, teamId: data.id } });
 		},
 	});
 
@@ -55,7 +59,6 @@ function Page() {
 		if (!window.confirm(t("Delete this team?"))) return;
 		const { error } = await authClient.organization.removeTeam({ teamId, organizationId });
 		if (error) throw error;
-		await queryClient.invalidateQueries({ queryKey: teamsQuery(organizationId).queryKey });
 		toast.success(t("Team deleted"));
 	};
 
@@ -121,13 +124,12 @@ function Page() {
 					<CardDescription>{t("Manage teams in this organization.")}</CardDescription>
 				</CardHeader>
 				<CardContent className="border-t border-border p-0">
-					{teams?.length ? (
+					{teams.length ? (
 						<ul className="divide-y divide-border">
 							{teams.map((team) => (
 								<li key={team.id} className="flex items-center justify-between gap-4 px-6 py-4">
 									<div>
 										<p className="text-sm font-medium">{team.name}</p>
-										<p className="text-xs text-muted-foreground">{team.id}</p>
 									</div>
 									<div className="flex items-center gap-2">
 										<Button
@@ -135,8 +137,8 @@ function Page() {
 											size="sm"
 											render={
 												<Link
-													to="/$slug/teams/$teamId/settings"
-													params={{ slug, teamId: team.id }}
+													to="/$slug/teams/$teamSlug/settings/general"
+													params={{ slug, teamSlug: team.slug }}
 												/>
 											}
 										>

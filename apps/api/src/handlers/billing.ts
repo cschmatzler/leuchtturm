@@ -2,36 +2,28 @@ import { Effect } from "effect";
 import { HttpServerRequest } from "effect/unstable/http";
 import { HttpApiBuilder } from "effect/unstable/httpapi";
 
-import { AuthMiddleware } from "@leuchtturm/api/auth";
 import { LeuchtturmApi } from "@leuchtturm/api/contract";
 import { Auth } from "@leuchtturm/core/auth";
 import { Billing } from "@leuchtturm/core/billing";
-import { NotFoundError, ValidationError } from "@leuchtturm/core/errors";
+import { NotFoundError } from "@leuchtturm/core/errors";
 
 export namespace BillingHandler {
-	const getActiveOrganization = Effect.fn("billing.activeOrganization")(function* () {
-		const { session } = yield* AuthMiddleware.CurrentUser;
+	const getOrganization = Effect.fn("billing.organization")(function* (organizationId: string) {
 		const auth = yield* Auth.Service;
 		const request = yield* HttpServerRequest.HttpServerRequest;
 
-		if (!session.activeOrganizationId) {
-			return yield* new ValidationError({
-				global: [{ message: "No active organization selected" }],
-			});
-		}
-
-		const activeOrganization = yield* auth.getOrganization(
+		const organization = yield* auth.getOrganization(
 			new Headers(request.headers as Record<string, string>),
-			session.activeOrganizationId,
+			organizationId,
 		);
-		if (!activeOrganization) {
+		if (!organization) {
 			return yield* new NotFoundError({
 				resource: "organization",
-				message: "Active organization not found",
+				message: "Organization not found",
 			});
 		}
 
-		return activeOrganization;
+		return organization;
 	});
 
 	const currentOrigin = Effect.fn("billing.currentOrigin")(function* () {
@@ -39,10 +31,14 @@ export namespace BillingHandler {
 		return new URL((request.source as Request).url).origin;
 	});
 
-	const overview = Effect.fn("billing.overview")(function* () {
-		const activeOrganization = yield* getActiveOrganization();
+	const overview = Effect.fn("billing.overview")(function* ({
+		query,
+	}: {
+		query: { organizationId: string };
+	}) {
+		const organization = yield* getOrganization(query.organizationId);
 		const billing = yield* Billing.Service;
-		const state = yield* billing.getCustomerState(activeOrganization.id);
+		const state = yield* billing.getCustomerState(organization.id);
 		const activeSubscription = state.activeSubscriptions[0]
 			? {
 					currentPeriodEnd: state.activeSubscriptions[0].currentPeriodEnd,
@@ -53,13 +49,17 @@ export namespace BillingHandler {
 		return { activeSubscription };
 	});
 
-	const checkout = Effect.fn("billing.checkout")(function* () {
-		const activeOrganization = yield* getActiveOrganization();
+	const checkout = Effect.fn("billing.checkout")(function* ({
+		query,
+	}: {
+		query: { organizationId: string };
+	}) {
+		const organization = yield* getOrganization(query.organizationId);
 		const origin = yield* currentOrigin();
 		const billing = yield* Billing.Service;
-		const billingUrl = `${origin}/${activeOrganization.slug}/settings/billing`;
+		const billingUrl = `${origin}/${organization.slug}/settings/billing`;
 		const url = yield* billing.createCheckoutUrl({
-			organizationId: activeOrganization.id,
+			organizationId: organization.id,
 			successUrl: billingUrl,
 			returnUrl: billingUrl,
 		});
@@ -67,13 +67,17 @@ export namespace BillingHandler {
 		return { url };
 	});
 
-	const portal = Effect.fn("billing.portal")(function* () {
-		const activeOrganization = yield* getActiveOrganization();
+	const portal = Effect.fn("billing.portal")(function* ({
+		query,
+	}: {
+		query: { organizationId: string };
+	}) {
+		const organization = yield* getOrganization(query.organizationId);
 		const origin = yield* currentOrigin();
 		const billing = yield* Billing.Service;
 		const url = yield* billing.createPortalUrl({
-			organizationId: activeOrganization.id,
-			returnUrl: `${origin}/${activeOrganization.slug}/settings/billing`,
+			organizationId: organization.id,
+			returnUrl: `${origin}/${organization.slug}/settings/billing`,
 		});
 
 		return { url };
