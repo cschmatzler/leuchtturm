@@ -1,7 +1,6 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
-import { Content } from "@leuchtturm/web/components/app/layout";
 import { Link } from "@leuchtturm/web/components/ui/link";
 import { cn } from "@leuchtturm/web/lib/cn";
 
@@ -24,8 +23,8 @@ function SettingsLayout() {
 	const { t } = useTranslation();
 
 	return (
-		<>
-			<Content>
+		<div className="flex grow justify-center bg-background">
+			<div className="flex max-w-7xl grow flex-col gap-4 px-4 pt-4 pb-1 sm:px-6 sm:pt-6">
 				<div className="mx-auto w-full max-w-3xl">
 					<nav className="flex gap-1 border-b border-border">
 						{SETTINGS_TABS.map((tab) => (
@@ -46,7 +45,7 @@ function SettingsLayout() {
 						<Outlet />
 					</div>
 				</div>
-			</Content>
-		</>
+			</div>
+		</div>
 	);
 }

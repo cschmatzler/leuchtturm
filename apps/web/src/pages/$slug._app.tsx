@@ -196,13 +196,13 @@ function Shell() {
 						<Link
 							to="/$slug/settings"
 							params={{ slug }}
+							aria-label={t("Settings")}
 							className={cn(
-								"inline-flex h-9 items-center gap-2 rounded-md px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
+								"inline-flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
 								"data-[active]:bg-accent data-[active]:text-accent-foreground",
 							)}
 						>
 							<CogIcon className="size-4" />
-							<span>{t("Settings")}</span>
 						</Link>
 					</nav>
 					<div aria-hidden className="h-6 w-px shrink-0 bg-border" />
