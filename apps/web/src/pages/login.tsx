@@ -85,7 +85,7 @@ function Page() {
 								<form.Field
 									name="email"
 									validators={{
-										onChange: Schema.toStandardSchemaV1(User.fields.email),
+										onBlur: Schema.toStandardSchemaV1(User.fields.email),
 									}}
 								>
 									{(field) => (
@@ -110,7 +110,7 @@ function Page() {
 								<form.Field
 									name="password"
 									validators={{
-										onChange: Schema.toStandardSchemaV1(Password),
+										onBlur: Schema.toStandardSchemaV1(Password),
 									}}
 								>
 									{(field) => (
@@ -134,7 +134,7 @@ function Page() {
 												required
 											/>
 											{field.state.meta.errors.length > 0 && (
-												<FieldError>{t("Password must be more than 12 characters")}</FieldError>
+												<FieldError>{field.state.meta.errors[0]?.message}</FieldError>
 											)}
 										</Field>
 									)}

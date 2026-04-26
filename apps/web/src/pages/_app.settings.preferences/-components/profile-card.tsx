@@ -62,7 +62,7 @@ export function ProfileCard() {
 						<form.Field
 							name="name"
 							validators={{
-								onChange: Schema.toStandardSchemaV1(User.fields.name),
+								onBlur: Schema.toStandardSchemaV1(User.fields.name),
 							}}
 						>
 							{(field) => (

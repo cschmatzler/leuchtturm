@@ -45,7 +45,7 @@ export function ForgotPasswordForm() {
 				<form.Field
 					name="email"
 					validators={{
-						onChange: Schema.toStandardSchemaV1(User.fields.email),
+						onBlur: Schema.toStandardSchemaV1(User.fields.email),
 					}}
 				>
 					{(field) => (

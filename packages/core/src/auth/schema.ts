@@ -3,7 +3,7 @@ import { Effect, Schema, SchemaGetter } from "effect";
 import { Email, TrimmedNonEmptyString, Ulid } from "@leuchtturm/core/schema";
 
 export const Password = Schema.String.check(Schema.isMinLength(13)).annotate({
-	description: "Password must be more than 12 characters",
+	message: "Password must be more than 12 characters",
 });
 
 export const UserId = Schema.TemplateLiteral(["usr_", Ulid]).pipe(Schema.brand("UserId"));
@@ -20,9 +20,10 @@ export const InvitationId = Schema.TemplateLiteral(["inv_", Ulid]).pipe(
 
 export const OrganizationSlug = Schema.String.pipe(
 	Schema.decodeTo(
-		Schema.String.check(Schema.isPattern(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)).annotate({
-			description: "Slug must contain only lowercase letters, numbers, and dashes",
-		}),
+		Schema.String.check(Schema.isPattern(/^[a-z0-9]+(?:-[a-z0-9]+)*$/))
+			.annotate({ message: "Slug must contain only lowercase letters, numbers, and dashes" })
+			.check(Schema.isMinLength(4))
+			.annotate({ message: "Slug must be more than 3 characters" }),
 		{
 			decode: SchemaGetter.transform((value: string) => value.trim().toLowerCase()),
 			encode: SchemaGetter.transform((value: string) => value),
@@ -32,7 +33,7 @@ export const OrganizationSlug = Schema.String.pipe(
 
 export const User = Schema.Struct({
 	id: UserId,
-	name: TrimmedNonEmptyString.annotate({ description: "Name is required" }),
+	name: TrimmedNonEmptyString.annotate({ message: "Name is required" }),
 	email: Email,
 	image: Schema.optional(Schema.NullOr(Schema.String)),
 	language: Schema.optional(Schema.NullOr(Schema.String)),
@@ -91,7 +92,7 @@ export const Verification = Schema.Struct({
 
 export const Organization = Schema.Struct({
 	id: OrganizationId,
-	name: TrimmedNonEmptyString.annotate({ description: "Organization name is required" }),
+	name: TrimmedNonEmptyString.annotate({ message: "Organization name is required" }),
 	slug: OrganizationSlug,
 	logo: Schema.optional(Schema.NullOr(Schema.String)),
 	metadata: Schema.optional(Schema.NullOr(Schema.String)),

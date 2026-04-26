@@ -8,7 +8,9 @@ const NullableDate = Schema.NullOr(Schema.Date);
 const NullableEmail = Schema.NullOr(Email);
 const NullableOrganizationId = Schema.NullOr(OrganizationId);
 
-export const BillingCurrency = Schema.String.check(Schema.isPattern(/^[A-Z]{3}$/));
+export const BillingCurrency = Schema.String.check(Schema.isPattern(/^[A-Z]{3}$/)).annotate({
+	message: "Currency must be a three-letter uppercase code",
+});
 
 export const BillingSubscriptionStatus = Schema.Literals([
 	"incomplete",

@@ -62,7 +62,7 @@ function Page() {
 						...previous,
 						errorMap: {
 							...previous.errorMap,
-							onChange: { message: t("This slug is already in use.") },
+							onBlur: { message: t("This slug is already in use.") },
 						},
 					}));
 				}
@@ -143,7 +143,7 @@ function Page() {
 								<form.Field
 									name="name"
 									validators={{
-										onChange: Schema.toStandardSchemaV1(Organization.fields.name),
+										onBlur: Schema.toStandardSchemaV1(Organization.fields.name),
 									}}
 								>
 									{(field) => (
@@ -167,7 +167,7 @@ function Page() {
 								<form.Field
 									name="slug"
 									validators={{
-										onChange: Schema.toStandardSchemaV1(Organization.fields.slug),
+										onBlur: Schema.toStandardSchemaV1(Organization.fields.slug),
 									}}
 								>
 									{(field) => (
