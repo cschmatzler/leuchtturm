@@ -70,7 +70,7 @@ export class BillingSubscriptionReferenceMismatchError extends Schema.TaggedErro
 	{ httpApiStatus: 500 },
 ) {}
 
-export const BillingError = Schema.Union([
+export const Errors = [
 	BillingPolarRequestError,
 	BillingPersistenceError,
 	BillingInvalidSnapshotError,
@@ -80,7 +80,9 @@ export const BillingError = Schema.Union([
 	BillingSubscriptionOwnershipMismatchError,
 	BillingMissingSubscriptionSnapshotError,
 	BillingSubscriptionReferenceMismatchError,
-]);
+] as const;
+
+export const BillingError = Schema.Union(Errors);
 
 export type BillingErrorType =
 	| BillingPolarRequestError

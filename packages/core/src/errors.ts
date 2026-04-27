@@ -56,3 +56,12 @@ export class InternalServerError extends Schema.TaggedErrorClass<InternalServerE
 	{ message: Schema.String },
 	{ httpApiStatus: 500 },
 ) {}
+
+export const Errors = [
+	ValidationError,
+	UnauthorizedError,
+	ForbiddenError,
+	NotFoundError,
+	DatabaseError,
+	InternalServerError,
+] as const;
