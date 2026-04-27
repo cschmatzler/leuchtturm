@@ -2,19 +2,9 @@ import { Effect, Layer, ManagedRuntime, Context } from "effect";
 
 export const memoMap = Layer.makeMemoMapUnsafe();
 
-export function makeRuntime<R, S, E>(
-	service: Context.Service<R, S>,
-	layer: Layer.Layer<R, E>,
-	options?: {
-		memoize?: boolean;
-	},
-) {
+export function makeRuntime<R, S, E>(service: Context.Service<R, S>, layer: Layer.Layer<R, E>) {
 	let runtime: ManagedRuntime.ManagedRuntime<R, E> | undefined;
-	const getRuntime = () =>
-		(runtime ??=
-			options?.memoize === false
-				? ManagedRuntime.make(layer)
-				: ManagedRuntime.make(layer, { memoMap }));
+	const getRuntime = () => (runtime ??= ManagedRuntime.make(layer, { memoMap }));
 
 	return {
 		runSync: <A, Err>(fn: (service: S) => Effect.Effect<A, Err, R>) =>

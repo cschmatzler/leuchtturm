@@ -3,15 +3,6 @@ import { Schema } from "effect";
 import { OrganizationId } from "@leuchtturm/core/auth/schema";
 import { Email } from "@leuchtturm/core/schema";
 
-const NullableString = Schema.NullOr(Schema.String);
-const NullableDate = Schema.NullOr(Schema.Date);
-const NullableEmail = Schema.NullOr(Email);
-const NullableOrganizationId = Schema.NullOr(OrganizationId);
-
-const BillingCurrency = Schema.String.check(Schema.isPattern(/^[A-Z]{3}$/)).annotate({
-	message: "Currency must be a three-letter uppercase code",
-});
-
 const BillingSubscriptionStatus = Schema.Literals([
 	"incomplete",
 	"incomplete_expired",
@@ -42,14 +33,14 @@ const BillingOrderBillingReason = Schema.Literals([
 export const BillingCustomerSnapshot = Schema.Struct({
 	organizationId: OrganizationId,
 	polarCustomerId: Schema.String,
-	email: NullableEmail,
-	name: NullableString,
-	deletedAt: NullableDate,
+	email: Schema.NullOr(Email),
+	name: Schema.NullOr(Schema.String),
+	deletedAt: Schema.NullOr(Schema.Date),
 	activeSubscriptionsCount: Schema.Number,
 	hasActiveSubscription: Schema.Boolean,
 	snapshotJson: Schema.String,
 	remoteCreatedAt: Schema.Date,
-	remoteModifiedAt: NullableDate,
+	remoteModifiedAt: Schema.NullOr(Schema.Date),
 	syncedAt: Schema.Date,
 });
 
@@ -60,33 +51,33 @@ export const BillingSubscriptionSnapshot = Schema.Struct({
 	productId: Schema.String,
 	status: BillingSubscriptionStatus,
 	amount: Schema.Number,
-	currency: BillingCurrency,
+	currency: Schema.String,
 	recurringInterval: BillingRecurringInterval,
 	currentPeriodStart: Schema.Date,
 	currentPeriodEnd: Schema.Date,
-	trialStart: NullableDate,
-	trialEnd: NullableDate,
+	trialStart: Schema.NullOr(Schema.Date),
+	trialEnd: Schema.NullOr(Schema.Date),
 	cancelAtPeriodEnd: Schema.Boolean,
-	canceledAt: NullableDate,
-	startedAt: NullableDate,
-	endsAt: NullableDate,
-	endedAt: NullableDate,
+	canceledAt: Schema.NullOr(Schema.Date),
+	startedAt: Schema.NullOr(Schema.Date),
+	endsAt: Schema.NullOr(Schema.Date),
+	endedAt: Schema.NullOr(Schema.Date),
 	snapshotJson: Schema.String,
 	remoteCreatedAt: Schema.Date,
-	remoteModifiedAt: NullableDate,
+	remoteModifiedAt: Schema.NullOr(Schema.Date),
 	syncedAt: Schema.Date,
 });
 
 export const BillingOrderSnapshot = Schema.Struct({
 	id: Schema.String,
-	organizationId: NullableOrganizationId,
+	organizationId: Schema.NullOr(OrganizationId),
 	polarCustomerId: Schema.String,
-	productId: NullableString,
-	subscriptionId: NullableString,
+	productId: Schema.NullOr(Schema.String),
+	subscriptionId: Schema.NullOr(Schema.String),
 	status: BillingOrderStatus,
 	billingReason: BillingOrderBillingReason,
 	paid: Schema.Boolean,
-	currency: BillingCurrency,
+	currency: Schema.String,
 	subtotalAmount: Schema.Number,
 	discountAmount: Schema.Number,
 	netAmount: Schema.Number,
@@ -96,6 +87,6 @@ export const BillingOrderSnapshot = Schema.Struct({
 	dueAmount: Schema.Number,
 	snapshotJson: Schema.String,
 	remoteCreatedAt: Schema.Date,
-	remoteModifiedAt: NullableDate,
+	remoteModifiedAt: Schema.NullOr(Schema.Date),
 	syncedAt: Schema.Date,
 });

@@ -16,6 +16,28 @@ export const MemberId = Schema.TemplateLiteral(["mem_", Ulid]).pipe(Schema.brand
 
 export const TeamId = Schema.TemplateLiteral(["tea_", Ulid]).pipe(Schema.brand("TeamId"));
 
+export const Team = Schema.Struct({
+	id: TeamId,
+	name: Schema.String.pipe(
+		Schema.decodeTo(
+			Schema.String.check(Schema.isPattern(/^[A-Za-z0-9_-]+$/)).annotate({
+				message: "Team name must contain only ASCII letters, numbers, dashes, and underscores",
+			}),
+			{
+				decode: SchemaGetter.transform((value: string) => value.trim()),
+				encode: SchemaGetter.transform((value: string) => value),
+			},
+		),
+	),
+	slug: Schema.String.check(Schema.isPattern(/^[a-z0-9_-]+$/)).annotate({
+		message:
+			"Team slug must contain only lowercase ASCII letters, numbers, dashes, and underscores",
+	}),
+	organizationId: OrganizationId,
+	createdAt: Schema.Date,
+	updatedAt: Schema.Date,
+});
+
 export const TeamMemberId = Schema.TemplateLiteral(["tmb_", Ulid]).pipe(
 	Schema.brand("TeamMemberId"),
 );
@@ -83,28 +105,8 @@ export const Organization = Schema.Struct({
 
 export const DeviceSessions = Schema.Array(
 	Schema.Struct({
-		session: Schema.Struct({
-			id: Schema.String,
-			token: Schema.String,
-			ipAddress: Schema.optional(Schema.NullOr(Schema.String)),
-			userAgent: Schema.optional(Schema.NullOr(Schema.String)),
-			expiresAt: Schema.Date,
-			userId: Schema.String,
-			activeOrganizationId: Schema.optional(Schema.NullOr(Schema.String)),
-			activeTeamId: Schema.optional(Schema.NullOr(Schema.String)),
-			createdAt: Schema.Date,
-			updatedAt: Schema.Date,
-		}),
-		user: Schema.Struct({
-			id: Schema.String,
-			name: Schema.String,
-			email: Schema.String,
-			image: Schema.optional(Schema.NullOr(Schema.String)),
-			language: Schema.optional(Schema.NullOr(Schema.String)),
-			emailVerified: Schema.Boolean,
-			createdAt: Schema.Date,
-			updatedAt: Schema.Date,
-		}),
+		session: Session,
+		user: User,
 	}),
 );
 

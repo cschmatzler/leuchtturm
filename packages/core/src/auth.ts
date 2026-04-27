@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { multiSession, organization as organizationPlugin } from "better-auth/plugins";
+import { and, eq } from "drizzle-orm";
 import { Cause, Effect, Layer, Schema, Context } from "effect";
 import { Resource } from "sst";
 import { ulid } from "ulid";
@@ -11,7 +12,7 @@ import {
 	member,
 	organization,
 	session,
-	team,
+	team as teamTable,
 	teamMember,
 	user,
 	verification,
@@ -20,10 +21,13 @@ import {
 	AuthDeviceSessionsListError,
 	AuthError,
 	AuthInvalidOrganizationPayloadError,
+	AuthDuplicateTeamSlugError,
 	AuthInvalidSessionPayloadError,
+	AuthInvalidTeamPayloadError,
 	AuthOrganizationLookupError,
 	AuthPasswordResetEmailError,
 	AuthSessionLookupError,
+	AuthTeamLookupError,
 } from "@leuchtturm/core/auth/errors";
 import {
 	AccountId,
@@ -34,7 +38,7 @@ import {
 	Organization,
 	SessionData,
 	SessionId,
-	Slug,
+	Team,
 	TeamId,
 	TeamMemberId,
 	UserId,
@@ -44,37 +48,6 @@ import { Billing } from "@leuchtturm/core/billing";
 import { Database } from "@leuchtturm/core/drizzle";
 import { Email } from "@leuchtturm/core/email";
 import { sendPasswordResetEmail } from "@leuchtturm/email/password-reset";
-
-function slugify(value: string) {
-	const slug = value
-		.trim()
-		.toLowerCase()
-		.replace(/[^a-z0-9]+/g, "-")
-		.replace(/^-+|-+$/g, "");
-
-	if (!slug) return "team";
-	if (slug.length < 4) return `${slug}-team`;
-	return slug;
-}
-
-async function uniqueTeamSlug(
-	rawDatabase: Database.RawDatabase,
-	organizationId: string,
-	value: string,
-) {
-	const baseSlug = slugify(value);
-	const { rows } = await rawDatabase.$client.query<{ slug: string }>(
-		`select slug from "team" where organization_id = $1 and (slug = $2 or slug like $3)`,
-		[organizationId, baseSlug, `${baseSlug}-%`],
-	);
-	const existingSlugs = new Set(rows.map((row) => row.slug));
-	if (!existingSlugs.has(baseSlug)) return Schema.decodeSync(Slug)(baseSlug);
-
-	for (let suffix = 2; ; suffix++) {
-		const candidate = `${baseSlug}-${suffix}`;
-		if (!existingSlugs.has(candidate)) return Schema.decodeSync(Slug)(candidate);
-	}
-}
 
 export namespace Auth {
 	export interface Interface {
@@ -98,7 +71,7 @@ export namespace Auth {
 
 	export const layer = Layer.effect(Service)(
 		Effect.gen(function* () {
-			const { rawDatabase } = yield* Database.Service;
+			const { database, rawDatabase } = yield* Database.Service;
 			const billing = yield* Billing.Service;
 			const email = yield* Email.Service;
 
@@ -116,7 +89,7 @@ export namespace Auth {
 						organization,
 						member,
 						invitation,
-						team,
+						team: teamTable,
 						teamMember,
 					},
 				}),
@@ -185,16 +158,76 @@ export namespace Auth {
 							},
 						},
 						organizationHooks: {
-							beforeCreateTeam: async ({ team }) => ({
-								data: {
-									...team,
-									slug: await uniqueTeamSlug(
-										rawDatabase,
-										team.organizationId,
-										typeof team.slug === "string" ? team.slug : team.name,
-									),
-								},
-							}),
+							beforeCreateTeam: ({ team: teamData }) =>
+								Effect.runPromise(
+									Effect.gen(function* () {
+										const teamName = yield* Schema.decodeEffect(Team.fields.name)(
+											teamData.name,
+										).pipe(
+											Effect.catchCause((cause) =>
+												Effect.gen(function* () {
+													yield* Effect.annotateCurrentSpan({
+														"error.original_cause": Cause.pretty(cause),
+													});
+													return yield* new AuthInvalidTeamPayloadError({
+														message:
+															"Team name must contain only ASCII letters, numbers, dashes, and underscores",
+													});
+												}),
+											),
+										);
+										const organizationId = yield* Schema.decodeUnknownEffect(
+											Team.fields.organizationId,
+										)(teamData.organizationId).pipe(
+											Effect.catchCause((cause) =>
+												Effect.gen(function* () {
+													yield* Effect.annotateCurrentSpan({
+														"error.original_cause": Cause.pretty(cause),
+													});
+													return yield* new AuthInvalidTeamPayloadError({
+														message: "Invalid team organization id",
+													});
+												}),
+											),
+										);
+										const slug = teamName.toLowerCase();
+
+										const existingTeam = yield* database
+											.select({ id: teamTable.id })
+											.from(teamTable)
+											.where(
+												and(eq(teamTable.organizationId, organizationId), eq(teamTable.slug, slug)),
+											)
+											.limit(1)
+											.pipe(
+												Effect.catchCause((cause) =>
+													Effect.gen(function* () {
+														yield* Effect.annotateCurrentSpan({
+															"error.original_cause": Cause.pretty(cause),
+														});
+														return yield* new AuthTeamLookupError({
+															message: "Failed to look up team slug",
+														});
+													}),
+												),
+											);
+
+										if (existingTeam.length > 0) {
+											return yield* new AuthDuplicateTeamSlugError({
+												message: "Team slug already exists",
+											});
+										}
+
+										return {
+											data: {
+												...teamData,
+												name: teamName,
+												organizationId,
+												slug,
+											},
+										};
+									}),
+								),
 							afterCreateOrganization: ({ organization, user }) =>
 								Effect.runPromise(
 									billing.createCustomer({
@@ -331,7 +364,7 @@ export namespace Auth {
 			});
 
 			const getDeviceSessions = Effect.fn("Auth.getDeviceSessions")(function* (headers: Headers) {
-				return yield* Effect.tryPromise({
+				const deviceSessions = yield* Effect.tryPromise({
 					try: () => auth.api.listDeviceSessions({ headers }),
 					catch: (cause) => cause,
 				}).pipe(
@@ -340,6 +373,19 @@ export namespace Auth {
 							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
 							return yield* Effect.fail(
 								new AuthDeviceSessionsListError({ message: "Auth device session list failed" }),
+							);
+						}),
+					),
+				);
+
+				return yield* Schema.decodeUnknownEffect(DeviceSessions)(deviceSessions).pipe(
+					Effect.catchCause((cause) =>
+						Effect.gen(function* () {
+							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
+							return yield* Effect.fail(
+								new AuthInvalidSessionPayloadError({
+									message: "Invalid auth device sessions payload",
+								}),
 							);
 						}),
 					),
