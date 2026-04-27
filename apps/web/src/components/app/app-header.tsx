@@ -1,6 +1,6 @@
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQuery } from "@tanstack/react-query";
-import { getRouteApi, useNavigate } from "@tanstack/react-router";
+import { getRouteApi, useMatchRoute, useNavigate } from "@tanstack/react-router";
 import {
 	BuildingIcon,
 	ChevronDownIcon,
@@ -54,6 +54,7 @@ export function AppHeader({
 	readonly activeTeam?: AppHeaderTeam;
 }) {
 	const navigate = useNavigate();
+	const matchRoute = useMatchRoute();
 	const { organizationId } = slugRoute.useRouteContext();
 	const { t, i18n } = useTranslation();
 	const { signOutCurrent, signOutAll, setActiveSession } = useAuth();
@@ -64,6 +65,10 @@ export function AppHeader({
 	const { data: deviceSessions } = useQuery(deviceSessionsQuery());
 	const { data: organizations } = useQuery(organizationsQuery());
 	const currentOrganization = organizations?.find((organization) => organization.slug === slug);
+	const settingsActive = Boolean(
+		matchRoute({ to: "/$slug/settings", params: { slug }, fuzzy: true }) ||
+		matchRoute({ to: "/$slug/teams/$teamSlug/settings", fuzzy: true }),
+	);
 
 	useHotkey("Mod+K", () => commandBar.show(), { ignoreInputs: false });
 	useHotkey("Alt+Shift+Q", () => {
@@ -343,6 +348,7 @@ export function AppHeader({
 						to="/$slug/settings"
 						params={{ slug }}
 						aria-label={t("Settings")}
+						data-active={settingsActive ? true : undefined}
 						className={settingsLinkClassName}
 					>
 						<CogIcon className="size-4" />
