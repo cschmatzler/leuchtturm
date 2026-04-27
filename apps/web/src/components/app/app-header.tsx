@@ -1,6 +1,6 @@
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
+import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import {
 	BuildingIcon,
 	ChevronDownIcon,
@@ -44,18 +44,17 @@ type AppHeaderTeam = {
 	readonly slug: string;
 };
 
+const slugRoute = getRouteApi("/$slug");
+
 export function AppHeader({
 	slug,
-	organizationId,
 	activeTeam,
-	teamSlug,
 }: {
 	readonly slug: string;
-	readonly organizationId: string;
 	readonly activeTeam?: AppHeaderTeam;
-	readonly teamSlug?: string;
 }) {
 	const navigate = useNavigate();
+	const { organizationId } = slugRoute.useRouteContext();
 	const { t, i18n } = useTranslation();
 	const { signOutCurrent, signOutAll, setActiveSession } = useAuth();
 	const commandBar = useCommandBar();
@@ -214,7 +213,7 @@ export function AppHeader({
 					navigate({ to: "/$slug/settings", params: { slug } });
 				},
 			},
-			...(teamSlug
+			...(activeTeam
 				? [
 						{
 							title: t("Go to Team settings"),
@@ -224,14 +223,14 @@ export function AppHeader({
 							run() {
 								navigate({
 									to: "/$slug/teams/$teamSlug/settings/general",
-									params: { slug, teamSlug },
+									params: { slug, teamSlug: activeTeam.slug },
 								});
 							},
 						},
 					]
 				: []),
 		],
-		[navigate, slug, t, teamSlug],
+		[activeTeam, navigate, slug, t],
 	);
 
 	useEffect(() => {

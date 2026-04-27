@@ -20,6 +20,9 @@ import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { queries } from "@leuchtturm/zero/queries";
 
 export const Route = createFileRoute("/$slug/teams/$teamSlug/settings/general")({
+	loader: ({ context: { organizationId, zero }, params: { teamSlug } }) => {
+		zero.preload(queries.team({ organizationId, teamSlug }));
+	},
 	component: Page,
 });
 

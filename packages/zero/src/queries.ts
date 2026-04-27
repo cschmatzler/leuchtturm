@@ -61,4 +61,19 @@ export const queries = defineQueries({
 	teamMembers: defineQuery(teamIdArgs, ({ args }) =>
 		zql.team_member.where("teamId", args.teamId).related("user"),
 	),
+
+	teamMembersByTeam: defineQuery(
+		Schema.toStandardSchemaV1(
+			Schema.Struct({
+				organizationId: Schema.String,
+				teamSlug: Schema.String,
+			}),
+		),
+		({ args }) =>
+			zql.team_member
+				.whereExists("team", (query) =>
+					query.where("organizationId", args.organizationId).where("slug", args.teamSlug),
+				)
+				.related("user"),
+	),
 });

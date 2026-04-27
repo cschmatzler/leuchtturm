@@ -1,10 +1,21 @@
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute } from "@tanstack/react-router";
 import { Loader2Icon, PlusIcon, SettingsIcon, Trash2Icon } from "lucide-react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { authClient } from "@leuchtturm/web/clients/auth";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "@leuchtturm/web/components/ui/alert-dialog";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import {
 	Card,
@@ -21,6 +32,9 @@ import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { queries } from "@leuchtturm/zero/queries";
 
 export const Route = createFileRoute("/$slug/settings/teams")({
+	loader: ({ context: { organizationId, zero } }) => {
+		zero.preload(queries.organizationTeams({ organizationId }));
+	},
 	component: Page,
 });
 
@@ -29,6 +43,8 @@ function Page() {
 	const { organizationId, session } = Route.useRouteContext();
 	const { t } = useTranslation();
 	const [teams] = useZeroQuery(queries.organizationTeams({ organizationId }));
+	const [teamPendingDeletion, setTeamPendingDeletion] = useState<string>();
+	const [isDeletingTeam, setIsDeletingTeam] = useState(false);
 
 	const form = useForm({
 		defaultValues: {
@@ -42,23 +58,34 @@ function Page() {
 				slug: name,
 				organizationId,
 			});
-			if (error) throw error;
+			if (error) {
+				toast.error(error.message);
+				return;
+			}
 			const userId = session.user.id;
 			const { error: addMemberError } = await authClient.organization.addTeamMember({
 				teamId: data.id,
 				userId,
 				organizationId,
 			});
-			if (addMemberError) throw addMemberError;
+			if (addMemberError) {
+				toast.error(addMemberError.message);
+				return;
+			}
 			form.reset();
 			toast.success(t("Team created"));
 		},
 	});
 
 	const removeTeam = async (teamId: string) => {
-		if (!window.confirm(t("Delete this team?"))) return;
+		setIsDeletingTeam(true);
 		const { error } = await authClient.organization.removeTeam({ teamId, organizationId });
-		if (error) throw error;
+		setIsDeletingTeam(false);
+		if (error) {
+			toast.error(error.message);
+			return;
+		}
+		setTeamPendingDeletion(undefined);
 		toast.success(t("Team deleted"));
 	};
 
@@ -117,7 +144,6 @@ function Page() {
 					</FieldGroup>
 				</form>
 			</Card>
-
 			<Card className="gap-0 overflow-hidden p-0">
 				<CardHeader className="px-6 py-5">
 					<CardTitle className="text-base">{t("Teams")}</CardTitle>
@@ -125,38 +151,68 @@ function Page() {
 				</CardHeader>
 				<CardContent className="border-t border-border p-0">
 					{teams.length ? (
-						<ul className="divide-y divide-border">
-							{teams.map((team) => (
-								<li key={team.id} className="flex items-center justify-between gap-4 px-6 py-4">
-									<div>
-										<p className="text-sm font-medium">{team.name}</p>
-									</div>
-									<div className="flex items-center gap-2">
-										<Button
-											variant="outline"
-											size="sm"
-											render={
-												<Link
-													to="/$slug/teams/$teamSlug/settings/general"
-													params={{ slug, teamSlug: team.slug }}
-												/>
-											}
-										>
-											<SettingsIcon className="size-4" />
-											{t("Settings")}
-										</Button>
-										<Button
+						<>
+							<ul className="divide-y divide-border">
+								{teams.map((team) => (
+									<li key={team.id} className="flex items-center justify-between gap-4 px-6 py-4">
+										<div>
+											<p className="text-sm font-medium">{team.name}</p>
+										</div>
+										<div className="flex items-center gap-2">
+											<Button
+												variant="outline"
+												size="sm"
+												render={
+													<Link
+														to="/$slug/teams/$teamSlug/settings/general"
+														params={{ slug, teamSlug: team.slug }}
+													/>
+												}
+											>
+												<SettingsIcon className="size-4" />
+												{t("Settings")}
+											</Button>
+											<Button
+												variant="destructive"
+												size="sm"
+												onClick={() => setTeamPendingDeletion(team.id)}
+											>
+												<Trash2Icon className="size-4" />
+												{t("Delete")}
+											</Button>
+										</div>
+									</li>
+								))}
+							</ul>
+							<AlertDialog
+								open={teamPendingDeletion !== undefined}
+								onOpenChange={(open) => {
+									if (!open) setTeamPendingDeletion(undefined);
+								}}
+							>
+								<AlertDialogContent>
+									<AlertDialogHeader>
+										<AlertDialogTitle>{t("Delete this team?")}</AlertDialogTitle>
+										<AlertDialogDescription>
+											{t("This action cannot be undone.")}
+										</AlertDialogDescription>
+									</AlertDialogHeader>
+									<AlertDialogFooter>
+										<AlertDialogCancel disabled={isDeletingTeam}>{t("Cancel")}</AlertDialogCancel>
+										<AlertDialogAction
 											variant="destructive"
-											size="sm"
-											onClick={() => void removeTeam(team.id)}
+											disabled={isDeletingTeam || teamPendingDeletion === undefined}
+											onClick={() => {
+												if (teamPendingDeletion) void removeTeam(teamPendingDeletion);
+											}}
 										>
-											<Trash2Icon className="size-4" />
+											{isDeletingTeam ? <Loader2Icon className="size-4 animate-spin" /> : null}
 											{t("Delete")}
-										</Button>
-									</div>
-								</li>
-							))}
-						</ul>
+										</AlertDialogAction>
+									</AlertDialogFooter>
+								</AlertDialogContent>
+							</AlertDialog>
+						</>
 					) : (
 						<div className="px-6 py-10 text-center text-sm text-muted-foreground">
 							{t("Create your first team to start working in this organization.")}

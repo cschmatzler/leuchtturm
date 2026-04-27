@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { getRouteApi } from "@tanstack/react-router";
 import { ChevronRightIcon, CreditCardIcon, LayersIcon, SettingsIcon, UserIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -26,16 +27,17 @@ import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { organizationsQuery } from "@leuchtturm/web/queries/organizations";
 import { queries } from "@leuchtturm/zero/queries";
 
+const slugRoute = getRouteApi("/$slug");
+
 export function SettingsSidebar({
 	slug,
-	organizationId,
 	teamSlug,
 }: {
 	readonly slug: string;
-	readonly organizationId: string;
 	readonly teamSlug?: string;
 }) {
 	const { t } = useTranslation();
+	const { organizationId } = slugRoute.useRouteContext();
 	const [teams] = useZeroQuery(queries.organizationTeams({ organizationId }));
 	const { data: organizations } = useQuery(organizationsQuery());
 	const currentOrganization = organizations?.find((org) => org.slug === slug);

@@ -1,8 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { ProfileCard } from "@leuchtturm/web/pages/$slug.settings/-components/profile-card";
+import { queries } from "@leuchtturm/zero/queries";
 
 export const Route = createFileRoute("/$slug/settings/profile")({
+	loader: ({ context: { zero } }) => {
+		zero.preload(queries.currentUser());
+	},
 	component: Page,
 });
 

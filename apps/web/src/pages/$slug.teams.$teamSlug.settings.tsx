@@ -2,18 +2,22 @@ import { createFileRoute, Outlet } from "@tanstack/react-router";
 
 import { SettingsSidebar } from "@leuchtturm/web/components/app/settings-sidebar";
 import { SidebarInset, SidebarProvider } from "@leuchtturm/web/components/ui/sidebar";
+import { queries } from "@leuchtturm/zero/queries";
 
 export const Route = createFileRoute("/$slug/teams/$teamSlug/settings")({
+	loader: ({ context: { organizationId, zero }, params: { teamSlug } }) => {
+		zero.preload(queries.organizationTeams({ organizationId }));
+		zero.preload(queries.team({ organizationId, teamSlug }));
+	},
 	component: SettingsLayout,
 });
 
 function SettingsLayout() {
 	const { slug, teamSlug } = Route.useParams();
-	const { organizationId } = Route.useRouteContext();
 
 	return (
 		<SidebarProvider className="relative h-full min-h-0">
-			<SettingsSidebar slug={slug} organizationId={organizationId} teamSlug={teamSlug} />
+			<SettingsSidebar slug={slug} teamSlug={teamSlug} />
 			<SidebarInset className="bg-background">
 				<div className="flex max-w-7xl grow flex-col px-4 pt-4 pb-1 sm:px-6 sm:pt-6">
 					<Outlet />

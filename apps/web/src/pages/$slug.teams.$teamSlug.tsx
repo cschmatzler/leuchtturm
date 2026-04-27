@@ -15,12 +15,7 @@ function Layout() {
 
 	return (
 		<div className="flex h-svh flex-col">
-			<AppHeader
-				slug={slug}
-				organizationId={organizationId}
-				activeTeam={team ?? undefined}
-				teamSlug={teamSlug}
-			/>
+			<AppHeader slug={slug} activeTeam={team ?? undefined} />
 			<main id="main-content" className="min-h-0 grow bg-background">
 				<Outlet />
 			</main>
