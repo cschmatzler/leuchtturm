@@ -34,8 +34,8 @@ export const Route = createFileRoute("/$slug")({
 });
 
 function Layout() {
-	const { session } = Route.useRouteContext();
 	const { slug } = Route.useParams();
+	const { session } = Route.useRouteContext();
 
 	return (
 		<ZeroProvider session={session} slug={slug}>

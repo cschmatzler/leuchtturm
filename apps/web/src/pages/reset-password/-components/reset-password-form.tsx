@@ -11,8 +11,8 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "@leuchtturm/web/compo
 import { Input } from "@leuchtturm/web/components/ui/input";
 
 export function ResetPasswordForm() {
-	const navigate = useNavigate();
 	const { token } = useSearch({ from: "/reset-password" });
+	const navigate = useNavigate();
 	const { t } = useTranslation();
 
 	const form = useForm({

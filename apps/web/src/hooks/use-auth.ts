@@ -76,6 +76,8 @@ export function useAuth() {
 	};
 
 	return {
+		session,
+		deviceSessions,
 		signOutCurrent,
 		signOutAll,
 		setActiveSession,

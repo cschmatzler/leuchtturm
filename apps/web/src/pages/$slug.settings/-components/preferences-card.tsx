@@ -41,10 +41,11 @@ const LANGUAGE_ITEMS = SupportedLanguage.literals.map((value) => ({
 }));
 
 export function PreferencesCard() {
+	const [currentUser] = useZeroQuery(queries.currentUser());
+
 	const zero = useZero();
 	const { i18n, t } = useTranslation();
 
-	const [currentUser] = useZeroQuery(queries.currentUser());
 	const currentLanguage = resolveLanguage(currentUser?.language, DEFAULT_LANGUAGE);
 
 	const form = useForm({

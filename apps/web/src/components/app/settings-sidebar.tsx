@@ -37,10 +37,12 @@ export function SettingsSidebar({
 	readonly slug: string;
 	readonly teamSlug?: string;
 }) {
-	const { t } = useTranslation();
 	const { organizationId } = slugRoute.useRouteContext();
 	const [teams] = useZeroQuery(queries.organizationTeams({ organizationId }));
 	const { data: organizations } = useQuery(organizationsQuery());
+
+	const { t } = useTranslation();
+
 	const currentOrganization = organizations?.find((org) => org.slug === slug);
 
 	return (

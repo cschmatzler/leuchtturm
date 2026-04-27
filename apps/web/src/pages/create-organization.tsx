@@ -21,8 +21,6 @@ import {
 	MenuTrigger,
 } from "@leuchtturm/web/components/ui/menu";
 import { useAuth } from "@leuchtturm/web/hooks/use-auth";
-import { useReactQuery } from "@leuchtturm/web/lib/query";
-import { deviceSessionsQuery } from "@leuchtturm/web/queries/device-sessions";
 import { organizationsQuery } from "@leuchtturm/web/queries/organizations";
 import { sessionQuery } from "@leuchtturm/web/queries/session";
 
@@ -41,8 +39,7 @@ function Page() {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 	const { t } = useTranslation();
-	const { setActiveSession, signOutCurrent } = useAuth();
-	const { data: deviceSessions } = useReactQuery(deviceSessionsQuery());
+	const { deviceSessions, setActiveSession, signOutCurrent } = useAuth();
 	const [accountMenuOpen, setAccountMenuOpen] = useState(false);
 
 	const form = useForm({

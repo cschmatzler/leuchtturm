@@ -33,9 +33,7 @@ import { useCommandBar } from "@leuchtturm/web/hooks/use-command-bar";
 import { useCommandProvider } from "@leuchtturm/web/hooks/use-command-provider";
 import { cn } from "@leuchtturm/web/lib/cn";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
-import { deviceSessionsQuery } from "@leuchtturm/web/queries/device-sessions";
 import { organizationsQuery } from "@leuchtturm/web/queries/organizations";
-import { sessionQuery } from "@leuchtturm/web/queries/session";
 import { queries } from "@leuchtturm/zero/queries";
 
 type AppHeaderTeam = {
@@ -53,17 +51,16 @@ export function AppHeader({
 	readonly slug: string;
 	readonly activeTeam?: AppHeaderTeam;
 }) {
-	const navigate = useNavigate();
-	const matchRoute = useMatchRoute();
 	const { organizationId } = slugRoute.useRouteContext();
-	const { t, i18n } = useTranslation();
-	const { signOutCurrent, signOutAll, setActiveSession } = useAuth();
-	const commandBar = useCommandBar();
 	const [currentUser] = useZeroQuery(queries.currentUser());
 	const [teams] = useZeroQuery(queries.organizationTeams({ organizationId }));
-	const { data: session } = useQuery(sessionQuery());
-	const { data: deviceSessions } = useQuery(deviceSessionsQuery());
 	const { data: organizations } = useQuery(organizationsQuery());
+
+	const navigate = useNavigate();
+	const matchRoute = useMatchRoute();
+	const { t, i18n } = useTranslation();
+	const { session, deviceSessions, signOutCurrent, signOutAll, setActiveSession } = useAuth();
+	const commandBar = useCommandBar();
 	const currentOrganization = organizations?.find((organization) => organization.slug === slug);
 	const settingsActive = Boolean(
 		matchRoute({ to: "/$slug/settings", params: { slug }, fuzzy: true }) ||

@@ -26,10 +26,10 @@ import { mutators } from "@leuchtturm/zero/mutators";
 import { queries } from "@leuchtturm/zero/queries";
 
 export function ProfileCard() {
+	const [currentUser] = useZeroQuery(queries.currentUser());
+
 	const zero = useZero();
 	const { t } = useTranslation();
-
-	const [currentUser] = useZeroQuery(queries.currentUser());
 
 	const form = useForm({
 		defaultValues: {
