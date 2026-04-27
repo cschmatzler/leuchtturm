@@ -1,7 +1,7 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { multiSession, organization as organizationPlugin } from "better-auth/plugins";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, ne, sql } from "drizzle-orm";
 import { Cause, Effect, Layer, Schema, Context } from "effect";
 import { Resource } from "sst";
 import { ulid } from "ulid";
@@ -230,6 +230,67 @@ export namespace Auth {
 												...team,
 												name: teamName,
 												organizationId: organization.id,
+												slug: teamName.toLowerCase(),
+											},
+										};
+									}),
+								),
+							beforeUpdateTeam: ({ team, updates, organization }) =>
+								Effect.runPromise(
+									Effect.gen(function* () {
+										if (updates.name === undefined) {
+											return { data: updates };
+										}
+
+										const teamName = yield* Schema.decodeEffect(Team.fields.name)(
+											updates.name,
+										).pipe(
+											Effect.catchCause((cause) =>
+												Effect.gen(function* () {
+													yield* Effect.annotateCurrentSpan({
+														"error.original_cause": Cause.pretty(cause),
+													});
+													return yield* new AuthInvalidTeamPayloadError({
+														message:
+															"Team name must contain only ASCII letters, numbers, dashes, and underscores",
+													});
+												}),
+											),
+										);
+										const existingTeam = yield* database
+											.select({ id: teamTable.id })
+											.from(teamTable)
+											.where(
+												and(
+													eq(teamTable.organizationId, organization.id),
+													ne(teamTable.id, team.id),
+													eq(sql<string>`lower(${teamTable.name})`, teamName.toLowerCase()),
+												),
+											)
+											.limit(1)
+											.pipe(
+												Effect.catchCause((cause) =>
+													Effect.gen(function* () {
+														yield* Effect.annotateCurrentSpan({
+															"error.original_cause": Cause.pretty(cause),
+														});
+														return yield* new AuthTeamLookupError({
+															message: "Failed to look up team name",
+														});
+													}),
+												),
+											);
+
+										if (existingTeam.length > 0) {
+											return yield* new AuthDuplicateTeamNameError({
+												message: "Team name already exists",
+											});
+										}
+
+										return {
+											data: {
+												...updates,
+												name: teamName,
 												slug: teamName.toLowerCase(),
 											},
 										};

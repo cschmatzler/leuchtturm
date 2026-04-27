@@ -1,6 +1,7 @@
 import { useForm } from "@tanstack/react-form";
 import { Link } from "@tanstack/react-router";
 import { Schema } from "effect";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
@@ -12,17 +13,19 @@ import { Input } from "@leuchtturm/web/components/ui/input";
 
 export function ForgotPasswordForm() {
 	const { t } = useTranslation();
+	const [submitError, setSubmitError] = useState<string>();
 
 	const form = useForm({
 		defaultValues: { email: "" },
 		onSubmit: async ({ value }) => {
+			setSubmitError(undefined);
 			const { error } = await authClient.requestPasswordReset({
 				email: Schema.decodeSync(User.fields.email)(value.email),
 				redirectTo: `${window.location.origin}/reset-password`,
 			});
 
 			if (error) {
-				toast.error(error.message);
+				setSubmitError(error.message);
 				return;
 			}
 
@@ -58,7 +61,10 @@ export function ForgotPasswordForm() {
 								placeholder="m@example.com"
 								value={field.state.value}
 								onBlur={field.handleBlur}
-								onInput={(e) => field.handleChange(e.currentTarget.value)}
+								onInput={(e) => {
+									setSubmitError(undefined);
+									field.handleChange(e.currentTarget.value);
+								}}
 								required
 							/>
 							{field.state.meta.errors.length > 0 && (
@@ -67,6 +73,7 @@ export function ForgotPasswordForm() {
 						</Field>
 					)}
 				</form.Field>
+				{submitError ? <FieldError>{submitError}</FieldError> : null}
 				<form.Subscribe selector={(state) => [state.canSubmit]}>
 					{([canSubmit]) => (
 						<Button type="submit" className="w-full" disabled={!canSubmit}>

@@ -1,9 +1,11 @@
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Schema } from "effect";
 import { Loader2Icon, Trash2Icon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
+import { Team } from "@leuchtturm/core/auth/schema";
 import { authClient } from "@leuchtturm/web/clients/auth";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import {
@@ -44,7 +46,26 @@ function Page() {
 				teamId: team.id,
 				data: { name, organizationId },
 			});
-			if (error) throw error;
+			if (error) {
+				if (
+					error.code === "AuthDuplicateTeamNameError" ||
+					error.code === "AuthInvalidTeamPayloadError" ||
+					error.message === "Team name already exists" ||
+					error.message ===
+						"Team name must contain only ASCII letters, numbers, dashes, and underscores"
+				) {
+					form.setFieldMeta("name", (previous) => ({
+						...previous,
+						errorMap: {
+							...previous.errorMap,
+							onSubmit: { message: error.message },
+						},
+					}));
+					return;
+				}
+				toast.error(error.message);
+				return;
+			}
 			toast.success(t("Team updated"));
 		},
 	});
@@ -56,7 +77,10 @@ function Page() {
 			teamId: team.id,
 			organizationId,
 		});
-		if (error) throw error;
+		if (error) {
+			toast.error(error.message);
+			return;
+		}
 		toast.success(t("Team deleted"));
 		await navigate({ to: "/$slug/settings/teams", params: { slug } });
 	};
@@ -74,8 +98,7 @@ function Page() {
 							<form.Field
 								name="name"
 								validators={{
-									onBlur: ({ value }) =>
-										value.trim().length === 0 ? t("Team name is required") : undefined,
+									onBlur: Schema.toStandardSchemaV1(Team.fields.name),
 								}}
 							>
 								{(field) => (
@@ -87,11 +110,22 @@ function Page() {
 												name={field.name}
 												value={field.state.value}
 												onBlur={field.handleBlur}
-												onInput={(event) => field.handleChange(event.currentTarget.value)}
+												onInput={(event) => {
+													form.setFieldMeta("name", (previous) => ({
+														...previous,
+														errorMap: {
+															...previous.errorMap,
+															onSubmit: undefined,
+														},
+													}));
+													field.handleChange(event.currentTarget.value);
+												}}
 												className="max-w-sm"
 											/>
 											{field.state.meta.errors.length > 0 && (
-												<FieldError className="mt-2">{field.state.meta.errors[0]}</FieldError>
+												<FieldError className="mt-2">
+													{field.state.meta.errors[0]?.message}
+												</FieldError>
 											)}
 										</div>
 									</div>

@@ -1,6 +1,7 @@
 import { useForm } from "@tanstack/react-form";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { Schema } from "effect";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
@@ -14,19 +15,31 @@ export function ResetPasswordForm() {
 	const { token } = useSearch({ from: "/reset-password" });
 	const navigate = useNavigate();
 	const { t } = useTranslation();
+	const [submitError, setSubmitError] = useState<string>();
 
 	const form = useForm({
 		defaultValues: {
 			password: "",
 		},
 		onSubmit: async ({ value }) => {
+			setSubmitError(undefined);
 			const { error } = await authClient.resetPassword({
 				token,
 				newPassword: Schema.decodeSync(Password)(value.password),
 			});
 
 			if (error) {
-				toast.error(error.message);
+				if (error.code === "INVALID_PASSWORD") {
+					form.setFieldMeta("password", (previous) => ({
+						...previous,
+						errorMap: {
+							...previous.errorMap,
+							onSubmit: { message: error.message },
+						},
+					}));
+					return;
+				}
+				setSubmitError(error.message);
 				return;
 			}
 
@@ -63,7 +76,17 @@ export function ResetPasswordForm() {
 								type="password"
 								value={field.state.value}
 								onBlur={field.handleBlur}
-								onInput={(e) => field.handleChange(e.currentTarget.value)}
+								onInput={(e) => {
+									form.setFieldMeta("password", (previous) => ({
+										...previous,
+										errorMap: {
+											...previous.errorMap,
+											onSubmit: undefined,
+										},
+									}));
+									setSubmitError(undefined);
+									field.handleChange(e.currentTarget.value);
+								}}
 								required
 							/>
 							{field.state.meta.errors.length > 0 && (
@@ -72,6 +95,7 @@ export function ResetPasswordForm() {
 						</Field>
 					)}
 				</form.Field>
+				{submitError ? <FieldError>{submitError}</FieldError> : null}
 
 				<form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
 					{([canSubmit, isSubmitting]) => (

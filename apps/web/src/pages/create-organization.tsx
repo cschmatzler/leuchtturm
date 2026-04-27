@@ -41,6 +41,7 @@ function Page() {
 	const { t } = useTranslation();
 	const { deviceSessions, setActiveSession, signOutCurrent } = useAuth();
 	const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+	const [submitError, setSubmitError] = useState<string>();
 
 	const form = useForm({
 		defaultValues: {
@@ -48,21 +49,27 @@ function Page() {
 			slug: "",
 		},
 		onSubmit: async ({ value }) => {
+			setSubmitError(undefined);
 			const organization = Schema.decodeSync(
 				Organization.mapFields(({ name, slug }) => ({ name, slug })),
 			)(value);
 			const { data, error } = await authClient.organization.create(organization);
 
 			if (error) {
-				if (error.code === "ORGANIZATION_ALREADY_EXISTS") {
+				if (
+					error.code === "ORGANIZATION_ALREADY_EXISTS" ||
+					error.code === "ORGANIZATION_SLUG_ALREADY_TAKEN"
+				) {
 					form.setFieldMeta("slug", (previous) => ({
 						...previous,
 						errorMap: {
 							...previous.errorMap,
-							onBlur: { message: t("This slug is already in use.") },
+							onSubmit: { message: t("This slug is already in use.") },
 						},
 					}));
+					return;
 				}
+				setSubmitError(error.message);
 				return;
 			}
 
@@ -152,7 +159,10 @@ function Page() {
 												placeholder={t("Acme")}
 												value={field.state.value}
 												onBlur={field.handleBlur}
-												onInput={(event) => field.handleChange(event.currentTarget.value)}
+												onInput={(event) => {
+													setSubmitError(undefined);
+													field.handleChange(event.currentTarget.value);
+												}}
 												required
 											/>
 											{field.state.meta.errors.length > 0 && (
@@ -176,7 +186,17 @@ function Page() {
 												placeholder="acme"
 												value={field.state.value}
 												onBlur={field.handleBlur}
-												onInput={(event) => field.handleChange(event.currentTarget.value)}
+												onInput={(event) => {
+													form.setFieldMeta("slug", (previous) => ({
+														...previous,
+														errorMap: {
+															...previous.errorMap,
+															onSubmit: undefined,
+														},
+													}));
+													setSubmitError(undefined);
+													field.handleChange(event.currentTarget.value);
+												}}
 												required
 											/>
 											{field.state.meta.errors.length > 0 && (
@@ -185,6 +205,7 @@ function Page() {
 										</Field>
 									)}
 								</form.Field>
+								{submitError ? <FieldError>{submitError}</FieldError> : null}
 								<form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
 									{([canSubmit, isSubmitting]) => (
 										<Button type="submit" className="w-full" disabled={!canSubmit || isSubmitting}>

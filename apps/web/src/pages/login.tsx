@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Schema } from "effect";
 import { SparklesIcon } from "lucide-react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
@@ -23,6 +24,7 @@ function Page() {
 	const { t } = useTranslation();
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
+	const [submitError, setSubmitError] = useState<string>();
 
 	const form = useForm({
 		defaultValues: {
@@ -30,6 +32,7 @@ function Page() {
 			password: "",
 		},
 		onSubmit: async ({ value }) => {
+			setSubmitError(undefined);
 			await authClient.signIn.email(
 				{
 					email: Schema.decodeSync(User.fields.email)(value.email),
@@ -51,7 +54,7 @@ function Page() {
 					},
 					onError: (ctx) => {
 						toast.dismiss();
-						toast.error(ctx.error.message);
+						setSubmitError(ctx.error.message);
 					},
 				},
 			);
@@ -98,7 +101,10 @@ function Page() {
 												placeholder="m@example.com"
 												value={field.state.value}
 												onBlur={field.handleBlur}
-												onInput={(e) => field.handleChange(e.currentTarget.value)}
+												onInput={(e) => {
+													setSubmitError(undefined);
+													field.handleChange(e.currentTarget.value);
+												}}
 												required
 											/>
 											{field.state.meta.errors.length > 0 && (
@@ -130,7 +136,10 @@ function Page() {
 												type="password"
 												value={field.state.value}
 												onBlur={field.handleBlur}
-												onInput={(e) => field.handleChange(e.currentTarget.value)}
+												onInput={(e) => {
+													setSubmitError(undefined);
+													field.handleChange(e.currentTarget.value);
+												}}
 												required
 											/>
 											{field.state.meta.errors.length > 0 && (
@@ -139,6 +148,7 @@ function Page() {
 										</Field>
 									)}
 								</form.Field>
+								{submitError ? <FieldError>{submitError}</FieldError> : null}
 								<form.Subscribe selector={(state) => [state.canSubmit]}>
 									{([canSubmit]) => (
 										<Button type="submit" className="w-full" disabled={!canSubmit}>

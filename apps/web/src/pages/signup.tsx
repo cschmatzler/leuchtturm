@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Schema } from "effect";
 import { SparklesIcon } from "lucide-react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
@@ -23,10 +24,12 @@ function Page() {
 	const navigate = useNavigate();
 	const { t } = useTranslation();
 	const queryClient = useQueryClient();
+	const [submitError, setSubmitError] = useState<string>();
 
 	const form = useForm({
 		defaultValues: { name: "", email: "", password: "" },
 		onSubmit: async ({ value }) => {
+			setSubmitError(undefined);
 			const user = Schema.decodeSync(User.mapFields(({ name, email }) => ({ name, email })))(value);
 			await authClient.signUp.email(
 				{
@@ -49,7 +52,20 @@ function Page() {
 					},
 					onError: (ctx) => {
 						toast.dismiss();
-						toast.error(ctx.error.message);
+						if (
+							ctx.error.code === "USER_ALREADY_EXISTS" ||
+							ctx.error.code === "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL"
+						) {
+							form.setFieldMeta("email", (previous) => ({
+								...previous,
+								errorMap: {
+									...previous.errorMap,
+									onSubmit: { message: t("An account with this email already exists.") },
+								},
+							}));
+							return;
+						}
+						setSubmitError(ctx.error.message);
 					},
 				},
 			);
@@ -123,7 +139,17 @@ function Page() {
 												placeholder="m@example.com"
 												value={field.state.value}
 												onBlur={field.handleBlur}
-												onInput={(e) => field.handleChange(e.currentTarget.value)}
+												onInput={(e) => {
+													form.setFieldMeta("email", (previous) => ({
+														...previous,
+														errorMap: {
+															...previous.errorMap,
+															onSubmit: undefined,
+														},
+													}));
+													setSubmitError(undefined);
+													field.handleChange(e.currentTarget.value);
+												}}
 												required
 											/>
 											{field.state.meta.errors.length > 0 && (
@@ -156,6 +182,7 @@ function Page() {
 										</Field>
 									)}
 								</form.Field>
+								{submitError ? <FieldError>{submitError}</FieldError> : null}
 								<form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
 									{([canSubmit]) => (
 										<Button type="submit" className="w-full" disabled={!canSubmit}>
