@@ -173,7 +173,7 @@ export namespace Billing {
 				values: { organizationId: string; state: CustomerState },
 			): TransactionEffect<void> =>
 				Effect.gen(function* () {
-					const customerSnapshot = yield* Schema.decodeUnknownEffect(BillingCustomerSnapshot)({
+					yield* Schema.decodeUnknownEffect(BillingCustomerSnapshot)({
 						organizationId: values.organizationId,
 						polarCustomerId: values.state.id,
 						email: values.state.email ?? null,
@@ -197,12 +197,13 @@ export namespace Billing {
 								);
 							}),
 						),
+						Effect.flatMap((customerSnapshot) =>
+							tx.insert(billingCustomerTable).values(customerSnapshot).onConflictDoUpdate({
+								target: billingCustomerTable.organizationId,
+								set: customerSnapshot,
+							}),
+						),
 					);
-
-					yield* tx.insert(billingCustomerTable).values(customerSnapshot).onConflictDoUpdate({
-						target: billingCustomerTable.organizationId,
-						set: customerSnapshot,
-					});
 
 					for (const subscription of values.state.activeSubscriptions) {
 						const subscriptionSnapshot = yield* buildSubscriptionSnapshot({
@@ -609,7 +610,7 @@ export namespace Billing {
 									}
 								}
 
-								const orderSnapshot = yield* Schema.decodeUnknownEffect(BillingOrderSnapshot)({
+								yield* Schema.decodeUnknownEffect(BillingOrderSnapshot)({
 									id: order.id,
 									organizationId,
 									polarCustomerId: order.customerId,
@@ -644,12 +645,13 @@ export namespace Billing {
 											);
 										}),
 									),
+									Effect.flatMap((orderSnapshot) =>
+										tx.insert(billingOrderTable).values(orderSnapshot).onConflictDoUpdate({
+											target: billingOrderTable.id,
+											set: orderSnapshot,
+										}),
+									),
 								);
-
-								yield* tx.insert(billingOrderTable).values(orderSnapshot).onConflictDoUpdate({
-									target: billingOrderTable.id,
-									set: orderSnapshot,
-								});
 							}) as TransactionEffect<void>,
 					)
 					.pipe(Effect.catchCause(mapBillingFailure("Failed to upsert order")));
