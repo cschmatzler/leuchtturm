@@ -12,7 +12,7 @@ import {
 	member,
 	organization,
 	session,
-	team as teamTable,
+	team,
 	teamMember,
 	user,
 	verification,
@@ -89,7 +89,7 @@ export namespace Auth {
 						organization,
 						member,
 						invitation,
-						team: teamTable,
+						team: team,
 						teamMember,
 					},
 				}),
@@ -158,11 +158,11 @@ export namespace Auth {
 							},
 						},
 						organizationHooks: {
-							beforeCreateTeam: ({ team: teamData }) =>
+							beforeCreateTeam: ({ team: newTeam }) =>
 								Effect.runPromise(
 									Effect.gen(function* () {
 										const teamName = yield* Schema.decodeEffect(Team.fields.name)(
-											teamData.name,
+											newTeam.name,
 										).pipe(
 											Effect.catchCause((cause) =>
 												Effect.gen(function* () {
@@ -178,7 +178,7 @@ export namespace Auth {
 										);
 										const organizationId = yield* Schema.decodeUnknownEffect(
 											Team.fields.organizationId,
-										)(teamData.organizationId).pipe(
+										)(newTeam.organizationId).pipe(
 											Effect.catchCause((cause) =>
 												Effect.gen(function* () {
 													yield* Effect.annotateCurrentSpan({
@@ -193,11 +193,9 @@ export namespace Auth {
 										const slug = teamName.toLowerCase();
 
 										const existingTeam = yield* database
-											.select({ id: teamTable.id })
-											.from(teamTable)
-											.where(
-												and(eq(teamTable.organizationId, organizationId), eq(teamTable.slug, slug)),
-											)
+											.select({ id: team.id })
+											.from(team)
+											.where(and(eq(team.organizationId, organizationId), eq(team.slug, slug)))
 											.limit(1)
 											.pipe(
 												Effect.catchCause((cause) =>
@@ -220,7 +218,7 @@ export namespace Auth {
 
 										return {
 											data: {
-												...teamData,
+												...newTeam,
 												name: teamName,
 												organizationId,
 												slug,
