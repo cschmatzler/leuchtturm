@@ -7,15 +7,15 @@ import { Resource } from "sst";
 import { ulid } from "ulid";
 
 import {
-	account,
-	invitation,
-	member,
-	organization,
-	session,
-	team,
-	teamMember,
-	user,
-	verification,
+	accountTable,
+	invitationTable,
+	memberTable,
+	organizationTable,
+	sessionTable,
+	teamTable,
+	teamMemberTable,
+	userTable,
+	verificationTable,
 } from "@leuchtturm/core/auth/auth.sql";
 import {
 	AuthDeviceSessionsListError,
@@ -82,15 +82,15 @@ export namespace Auth {
 				database: drizzleAdapter(rawDatabase, {
 					provider: "pg",
 					schema: {
-						account,
-						session,
-						user,
-						verification,
-						organization,
-						member,
-						invitation,
-						team: team,
-						teamMember,
+						account: accountTable,
+						session: sessionTable,
+						user: userTable,
+						verification: verificationTable,
+						organization: organizationTable,
+						member: memberTable,
+						invitation: invitationTable,
+						team: teamTable,
+						teamMember: teamMemberTable,
 					},
 				}),
 				emailAndPassword: {
@@ -193,9 +193,11 @@ export namespace Auth {
 										const slug = teamName.toLowerCase();
 
 										const existingTeam = yield* database
-											.select({ id: team.id })
-											.from(team)
-											.where(and(eq(team.organizationId, organizationId), eq(team.slug, slug)))
+											.select({ id: teamTable.id })
+											.from(teamTable)
+											.where(
+												and(eq(teamTable.organizationId, organizationId), eq(teamTable.slug, slug)),
+											)
 											.limit(1)
 											.pipe(
 												Effect.catchCause((cause) =>

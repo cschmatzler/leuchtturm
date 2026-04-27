@@ -10,14 +10,14 @@ import {
 	unique,
 } from "drizzle-orm/pg-core";
 
-import { organization } from "@leuchtturm/core/auth/auth.sql";
+import { organizationTable } from "@leuchtturm/core/auth/auth.sql";
 
-export const billingCustomer = pgTable(
+export const billingCustomerTable = pgTable(
 	"billing_customer",
 	{
 		organizationId: char("organization_id", { length: 30 })
 			.primaryKey()
-			.references(() => organization.id, { onDelete: "cascade" }),
+			.references(() => organizationTable.id, { onDelete: "cascade" }),
 		polarCustomerId: text("polar_customer_id").notNull().unique(),
 		email: text("email"),
 		name: text("name"),
@@ -38,13 +38,13 @@ export const billingCustomer = pgTable(
 	],
 );
 
-export const billingSubscription = pgTable(
+export const billingSubscriptionTable = pgTable(
 	"billing_subscription",
 	{
 		id: text("id").primaryKey(),
 		organizationId: char("organization_id", { length: 30 })
 			.notNull()
-			.references(() => organization.id, { onDelete: "cascade" }),
+			.references(() => organizationTable.id, { onDelete: "cascade" }),
 		polarCustomerId: text("polar_customer_id").notNull(),
 		productId: text("product_id").notNull(),
 		status: text("status").notNull(),
@@ -72,16 +72,16 @@ export const billingSubscription = pgTable(
 		foreignKey({
 			name: "billing_subscription_customer_fkey",
 			columns: [table.organizationId, table.polarCustomerId],
-			foreignColumns: [billingCustomer.organizationId, billingCustomer.polarCustomerId],
+			foreignColumns: [billingCustomerTable.organizationId, billingCustomerTable.polarCustomerId],
 		}).onDelete("cascade"),
 	],
 );
 
-export const billingOrder = pgTable(
+export const billingOrderTable = pgTable(
 	"billing_order",
 	{
 		id: text("id").primaryKey(),
-		organizationId: char("organization_id", { length: 30 }).references(() => organization.id, {
+		organizationId: char("organization_id", { length: 30 }).references(() => organizationTable.id, {
 			onDelete: "set null",
 		}),
 		polarCustomerId: text("polar_customer_id").notNull(),
@@ -109,12 +109,12 @@ export const billingOrder = pgTable(
 		foreignKey({
 			name: "billing_order_customer_fkey",
 			columns: [table.organizationId, table.polarCustomerId],
-			foreignColumns: [billingCustomer.organizationId, billingCustomer.polarCustomerId],
+			foreignColumns: [billingCustomerTable.organizationId, billingCustomerTable.polarCustomerId],
 		}),
 		foreignKey({
 			name: "billing_order_subscription_organization_fkey",
 			columns: [table.subscriptionId, table.organizationId],
-			foreignColumns: [billingSubscription.id, billingSubscription.organizationId],
+			foreignColumns: [billingSubscriptionTable.id, billingSubscriptionTable.organizationId],
 		}),
 	],
 );

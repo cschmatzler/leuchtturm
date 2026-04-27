@@ -1,6 +1,6 @@
 import { boolean, char, index, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
 
-export const user = pgTable("user", {
+export const userTable = pgTable("user", {
 	id: char("id", { length: 30 }).primaryKey(),
 	name: text("name").notNull(),
 	email: text("email").notNull().unique(),
@@ -13,7 +13,7 @@ export const user = pgTable("user", {
 		.notNull(),
 });
 
-export const session = pgTable(
+export const sessionTable = pgTable(
 	"session",
 	{
 		id: char("id", { length: 30 }).primaryKey(),
@@ -23,12 +23,12 @@ export const session = pgTable(
 		expiresAt: timestamp("expires_at").notNull(),
 		userId: char("user_id", { length: 30 })
 			.notNull()
-			.references(() => user.id, { onDelete: "cascade" }),
+			.references(() => userTable.id, { onDelete: "cascade" }),
 		activeOrganizationId: char("active_organization_id", { length: 30 }).references(
-			() => organization.id,
+			() => organizationTable.id,
 			{ onDelete: "set null" },
 		),
-		activeTeamId: char("active_team_id", { length: 30 }).references(() => team.id, {
+		activeTeamId: char("active_team_id", { length: 30 }).references(() => teamTable.id, {
 			onDelete: "set null",
 		}),
 		createdAt: timestamp("created_at").notNull(),
@@ -39,7 +39,7 @@ export const session = pgTable(
 	(table) => [index("session_user_id_idx").on(table.userId)],
 );
 
-export const account = pgTable(
+export const accountTable = pgTable(
 	"account",
 	{
 		id: char("id", { length: 30 }).primaryKey(),
@@ -47,7 +47,7 @@ export const account = pgTable(
 		providerId: text("provider_id").notNull(),
 		userId: char("user_id", { length: 30 })
 			.notNull()
-			.references(() => user.id, { onDelete: "cascade" }),
+			.references(() => userTable.id, { onDelete: "cascade" }),
 		accessToken: text("access_token"),
 		refreshToken: text("refresh_token"),
 		idToken: text("id_token"),
@@ -66,7 +66,7 @@ export const account = pgTable(
 	],
 );
 
-export const verification = pgTable(
+export const verificationTable = pgTable(
 	"verification",
 	{
 		id: char("id", { length: 30 }).primaryKey(),
@@ -84,7 +84,7 @@ export const verification = pgTable(
 	],
 );
 
-export const organization = pgTable("organization", {
+export const organizationTable = pgTable("organization", {
 	id: char("id", { length: 30 }).primaryKey(),
 	name: text("name").notNull(),
 	slug: text("slug").notNull().unique(),
@@ -93,16 +93,16 @@ export const organization = pgTable("organization", {
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const member = pgTable(
+export const memberTable = pgTable(
 	"member",
 	{
 		id: char("id", { length: 30 }).primaryKey(),
 		organizationId: char("organization_id", { length: 30 })
 			.notNull()
-			.references(() => organization.id, { onDelete: "cascade" }),
+			.references(() => organizationTable.id, { onDelete: "cascade" }),
 		userId: char("user_id", { length: 30 })
 			.notNull()
-			.references(() => user.id, { onDelete: "cascade" }),
+			.references(() => userTable.id, { onDelete: "cascade" }),
 		role: text("role").default("member").notNull(),
 		createdAt: timestamp("created_at").notNull(),
 	},
@@ -113,7 +113,7 @@ export const member = pgTable(
 	],
 );
 
-export const team = pgTable(
+export const teamTable = pgTable(
 	"team",
 	{
 		id: char("id", { length: 30 }).primaryKey(),
@@ -121,7 +121,7 @@ export const team = pgTable(
 		slug: text("slug").notNull(),
 		organizationId: char("organization_id", { length: 30 })
 			.notNull()
-			.references(() => organization.id, { onDelete: "cascade" }),
+			.references(() => organizationTable.id, { onDelete: "cascade" }),
 		createdAt: timestamp("created_at").notNull(),
 		updatedAt: timestamp("updated_at")
 			.$onUpdate(() => new Date())
@@ -133,16 +133,16 @@ export const team = pgTable(
 	],
 );
 
-export const teamMember = pgTable(
+export const teamMemberTable = pgTable(
 	"team_member",
 	{
 		id: char("id", { length: 30 }).primaryKey(),
 		teamId: char("team_id", { length: 30 })
 			.notNull()
-			.references(() => team.id, { onDelete: "cascade" }),
+			.references(() => teamTable.id, { onDelete: "cascade" }),
 		userId: char("user_id", { length: 30 })
 			.notNull()
-			.references(() => user.id, { onDelete: "cascade" }),
+			.references(() => userTable.id, { onDelete: "cascade" }),
 		createdAt: timestamp("created_at").notNull(),
 	},
 	(table) => [
@@ -152,7 +152,7 @@ export const teamMember = pgTable(
 	],
 );
 
-export const invitation = pgTable(
+export const invitationTable = pgTable(
 	"invitation",
 	{
 		id: char("id", { length: 30 }).primaryKey(),
@@ -162,11 +162,13 @@ export const invitation = pgTable(
 		expiresAt: timestamp("expires_at").notNull(),
 		organizationId: char("organization_id", { length: 30 })
 			.notNull()
-			.references(() => organization.id, { onDelete: "cascade" }),
-		teamId: char("team_id", { length: 30 }).references(() => team.id, { onDelete: "set null" }),
+			.references(() => organizationTable.id, { onDelete: "cascade" }),
+		teamId: char("team_id", { length: 30 }).references(() => teamTable.id, {
+			onDelete: "set null",
+		}),
 		inviterId: char("inviter_id", { length: 30 })
 			.notNull()
-			.references(() => user.id, { onDelete: "cascade" }),
+			.references(() => userTable.id, { onDelete: "cascade" }),
 		createdAt: timestamp("created_at").notNull(),
 	},
 	(table) => [

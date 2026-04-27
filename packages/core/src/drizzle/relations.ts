@@ -1,36 +1,36 @@
 import { defineRelationsPart } from "drizzle-orm";
 
 import {
-	account,
-	invitation,
-	member,
-	organization,
-	session,
-	team,
-	teamMember,
-	user,
-	verification,
+	accountTable,
+	invitationTable,
+	memberTable,
+	organizationTable,
+	sessionTable,
+	teamTable,
+	teamMemberTable,
+	userTable,
+	verificationTable,
 } from "@leuchtturm/core/auth/auth.sql";
 import {
-	billingCustomer,
-	billingOrder,
-	billingSubscription,
+	billingCustomerTable,
+	billingOrderTable,
+	billingSubscriptionTable,
 } from "@leuchtturm/core/billing/billing.sql";
 
 export const relations = defineRelationsPart(
 	{
-		user,
-		session,
-		account,
-		verification,
-		organization,
-		member,
-		team,
-		teamMember,
-		invitation,
-		billingCustomer,
-		billingSubscription,
-		billingOrder,
+		user: userTable,
+		session: sessionTable,
+		account: accountTable,
+		verification: verificationTable,
+		organization: organizationTable,
+		member: memberTable,
+		team: teamTable,
+		teamMember: teamMemberTable,
+		invitation: invitationTable,
+		billingCustomer: billingCustomerTable,
+		billingSubscription: billingSubscriptionTable,
+		billingOrder: billingOrderTable,
 	},
 	(r) => ({
 		user: {

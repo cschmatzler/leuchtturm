@@ -12,11 +12,11 @@ import type {
 import { Cause, Effect, Layer, Schema, Context } from "effect";
 import { Resource } from "sst";
 
-import { organization } from "@leuchtturm/core/auth/auth.sql";
+import { organizationTable } from "@leuchtturm/core/auth/auth.sql";
 import {
-	billingCustomer,
-	billingOrder,
-	billingSubscription,
+	billingCustomerTable,
+	billingOrderTable,
+	billingSubscriptionTable,
 } from "@leuchtturm/core/billing/billing.sql";
 import {
 	BillingError,
@@ -199,8 +199,8 @@ export namespace Billing {
 						),
 					);
 
-					yield* tx.insert(billingCustomer).values(customerSnapshot).onConflictDoUpdate({
-						target: billingCustomer.organizationId,
+					yield* tx.insert(billingCustomerTable).values(customerSnapshot).onConflictDoUpdate({
+						target: billingCustomerTable.organizationId,
 						set: customerSnapshot,
 					});
 
@@ -228,10 +228,13 @@ export namespace Billing {
 							remoteModifiedAt: subscription.modifiedAt,
 						});
 
-						yield* tx.insert(billingSubscription).values(subscriptionSnapshot).onConflictDoUpdate({
-							target: billingSubscription.id,
-							set: subscriptionSnapshot,
-						});
+						yield* tx
+							.insert(billingSubscriptionTable)
+							.values(subscriptionSnapshot)
+							.onConflictDoUpdate({
+								target: billingSubscriptionTable.id,
+								set: subscriptionSnapshot,
+							});
 					}
 				}) as TransactionEffect<void>;
 
@@ -304,9 +307,9 @@ export namespace Billing {
 				if (!externalId) return null;
 
 				const rows = yield* database
-					.select({ id: organization.id })
-					.from(organization)
-					.where(eq(organization.id, externalId))
+					.select({ id: organizationTable.id })
+					.from(organizationTable)
+					.where(eq(organizationTable.id, externalId))
 					.limit(1)
 					.pipe(
 						Effect.catchCause((cause) =>
@@ -508,10 +511,10 @@ export namespace Billing {
 								});
 
 								yield* tx
-									.insert(billingSubscription)
+									.insert(billingSubscriptionTable)
 									.values(subscriptionSnapshot)
 									.onConflictDoUpdate({
-										target: billingSubscription.id,
+										target: billingSubscriptionTable.id,
 										set: subscriptionSnapshot,
 									});
 							}) as TransactionEffect<void>,
@@ -536,12 +539,12 @@ export namespace Billing {
 									if (order.subscriptionId) {
 										const [existingSubscription] = yield* tx
 											.select({
-												id: billingSubscription.id,
-												polarCustomerId: billingSubscription.polarCustomerId,
-												organizationId: billingSubscription.organizationId,
+												id: billingSubscriptionTable.id,
+												polarCustomerId: billingSubscriptionTable.polarCustomerId,
+												organizationId: billingSubscriptionTable.organizationId,
 											})
-											.from(billingSubscription)
-											.where(eq(billingSubscription.id, order.subscriptionId))
+											.from(billingSubscriptionTable)
+											.where(eq(billingSubscriptionTable.id, order.subscriptionId))
 											.limit(1);
 
 										if (existingSubscription) {
@@ -596,10 +599,10 @@ export namespace Billing {
 											});
 
 											yield* tx
-												.insert(billingSubscription)
+												.insert(billingSubscriptionTable)
 												.values(subscriptionSnapshot)
 												.onConflictDoUpdate({
-													target: billingSubscription.id,
+													target: billingSubscriptionTable.id,
 													set: subscriptionSnapshot,
 												});
 										}
@@ -643,8 +646,8 @@ export namespace Billing {
 									),
 								);
 
-								yield* tx.insert(billingOrder).values(orderSnapshot).onConflictDoUpdate({
-									target: billingOrder.id,
+								yield* tx.insert(billingOrderTable).values(orderSnapshot).onConflictDoUpdate({
+									target: billingOrderTable.id,
 									set: orderSnapshot,
 								});
 							}) as TransactionEffect<void>,
