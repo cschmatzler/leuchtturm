@@ -54,8 +54,8 @@ export class AuthTeamLookupError extends Schema.TaggedErrorClass<AuthTeamLookupE
 	{ httpApiStatus: 500 },
 ) {}
 
-export class AuthDuplicateTeamSlugError extends Schema.TaggedErrorClass<AuthDuplicateTeamSlugError>()(
-	"AuthDuplicateTeamSlugError",
+export class AuthDuplicateTeamNameError extends Schema.TaggedErrorClass<AuthDuplicateTeamNameError>()(
+	"AuthDuplicateTeamNameError",
 	{ message: Schema.String },
 	{ httpApiStatus: 409 },
 ) {}
@@ -70,7 +70,7 @@ export const Errors = [
 	AuthInvalidOrganizationPayloadError,
 	AuthInvalidTeamPayloadError,
 	AuthTeamLookupError,
-	AuthDuplicateTeamSlugError,
+	AuthDuplicateTeamNameError,
 ] as const;
 
 export const AuthError = Schema.Union(Errors);

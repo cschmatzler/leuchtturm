@@ -1,7 +1,7 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { multiSession, organization as organizationPlugin } from "better-auth/plugins";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { Cause, Effect, Layer, Schema, Context } from "effect";
 import { Resource } from "sst";
 import { ulid } from "ulid";
@@ -19,7 +19,7 @@ import {
 } from "@leuchtturm/core/auth/auth.sql";
 import {
 	AuthDeviceSessionsListError,
-	AuthDuplicateTeamSlugError,
+	AuthDuplicateTeamNameError,
 	AuthError,
 	AuthInvalidSessionPayloadError,
 	AuthInvalidTeamPayloadError,
@@ -202,7 +202,7 @@ export namespace Auth {
 											.where(
 												and(
 													eq(teamTable.organizationId, organization.id),
-													eq(teamTable.slug, teamName.toLowerCase()),
+													eq(sql<string>`lower(${teamTable.name})`, teamName.toLowerCase()),
 												),
 											)
 											.limit(1)
@@ -213,15 +213,15 @@ export namespace Auth {
 															"error.original_cause": Cause.pretty(cause),
 														});
 														return yield* new AuthTeamLookupError({
-															message: "Failed to look up team slug",
+															message: "Failed to look up team name",
 														});
 													}),
 												),
 											);
 
 										if (existingTeam.length > 0) {
-											return yield* new AuthDuplicateTeamSlugError({
-												message: "Team slug already exists",
+											return yield* new AuthDuplicateTeamNameError({
+												message: "Team name already exists",
 											});
 										}
 
