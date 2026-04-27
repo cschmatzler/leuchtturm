@@ -35,7 +35,7 @@ describe("app route auth caching", () => {
 		).rejects.toMatchObject({
 			status: 307,
 			options: {
-				to: "/$slug/settings/preferences",
+				to: "/$slug/settings",
 				params: { slug: "acme" },
 			},
 		});

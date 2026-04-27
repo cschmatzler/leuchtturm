@@ -148,7 +148,7 @@ export function AppHeader({
 				icon: BuildingIcon,
 				run() {
 					navigate({
-						to: "/$slug/settings/preferences",
+						to: "/$slug/settings",
 						params: { slug: organization.slug },
 					});
 				},
@@ -204,37 +204,33 @@ export function AppHeader({
 
 	useCommandProvider(
 		"navigation",
-		async () => {
-			const commands = [
-				{
-					title: t("Go to Organization settings"),
-					category: t("Navigation"),
-					global: true,
-					icon: CogIcon,
-					run() {
-						navigate({ to: "/$slug/settings/preferences", params: { slug } });
-					},
+		async () => [
+			{
+				title: t("Go to Settings"),
+				category: t("Navigation"),
+				global: true,
+				icon: CogIcon,
+				run() {
+					navigate({ to: "/$slug/settings", params: { slug } });
 				},
-			];
-
-			if (!teamSlug) return commands;
-
-			return [
-				...commands,
-				{
-					title: t("Go to Team settings"),
-					category: t("Navigation"),
-					global: true,
-					icon: CogIcon,
-					run() {
-						navigate({
-							to: "/$slug/teams/$teamSlug/settings/general",
-							params: { slug, teamSlug },
-						});
-					},
-				},
-			];
-		},
+			},
+			...(teamSlug
+				? [
+						{
+							title: t("Go to Team settings"),
+							category: t("Navigation"),
+							global: true,
+							icon: CogIcon,
+							run() {
+								navigate({
+									to: "/$slug/teams/$teamSlug/settings/general",
+									params: { slug, teamSlug },
+								});
+							},
+						},
+					]
+				: []),
+		],
 		[navigate, slug, t, teamSlug],
 	);
 
@@ -281,7 +277,7 @@ export function AppHeader({
 								checked={organization.slug === slug}
 								onClick={() => {
 									void navigate({
-										to: "/$slug/settings/preferences",
+										to: "/$slug/settings",
 										params: { slug: organization.slug },
 									});
 								}}
@@ -347,21 +343,11 @@ export function AppHeader({
 					<Link
 						to="/$slug/settings"
 						params={{ slug }}
-						aria-label={t("Organization settings")}
+						aria-label={t("Settings")}
 						className={settingsLinkClassName}
 					>
 						<CogIcon className="size-4" />
 					</Link>
-					{teamSlug && (
-						<Link
-							to="/$slug/teams/$teamSlug/settings"
-							params={{ slug, teamSlug }}
-							aria-label={t("Team settings")}
-							className={settingsLinkClassName}
-						>
-							<CogIcon className="size-4" />
-						</Link>
-					)}
 				</nav>
 				<div aria-hidden className="h-6 w-px shrink-0 bg-border" />
 

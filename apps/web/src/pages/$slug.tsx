@@ -21,7 +21,7 @@ export const Route = createFileRoute("/$slug")({
 			const nextSlug = organizations[0]?.slug;
 			if (nextSlug) {
 				throw redirect({
-					to: "/$slug/settings/preferences",
+					to: "/$slug/settings",
 					params: { slug: nextSlug },
 				});
 			}

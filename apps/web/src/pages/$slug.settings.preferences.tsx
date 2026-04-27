@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { PreferencesCard } from "@leuchtturm/web/pages/_app.settings.preferences/-components/preferences-card";
-import { ProfileCard } from "@leuchtturm/web/pages/_app.settings.preferences/-components/profile-card";
+import { PreferencesCard } from "@leuchtturm/web/pages/$slug.settings/-components/preferences-card";
 
 export const Route = createFileRoute("/$slug/settings/preferences")({
 	component: Page,
@@ -10,7 +9,6 @@ export const Route = createFileRoute("/$slug/settings/preferences")({
 function Page() {
 	return (
 		<div className="flex flex-col gap-8">
-			<ProfileCard />
 			<PreferencesCard />
 		</div>
 	);

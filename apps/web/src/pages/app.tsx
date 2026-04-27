@@ -13,7 +13,7 @@ export const Route = createFileRoute("/app")({
 		if (!firstOrganization) throw redirect({ to: "/create-organization" });
 
 		throw redirect({
-			to: "/$slug/settings/preferences",
+			to: "/$slug/settings",
 			params: { slug: firstOrganization.slug },
 		});
 	},

@@ -8,445 +8,466 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from "./pages/__root";
-import { Route as TermsOfServiceRouteImport } from "./pages/terms-of-service";
-import { Route as SignupRouteImport } from "./pages/signup";
-import { Route as ResetPasswordRouteImport } from "./pages/reset-password";
-import { Route as PrivacyPolicyRouteImport } from "./pages/privacy-policy";
-import { Route as LoginRouteImport } from "./pages/login";
-import { Route as ForgotPasswordRouteImport } from "./pages/forgot-password";
-import { Route as CreateOrganizationRouteImport } from "./pages/create-organization";
-import { Route as AppRouteImport } from "./pages/app";
-import { Route as SlugRouteImport } from "./pages/$slug";
-import { Route as IndexRouteImport } from "./pages/index";
-import { Route as SlugSettingsRouteImport } from "./pages/$slug.settings";
-import { Route as SlugTeamsTeamSlugRouteImport } from "./pages/$slug.teams.$teamSlug";
-import { Route as SlugSettingsTeamsRouteImport } from "./pages/$slug.settings.teams";
-import { Route as SlugSettingsPreferencesRouteImport } from "./pages/$slug.settings.preferences";
-import { Route as SlugSettingsMembersRouteImport } from "./pages/$slug.settings.members";
-import { Route as SlugSettingsBillingRouteImport } from "./pages/$slug.settings.billing";
-import { Route as SlugTeamsTeamSlugIndexRouteImport } from "./pages/$slug.teams.$teamSlug.index";
-import { Route as SlugTeamsTeamSlugSettingsRouteImport } from "./pages/$slug.teams.$teamSlug.settings";
-import { Route as SlugTeamsTeamSlugSettingsMembersRouteImport } from "./pages/$slug.teams.$teamSlug.settings.members";
-import { Route as SlugTeamsTeamSlugSettingsGeneralRouteImport } from "./pages/$slug.teams.$teamSlug.settings.general";
+import { Route as rootRouteImport } from './pages/__root'
+import { Route as TermsOfServiceRouteImport } from './pages/terms-of-service'
+import { Route as SignupRouteImport } from './pages/signup'
+import { Route as ResetPasswordRouteImport } from './pages/reset-password'
+import { Route as PrivacyPolicyRouteImport } from './pages/privacy-policy'
+import { Route as LoginRouteImport } from './pages/login'
+import { Route as ForgotPasswordRouteImport } from './pages/forgot-password'
+import { Route as CreateOrganizationRouteImport } from './pages/create-organization'
+import { Route as AppRouteImport } from './pages/app'
+import { Route as SlugRouteImport } from './pages/$slug'
+import { Route as IndexRouteImport } from './pages/index'
+import { Route as SlugSettingsRouteImport } from './pages/$slug.settings'
+import { Route as SlugTeamsTeamSlugRouteImport } from './pages/$slug.teams.$teamSlug'
+import { Route as SlugSettingsTeamsRouteImport } from './pages/$slug.settings.teams'
+import { Route as SlugSettingsProfileRouteImport } from './pages/$slug.settings.profile'
+import { Route as SlugSettingsPreferencesRouteImport } from './pages/$slug.settings.preferences'
+import { Route as SlugSettingsMembersRouteImport } from './pages/$slug.settings.members'
+import { Route as SlugSettingsBillingRouteImport } from './pages/$slug.settings.billing'
+import { Route as SlugTeamsTeamSlugIndexRouteImport } from './pages/$slug.teams.$teamSlug.index'
+import { Route as SlugTeamsTeamSlugSettingsRouteImport } from './pages/$slug.teams.$teamSlug.settings'
+import { Route as SlugTeamsTeamSlugSettingsMembersRouteImport } from './pages/$slug.teams.$teamSlug.settings.members'
+import { Route as SlugTeamsTeamSlugSettingsGeneralRouteImport } from './pages/$slug.teams.$teamSlug.settings.general'
 
 const TermsOfServiceRoute = TermsOfServiceRouteImport.update({
-  id: "/terms-of-service",
-  path: "/terms-of-service",
+  id: '/terms-of-service',
+  path: '/terms-of-service',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const SignupRoute = SignupRouteImport.update({
-  id: "/signup",
-  path: "/signup",
+  id: '/signup',
+  path: '/signup',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: "/reset-password",
-  path: "/reset-password",
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
-  id: "/privacy-policy",
-  path: "/privacy-policy",
+  id: '/privacy-policy',
+  path: '/privacy-policy',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const LoginRoute = LoginRouteImport.update({
-  id: "/login",
-  path: "/login",
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
-  id: "/forgot-password",
-  path: "/forgot-password",
+  id: '/forgot-password',
+  path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const CreateOrganizationRoute = CreateOrganizationRouteImport.update({
-  id: "/create-organization",
-  path: "/create-organization",
+  id: '/create-organization',
+  path: '/create-organization',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const AppRoute = AppRouteImport.update({
-  id: "/app",
-  path: "/app",
+  id: '/app',
+  path: '/app',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const SlugRoute = SlugRouteImport.update({
-  id: "/$slug",
-  path: "/$slug",
+  id: '/$slug',
+  path: '/$slug',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const IndexRoute = IndexRouteImport.update({
-  id: "/",
-  path: "/",
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const SlugSettingsRoute = SlugSettingsRouteImport.update({
-  id: "/settings",
-  path: "/settings",
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => SlugRoute,
-} as any);
+} as any)
 const SlugTeamsTeamSlugRoute = SlugTeamsTeamSlugRouteImport.update({
-  id: "/teams/$teamSlug",
-  path: "/teams/$teamSlug",
+  id: '/teams/$teamSlug',
+  path: '/teams/$teamSlug',
   getParentRoute: () => SlugRoute,
-} as any);
+} as any)
 const SlugSettingsTeamsRoute = SlugSettingsTeamsRouteImport.update({
-  id: "/teams",
-  path: "/teams",
+  id: '/teams',
+  path: '/teams',
   getParentRoute: () => SlugSettingsRoute,
-} as any);
+} as any)
+const SlugSettingsProfileRoute = SlugSettingsProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => SlugSettingsRoute,
+} as any)
 const SlugSettingsPreferencesRoute = SlugSettingsPreferencesRouteImport.update({
-  id: "/preferences",
-  path: "/preferences",
+  id: '/preferences',
+  path: '/preferences',
   getParentRoute: () => SlugSettingsRoute,
-} as any);
+} as any)
 const SlugSettingsMembersRoute = SlugSettingsMembersRouteImport.update({
-  id: "/members",
-  path: "/members",
+  id: '/members',
+  path: '/members',
   getParentRoute: () => SlugSettingsRoute,
-} as any);
+} as any)
 const SlugSettingsBillingRoute = SlugSettingsBillingRouteImport.update({
-  id: "/billing",
-  path: "/billing",
+  id: '/billing',
+  path: '/billing',
   getParentRoute: () => SlugSettingsRoute,
-} as any);
+} as any)
 const SlugTeamsTeamSlugIndexRoute = SlugTeamsTeamSlugIndexRouteImport.update({
-  id: "/",
-  path: "/",
+  id: '/',
+  path: '/',
   getParentRoute: () => SlugTeamsTeamSlugRoute,
-} as any);
+} as any)
 const SlugTeamsTeamSlugSettingsRoute =
   SlugTeamsTeamSlugSettingsRouteImport.update({
-    id: "/settings",
-    path: "/settings",
+    id: '/settings',
+    path: '/settings',
     getParentRoute: () => SlugTeamsTeamSlugRoute,
-  } as any);
+  } as any)
 const SlugTeamsTeamSlugSettingsMembersRoute =
   SlugTeamsTeamSlugSettingsMembersRouteImport.update({
-    id: "/members",
-    path: "/members",
+    id: '/members',
+    path: '/members',
     getParentRoute: () => SlugTeamsTeamSlugSettingsRoute,
-  } as any);
+  } as any)
 const SlugTeamsTeamSlugSettingsGeneralRoute =
   SlugTeamsTeamSlugSettingsGeneralRouteImport.update({
-    id: "/general",
-    path: "/general",
+    id: '/general',
+    path: '/general',
     getParentRoute: () => SlugTeamsTeamSlugSettingsRoute,
-  } as any);
+  } as any)
 
 export interface FileRoutesByFullPath {
-  "/": typeof IndexRoute;
-  "/$slug": typeof SlugRouteWithChildren;
-  "/app": typeof AppRoute;
-  "/create-organization": typeof CreateOrganizationRoute;
-  "/forgot-password": typeof ForgotPasswordRoute;
-  "/login": typeof LoginRoute;
-  "/privacy-policy": typeof PrivacyPolicyRoute;
-  "/reset-password": typeof ResetPasswordRoute;
-  "/signup": typeof SignupRoute;
-  "/terms-of-service": typeof TermsOfServiceRoute;
-  "/$slug/settings": typeof SlugSettingsRouteWithChildren;
-  "/$slug/settings/billing": typeof SlugSettingsBillingRoute;
-  "/$slug/settings/members": typeof SlugSettingsMembersRoute;
-  "/$slug/settings/preferences": typeof SlugSettingsPreferencesRoute;
-  "/$slug/settings/teams": typeof SlugSettingsTeamsRoute;
-  "/$slug/teams/$teamSlug": typeof SlugTeamsTeamSlugRouteWithChildren;
-  "/$slug/teams/$teamSlug/settings": typeof SlugTeamsTeamSlugSettingsRouteWithChildren;
-  "/$slug/teams/$teamSlug/": typeof SlugTeamsTeamSlugIndexRoute;
-  "/$slug/teams/$teamSlug/settings/general": typeof SlugTeamsTeamSlugSettingsGeneralRoute;
-  "/$slug/teams/$teamSlug/settings/members": typeof SlugTeamsTeamSlugSettingsMembersRoute;
+  '/': typeof IndexRoute
+  '/$slug': typeof SlugRouteWithChildren
+  '/app': typeof AppRoute
+  '/create-organization': typeof CreateOrganizationRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/signup': typeof SignupRoute
+  '/terms-of-service': typeof TermsOfServiceRoute
+  '/$slug/settings': typeof SlugSettingsRouteWithChildren
+  '/$slug/settings/billing': typeof SlugSettingsBillingRoute
+  '/$slug/settings/members': typeof SlugSettingsMembersRoute
+  '/$slug/settings/preferences': typeof SlugSettingsPreferencesRoute
+  '/$slug/settings/profile': typeof SlugSettingsProfileRoute
+  '/$slug/settings/teams': typeof SlugSettingsTeamsRoute
+  '/$slug/teams/$teamSlug': typeof SlugTeamsTeamSlugRouteWithChildren
+  '/$slug/teams/$teamSlug/settings': typeof SlugTeamsTeamSlugSettingsRouteWithChildren
+  '/$slug/teams/$teamSlug/': typeof SlugTeamsTeamSlugIndexRoute
+  '/$slug/teams/$teamSlug/settings/general': typeof SlugTeamsTeamSlugSettingsGeneralRoute
+  '/$slug/teams/$teamSlug/settings/members': typeof SlugTeamsTeamSlugSettingsMembersRoute
 }
 export interface FileRoutesByTo {
-  "/": typeof IndexRoute;
-  "/$slug": typeof SlugRouteWithChildren;
-  "/app": typeof AppRoute;
-  "/create-organization": typeof CreateOrganizationRoute;
-  "/forgot-password": typeof ForgotPasswordRoute;
-  "/login": typeof LoginRoute;
-  "/privacy-policy": typeof PrivacyPolicyRoute;
-  "/reset-password": typeof ResetPasswordRoute;
-  "/signup": typeof SignupRoute;
-  "/terms-of-service": typeof TermsOfServiceRoute;
-  "/$slug/settings": typeof SlugSettingsRouteWithChildren;
-  "/$slug/settings/billing": typeof SlugSettingsBillingRoute;
-  "/$slug/settings/members": typeof SlugSettingsMembersRoute;
-  "/$slug/settings/preferences": typeof SlugSettingsPreferencesRoute;
-  "/$slug/settings/teams": typeof SlugSettingsTeamsRoute;
-  "/$slug/teams/$teamSlug/settings": typeof SlugTeamsTeamSlugSettingsRouteWithChildren;
-  "/$slug/teams/$teamSlug": typeof SlugTeamsTeamSlugIndexRoute;
-  "/$slug/teams/$teamSlug/settings/general": typeof SlugTeamsTeamSlugSettingsGeneralRoute;
-  "/$slug/teams/$teamSlug/settings/members": typeof SlugTeamsTeamSlugSettingsMembersRoute;
+  '/': typeof IndexRoute
+  '/$slug': typeof SlugRouteWithChildren
+  '/app': typeof AppRoute
+  '/create-organization': typeof CreateOrganizationRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/signup': typeof SignupRoute
+  '/terms-of-service': typeof TermsOfServiceRoute
+  '/$slug/settings': typeof SlugSettingsRouteWithChildren
+  '/$slug/settings/billing': typeof SlugSettingsBillingRoute
+  '/$slug/settings/members': typeof SlugSettingsMembersRoute
+  '/$slug/settings/preferences': typeof SlugSettingsPreferencesRoute
+  '/$slug/settings/profile': typeof SlugSettingsProfileRoute
+  '/$slug/settings/teams': typeof SlugSettingsTeamsRoute
+  '/$slug/teams/$teamSlug/settings': typeof SlugTeamsTeamSlugSettingsRouteWithChildren
+  '/$slug/teams/$teamSlug': typeof SlugTeamsTeamSlugIndexRoute
+  '/$slug/teams/$teamSlug/settings/general': typeof SlugTeamsTeamSlugSettingsGeneralRoute
+  '/$slug/teams/$teamSlug/settings/members': typeof SlugTeamsTeamSlugSettingsMembersRoute
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport;
-  "/": typeof IndexRoute;
-  "/$slug": typeof SlugRouteWithChildren;
-  "/app": typeof AppRoute;
-  "/create-organization": typeof CreateOrganizationRoute;
-  "/forgot-password": typeof ForgotPasswordRoute;
-  "/login": typeof LoginRoute;
-  "/privacy-policy": typeof PrivacyPolicyRoute;
-  "/reset-password": typeof ResetPasswordRoute;
-  "/signup": typeof SignupRoute;
-  "/terms-of-service": typeof TermsOfServiceRoute;
-  "/$slug/settings": typeof SlugSettingsRouteWithChildren;
-  "/$slug/settings/billing": typeof SlugSettingsBillingRoute;
-  "/$slug/settings/members": typeof SlugSettingsMembersRoute;
-  "/$slug/settings/preferences": typeof SlugSettingsPreferencesRoute;
-  "/$slug/settings/teams": typeof SlugSettingsTeamsRoute;
-  "/$slug/teams/$teamSlug": typeof SlugTeamsTeamSlugRouteWithChildren;
-  "/$slug/teams/$teamSlug/settings": typeof SlugTeamsTeamSlugSettingsRouteWithChildren;
-  "/$slug/teams/$teamSlug/": typeof SlugTeamsTeamSlugIndexRoute;
-  "/$slug/teams/$teamSlug/settings/general": typeof SlugTeamsTeamSlugSettingsGeneralRoute;
-  "/$slug/teams/$teamSlug/settings/members": typeof SlugTeamsTeamSlugSettingsMembersRoute;
+  __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
+  '/$slug': typeof SlugRouteWithChildren
+  '/app': typeof AppRoute
+  '/create-organization': typeof CreateOrganizationRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/signup': typeof SignupRoute
+  '/terms-of-service': typeof TermsOfServiceRoute
+  '/$slug/settings': typeof SlugSettingsRouteWithChildren
+  '/$slug/settings/billing': typeof SlugSettingsBillingRoute
+  '/$slug/settings/members': typeof SlugSettingsMembersRoute
+  '/$slug/settings/preferences': typeof SlugSettingsPreferencesRoute
+  '/$slug/settings/profile': typeof SlugSettingsProfileRoute
+  '/$slug/settings/teams': typeof SlugSettingsTeamsRoute
+  '/$slug/teams/$teamSlug': typeof SlugTeamsTeamSlugRouteWithChildren
+  '/$slug/teams/$teamSlug/settings': typeof SlugTeamsTeamSlugSettingsRouteWithChildren
+  '/$slug/teams/$teamSlug/': typeof SlugTeamsTeamSlugIndexRoute
+  '/$slug/teams/$teamSlug/settings/general': typeof SlugTeamsTeamSlugSettingsGeneralRoute
+  '/$slug/teams/$teamSlug/settings/members': typeof SlugTeamsTeamSlugSettingsMembersRoute
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath;
+  fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | "/"
-    | "/$slug"
-    | "/app"
-    | "/create-organization"
-    | "/forgot-password"
-    | "/login"
-    | "/privacy-policy"
-    | "/reset-password"
-    | "/signup"
-    | "/terms-of-service"
-    | "/$slug/settings"
-    | "/$slug/settings/billing"
-    | "/$slug/settings/members"
-    | "/$slug/settings/preferences"
-    | "/$slug/settings/teams"
-    | "/$slug/teams/$teamSlug"
-    | "/$slug/teams/$teamSlug/settings"
-    | "/$slug/teams/$teamSlug/"
-    | "/$slug/teams/$teamSlug/settings/general"
-    | "/$slug/teams/$teamSlug/settings/members";
-  fileRoutesByTo: FileRoutesByTo;
+    | '/'
+    | '/$slug'
+    | '/app'
+    | '/create-organization'
+    | '/forgot-password'
+    | '/login'
+    | '/privacy-policy'
+    | '/reset-password'
+    | '/signup'
+    | '/terms-of-service'
+    | '/$slug/settings'
+    | '/$slug/settings/billing'
+    | '/$slug/settings/members'
+    | '/$slug/settings/preferences'
+    | '/$slug/settings/profile'
+    | '/$slug/settings/teams'
+    | '/$slug/teams/$teamSlug'
+    | '/$slug/teams/$teamSlug/settings'
+    | '/$slug/teams/$teamSlug/'
+    | '/$slug/teams/$teamSlug/settings/general'
+    | '/$slug/teams/$teamSlug/settings/members'
+  fileRoutesByTo: FileRoutesByTo
   to:
-    | "/"
-    | "/$slug"
-    | "/app"
-    | "/create-organization"
-    | "/forgot-password"
-    | "/login"
-    | "/privacy-policy"
-    | "/reset-password"
-    | "/signup"
-    | "/terms-of-service"
-    | "/$slug/settings"
-    | "/$slug/settings/billing"
-    | "/$slug/settings/members"
-    | "/$slug/settings/preferences"
-    | "/$slug/settings/teams"
-    | "/$slug/teams/$teamSlug/settings"
-    | "/$slug/teams/$teamSlug"
-    | "/$slug/teams/$teamSlug/settings/general"
-    | "/$slug/teams/$teamSlug/settings/members";
+    | '/'
+    | '/$slug'
+    | '/app'
+    | '/create-organization'
+    | '/forgot-password'
+    | '/login'
+    | '/privacy-policy'
+    | '/reset-password'
+    | '/signup'
+    | '/terms-of-service'
+    | '/$slug/settings'
+    | '/$slug/settings/billing'
+    | '/$slug/settings/members'
+    | '/$slug/settings/preferences'
+    | '/$slug/settings/profile'
+    | '/$slug/settings/teams'
+    | '/$slug/teams/$teamSlug/settings'
+    | '/$slug/teams/$teamSlug'
+    | '/$slug/teams/$teamSlug/settings/general'
+    | '/$slug/teams/$teamSlug/settings/members'
   id:
-    | "__root__"
-    | "/"
-    | "/$slug"
-    | "/app"
-    | "/create-organization"
-    | "/forgot-password"
-    | "/login"
-    | "/privacy-policy"
-    | "/reset-password"
-    | "/signup"
-    | "/terms-of-service"
-    | "/$slug/settings"
-    | "/$slug/settings/billing"
-    | "/$slug/settings/members"
-    | "/$slug/settings/preferences"
-    | "/$slug/settings/teams"
-    | "/$slug/teams/$teamSlug"
-    | "/$slug/teams/$teamSlug/settings"
-    | "/$slug/teams/$teamSlug/"
-    | "/$slug/teams/$teamSlug/settings/general"
-    | "/$slug/teams/$teamSlug/settings/members";
-  fileRoutesById: FileRoutesById;
+    | '__root__'
+    | '/'
+    | '/$slug'
+    | '/app'
+    | '/create-organization'
+    | '/forgot-password'
+    | '/login'
+    | '/privacy-policy'
+    | '/reset-password'
+    | '/signup'
+    | '/terms-of-service'
+    | '/$slug/settings'
+    | '/$slug/settings/billing'
+    | '/$slug/settings/members'
+    | '/$slug/settings/preferences'
+    | '/$slug/settings/profile'
+    | '/$slug/settings/teams'
+    | '/$slug/teams/$teamSlug'
+    | '/$slug/teams/$teamSlug/settings'
+    | '/$slug/teams/$teamSlug/'
+    | '/$slug/teams/$teamSlug/settings/general'
+    | '/$slug/teams/$teamSlug/settings/members'
+  fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute;
-  SlugRoute: typeof SlugRouteWithChildren;
-  AppRoute: typeof AppRoute;
-  CreateOrganizationRoute: typeof CreateOrganizationRoute;
-  ForgotPasswordRoute: typeof ForgotPasswordRoute;
-  LoginRoute: typeof LoginRoute;
-  PrivacyPolicyRoute: typeof PrivacyPolicyRoute;
-  ResetPasswordRoute: typeof ResetPasswordRoute;
-  SignupRoute: typeof SignupRoute;
-  TermsOfServiceRoute: typeof TermsOfServiceRoute;
+  IndexRoute: typeof IndexRoute
+  SlugRoute: typeof SlugRouteWithChildren
+  AppRoute: typeof AppRoute
+  CreateOrganizationRoute: typeof CreateOrganizationRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
+  LoginRoute: typeof LoginRoute
+  PrivacyPolicyRoute: typeof PrivacyPolicyRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
+  SignupRoute: typeof SignupRoute
+  TermsOfServiceRoute: typeof TermsOfServiceRoute
 }
 
-declare module "@tanstack/react-router" {
+declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    "/terms-of-service": {
-      id: "/terms-of-service";
-      path: "/terms-of-service";
-      fullPath: "/terms-of-service";
-      preLoaderRoute: typeof TermsOfServiceRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/signup": {
-      id: "/signup";
-      path: "/signup";
-      fullPath: "/signup";
-      preLoaderRoute: typeof SignupRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/reset-password": {
-      id: "/reset-password";
-      path: "/reset-password";
-      fullPath: "/reset-password";
-      preLoaderRoute: typeof ResetPasswordRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/privacy-policy": {
-      id: "/privacy-policy";
-      path: "/privacy-policy";
-      fullPath: "/privacy-policy";
-      preLoaderRoute: typeof PrivacyPolicyRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/login": {
-      id: "/login";
-      path: "/login";
-      fullPath: "/login";
-      preLoaderRoute: typeof LoginRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/forgot-password": {
-      id: "/forgot-password";
-      path: "/forgot-password";
-      fullPath: "/forgot-password";
-      preLoaderRoute: typeof ForgotPasswordRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/create-organization": {
-      id: "/create-organization";
-      path: "/create-organization";
-      fullPath: "/create-organization";
-      preLoaderRoute: typeof CreateOrganizationRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/app": {
-      id: "/app";
-      path: "/app";
-      fullPath: "/app";
-      preLoaderRoute: typeof AppRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/$slug": {
-      id: "/$slug";
-      path: "/$slug";
-      fullPath: "/$slug";
-      preLoaderRoute: typeof SlugRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/": {
-      id: "/";
-      path: "/";
-      fullPath: "/";
-      preLoaderRoute: typeof IndexRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/$slug/settings": {
-      id: "/$slug/settings";
-      path: "/settings";
-      fullPath: "/$slug/settings";
-      preLoaderRoute: typeof SlugSettingsRouteImport;
-      parentRoute: typeof SlugRoute;
-    };
-    "/$slug/teams/$teamSlug": {
-      id: "/$slug/teams/$teamSlug";
-      path: "/teams/$teamSlug";
-      fullPath: "/$slug/teams/$teamSlug";
-      preLoaderRoute: typeof SlugTeamsTeamSlugRouteImport;
-      parentRoute: typeof SlugRoute;
-    };
-    "/$slug/settings/teams": {
-      id: "/$slug/settings/teams";
-      path: "/teams";
-      fullPath: "/$slug/settings/teams";
-      preLoaderRoute: typeof SlugSettingsTeamsRouteImport;
-      parentRoute: typeof SlugSettingsRoute;
-    };
-    "/$slug/settings/preferences": {
-      id: "/$slug/settings/preferences";
-      path: "/preferences";
-      fullPath: "/$slug/settings/preferences";
-      preLoaderRoute: typeof SlugSettingsPreferencesRouteImport;
-      parentRoute: typeof SlugSettingsRoute;
-    };
-    "/$slug/settings/members": {
-      id: "/$slug/settings/members";
-      path: "/members";
-      fullPath: "/$slug/settings/members";
-      preLoaderRoute: typeof SlugSettingsMembersRouteImport;
-      parentRoute: typeof SlugSettingsRoute;
-    };
-    "/$slug/settings/billing": {
-      id: "/$slug/settings/billing";
-      path: "/billing";
-      fullPath: "/$slug/settings/billing";
-      preLoaderRoute: typeof SlugSettingsBillingRouteImport;
-      parentRoute: typeof SlugSettingsRoute;
-    };
-    "/$slug/teams/$teamSlug/": {
-      id: "/$slug/teams/$teamSlug/";
-      path: "/";
-      fullPath: "/$slug/teams/$teamSlug/";
-      preLoaderRoute: typeof SlugTeamsTeamSlugIndexRouteImport;
-      parentRoute: typeof SlugTeamsTeamSlugRoute;
-    };
-    "/$slug/teams/$teamSlug/settings": {
-      id: "/$slug/teams/$teamSlug/settings";
-      path: "/settings";
-      fullPath: "/$slug/teams/$teamSlug/settings";
-      preLoaderRoute: typeof SlugTeamsTeamSlugSettingsRouteImport;
-      parentRoute: typeof SlugTeamsTeamSlugRoute;
-    };
-    "/$slug/teams/$teamSlug/settings/members": {
-      id: "/$slug/teams/$teamSlug/settings/members";
-      path: "/members";
-      fullPath: "/$slug/teams/$teamSlug/settings/members";
-      preLoaderRoute: typeof SlugTeamsTeamSlugSettingsMembersRouteImport;
-      parentRoute: typeof SlugTeamsTeamSlugSettingsRoute;
-    };
-    "/$slug/teams/$teamSlug/settings/general": {
-      id: "/$slug/teams/$teamSlug/settings/general";
-      path: "/general";
-      fullPath: "/$slug/teams/$teamSlug/settings/general";
-      preLoaderRoute: typeof SlugTeamsTeamSlugSettingsGeneralRouteImport;
-      parentRoute: typeof SlugTeamsTeamSlugSettingsRoute;
-    };
+    '/terms-of-service': {
+      id: '/terms-of-service'
+      path: '/terms-of-service'
+      fullPath: '/terms-of-service'
+      preLoaderRoute: typeof TermsOfServiceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy-policy': {
+      id: '/privacy-policy'
+      path: '/privacy-policy'
+      fullPath: '/privacy-policy'
+      preLoaderRoute: typeof PrivacyPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/create-organization': {
+      id: '/create-organization'
+      path: '/create-organization'
+      fullPath: '/create-organization'
+      preLoaderRoute: typeof CreateOrganizationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$slug': {
+      id: '/$slug'
+      path: '/$slug'
+      fullPath: '/$slug'
+      preLoaderRoute: typeof SlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$slug/settings': {
+      id: '/$slug/settings'
+      path: '/settings'
+      fullPath: '/$slug/settings'
+      preLoaderRoute: typeof SlugSettingsRouteImport
+      parentRoute: typeof SlugRoute
+    }
+    '/$slug/teams/$teamSlug': {
+      id: '/$slug/teams/$teamSlug'
+      path: '/teams/$teamSlug'
+      fullPath: '/$slug/teams/$teamSlug'
+      preLoaderRoute: typeof SlugTeamsTeamSlugRouteImport
+      parentRoute: typeof SlugRoute
+    }
+    '/$slug/settings/teams': {
+      id: '/$slug/settings/teams'
+      path: '/teams'
+      fullPath: '/$slug/settings/teams'
+      preLoaderRoute: typeof SlugSettingsTeamsRouteImport
+      parentRoute: typeof SlugSettingsRoute
+    }
+    '/$slug/settings/profile': {
+      id: '/$slug/settings/profile'
+      path: '/profile'
+      fullPath: '/$slug/settings/profile'
+      preLoaderRoute: typeof SlugSettingsProfileRouteImport
+      parentRoute: typeof SlugSettingsRoute
+    }
+    '/$slug/settings/preferences': {
+      id: '/$slug/settings/preferences'
+      path: '/preferences'
+      fullPath: '/$slug/settings/preferences'
+      preLoaderRoute: typeof SlugSettingsPreferencesRouteImport
+      parentRoute: typeof SlugSettingsRoute
+    }
+    '/$slug/settings/members': {
+      id: '/$slug/settings/members'
+      path: '/members'
+      fullPath: '/$slug/settings/members'
+      preLoaderRoute: typeof SlugSettingsMembersRouteImport
+      parentRoute: typeof SlugSettingsRoute
+    }
+    '/$slug/settings/billing': {
+      id: '/$slug/settings/billing'
+      path: '/billing'
+      fullPath: '/$slug/settings/billing'
+      preLoaderRoute: typeof SlugSettingsBillingRouteImport
+      parentRoute: typeof SlugSettingsRoute
+    }
+    '/$slug/teams/$teamSlug/': {
+      id: '/$slug/teams/$teamSlug/'
+      path: '/'
+      fullPath: '/$slug/teams/$teamSlug/'
+      preLoaderRoute: typeof SlugTeamsTeamSlugIndexRouteImport
+      parentRoute: typeof SlugTeamsTeamSlugRoute
+    }
+    '/$slug/teams/$teamSlug/settings': {
+      id: '/$slug/teams/$teamSlug/settings'
+      path: '/settings'
+      fullPath: '/$slug/teams/$teamSlug/settings'
+      preLoaderRoute: typeof SlugTeamsTeamSlugSettingsRouteImport
+      parentRoute: typeof SlugTeamsTeamSlugRoute
+    }
+    '/$slug/teams/$teamSlug/settings/members': {
+      id: '/$slug/teams/$teamSlug/settings/members'
+      path: '/members'
+      fullPath: '/$slug/teams/$teamSlug/settings/members'
+      preLoaderRoute: typeof SlugTeamsTeamSlugSettingsMembersRouteImport
+      parentRoute: typeof SlugTeamsTeamSlugSettingsRoute
+    }
+    '/$slug/teams/$teamSlug/settings/general': {
+      id: '/$slug/teams/$teamSlug/settings/general'
+      path: '/general'
+      fullPath: '/$slug/teams/$teamSlug/settings/general'
+      preLoaderRoute: typeof SlugTeamsTeamSlugSettingsGeneralRouteImport
+      parentRoute: typeof SlugTeamsTeamSlugSettingsRoute
+    }
   }
 }
 
 interface SlugSettingsRouteChildren {
-  SlugSettingsBillingRoute: typeof SlugSettingsBillingRoute;
-  SlugSettingsMembersRoute: typeof SlugSettingsMembersRoute;
-  SlugSettingsPreferencesRoute: typeof SlugSettingsPreferencesRoute;
-  SlugSettingsTeamsRoute: typeof SlugSettingsTeamsRoute;
+  SlugSettingsBillingRoute: typeof SlugSettingsBillingRoute
+  SlugSettingsMembersRoute: typeof SlugSettingsMembersRoute
+  SlugSettingsPreferencesRoute: typeof SlugSettingsPreferencesRoute
+  SlugSettingsProfileRoute: typeof SlugSettingsProfileRoute
+  SlugSettingsTeamsRoute: typeof SlugSettingsTeamsRoute
 }
 
 const SlugSettingsRouteChildren: SlugSettingsRouteChildren = {
   SlugSettingsBillingRoute: SlugSettingsBillingRoute,
   SlugSettingsMembersRoute: SlugSettingsMembersRoute,
   SlugSettingsPreferencesRoute: SlugSettingsPreferencesRoute,
+  SlugSettingsProfileRoute: SlugSettingsProfileRoute,
   SlugSettingsTeamsRoute: SlugSettingsTeamsRoute,
-};
+}
 
 const SlugSettingsRouteWithChildren = SlugSettingsRoute._addFileChildren(
   SlugSettingsRouteChildren,
-);
+)
 
 interface SlugTeamsTeamSlugSettingsRouteChildren {
-  SlugTeamsTeamSlugSettingsGeneralRoute: typeof SlugTeamsTeamSlugSettingsGeneralRoute;
-  SlugTeamsTeamSlugSettingsMembersRoute: typeof SlugTeamsTeamSlugSettingsMembersRoute;
+  SlugTeamsTeamSlugSettingsGeneralRoute: typeof SlugTeamsTeamSlugSettingsGeneralRoute
+  SlugTeamsTeamSlugSettingsMembersRoute: typeof SlugTeamsTeamSlugSettingsMembersRoute
 }
 
 const SlugTeamsTeamSlugSettingsRouteChildren: SlugTeamsTeamSlugSettingsRouteChildren =
@@ -455,37 +476,37 @@ const SlugTeamsTeamSlugSettingsRouteChildren: SlugTeamsTeamSlugSettingsRouteChil
       SlugTeamsTeamSlugSettingsGeneralRoute,
     SlugTeamsTeamSlugSettingsMembersRoute:
       SlugTeamsTeamSlugSettingsMembersRoute,
-  };
+  }
 
 const SlugTeamsTeamSlugSettingsRouteWithChildren =
   SlugTeamsTeamSlugSettingsRoute._addFileChildren(
     SlugTeamsTeamSlugSettingsRouteChildren,
-  );
+  )
 
 interface SlugTeamsTeamSlugRouteChildren {
-  SlugTeamsTeamSlugSettingsRoute: typeof SlugTeamsTeamSlugSettingsRouteWithChildren;
-  SlugTeamsTeamSlugIndexRoute: typeof SlugTeamsTeamSlugIndexRoute;
+  SlugTeamsTeamSlugSettingsRoute: typeof SlugTeamsTeamSlugSettingsRouteWithChildren
+  SlugTeamsTeamSlugIndexRoute: typeof SlugTeamsTeamSlugIndexRoute
 }
 
 const SlugTeamsTeamSlugRouteChildren: SlugTeamsTeamSlugRouteChildren = {
   SlugTeamsTeamSlugSettingsRoute: SlugTeamsTeamSlugSettingsRouteWithChildren,
   SlugTeamsTeamSlugIndexRoute: SlugTeamsTeamSlugIndexRoute,
-};
+}
 
 const SlugTeamsTeamSlugRouteWithChildren =
-  SlugTeamsTeamSlugRoute._addFileChildren(SlugTeamsTeamSlugRouteChildren);
+  SlugTeamsTeamSlugRoute._addFileChildren(SlugTeamsTeamSlugRouteChildren)
 
 interface SlugRouteChildren {
-  SlugSettingsRoute: typeof SlugSettingsRouteWithChildren;
-  SlugTeamsTeamSlugRoute: typeof SlugTeamsTeamSlugRouteWithChildren;
+  SlugSettingsRoute: typeof SlugSettingsRouteWithChildren
+  SlugTeamsTeamSlugRoute: typeof SlugTeamsTeamSlugRouteWithChildren
 }
 
 const SlugRouteChildren: SlugRouteChildren = {
   SlugSettingsRoute: SlugSettingsRouteWithChildren,
   SlugTeamsTeamSlugRoute: SlugTeamsTeamSlugRouteWithChildren,
-};
+}
 
-const SlugRouteWithChildren = SlugRoute._addFileChildren(SlugRouteChildren);
+const SlugRouteWithChildren = SlugRoute._addFileChildren(SlugRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -498,7 +519,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
   TermsOfServiceRoute: TermsOfServiceRoute,
-};
+}
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>();
+  ._addFileTypes<FileRouteTypes>()

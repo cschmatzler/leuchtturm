@@ -73,7 +73,7 @@ function Page() {
 			await queryClient.invalidateQueries({ queryKey: ["deviceSessions"] });
 			await queryClient.invalidateQueries({ queryKey: organizationsQuery().queryKey });
 			await navigate({
-				to: "/$slug/settings/preferences",
+				to: "/$slug/settings",
 				params: { slug: data.slug },
 			});
 		},
