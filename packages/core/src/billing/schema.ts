@@ -8,11 +8,11 @@ const NullableDate = Schema.NullOr(Schema.Date);
 const NullableEmail = Schema.NullOr(Email);
 const NullableOrganizationId = Schema.NullOr(OrganizationId);
 
-export const BillingCurrency = Schema.String.check(Schema.isPattern(/^[A-Z]{3}$/)).annotate({
+const BillingCurrency = Schema.String.check(Schema.isPattern(/^[A-Z]{3}$/)).annotate({
 	message: "Currency must be a three-letter uppercase code",
 });
 
-export const BillingSubscriptionStatus = Schema.Literals([
+const BillingSubscriptionStatus = Schema.Literals([
 	"incomplete",
 	"incomplete_expired",
 	"trialing",
@@ -22,9 +22,9 @@ export const BillingSubscriptionStatus = Schema.Literals([
 	"unpaid",
 ]);
 
-export const BillingRecurringInterval = Schema.Literals(["day", "week", "month", "year"]);
+const BillingRecurringInterval = Schema.Literals(["day", "week", "month", "year"]);
 
-export const BillingOrderStatus = Schema.Literals([
+const BillingOrderStatus = Schema.Literals([
 	"pending",
 	"paid",
 	"refunded",
@@ -32,7 +32,7 @@ export const BillingOrderStatus = Schema.Literals([
 	"void",
 ]);
 
-export const BillingOrderBillingReason = Schema.Literals([
+const BillingOrderBillingReason = Schema.Literals([
 	"purchase",
 	"subscription_create",
 	"subscription_cycle",

@@ -5,7 +5,6 @@ import {
 	relationships,
 	string,
 	table,
-	type Row,
 	type Zero,
 } from "@rocicorp/zero";
 
@@ -144,11 +143,5 @@ declare module "@rocicorp/zero" {
 		context: Context;
 	}
 }
-
-export type User = Row<typeof schema.tables.user>;
-export type Organization = Row<typeof schema.tables.organization>;
-export type Member = Row<typeof schema.tables.member>;
-export type Team = Row<typeof schema.tables.team>;
-export type TeamMember = Row<typeof schema.tables.team_member>;
 
 export type { Zero };

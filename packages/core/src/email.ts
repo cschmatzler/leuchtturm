@@ -3,8 +3,6 @@ import type { CreateEmailResponseSuccess } from "resend";
 import { Resend } from "resend";
 import { Resource } from "sst";
 
-import type { SendParams } from "@leuchtturm/core/email/schema";
-
 export namespace Email {
 	export class EmailProviderRequestError extends Schema.TaggedErrorClass<EmailProviderRequestError>()(
 		"EmailProviderRequestError",
@@ -24,9 +22,13 @@ export namespace Email {
 	]);
 
 	export interface Interface {
-		readonly send: (
-			params: SendParams,
-		) => Effect.Effect<CreateEmailResponseSuccess, typeof EmailError.Type>;
+		readonly send: (params: {
+			readonly from: string;
+			readonly to: string;
+			readonly subject: string;
+			readonly html: string;
+			readonly text: string;
+		}) => Effect.Effect<CreateEmailResponseSuccess, typeof EmailError.Type>;
 	}
 
 	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/Email") {}
@@ -35,7 +37,13 @@ export namespace Email {
 		Effect.gen(function* () {
 			yield* Effect.logInfo("Email initialized");
 
-			const send = Effect.fn("Email.send")(function* (params: SendParams) {
+			const send = Effect.fn("Email.send")(function* (params: {
+				readonly from: string;
+				readonly to: string;
+				readonly subject: string;
+				readonly html: string;
+				readonly text: string;
+			}) {
 				const result = yield* Effect.tryPromise({
 					try: () => new Resend(Resource.ResendApiKey.value).emails.send(params),
 					catch: (cause) => cause,
