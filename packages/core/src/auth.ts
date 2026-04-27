@@ -158,12 +158,30 @@ export namespace Auth {
 							},
 						},
 						organizationHooks: {
-							beforeCreateTeam: ({ team: newTeam }) =>
+							afterCreateOrganization: ({ organization, user }) =>
+								Effect.runPromise(
+									billing.createCustomer({
+										organizationId: organization.id,
+										name: organization.name,
+										slug: organization.slug,
+										ownerEmail: user.email,
+										ownerName: user.name,
+									}),
+								),
+							afterUpdateOrganization: ({ organization }) => {
+								if (!organization) return Promise.resolve();
+								return Effect.runPromise(
+									billing.updateCustomer({
+										organizationId: organization.id,
+										name: organization.name,
+										slug: organization.slug,
+									}),
+								);
+							},
+							beforeCreateTeam: ({ team, organization }) =>
 								Effect.runPromise(
 									Effect.gen(function* () {
-										const teamName = yield* Schema.decodeEffect(Team.fields.name)(
-											newTeam.name,
-										).pipe(
+										const teamName = yield* Schema.decodeEffect(Team.fields.name)(team.name).pipe(
 											Effect.catchCause((cause) =>
 												Effect.gen(function* () {
 													yield* Effect.annotateCurrentSpan({
@@ -176,27 +194,14 @@ export namespace Auth {
 												}),
 											),
 										);
-										const organizationId = yield* Schema.decodeUnknownEffect(
-											Team.fields.organizationId,
-										)(newTeam.organizationId).pipe(
-											Effect.catchCause((cause) =>
-												Effect.gen(function* () {
-													yield* Effect.annotateCurrentSpan({
-														"error.original_cause": Cause.pretty(cause),
-													});
-													return yield* new AuthInvalidTeamPayloadError({
-														message: "Invalid team organization id",
-													});
-												}),
-											),
-										);
-										const slug = teamName.toLowerCase();
-
 										const existingTeam = yield* database
 											.select({ id: teamTable.id })
 											.from(teamTable)
 											.where(
-												and(eq(teamTable.organizationId, organizationId), eq(teamTable.slug, slug)),
+												and(
+													eq(teamTable.organizationId, organization.id),
+													eq(teamTable.slug, teamName.toLowerCase()),
+												),
 											)
 											.limit(1)
 											.pipe(
@@ -220,34 +225,14 @@ export namespace Auth {
 
 										return {
 											data: {
-												...newTeam,
+												...team,
 												name: teamName,
-												organizationId,
-												slug,
+												organizationId: organization.id,
+												slug: teamName.toLowerCase(),
 											},
 										};
 									}),
 								),
-							afterCreateOrganization: ({ organization, user }) =>
-								Effect.runPromise(
-									billing.createCustomer({
-										organizationId: organization.id,
-										name: organization.name,
-										slug: organization.slug,
-										ownerEmail: user.email,
-										ownerName: user.name,
-									}),
-								),
-							afterUpdateOrganization: ({ organization }) => {
-								if (!organization) return Promise.resolve();
-								return Effect.runPromise(
-									billing.updateCustomer({
-										organizationId: organization.id,
-										name: organization.name,
-										slug: organization.slug,
-									}),
-								);
-							},
 						},
 					}),
 					billing.authPlugin,
