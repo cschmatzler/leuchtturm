@@ -1,7 +1,7 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { multiSession, organization as organizationPlugin } from "better-auth/plugins";
-import { and, eq, ne, sql } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { Cause, Effect, Layer, Schema, Context } from "effect";
 import { Resource } from "sst";
 import { ulid } from "ulid";
@@ -22,12 +22,10 @@ import {
 	AuthDuplicateTeamNameError,
 	AuthError,
 	AuthInvalidSessionPayloadError,
-	AuthInvalidTeamPayloadError,
 	AuthInvalidOrganizationPayloadError,
 	AuthOrganizationLookupError,
 	AuthPasswordResetEmailError,
 	AuthSessionLookupError,
-	AuthTeamLookupError,
 } from "@leuchtturm/core/auth/errors";
 import {
 	AccountId,
@@ -291,7 +289,7 @@ export namespace Auth {
 			});
 
 			const getSession = Effect.fn("Auth.getSession")(function* (headers: Headers) {
-				const session = yield* Effect.tryPromise({
+				return yield* Effect.tryPromise({
 					try: () => auth.api.getSession({ headers }),
 					catch: (cause) => cause,
 				}).pipe(
@@ -303,16 +301,30 @@ export namespace Auth {
 							);
 						}),
 					),
+					Effect.flatMap((session) =>
+						Schema.decodeUnknownEffect(SessionData)(session).pipe(
+							Effect.catchCause((cause) =>
+								Effect.gen(function* () {
+									yield* Effect.annotateCurrentSpan({
+										"error.original_cause": Cause.pretty(cause),
+									});
+									return yield* Effect.fail(
+										new AuthInvalidSessionPayloadError({
+											message: "Invalid auth session payload",
+										}),
+									);
+								}),
+							),
+						),
+					),
 				);
-
-				return yield* Schema.decodeUnknownEffect(SessionData)(session);
 			});
 
 			const getOrganization = Effect.fn("Auth.getOrganization")(function* (
 				headers: Headers,
 				organizationId: string,
 			) {
-				const organization = yield* Effect.tryPromise({
+				return yield* Effect.tryPromise({
 					try: () =>
 						auth.api.getFullOrganization({
 							headers,
@@ -328,13 +340,28 @@ export namespace Auth {
 							);
 						}),
 					),
+					Effect.flatMap((organization) =>
+						Schema.decodeUnknownEffect(Organization)(organization).pipe(
+							Effect.catchCause((cause) =>
+								Effect.gen(function* () {
+									yield* Effect.annotateCurrentSpan({
+										"error.original_cause": Cause.pretty(cause),
+									});
+									return yield* Effect.fail(
+										new AuthInvalidOrganizationPayloadError({
+											message: "Invalid auth organization payload",
+										}),
+									);
+								}),
+							),
+						),
+					),
+					Effect.map(({ id, name, slug }) => ({ id, name, slug })),
 				);
-
-				return yield* Schema.decodeUnknownEffect(Organization)(organization);
 			});
 
 			const getDeviceSessions = Effect.fn("Auth.getDeviceSessions")(function* (headers: Headers) {
-				const deviceSessions = yield* Effect.tryPromise({
+				return yield* Effect.tryPromise({
 					try: () => auth.api.listDeviceSessions({ headers }),
 					catch: (cause) => cause,
 				}).pipe(
@@ -346,9 +373,23 @@ export namespace Auth {
 							);
 						}),
 					),
+					Effect.flatMap((deviceSessions) =>
+						Schema.decodeUnknownEffect(DeviceSessions)(deviceSessions).pipe(
+							Effect.catchCause((cause) =>
+								Effect.gen(function* () {
+									yield* Effect.annotateCurrentSpan({
+										"error.original_cause": Cause.pretty(cause),
+									});
+									return yield* Effect.fail(
+										new AuthInvalidSessionPayloadError({
+											message: "Invalid auth device sessions payload",
+										}),
+									);
+								}),
+							),
+						),
+					),
 				);
-
-				return yield* Schema.decodeUnknownEffect(DeviceSessions)(deviceSessions);
 			});
 
 			return Service.of({ client: auth, getSession, getOrganization, getDeviceSessions });
