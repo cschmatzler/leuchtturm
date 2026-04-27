@@ -169,12 +169,11 @@ export namespace Auth {
 									}),
 								),
 							afterUpdateOrganization: ({ organization }) => {
-								if (!organization) return Promise.resolve();
 								return Effect.runPromise(
 									billing.updateCustomer({
-										organizationId: organization.id,
-										name: organization.name,
-										slug: organization.slug,
+										organizationId: organization!.id,
+										name: organization!.name,
+										slug: organization!.slug,
 									}),
 								);
 							},
