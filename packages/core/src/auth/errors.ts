@@ -60,7 +60,7 @@ export class AuthDuplicateTeamSlugError extends Schema.TaggedErrorClass<AuthDupl
 	{ httpApiStatus: 409 },
 ) {}
 
-export const AuthError = Schema.Union([
+export const AuthErrors = [
 	AuthHandlerError,
 	AuthSessionLookupError,
 	AuthDeviceSessionsListError,
@@ -71,4 +71,6 @@ export const AuthError = Schema.Union([
 	AuthInvalidTeamPayloadError,
 	AuthTeamLookupError,
 	AuthDuplicateTeamSlugError,
-]);
+] as const;
+
+export const AuthError = Schema.Union(AuthErrors);

@@ -2,7 +2,7 @@ import { Schema } from "effect";
 import { HttpApi, HttpApiEndpoint, HttpApiGroup } from "effect/unstable/httpapi";
 
 import { AuthMiddleware } from "@leuchtturm/api/auth";
-import { AuthError } from "@leuchtturm/core/auth/errors";
+import { AuthErrors } from "@leuchtturm/core/auth/errors";
 import { DeviceSessions } from "@leuchtturm/core/auth/schema";
 import { BillingError } from "@leuchtturm/core/billing/errors";
 import {
@@ -38,15 +38,15 @@ const BillingOrganizationQuery = Schema.Struct({
 	organizationId: Schema.String,
 });
 
-export const AuthRouteError = Schema.Union([UnauthorizedError, AuthError]);
-const ProtectedRouteError = Schema.Union([DatabaseError, UnauthorizedError, AuthError]);
-const BillingRouteError = Schema.Union([
+export const AuthRouteError = [UnauthorizedError, ...AuthErrors] as const;
+const ProtectedRouteError = [DatabaseError, UnauthorizedError, ...AuthErrors] as const;
+const BillingRouteError = [
 	BillingError,
 	UnauthorizedError,
-	AuthError,
+	...AuthErrors,
 	ValidationError,
 	NotFoundError,
-]);
+] as const;
 
 export const health = HttpApiGroup.make("health").add(
 	HttpApiEndpoint.get("healthCheck", "/up", {
