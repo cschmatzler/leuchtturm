@@ -1,7 +1,7 @@
 import { defineQueriesWithType, defineQueryWithType } from "@rocicorp/zero";
 import { Schema } from "effect";
 
-import { OrganizationSlug } from "@leuchtturm/core/auth/schema";
+import { Slug } from "@leuchtturm/core/auth/schema";
 import { schema, zql } from "@leuchtturm/zero/schema";
 import type { Context } from "@leuchtturm/zero/schema";
 
@@ -9,7 +9,7 @@ const defineQuery = defineQueryWithType<typeof schema, Context>();
 const defineQueries = defineQueriesWithType<typeof schema>();
 const organizationArgs = Schema.toStandardSchemaV1(
 	Schema.Struct({
-		slug: OrganizationSlug,
+		slug: Slug,
 	}),
 );
 

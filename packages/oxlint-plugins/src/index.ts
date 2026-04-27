@@ -1,3 +1,4 @@
+import consistentComponentHookGroups from "@leuchtturm/oxlint-plugins/consistent-component-hook-groups";
 import noApiResponseSchemaInCore from "@leuchtturm/oxlint-plugins/no-api-response-schema-in-core";
 import noDirectFetch from "@leuchtturm/oxlint-plugins/no-direct-fetch";
 import noEffectTryHelper from "@leuchtturm/oxlint-plugins/no-effect-try-helper";
@@ -16,6 +17,7 @@ const plugin = {
 		name: "@leuchtturm/oxlint-plugins",
 	},
 	rules: {
+		...consistentComponentHookGroups.rules,
 		...noApiResponseSchemaInCore.rules,
 		...noDirectFetch.rules,
 		...noEffectTryHelper.rules,

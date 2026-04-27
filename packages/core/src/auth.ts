@@ -31,12 +31,12 @@ import {
 	InvitationId,
 	MemberId,
 	OrganizationId,
-	OrganizationSummary,
+	Organization,
 	SessionData,
 	SessionId,
+	Slug,
 	TeamId,
 	TeamMemberId,
-	TeamSlug,
 	UserId,
 	VerificationId,
 } from "@leuchtturm/core/auth/schema";
@@ -68,11 +68,11 @@ async function uniqueTeamSlug(
 		[organizationId, baseSlug, `${baseSlug}-%`],
 	);
 	const existingSlugs = new Set(rows.map((row) => row.slug));
-	if (!existingSlugs.has(baseSlug)) return Schema.decodeSync(TeamSlug)(baseSlug);
+	if (!existingSlugs.has(baseSlug)) return Schema.decodeSync(Slug)(baseSlug);
 
 	for (let suffix = 2; ; suffix++) {
 		const candidate = `${baseSlug}-${suffix}`;
-		if (!existingSlugs.has(candidate)) return Schema.decodeSync(TeamSlug)(candidate);
+		if (!existingSlugs.has(candidate)) return Schema.decodeSync(Slug)(candidate);
 	}
 }
 
@@ -85,7 +85,10 @@ export namespace Auth {
 		readonly getOrganization: (
 			headers: Headers,
 			organizationId: string,
-		) => Effect.Effect<typeof OrganizationSummary.Type | null, typeof AuthError.Type>;
+		) => Effect.Effect<
+			Pick<typeof Organization.Type, "id" | "name" | "slug"> | null,
+			typeof AuthError.Type
+		>;
 		readonly getDeviceSessions: (
 			headers: Headers,
 		) => Effect.Effect<typeof DeviceSessions.Type, typeof AuthError.Type>;
@@ -311,7 +314,9 @@ export namespace Auth {
 
 				if (!selectedOrganization) return null;
 
-				return yield* Schema.decodeUnknownEffect(OrganizationSummary)(selectedOrganization).pipe(
+				return yield* Schema.decodeUnknownEffect(
+					Organization.mapFields(({ id, name, slug }) => ({ id, name, slug })),
+				)(selectedOrganization).pipe(
 					Effect.catchCause((cause) =>
 						Effect.gen(function* () {
 							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });

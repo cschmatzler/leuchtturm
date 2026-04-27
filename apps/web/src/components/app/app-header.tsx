@@ -52,12 +52,12 @@ export function AppHeader({
 	readonly activeTeam?: AppHeaderTeam;
 }) {
 	const { organizationId } = slugRoute.useRouteContext();
+	const navigate = useNavigate();
+	const matchRoute = useMatchRoute();
 	const [currentUser] = useZeroQuery(queries.currentUser());
 	const [teams] = useZeroQuery(queries.organizationTeams({ organizationId }));
 	const { data: organizations } = useQuery(organizationsQuery());
 
-	const navigate = useNavigate();
-	const matchRoute = useMatchRoute();
 	const { t, i18n } = useTranslation();
 	const { session, deviceSessions, signOutCurrent, signOutAll, setActiveSession } = useAuth();
 	const commandBar = useCommandBar();

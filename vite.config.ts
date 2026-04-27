@@ -18,6 +18,7 @@ export default defineConfig({
 			typeCheck: true,
 		},
 		jsPlugins: [
+			"./packages/oxlint-plugins/src/consistent-component-hook-groups.ts",
 			"./packages/oxlint-plugins/src/no-api-response-schema-in-core.ts",
 			"./packages/oxlint-plugins/src/no-direct-fetch.ts",
 			"./packages/oxlint-plugins/src/no-effect-try-helper.ts",
@@ -39,6 +40,7 @@ export default defineConfig({
 			"packages/oxlint-plugins/**",
 		],
 		rules: {
+			"consistent-component-hook-groups/consistent-component-hook-groups": "error",
 			"no-api-response-schema-in-core/no-api-response-schema-in-core": "error",
 			"no-effect-try-helper/no-effect-try-helper": "error",
 			"no-generic-domain-error-class/no-generic-domain-error-class": "error",

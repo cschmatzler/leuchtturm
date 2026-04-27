@@ -4,6 +4,7 @@
 	"type": "module",
 	"exports": {
 		".": "./src/index.ts",
+		"./consistent-component-hook-groups": "./src/consistent-component-hook-groups.ts",
 		"./no-api-response-schema-in-core": "./src/no-api-response-schema-in-core.ts",
 		"./no-direct-fetch": "./src/no-direct-fetch.ts",
 		"./no-effect-try-helper": "./src/no-effect-try-helper.ts",
