@@ -19,11 +19,11 @@ import {
 } from "@leuchtturm/core/auth/auth.sql";
 import {
 	AuthDeviceSessionsListError,
-	AuthError,
-	AuthInvalidOrganizationPayloadError,
 	AuthDuplicateTeamSlugError,
+	AuthError,
 	AuthInvalidSessionPayloadError,
 	AuthInvalidTeamPayloadError,
+	AuthInvalidOrganizationPayloadError,
 	AuthOrganizationLookupError,
 	AuthPasswordResetEmailError,
 	AuthSessionLookupError,
@@ -79,6 +79,9 @@ export namespace Auth {
 				baseURL: `${Resource.ApiConfig.BASE_URL}/api/auth`,
 				secret: Resource.BetterAuthSecret.value,
 				trustedOrigins: [Resource.ApiConfig.BASE_URL],
+				onAPIError: {
+					throw: true,
+				},
 				database: drizzleAdapter(rawDatabase, {
 					provider: "pg",
 					schema: {
