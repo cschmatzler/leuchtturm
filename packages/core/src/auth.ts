@@ -183,41 +183,17 @@ export namespace Auth {
 							beforeCreateTeam: ({ team, organization }) =>
 								Effect.runPromise(
 									Effect.gen(function* () {
-										const teamName = yield* Schema.decodeEffect(Team.fields.name)(team.name).pipe(
-											Effect.catchCause((cause) =>
-												Effect.gen(function* () {
-													yield* Effect.annotateCurrentSpan({
-														"error.original_cause": Cause.pretty(cause),
-													});
-													return yield* new AuthInvalidTeamPayloadError({
-														message:
-															"Team name must contain only ASCII letters, numbers, dashes, and underscores",
-													});
-												}),
-											),
-										);
+										const teamName = yield* Schema.decodeEffect(Team.fields.name)(team.name);
 										const existingTeam = yield* database
 											.select({ id: teamTable.id })
 											.from(teamTable)
 											.where(
 												and(
 													eq(teamTable.organizationId, organization.id),
-													eq(sql<string>`lower(${teamTable.name})`, teamName.toLowerCase()),
+													eq(teamTable.slug, teamName.toLowerCase()),
 												),
 											)
-											.limit(1)
-											.pipe(
-												Effect.catchCause((cause) =>
-													Effect.gen(function* () {
-														yield* Effect.annotateCurrentSpan({
-															"error.original_cause": Cause.pretty(cause),
-														});
-														return yield* new AuthTeamLookupError({
-															message: "Failed to look up team name",
-														});
-													}),
-												),
-											);
+											.limit(1);
 
 										if (existingTeam.length > 0) {
 											return yield* new AuthDuplicateTeamNameError({
@@ -229,8 +205,8 @@ export namespace Auth {
 											data: {
 												...team,
 												name: teamName,
-												organizationId: organization.id,
 												slug: teamName.toLowerCase(),
+												organizationId: organization.id,
 											},
 										};
 									}),
@@ -242,44 +218,18 @@ export namespace Auth {
 											return { data: updates };
 										}
 
-										const teamName = yield* Schema.decodeEffect(Team.fields.name)(
-											updates.name,
-										).pipe(
-											Effect.catchCause((cause) =>
-												Effect.gen(function* () {
-													yield* Effect.annotateCurrentSpan({
-														"error.original_cause": Cause.pretty(cause),
-													});
-													return yield* new AuthInvalidTeamPayloadError({
-														message:
-															"Team name must contain only ASCII letters, numbers, dashes, and underscores",
-													});
-												}),
-											),
-										);
+										const teamName = yield* Schema.decodeEffect(Team.fields.name)(updates.name);
 										const existingTeam = yield* database
 											.select({ id: teamTable.id })
 											.from(teamTable)
 											.where(
 												and(
-													eq(teamTable.organizationId, organization.id),
 													ne(teamTable.id, team.id),
-													eq(sql<string>`lower(${teamTable.name})`, teamName.toLowerCase()),
+													eq(teamTable.slug, teamName.toLowerCase()),
+													eq(teamTable.organizationId, organization.id),
 												),
 											)
-											.limit(1)
-											.pipe(
-												Effect.catchCause((cause) =>
-													Effect.gen(function* () {
-														yield* Effect.annotateCurrentSpan({
-															"error.original_cause": Cause.pretty(cause),
-														});
-														return yield* new AuthTeamLookupError({
-															message: "Failed to look up team name",
-														});
-													}),
-												),
-											);
+											.limit(1);
 
 										if (existingTeam.length > 0) {
 											return yield* new AuthDuplicateTeamNameError({
@@ -341,7 +291,7 @@ export namespace Auth {
 			});
 
 			const getSession = Effect.fn("Auth.getSession")(function* (headers: Headers) {
-				const currentSession = yield* Effect.tryPromise({
+				const session = yield* Effect.tryPromise({
 					try: () => auth.api.getSession({ headers }),
 					catch: (cause) => cause,
 				}).pipe(
@@ -355,27 +305,14 @@ export namespace Auth {
 					),
 				);
 
-				if (!currentSession) {
-					return null;
-				}
-
-				return yield* Schema.decodeUnknownEffect(SessionData)(currentSession).pipe(
-					Effect.catchCause((cause) =>
-						Effect.gen(function* () {
-							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-							return yield* Effect.fail(
-								new AuthInvalidSessionPayloadError({ message: "Invalid auth session payload" }),
-							);
-						}),
-					),
-				);
+				return yield* Schema.decodeUnknownEffect(SessionData)(session);
 			});
 
 			const getOrganization = Effect.fn("Auth.getOrganization")(function* (
 				headers: Headers,
 				organizationId: string,
 			) {
-				const selectedOrganization = yield* Effect.tryPromise({
+				const organization = yield* Effect.tryPromise({
 					try: () =>
 						auth.api.getFullOrganization({
 							headers,
@@ -393,22 +330,7 @@ export namespace Auth {
 					),
 				);
 
-				if (!selectedOrganization) return null;
-
-				return yield* Schema.decodeUnknownEffect(
-					Organization.mapFields(({ id, name, slug }) => ({ id, name, slug })),
-				)(selectedOrganization).pipe(
-					Effect.catchCause((cause) =>
-						Effect.gen(function* () {
-							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-							return yield* Effect.fail(
-								new AuthInvalidOrganizationPayloadError({
-									message: "Invalid auth organization payload",
-								}),
-							);
-						}),
-					),
-				);
+				return yield* Schema.decodeUnknownEffect(Organization)(organization);
 			});
 
 			const getDeviceSessions = Effect.fn("Auth.getDeviceSessions")(function* (headers: Headers) {
@@ -426,18 +348,7 @@ export namespace Auth {
 					),
 				);
 
-				return yield* Schema.decodeUnknownEffect(DeviceSessions)(deviceSessions).pipe(
-					Effect.catchCause((cause) =>
-						Effect.gen(function* () {
-							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-							return yield* Effect.fail(
-								new AuthInvalidSessionPayloadError({
-									message: "Invalid auth device sessions payload",
-								}),
-							);
-						}),
-					),
-				);
+				return yield* Schema.decodeUnknownEffect(DeviceSessions)(deviceSessions);
 			});
 
 			return Service.of({ client: auth, getSession, getOrganization, getDeviceSessions });
