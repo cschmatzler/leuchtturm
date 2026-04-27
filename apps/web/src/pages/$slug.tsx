@@ -5,7 +5,7 @@ import { organizationsQuery } from "@leuchtturm/web/queries/organizations";
 import { sessionQuery } from "@leuchtturm/web/queries/session";
 
 export const Route = createFileRoute("/$slug")({
-	beforeLoad: async ({ params: { slug }, location, context: { queryClient } }) => {
+	beforeLoad: async ({ params: { slug }, context: { queryClient } }) => {
 		const session = await queryClient.ensureQueryData(sessionQuery());
 		if (!session) throw redirect({ to: "/login" });
 
@@ -26,13 +26,6 @@ export const Route = createFileRoute("/$slug")({
 				});
 			}
 			throw redirect({ to: "/create-organization" });
-		}
-
-		if (location.pathname === `/${slug}` || location.pathname === `/${slug}/`) {
-			throw redirect({
-				to: "/$slug/settings/teams",
-				params: { slug },
-			});
 		}
 
 		return { session, organizationId: targetOrganization.id };

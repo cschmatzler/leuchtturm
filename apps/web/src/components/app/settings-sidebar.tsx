@@ -1,9 +1,27 @@
 import { useQuery } from "@tanstack/react-query";
-import { CreditCardIcon, LayersIcon, SettingsIcon, UserIcon } from "lucide-react";
+import { ChevronRightIcon, CreditCardIcon, LayersIcon, SettingsIcon, UserIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
+} from "@leuchtturm/web/components/ui/collapsible";
 import { Link } from "@leuchtturm/web/components/ui/link";
-import { cn } from "@leuchtturm/web/lib/cn";
+import {
+	Sidebar,
+	SidebarContent,
+	SidebarGroup,
+	SidebarGroupContent,
+	SidebarGroupLabel,
+	SidebarHeader,
+	SidebarMenu,
+	SidebarMenuButton,
+	SidebarMenuItem,
+	SidebarMenuSub,
+	SidebarMenuSubButton,
+	SidebarMenuSubItem,
+} from "@leuchtturm/web/components/ui/sidebar";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { organizationsQuery } from "@leuchtturm/web/queries/organizations";
 import { queries } from "@leuchtturm/zero/queries";
@@ -19,112 +37,114 @@ export function SettingsSidebar({
 }) {
 	const { t } = useTranslation();
 	const [teams] = useZeroQuery(queries.organizationTeams({ organizationId }));
-	const [currentTeam] = useZeroQuery(queries.team({ organizationId, teamSlug: teamSlug ?? "" }));
 	const { data: organizations } = useQuery(organizationsQuery());
 	const currentOrganization = organizations?.find((org) => org.slug === slug);
 
 	return (
-		<nav className="w-52 shrink-0">
-			<h2 className="mb-4 px-2 text-sm font-semibold tracking-tight">{t("Settings")}</h2>
-
-			<div className="mb-4">
-				<p className="mb-1 px-2 text-xs font-medium text-muted-foreground">{t("Account")}</p>
-				<ul className="grid gap-0.5">
-					<li>
-						<Link to="/$slug/settings/profile" params={{ slug }} className={sidebarLinkClassName}>
-							<UserIcon className="size-4" />
-							{t("Profile")}
-						</Link>
-					</li>
-					<li>
-						<Link
-							to="/$slug/settings/preferences"
-							params={{ slug }}
-							className={sidebarLinkClassName}
-						>
-							<SettingsIcon className="size-4" />
-							{t("Preferences")}
-						</Link>
-					</li>
-				</ul>
-			</div>
-
-			<div className="mb-4">
-				<p className="mb-1 px-2 text-xs font-medium text-muted-foreground">
-					{currentOrganization?.name ?? t("Organization")}
-				</p>
-				<ul className="grid gap-0.5">
-					<li>
-						<Link to="/$slug/settings/members" params={{ slug }} className={sidebarLinkClassName}>
-							<UserIcon className="size-4" />
-							{t("Members")}
-						</Link>
-					</li>
-					<li>
-						<Link to="/$slug/settings/teams" params={{ slug }} className={sidebarLinkClassName}>
-							<LayersIcon className="size-4" />
-							{t("Teams")}
-						</Link>
-					</li>
-					<li>
-						<Link to="/$slug/settings/billing" params={{ slug }} className={sidebarLinkClassName}>
-							<CreditCardIcon className="size-4" />
-							{t("Billing")}
-						</Link>
-					</li>
-				</ul>
-			</div>
-
-			{currentTeam && teamSlug ? (
-				<div className="mb-4">
-					<p className="mb-1 px-2 text-xs font-medium text-muted-foreground">{currentTeam.name}</p>
-					<ul className="grid gap-0.5">
-						<li>
-							<Link
-								to="/$slug/teams/$teamSlug/settings/general"
-								params={{ slug, teamSlug }}
-								className={sidebarLinkClassName}
-							>
-								<SettingsIcon className="size-4" />
-								{t("General")}
-							</Link>
-						</li>
-						<li>
-							<Link
-								to="/$slug/teams/$teamSlug/settings/members"
-								params={{ slug, teamSlug }}
-								className={sidebarLinkClassName}
-							>
-								<UserIcon className="size-4" />
-								{t("Members")}
-							</Link>
-						</li>
-					</ul>
-				</div>
-			) : teams.length > 0 ? (
-				<div className="mb-4">
-					<p className="mb-1 px-2 text-xs font-medium text-muted-foreground">{t("Teams")}</p>
-					<ul className="grid gap-0.5">
-						{teams.map((team) => (
-							<li key={team.id}>
-								<Link
-									to="/$slug/teams/$teamSlug/settings/general"
-									params={{ slug, teamSlug: team.slug }}
-									className={sidebarLinkClassName}
+		<Sidebar variant="inset" className="absolute! inset-y-0! h-full! w-52">
+			<SidebarHeader>
+				<h2 className="px-2 text-sm font-semibold tracking-tight">{t("Settings")}</h2>
+			</SidebarHeader>
+			<SidebarContent>
+				<SidebarGroup>
+					<SidebarGroupLabel>{t("Account")}</SidebarGroupLabel>
+					<SidebarGroupContent>
+						<SidebarMenu>
+							<SidebarMenuItem>
+								<SidebarMenuButton render={<Link to="/$slug/settings/profile" params={{ slug }} />}>
+									<UserIcon />
+									<span>{t("Profile")}</span>
+								</SidebarMenuButton>
+							</SidebarMenuItem>
+							<SidebarMenuItem>
+								<SidebarMenuButton
+									render={<Link to="/$slug/settings/preferences" params={{ slug }} />}
 								>
-									<LayersIcon className="size-4" />
-									{team.name}
-								</Link>
-							</li>
-						))}
-					</ul>
-				</div>
-			) : null}
-		</nav>
+									<SettingsIcon />
+									<span>{t("Preferences")}</span>
+								</SidebarMenuButton>
+							</SidebarMenuItem>
+						</SidebarMenu>
+					</SidebarGroupContent>
+				</SidebarGroup>
+
+				<SidebarGroup>
+					<SidebarGroupLabel>{currentOrganization?.name ?? t("Organization")}</SidebarGroupLabel>
+					<SidebarGroupContent>
+						<SidebarMenu>
+							<SidebarMenuItem>
+								<SidebarMenuButton render={<Link to="/$slug/settings/members" params={{ slug }} />}>
+									<UserIcon />
+									<span>{t("Members")}</span>
+								</SidebarMenuButton>
+							</SidebarMenuItem>
+							<SidebarMenuItem>
+								<SidebarMenuButton render={<Link to="/$slug/settings/teams" params={{ slug }} />}>
+									<LayersIcon />
+									<span>{t("Teams")}</span>
+								</SidebarMenuButton>
+							</SidebarMenuItem>
+							<SidebarMenuItem>
+								<SidebarMenuButton render={<Link to="/$slug/settings/billing" params={{ slug }} />}>
+									<CreditCardIcon />
+									<span>{t("Billing")}</span>
+								</SidebarMenuButton>
+							</SidebarMenuItem>
+						</SidebarMenu>
+					</SidebarGroupContent>
+				</SidebarGroup>
+
+				{teams.length > 0 ? (
+					<SidebarGroup>
+						<SidebarGroupLabel>{t("Teams")}</SidebarGroupLabel>
+						<SidebarGroupContent>
+							<SidebarMenu>
+								{teams.map((team) => (
+									<Collapsible key={team.id} defaultOpen={team.slug === teamSlug}>
+										<SidebarMenuItem>
+											<CollapsibleTrigger render={<SidebarMenuButton className="group/team" />}>
+												<LayersIcon />
+												<span>{team.name}</span>
+												<ChevronRightIcon className="ml-auto transition-transform group-data-[panel-open]/team:rotate-90" />
+											</CollapsibleTrigger>
+											<CollapsibleContent>
+												<SidebarMenuSub>
+													<SidebarMenuSubItem>
+														<SidebarMenuSubButton
+															render={
+																<Link
+																	to="/$slug/teams/$teamSlug/settings/general"
+																	params={{ slug, teamSlug: team.slug }}
+																/>
+															}
+														>
+															<SettingsIcon />
+															<span>{t("General")}</span>
+														</SidebarMenuSubButton>
+													</SidebarMenuSubItem>
+													<SidebarMenuSubItem>
+														<SidebarMenuSubButton
+															render={
+																<Link
+																	to="/$slug/teams/$teamSlug/settings/members"
+																	params={{ slug, teamSlug: team.slug }}
+																/>
+															}
+														>
+															<UserIcon />
+															<span>{t("Members")}</span>
+														</SidebarMenuSubButton>
+													</SidebarMenuSubItem>
+												</SidebarMenuSub>
+											</CollapsibleContent>
+										</SidebarMenuItem>
+									</Collapsible>
+								))}
+							</SidebarMenu>
+						</SidebarGroupContent>
+					</SidebarGroup>
+				) : null}
+			</SidebarContent>
+		</Sidebar>
 	);
 }
-
-const sidebarLinkClassName = cn(
-	"flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
-	"data-[active]:bg-accent data-[active]:text-accent-foreground data-[active]:font-medium",
-);

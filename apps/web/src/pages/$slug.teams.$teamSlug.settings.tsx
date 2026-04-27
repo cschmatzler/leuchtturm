@@ -1,19 +1,9 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 
 import { SettingsSidebar } from "@leuchtturm/web/components/app/settings-sidebar";
+import { SidebarInset, SidebarProvider } from "@leuchtturm/web/components/ui/sidebar";
 
 export const Route = createFileRoute("/$slug/teams/$teamSlug/settings")({
-	beforeLoad: ({ location, params: { slug, teamSlug } }) => {
-		if (
-			location.pathname === `/${slug}/teams/${teamSlug}/settings` ||
-			location.pathname === `/${slug}/teams/${teamSlug}/settings/`
-		) {
-			throw redirect({
-				to: "/$slug/teams/$teamSlug/settings/general",
-				params: { slug, teamSlug },
-			});
-		}
-	},
 	component: SettingsLayout,
 });
 
@@ -22,11 +12,13 @@ function SettingsLayout() {
 	const { organizationId } = Route.useRouteContext();
 
 	return (
-		<div className="flex gap-6">
+		<SidebarProvider className="relative h-full min-h-0">
 			<SettingsSidebar slug={slug} organizationId={organizationId} teamSlug={teamSlug} />
-			<div className="min-w-0 grow">
-				<Outlet />
-			</div>
-		</div>
+			<SidebarInset className="bg-background">
+				<div className="flex max-w-7xl grow flex-col px-4 pt-4 pb-1 sm:px-6 sm:pt-6">
+					<Outlet />
+				</div>
+			</SidebarInset>
+		</SidebarProvider>
 	);
 }

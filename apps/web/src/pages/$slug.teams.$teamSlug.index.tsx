@@ -16,13 +16,17 @@ function Page() {
 	const [team] = useZeroQuery(queries.team({ organizationId, teamSlug }));
 
 	return (
-		<div className="mx-auto w-full max-w-3xl">
-			<Card className="gap-0 overflow-hidden p-0">
-				<CardHeader className="px-6 py-5">
-					<CardTitle className="text-base">{team?.name}</CardTitle>
-					<CardDescription>{t("This is your team workspace.")}</CardDescription>
-				</CardHeader>
-			</Card>
+		<div className="flex h-full justify-center">
+			<div className="flex max-w-7xl grow flex-col gap-4 px-4 pt-4 pb-1 sm:px-6 sm:pt-6">
+				<div className="mx-auto w-full max-w-3xl">
+					<Card className="gap-0 overflow-hidden p-0">
+						<CardHeader className="px-6 py-5">
+							<CardTitle className="text-base">{team?.name}</CardTitle>
+							<CardDescription>{t("This is your team workspace.")}</CardDescription>
+						</CardHeader>
+					</Card>
+				</div>
+			</div>
 		</div>
 	);
 }

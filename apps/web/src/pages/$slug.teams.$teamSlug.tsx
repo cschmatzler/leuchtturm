@@ -14,18 +14,16 @@ function Layout() {
 	const [team] = useZeroQuery(queries.team({ organizationId, teamSlug }));
 
 	return (
-		<>
+		<div className="flex h-svh flex-col">
 			<AppHeader
 				slug={slug}
 				organizationId={organizationId}
 				activeTeam={team ?? undefined}
 				teamSlug={teamSlug}
 			/>
-			<main id="main-content" className="flex grow justify-center bg-background">
-				<div className="flex max-w-7xl grow flex-col gap-4 px-4 pt-4 pb-1 sm:px-6 sm:pt-6">
-					<Outlet />
-				</div>
+			<main id="main-content" className="min-h-0 grow bg-background">
+				<Outlet />
 			</main>
-		</>
+		</div>
 	);
 }
