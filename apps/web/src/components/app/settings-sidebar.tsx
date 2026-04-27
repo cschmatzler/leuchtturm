@@ -22,6 +22,7 @@ import {
 	SidebarMenuSub,
 	SidebarMenuSubButton,
 	SidebarMenuSubItem,
+	SidebarRail,
 } from "@leuchtturm/web/components/ui/sidebar";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { organizationsQuery } from "@leuchtturm/web/queries/organizations";
@@ -43,7 +44,7 @@ export function SettingsSidebar({
 	const currentOrganization = organizations?.find((org) => org.slug === slug);
 
 	return (
-		<Sidebar variant="inset" className="absolute! inset-y-0! h-full! w-52">
+		<Sidebar variant="inset" className="absolute inset-y-0 h-full">
 			<SidebarHeader>
 				<h2 className="px-2 text-sm font-semibold tracking-tight">{t("Settings")}</h2>
 			</SidebarHeader>
@@ -147,6 +148,7 @@ export function SettingsSidebar({
 					</SidebarGroup>
 				) : null}
 			</SidebarContent>
+			<SidebarRail />
 		</Sidebar>
 	);
 }
