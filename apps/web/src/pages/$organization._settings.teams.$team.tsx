@@ -8,21 +8,17 @@ import {
 	SidebarProvider,
 	SidebarTrigger,
 } from "@leuchtturm/web/components/ui/sidebar";
-import { queries } from "@leuchtturm/zero/queries";
 
-export const Route = createFileRoute("/$organization/_settings/settings")({
-	loader: ({ context: { organizationId, zero } }) => {
-		zero.preload(queries.organizationTeams({ organizationId }));
-	},
-	component: SettingsLayout,
+export const Route = createFileRoute("/$organization/_settings/teams/$team")({
+	component: TeamSettingsLayout,
 });
 
-function SettingsLayout() {
-	const { organization } = Route.useParams();
+function TeamSettingsLayout() {
+	const { organization, team } = Route.useParams();
 
 	return (
 		<div className="flex h-svh flex-col">
-			<AppHeader organization={organization} />
+			<AppHeader organization={organization} team={team} />
 			<main id="main-content" className="min-h-0 grow bg-background">
 				<SidebarProvider
 					className="relative h-full min-h-0"

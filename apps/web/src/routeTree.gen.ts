@@ -26,6 +26,7 @@ import { Route as OrganizationTeamsTeamRouteImport } from './pages/$organization
 import { Route as OrganizationSettingsSettingsRouteImport } from './pages/$organization._settings.settings'
 import { Route as OrganizationTeamsTeamIndexRouteImport } from './pages/$organization.teams.$team.index'
 import { Route as OrganizationSettingsSettingsIndexRouteImport } from './pages/$organization._settings.settings.index'
+import { Route as OrganizationSettingsTeamsTeamRouteImport } from './pages/$organization._settings.teams.$team'
 import { Route as OrganizationSettingsSettingsTeamsRouteImport } from './pages/$organization._settings.settings.teams'
 import { Route as OrganizationSettingsSettingsProfileRouteImport } from './pages/$organization._settings.settings.profile'
 import { Route as OrganizationSettingsSettingsPreferencesRouteImport } from './pages/$organization._settings.settings.preferences'
@@ -123,6 +124,12 @@ const OrganizationSettingsSettingsIndexRoute =
     path: '/',
     getParentRoute: () => OrganizationSettingsSettingsRoute,
   } as any)
+const OrganizationSettingsTeamsTeamRoute =
+  OrganizationSettingsTeamsTeamRouteImport.update({
+    id: '/teams/$team',
+    path: '/teams/$team',
+    getParentRoute: () => OrganizationSettingsRoute,
+  } as any)
 const OrganizationSettingsSettingsTeamsRoute =
   OrganizationSettingsSettingsTeamsRouteImport.update({
     id: '/teams',
@@ -155,9 +162,9 @@ const OrganizationSettingsSettingsBillingRoute =
   } as any)
 const OrganizationSettingsTeamsTeamSettingsRoute =
   OrganizationSettingsTeamsTeamSettingsRouteImport.update({
-    id: '/teams/$team/settings',
-    path: '/teams/$team/settings',
-    getParentRoute: () => OrganizationSettingsRoute,
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => OrganizationSettingsTeamsTeamRoute,
   } as any)
 const OrganizationSettingsTeamsTeamSettingsIndexRoute =
   OrganizationSettingsTeamsTeamSettingsIndexRouteImport.update({
@@ -192,7 +199,7 @@ export interface FileRoutesByFullPath {
   '/accept-invitation/$id': typeof AcceptInvitationIdRoute
   '/$organization/': typeof OrganizationIndexRoute
   '/$organization/settings': typeof OrganizationSettingsSettingsRouteWithChildren
-  '/$organization/teams/$team': typeof OrganizationTeamsTeamRouteWithChildren
+  '/$organization/teams/$team': typeof OrganizationSettingsTeamsTeamRouteWithChildren
   '/$organization/settings/billing': typeof OrganizationSettingsSettingsBillingRoute
   '/$organization/settings/members': typeof OrganizationSettingsSettingsMembersRoute
   '/$organization/settings/preferences': typeof OrganizationSettingsSettingsPreferencesRoute
@@ -222,8 +229,8 @@ export interface FileRoutesByTo {
   '/$organization/settings/preferences': typeof OrganizationSettingsSettingsPreferencesRoute
   '/$organization/settings/profile': typeof OrganizationSettingsSettingsProfileRoute
   '/$organization/settings/teams': typeof OrganizationSettingsSettingsTeamsRoute
-  '/$organization/settings': typeof OrganizationSettingsSettingsIndexRoute
   '/$organization/teams/$team': typeof OrganizationTeamsTeamIndexRoute
+  '/$organization/settings': typeof OrganizationSettingsSettingsIndexRoute
   '/$organization/teams/$team/settings/general': typeof OrganizationSettingsTeamsTeamSettingsGeneralRoute
   '/$organization/teams/$team/settings/members': typeof OrganizationSettingsTeamsTeamSettingsMembersRoute
   '/$organization/teams/$team/settings': typeof OrganizationSettingsTeamsTeamSettingsIndexRoute
@@ -250,6 +257,7 @@ export interface FileRoutesById {
   '/$organization/_settings/settings/preferences': typeof OrganizationSettingsSettingsPreferencesRoute
   '/$organization/_settings/settings/profile': typeof OrganizationSettingsSettingsProfileRoute
   '/$organization/_settings/settings/teams': typeof OrganizationSettingsSettingsTeamsRoute
+  '/$organization/_settings/teams/$team': typeof OrganizationSettingsTeamsTeamRouteWithChildren
   '/$organization/_settings/settings/': typeof OrganizationSettingsSettingsIndexRoute
   '/$organization/teams/$team/': typeof OrganizationTeamsTeamIndexRoute
   '/$organization/_settings/teams/$team/settings': typeof OrganizationSettingsTeamsTeamSettingsRouteWithChildren
@@ -303,8 +311,8 @@ export interface FileRouteTypes {
     | '/$organization/settings/preferences'
     | '/$organization/settings/profile'
     | '/$organization/settings/teams'
-    | '/$organization/settings'
     | '/$organization/teams/$team'
+    | '/$organization/settings'
     | '/$organization/teams/$team/settings/general'
     | '/$organization/teams/$team/settings/members'
     | '/$organization/teams/$team/settings'
@@ -330,6 +338,7 @@ export interface FileRouteTypes {
     | '/$organization/_settings/settings/preferences'
     | '/$organization/_settings/settings/profile'
     | '/$organization/_settings/settings/teams'
+    | '/$organization/_settings/teams/$team'
     | '/$organization/_settings/settings/'
     | '/$organization/teams/$team/'
     | '/$organization/_settings/teams/$team/settings'
@@ -473,6 +482,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OrganizationSettingsSettingsIndexRouteImport
       parentRoute: typeof OrganizationSettingsSettingsRoute
     }
+    '/$organization/_settings/teams/$team': {
+      id: '/$organization/_settings/teams/$team'
+      path: '/teams/$team'
+      fullPath: '/$organization/teams/$team'
+      preLoaderRoute: typeof OrganizationSettingsTeamsTeamRouteImport
+      parentRoute: typeof OrganizationSettingsRoute
+    }
     '/$organization/_settings/settings/teams': {
       id: '/$organization/_settings/settings/teams'
       path: '/teams'
@@ -510,10 +526,10 @@ declare module '@tanstack/react-router' {
     }
     '/$organization/_settings/teams/$team/settings': {
       id: '/$organization/_settings/teams/$team/settings'
-      path: '/teams/$team/settings'
+      path: '/settings'
       fullPath: '/$organization/teams/$team/settings'
       preLoaderRoute: typeof OrganizationSettingsTeamsTeamSettingsRouteImport
-      parentRoute: typeof OrganizationSettingsRoute
+      parentRoute: typeof OrganizationSettingsTeamsTeamRoute
     }
     '/$organization/_settings/teams/$team/settings/': {
       id: '/$organization/_settings/teams/$team/settings/'
@@ -590,16 +606,31 @@ const OrganizationSettingsTeamsTeamSettingsRouteWithChildren =
     OrganizationSettingsTeamsTeamSettingsRouteChildren,
   )
 
+interface OrganizationSettingsTeamsTeamRouteChildren {
+  OrganizationSettingsTeamsTeamSettingsRoute: typeof OrganizationSettingsTeamsTeamSettingsRouteWithChildren
+}
+
+const OrganizationSettingsTeamsTeamRouteChildren: OrganizationSettingsTeamsTeamRouteChildren =
+  {
+    OrganizationSettingsTeamsTeamSettingsRoute:
+      OrganizationSettingsTeamsTeamSettingsRouteWithChildren,
+  }
+
+const OrganizationSettingsTeamsTeamRouteWithChildren =
+  OrganizationSettingsTeamsTeamRoute._addFileChildren(
+    OrganizationSettingsTeamsTeamRouteChildren,
+  )
+
 interface OrganizationSettingsRouteChildren {
   OrganizationSettingsSettingsRoute: typeof OrganizationSettingsSettingsRouteWithChildren
-  OrganizationSettingsTeamsTeamSettingsRoute: typeof OrganizationSettingsTeamsTeamSettingsRouteWithChildren
+  OrganizationSettingsTeamsTeamRoute: typeof OrganizationSettingsTeamsTeamRouteWithChildren
 }
 
 const OrganizationSettingsRouteChildren: OrganizationSettingsRouteChildren = {
   OrganizationSettingsSettingsRoute:
     OrganizationSettingsSettingsRouteWithChildren,
-  OrganizationSettingsTeamsTeamSettingsRoute:
-    OrganizationSettingsTeamsTeamSettingsRouteWithChildren,
+  OrganizationSettingsTeamsTeamRoute:
+    OrganizationSettingsTeamsTeamRouteWithChildren,
 }
 
 const OrganizationSettingsRouteWithChildren =
