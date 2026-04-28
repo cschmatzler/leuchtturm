@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getRouteApi, useMatchRoute, useNavigate } from "@tanstack/react-router";
+import { useMatchRoute, useNavigate } from "@tanstack/react-router";
 import {
 	ArrowBigUpIcon,
 	ChevronDownIcon,
@@ -39,8 +39,6 @@ import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { organizationsQuery } from "@leuchtturm/web/queries/organizations";
 import { queries } from "@leuchtturm/zero/queries";
 
-const organizationRoute = getRouteApi("/$organization");
-
 export function AppHeader({
 	organization,
 	team,
@@ -48,16 +46,15 @@ export function AppHeader({
 	readonly organization: string;
 	readonly team?: string;
 }) {
-	const { organizationId } = organizationRoute.useRouteContext();
 	const navigate = useNavigate();
 	const matchRoute = useMatchRoute();
 	const [currentUser] = useZeroQuery(queries.currentUser());
-	const [teams] = useZeroQuery(queries.organizationTeams({ organizationId }));
+	const [currentOrganization] = useZeroQuery(queries.organization({ organization }));
 	const { data: organizations } = useQuery(organizationsQuery());
 
 	const { t, i18n } = useTranslation();
 	const { session, deviceSessions, signOutCurrent, signOutAll, setActiveSession } = useAuth();
-	const currentOrganization = organizations?.find((item) => item.slug === organization);
+	const teams = currentOrganization?.teams ?? [];
 	const activeTeam = team ? teams.find((item) => item.slug === team) : undefined;
 	const settingsActive = Boolean(
 		matchRoute({ to: "/$organization/settings", params: { organization }, fuzzy: true }) ||
