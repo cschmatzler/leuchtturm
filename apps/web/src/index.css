@@ -51,7 +51,7 @@
 	--font-display: "Syne", "DM Sans", system-ui, sans-serif;
 	--font-heading: "DM Sans", system-ui, sans-serif;
 	--font-serif: "DM Sans", system-ui, sans-serif;
-	--radius: 0.625rem;
+	--radius: 0.225rem;
 	--shadow-2xs: 0 1px 2px 0 hsl(220 10% 10% / 0.04);
 	--shadow-xs: 0 1px 3px 0 hsl(220 10% 10% / 0.06);
 	--shadow-sm: 0 2px 6px -1px hsl(220 10% 10% / 0.08), 0 1px 2px -1px hsl(220 10% 10% / 0.03);
@@ -102,7 +102,7 @@
 	--font-display: "Syne", "DM Sans", system-ui, sans-serif;
 	--font-heading: "DM Sans", system-ui, sans-serif;
 	--font-serif: "DM Sans", system-ui, sans-serif;
-	--radius: 0.625rem;
+	--radius: 0.225rem;
 	--shadow-2xs: 0 1px 2px 0 hsl(220 15% 4% / 0.25);
 	--shadow-xs: 0 1px 3px 0 hsl(220 15% 4% / 0.3);
 	--shadow-sm: 0 2px 6px -1px hsl(220 15% 4% / 0.35), 0 1px 2px -1px hsl(220 15% 4% / 0.2);

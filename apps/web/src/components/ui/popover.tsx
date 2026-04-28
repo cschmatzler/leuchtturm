@@ -32,7 +32,7 @@ function PopoverContent({
 				<BasePopover.Popup
 					data-slot="popover-content"
 					className={cn(
-						"bg-popover text-popover-foreground z-[60] w-72 origin-(--transform-origin) rounded-xl border p-4 shadow-md outline-hidden",
+						"bg-popover text-popover-foreground z-[60] w-72 origin-(--transform-origin) overflow-hidden rounded-xl border p-4 shadow-md outline-hidden",
 						"data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0",
 						"data-[side=bottom]:data-[starting-style]:translate-y-[-8px] data-[side=inline-end]:data-[starting-style]:translate-x-[8px] data-[side=inline-start]:data-[starting-style]:translate-x-[-8px] data-[side=left]:data-[starting-style]:translate-x-[8px] data-[side=right]:data-[starting-style]:translate-x-[-8px] data-[side=top]:data-[starting-style]:translate-y-[8px]",
 						"transition-[opacity,transform] duration-150",
