@@ -17,6 +17,7 @@
 		"./no-relative-imports": "./src/no-relative-imports.ts",
 		"./no-row-suffix": "./src/no-row-suffix.ts",
 		"./no-schema-type-alias": "./src/no-schema-type-alias.ts",
+		"./no-use-params-strict-false": "./src/no-use-params-strict-false.ts",
 		"./types": "./src/types.ts"
 	},
 	"devDependencies": {

@@ -1,21 +1,26 @@
 import { useQuery } from "@tanstack/react-query";
 import { getRouteApi, useMatchRoute, useNavigate } from "@tanstack/react-router";
 import {
-	BuildingIcon,
+	ArrowBigUpIcon,
 	ChevronDownIcon,
 	CogIcon,
-	LayersIcon,
 	LogOutIcon,
 	OptionIcon,
 	PlusIcon,
 	SparklesIcon,
-	ArrowBigUpIcon,
 	UserIcon,
 } from "lucide-react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 import { resolveLanguage } from "@leuchtturm/core/i18n";
+import {
+	Breadcrumb,
+	BreadcrumbItem,
+	BreadcrumbLink,
+	BreadcrumbList,
+	BreadcrumbSeparator,
+} from "@leuchtturm/web/components/ui/breadcrumb";
 import { Kbd, KbdGroup } from "@leuchtturm/web/components/ui/kbd";
 import { Link } from "@leuchtturm/web/components/ui/link";
 import {
@@ -30,7 +35,6 @@ import {
 	MenuTrigger,
 } from "@leuchtturm/web/components/ui/menu";
 import { useAuth } from "@leuchtturm/web/hooks/use-auth";
-import { cn } from "@leuchtturm/web/lib/cn";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { organizationsQuery } from "@leuchtturm/web/queries/organizations";
 import { queries } from "@leuchtturm/zero/queries";
@@ -83,102 +87,114 @@ export function AppHeader({
 			</Link>
 			<div aria-hidden className="h-6 w-px shrink-0 bg-border" />
 
+			<Breadcrumb aria-label={t("Workspace")} className="min-w-0">
+				<BreadcrumbList className="flex-nowrap gap-1 sm:gap-1">
+					<BreadcrumbItem>
+						<Menu>
+							<MenuTrigger
+								render={
+									<BreadcrumbLink
+										render={<button type="button" />}
+										className="inline-flex max-w-48 items-center gap-1 text-foreground"
+									>
+										<span className="truncate">
+											{currentOrganization?.name ?? t("Organization")}
+										</span>
+										<ChevronDownIcon className="size-4 shrink-0" />
+									</BreadcrumbLink>
+								}
+							/>
+							<MenuContent align="start" className="min-w-56">
+								{organizations?.map((item) => (
+									<MenuCheckboxItem
+										key={item.id}
+										checked={item.slug === organization}
+										onClick={() => {
+											void navigate({
+												to: "/$organization/settings",
+												params: { organization: item.slug },
+											});
+										}}
+									>
+										{item.name}
+									</MenuCheckboxItem>
+								))}
+								<MenuSeparator />
+								<MenuItem
+									onClick={() => {
+										void navigate({ to: "/create-organization" });
+									}}
+								>
+									<PlusIcon />
+									<span>{t("Create organization")}</span>
+								</MenuItem>
+							</MenuContent>
+						</Menu>
+					</BreadcrumbItem>
+
+					{activeTeam && (
+						<>
+							<BreadcrumbSeparator />
+
+							<BreadcrumbItem>
+								<Menu>
+									<MenuTrigger
+										render={
+											<BreadcrumbLink
+												render={<button type="button" />}
+												className="inline-flex max-w-48 items-center gap-1 text-foreground"
+											>
+												<span className="truncate">{activeTeam.name}</span>
+												<ChevronDownIcon className="size-4 shrink-0" />
+											</BreadcrumbLink>
+										}
+									/>
+									<MenuContent align="start" className="min-w-56">
+										{teams.map((team) => (
+											<MenuCheckboxItem
+												key={team.id}
+												checked={team.id === activeTeam.id}
+												onClick={() => {
+													void navigate({
+														to: "/$organization/teams/$team",
+														params: { organization, team: team.slug },
+													});
+												}}
+											>
+												{team.name}
+											</MenuCheckboxItem>
+										))}
+										<MenuSeparator />
+										<MenuItem
+											onClick={() => {
+												void navigate({
+													to: "/$organization/settings/teams",
+													params: { organization },
+													search: { create: true },
+												});
+											}}
+										>
+											<PlusIcon />
+											<span>{t("Create team")}</span>
+										</MenuItem>
+									</MenuContent>
+								</Menu>
+							</BreadcrumbItem>
+						</>
+					)}
+				</BreadcrumbList>
+			</Breadcrumb>
+
 			<div className="flex-1" />
 
 			<div className="ml-auto flex shrink-0 items-center gap-2">
-				<Menu>
-					<MenuTrigger
-						render={
-							<button
-								type="button"
-								className="inline-flex h-9 max-w-48 items-center gap-2 rounded-md border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
-							>
-								<BuildingIcon className="size-4 shrink-0" />
-								<span className="hidden truncate sm:inline">
-									{currentOrganization?.name ?? t("Organization")}
-								</span>
-								<ChevronDownIcon className="size-4 shrink-0" />
-							</button>
-						}
-					/>
-					<MenuContent align="end" className="min-w-56">
-						{organizations?.map((item) => (
-							<MenuCheckboxItem
-								key={item.id}
-								checked={item.slug === organization}
-								onClick={() => {
-									void navigate({
-										to: "/$organization/settings",
-										params: { organization: item.slug },
-									});
-								}}
-							>
-								{item.name}
-							</MenuCheckboxItem>
-						))}
-						<MenuSeparator />
-						<MenuItem
-							onClick={() => {
-								void navigate({ to: "/create-organization" });
-							}}
-						>
-							<PlusIcon />
-							<span>{t("Create organization")}</span>
-						</MenuItem>
-					</MenuContent>
-				</Menu>
-
-				<Menu>
-					<MenuTrigger
-						render={
-							<button
-								type="button"
-								className="inline-flex h-9 max-w-48 items-center gap-2 rounded-md border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
-							>
-								<LayersIcon className="size-4 shrink-0" />
-								<span className="hidden truncate sm:inline">{activeTeam?.name ?? t("Teams")}</span>
-								<ChevronDownIcon className="size-4 shrink-0" />
-							</button>
-						}
-					/>
-					<MenuContent align="end" className="min-w-56">
-						{teams.map((team) => (
-							<MenuCheckboxItem
-								key={team.id}
-								checked={team.id === activeTeam?.id}
-								onClick={() => {
-									void navigate({
-										to: "/$organization/teams/$team",
-										params: { organization, team: team.slug },
-									});
-								}}
-							>
-								{team.name}
-							</MenuCheckboxItem>
-						))}
-						<MenuSeparator />
-						<MenuItem
-							onClick={() => {
-								void navigate({
-									to: "/$organization/settings/teams",
-									params: { organization },
-									search: { create: true },
-								});
-							}}
-						>
-							<PlusIcon />
-							<span>{t("Create team")}</span>
-						</MenuItem>
-					</MenuContent>
-				</Menu>
-
 				<nav className="flex items-center gap-1">
 					<Link
 						to="/$organization/settings"
 						params={{ organization }}
 						aria-label={t("Settings")}
 						data-active={settingsActive ? true : undefined}
-						className={settingsLinkClassName}
+						className="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground data-[active]:bg-accent data-[active]:text-accent-foreground"
 					>
 						<CogIcon className="size-4" />
 					</Link>
@@ -273,7 +289,3 @@ export function AppHeader({
 		</header>
 	);
 }
-const settingsLinkClassName = cn(
-	"inline-flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
-	"data-[active]:bg-accent data-[active]:text-accent-foreground",
-);

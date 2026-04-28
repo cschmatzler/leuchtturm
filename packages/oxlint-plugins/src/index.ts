@@ -10,6 +10,7 @@ import noProcessEnv from "@leuchtturm/oxlint-plugins/no-process-env";
 import noRelativeImports from "@leuchtturm/oxlint-plugins/no-relative-imports";
 import noRowSuffix from "@leuchtturm/oxlint-plugins/no-row-suffix";
 import noSchemaTypeAlias from "@leuchtturm/oxlint-plugins/no-schema-type-alias";
+import noUseParamsStrictFalse from "@leuchtturm/oxlint-plugins/no-use-params-strict-false";
 import noViMock from "@leuchtturm/oxlint-plugins/no-vi-mock";
 
 const plugin = {
@@ -29,6 +30,7 @@ const plugin = {
 		...noRelativeImports.rules,
 		...noRowSuffix.rules,
 		...noSchemaTypeAlias.rules,
+		...noUseParamsStrictFalse.rules,
 		...noViMock.rules,
 	},
 };

@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useMatch } from "@tanstack/react-router";
 import type { CSSProperties } from "react";
 
 import { AppHeader } from "@leuchtturm/web/components/app/app-header";
@@ -8,6 +8,8 @@ import {
 	SidebarProvider,
 	SidebarTrigger,
 } from "@leuchtturm/web/components/ui/sidebar";
+import { useZeroQuery } from "@leuchtturm/web/lib/query";
+import { queries } from "@leuchtturm/zero/queries";
 
 export const Route = createFileRoute("/$organization/_settings")({
 	component: SettingsLayout,
@@ -15,10 +17,19 @@ export const Route = createFileRoute("/$organization/_settings")({
 
 function SettingsLayout() {
 	const { organization } = Route.useParams();
+	const { organizationId } = Route.useRouteContext();
+	const teamSettingsMatch = useMatch({
+		from: "/$organization/_settings/teams/$team/settings",
+		shouldThrow: false,
+	});
+	const [teams] = useZeroQuery(queries.organizationTeams({ organizationId }));
+	const activeTeam = teamSettingsMatch
+		? teams.find((item) => item.slug === teamSettingsMatch.params.team)
+		: undefined;
 
 	return (
 		<div className="flex h-svh flex-col">
-			<AppHeader organization={organization} />
+			<AppHeader organization={organization} activeTeam={activeTeam} />
 			<main id="main-content" className="min-h-0 grow bg-background">
 				<SidebarProvider
 					className="relative h-full min-h-0"

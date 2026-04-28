@@ -29,6 +29,7 @@ export default defineConfig({
 			"./packages/oxlint-plugins/src/no-relative-imports.ts",
 			"./packages/oxlint-plugins/src/no-row-suffix.ts",
 			"./packages/oxlint-plugins/src/no-schema-type-alias.ts",
+			"./packages/oxlint-plugins/src/no-use-params-strict-false.ts",
 			"./packages/oxlint-plugins/src/no-vi-mock.ts",
 		],
 		ignorePatterns: [
@@ -50,6 +51,7 @@ export default defineConfig({
 			"no-relative-imports/no-relative-imports": "error",
 			"no-row-suffix/no-row-suffix": "error",
 			"no-schema-type-alias/no-schema-type-alias": "error",
+			"no-use-params-strict-false/no-use-params-strict-false": "error",
 			"no-vi-mock/no-vi-mock": "error",
 			"@typescript-eslint/no-floating-promises": "off",
 			"@typescript-eslint/unbound-method": "off",
