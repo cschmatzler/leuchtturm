@@ -39,20 +39,14 @@ import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { organizationsQuery } from "@leuchtturm/web/queries/organizations";
 import { queries } from "@leuchtturm/zero/queries";
 
-type AppHeaderTeam = {
-	readonly id: string;
-	readonly name: string;
-	readonly slug: string;
-};
-
 const organizationRoute = getRouteApi("/$organization");
 
 export function AppHeader({
 	organization,
-	activeTeam,
+	team,
 }: {
 	readonly organization: string;
-	readonly activeTeam?: AppHeaderTeam;
+	readonly team?: string;
 }) {
 	const { organizationId } = organizationRoute.useRouteContext();
 	const navigate = useNavigate();
@@ -64,6 +58,7 @@ export function AppHeader({
 	const { t, i18n } = useTranslation();
 	const { session, deviceSessions, signOutCurrent, signOutAll, setActiveSession } = useAuth();
 	const currentOrganization = organizations?.find((item) => item.slug === organization);
+	const activeTeam = team ? teams.find((item) => item.slug === team) : undefined;
 	const settingsActive = Boolean(
 		matchRoute({ to: "/$organization/settings", params: { organization }, fuzzy: true }) ||
 		matchRoute({ to: "/$organization/teams/$team/settings", fuzzy: true }),

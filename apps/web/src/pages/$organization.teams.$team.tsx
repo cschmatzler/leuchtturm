@@ -29,7 +29,7 @@ function TeamLayout(props: { readonly organization: string; readonly team: strin
 	return (
 		<div className="flex h-svh flex-col">
 			<TeamCommands organization={props.organization} team={team} />
-			<AppHeader organization={props.organization} activeTeam={team} />
+			<AppHeader organization={props.organization} team={props.team} />
 			<main id="main-content" className="min-h-0 grow bg-background">
 				<Outlet />
 			</main>
