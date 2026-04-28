@@ -20,6 +20,7 @@ import {
 import {
 	AuthDeviceSessionsListError,
 	AuthDuplicateTeamNameError,
+	AuthInvitationEmailError,
 	AuthError,
 	AuthInvalidSessionPayloadError,
 	AuthInvalidOrganizationPayloadError,
@@ -45,6 +46,7 @@ import {
 import { Billing } from "@leuchtturm/core/billing";
 import { Database } from "@leuchtturm/core/drizzle";
 import { Email } from "@leuchtturm/core/email";
+import { sendInvitationEmail } from "@leuchtturm/email/invitation";
 import { sendPasswordResetEmail } from "@leuchtturm/email/password-reset";
 
 export namespace Auth {
@@ -142,6 +144,33 @@ export namespace Auth {
 				plugins: [
 					multiSession(),
 					organizationPlugin({
+						sendInvitationEmail: ({ email: invitedEmail, id, inviter, organization }) =>
+							Effect.runPromise(
+								Effect.tryPromise({
+									try: () =>
+										sendInvitationEmail({
+											acceptUrl: `${Resource.ApiConfig.BASE_URL}/accept-invitation?id=${id}`,
+											email: invitedEmail,
+											inviterName: inviter.user.name,
+											organizationName: organization.name,
+											send: (emailParams) => Effect.runPromise(email.send(emailParams)),
+										}),
+									catch: (cause) => cause,
+								}).pipe(
+									Effect.catchCause((cause) =>
+										Effect.gen(function* () {
+											yield* Effect.annotateCurrentSpan({
+												"error.original_cause": Cause.pretty(cause),
+											});
+											return yield* Effect.fail(
+												new AuthInvitationEmailError({
+													message: "Failed to send invitation email",
+												}),
+											);
+										}),
+									),
+								),
+							),
 						teams: {
 							enabled: true,
 							defaultTeam: {

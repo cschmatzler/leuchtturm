@@ -24,6 +24,12 @@ export class AuthPasswordResetEmailError extends Schema.TaggedErrorClass<AuthPas
 	{ httpApiStatus: 500 },
 ) {}
 
+export class AuthInvitationEmailError extends Schema.TaggedErrorClass<AuthInvitationEmailError>()(
+	"AuthInvitationEmailError",
+	{ message: Schema.String },
+	{ httpApiStatus: 500 },
+) {}
+
 export class AuthInvalidSessionPayloadError extends Schema.TaggedErrorClass<AuthInvalidSessionPayloadError>()(
 	"AuthInvalidSessionPayloadError",
 	{ message: Schema.String },
@@ -65,6 +71,7 @@ export const Errors = [
 	AuthSessionLookupError,
 	AuthDeviceSessionsListError,
 	AuthPasswordResetEmailError,
+	AuthInvitationEmailError,
 	AuthInvalidSessionPayloadError,
 	AuthOrganizationLookupError,
 	AuthInvalidOrganizationPayloadError,
