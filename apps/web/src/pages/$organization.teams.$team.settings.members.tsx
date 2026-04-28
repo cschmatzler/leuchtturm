@@ -26,7 +26,7 @@ export const Route = createFileRoute("/$organization/teams/$team/settings/member
 
 function Page() {
 	const { team: teamSlug } = Route.useParams();
-	const { organizationId } = Route.useRouteContext();
+	const { organizationId, session } = Route.useRouteContext();
 	const { t } = useTranslation();
 	const [team] = useZeroQuery(queries.team({ organizationId, teamSlug }));
 	const [organizationMembers] = useZeroQuery(queries.organizationMembers({ organizationId }));
@@ -49,6 +49,13 @@ function Page() {
 
 	const removeMember = async (userId: string) => {
 		if (!team) return;
+		if (
+			userId === session.user.id ||
+			organizationMembers.find((member) => member.userId === userId)?.role === "owner"
+		) {
+			toast.error(t("This team member cannot be removed"));
+			return;
+		}
 		const { error } = await authClient.organization.removeTeamMember({
 			teamId: team.id,
 			userId,
@@ -92,6 +99,10 @@ function Page() {
 										<Button
 											variant="destructive"
 											size="sm"
+											disabled={
+												teamMember.userId === session.user.id ||
+												organizationMember?.role === "owner"
+											}
 											onClick={() => void removeMember(teamMember.userId)}
 										>
 											<Trash2Icon className="size-4" />
