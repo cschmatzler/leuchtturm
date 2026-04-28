@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useParams } from "@tanstack/react-router";
 import type { CSSProperties } from "react";
 
 import { AppHeader } from "@leuchtturm/web/components/app/app-header";
@@ -8,27 +8,30 @@ import {
 	SidebarProvider,
 	SidebarTrigger,
 } from "@leuchtturm/web/components/ui/sidebar";
+import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { queries } from "@leuchtturm/zero/queries";
 
-export const Route = createFileRoute("/$organization/settings")({
-	loader: ({ context: { organizationId, zero } }) => {
-		zero.preload(queries.organizationTeams({ organizationId }));
-	},
+export const Route = createFileRoute("/$organization/_settings")({
 	component: SettingsLayout,
 });
 
 function SettingsLayout() {
 	const { organization: slug } = Route.useParams();
+	const { organizationId } = Route.useRouteContext();
+	const params = useParams({ strict: false });
+	const teamSlug = typeof params.team === "string" ? params.team : undefined;
+	const [teams] = useZeroQuery(queries.organizationTeams({ organizationId }));
+	const activeTeam = teams.find((team) => team.slug === teamSlug);
 
 	return (
 		<div className="flex h-svh flex-col">
-			<AppHeader slug={slug} />
+			<AppHeader slug={slug} activeTeam={activeTeam} />
 			<main id="main-content" className="min-h-0 grow bg-background">
 				<SidebarProvider
 					className="relative h-full min-h-0"
 					style={{ "--sidebar-width": "13rem" } as CSSProperties}
 				>
-					<SettingsSidebar slug={slug} />
+					<SettingsSidebar slug={slug} teamSlug={teamSlug} />
 					<SidebarInset className="bg-background">
 						<div className="mx-auto flex w-full max-w-7xl grow flex-col px-4 pt-4 pb-1 sm:px-6 sm:pt-6">
 							<SidebarTrigger className="mb-4 md:hidden" />

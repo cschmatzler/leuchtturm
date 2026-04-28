@@ -9,7 +9,7 @@ import { Separator } from "@leuchtturm/web/components/ui/separator";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { queries } from "@leuchtturm/zero/queries";
 
-export const Route = createFileRoute("/$organization/teams/$team/settings/members")({
+export const Route = createFileRoute("/$organization/_settings/teams/$team/settings/members")({
 	loader: ({ context: { organizationId, zero }, params: { team: teamSlug } }) => {
 		zero.preload(queries.team({ organizationId, teamSlug }));
 		zero.preload(queries.organizationMembers({ organizationId }));

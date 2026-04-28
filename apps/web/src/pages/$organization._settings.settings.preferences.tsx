@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { PreferencesCard } from "@leuchtturm/web/pages/$organization.settings/-components/preferences-card";
+import { PreferencesCard } from "@leuchtturm/web/pages/$organization._settings.settings/-components/preferences-card";
 import { queries } from "@leuchtturm/zero/queries";
 
-export const Route = createFileRoute("/$organization/settings/preferences")({
+export const Route = createFileRoute("/$organization/_settings/settings/preferences")({
 	loader: ({ context: { zero } }) => {
 		zero.preload(queries.currentUser());
 	},

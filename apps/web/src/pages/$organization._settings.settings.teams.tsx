@@ -26,7 +26,7 @@ import { Separator } from "@leuchtturm/web/components/ui/separator";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { queries } from "@leuchtturm/zero/queries";
 
-export const Route = createFileRoute("/$organization/settings/teams")({
+export const Route = createFileRoute("/$organization/_settings/settings/teams")({
 	loader: ({ context: { organizationId, zero } }) => {
 		zero.preload(queries.organizationTeams({ organizationId }));
 	},

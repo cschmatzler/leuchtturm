@@ -9,7 +9,7 @@ import { Separator } from "@leuchtturm/web/components/ui/separator";
 import { reportError } from "@leuchtturm/web/lib/report-error";
 import { billingOverviewQuery } from "@leuchtturm/web/queries/billing";
 
-export const Route = createFileRoute("/$organization/settings/billing")({
+export const Route = createFileRoute("/$organization/_settings/settings/billing")({
 	component: Page,
 });
 

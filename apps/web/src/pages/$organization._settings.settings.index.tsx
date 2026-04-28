@@ -1,6 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/$organization/settings/")({
+export const Route = createFileRoute("/$organization/_settings/settings/")({
 	beforeLoad: ({ params: { organization: slug } }) => {
 		throw redirect({ to: "/$organization/settings/profile", params: { organization: slug } });
 	},

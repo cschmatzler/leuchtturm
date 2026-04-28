@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { queries } from "@leuchtturm/zero/queries";
 
-export const Route = createFileRoute("/$organization/settings/members")({
+export const Route = createFileRoute("/$organization/_settings/settings/members")({
 	loader: ({ context: { organizationId, zero } }) => {
 		zero.preload(queries.organizationMembers({ organizationId }));
 	},
