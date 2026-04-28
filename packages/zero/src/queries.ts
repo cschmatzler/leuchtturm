@@ -50,6 +50,10 @@ export const queries = defineQueries({
 		zql.member.where("organizationId", args.organizationId).related("user"),
 	),
 
+	organizationInvitations: defineQuery(organizationIdArgs, ({ args }) =>
+		zql.invitation.where("organizationId", args.organizationId).where("status", "pending"),
+	),
+
 	organizationTeams: defineQuery(organizationIdArgs, ({ args }) =>
 		zql.team.where("organizationId", args.organizationId),
 	),

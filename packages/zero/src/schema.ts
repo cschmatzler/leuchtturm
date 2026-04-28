@@ -40,6 +40,20 @@ const member = table("member")
 	})
 	.primaryKey("id");
 
+const invitation = table("invitation")
+	.columns({
+		id: string(),
+		email: string(),
+		role: string().optional(),
+		status: string(),
+		expiresAt: number().from("expires_at"),
+		organizationId: string().from("organization_id"),
+		teamId: string().from("team_id").optional(),
+		inviterId: string().from("inviter_id"),
+		createdAt: number().from("created_at"),
+	})
+	.primaryKey("id");
+
 const team = table("team")
 	.columns({
 		id: string(),
@@ -74,10 +88,28 @@ const organizationRelationships = relationships(organization, ({ many }) => ({
 		destSchema: member,
 		destField: ["organizationId"],
 	}),
+	invitations: many({
+		sourceField: ["id"],
+		destSchema: invitation,
+		destField: ["organizationId"],
+	}),
 	teams: many({
 		sourceField: ["id"],
 		destSchema: team,
 		destField: ["organizationId"],
+	}),
+}));
+
+const invitationRelationships = relationships(invitation, ({ one }) => ({
+	organization: one({
+		sourceField: ["organizationId"],
+		destSchema: organization,
+		destField: ["id"],
+	}),
+	inviter: one({
+		sourceField: ["inviterId"],
+		destSchema: user,
+		destField: ["id"],
 	}),
 }));
 
@@ -121,11 +153,12 @@ const teamMemberRelationships = relationships(teamMember, ({ one }) => ({
 }));
 
 export const schema = createSchema({
-	tables: [user, organization, member, team, teamMember],
+	tables: [user, organization, member, invitation, team, teamMember],
 	relationships: [
 		userRelationships,
 		organizationRelationships,
 		memberRelationships,
+		invitationRelationships,
 		teamRelationships,
 		teamMemberRelationships,
 	],

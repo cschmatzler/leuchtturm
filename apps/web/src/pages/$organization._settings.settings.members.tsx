@@ -37,6 +37,7 @@ export const Route = createFileRoute("/$organization/_settings/settings/members"
 	},
 	loader: ({ context: { organizationId, zero } }) => {
 		zero.preload(queries.organizationMembers({ organizationId }));
+		zero.preload(queries.organizationInvitations({ organizationId }));
 	},
 	component: Page,
 });
@@ -48,6 +49,8 @@ function Page() {
 	const navigate = useNavigate();
 	const { t } = useTranslation();
 	const [members] = useZeroQuery(queries.organizationMembers({ organizationId }));
+	const [invitations] = useZeroQuery(queries.organizationInvitations({ organizationId }));
+	const activeInvitations = invitations.filter((invitation) => invitation.expiresAt > Date.now());
 
 	const setInviteDialogOpen = (value: boolean) => {
 		void navigate({
@@ -180,6 +183,38 @@ function Page() {
 					) : (
 						<div className="py-10 text-center text-sm text-muted-foreground">
 							{t("No members found.")}
+						</div>
+					)}
+				</div>
+			</section>
+
+			<section className="border-t border-border py-6">
+				<div className="space-y-1">
+					<h2 className="text-lg font-semibold">{t("Pending invitations")}</h2>
+					<p className="text-sm text-muted-foreground">
+						{t("Invitations that have not been accepted yet.")}
+					</p>
+				</div>
+				<div className="mt-5">
+					{activeInvitations.length ? (
+						<ul className="divide-y divide-border">
+							{activeInvitations.map((invitation) => (
+								<li key={invitation.id} className="flex items-center justify-between gap-4 py-4">
+									<div>
+										<p className="text-sm font-medium">{invitation.email}</p>
+										<p className="text-xs text-muted-foreground">
+											{t("Expires {{date}}", {
+												date: new Date(invitation.expiresAt).toLocaleDateString(),
+											})}
+										</p>
+									</div>
+									<p className="text-sm text-muted-foreground">{invitation.role}</p>
+								</li>
+							))}
+						</ul>
+					) : (
+						<div className="py-10 text-center text-sm text-muted-foreground">
+							{t("No pending invitations.")}
 						</div>
 					)}
 				</div>
