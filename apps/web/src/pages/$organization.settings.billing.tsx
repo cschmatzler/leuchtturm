@@ -54,7 +54,7 @@ function Page() {
 	};
 
 	return (
-		<div className="mx-auto flex max-w-3xl flex-col gap-8">
+		<div className="mx-auto flex w-full max-w-3xl flex-col gap-8">
 			<Card className="gap-0 overflow-hidden p-0">
 				<CardHeader className="px-6 py-5">
 					<CardTitle className="text-base">{t("Billing details")}</CardTitle>

@@ -9,7 +9,7 @@ import {
 	LogOutIcon,
 	PlusIcon,
 	SparklesIcon,
-	UsersIcon,
+	UserIcon,
 } from "lucide-react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -253,9 +253,7 @@ export function AppHeader({
 			</Link>
 			<div aria-hidden className="h-6 w-px shrink-0 bg-border" />
 
-			<div className="flex-1" />
-
-			<div className="ml-auto flex shrink-0 items-center gap-3">
+			<div className="flex min-w-0 flex-1 items-center gap-2">
 				<Menu>
 					<MenuTrigger
 						render={
@@ -297,8 +295,6 @@ export function AppHeader({
 						</MenuItem>
 					</MenuContent>
 				</Menu>
-
-				<div aria-hidden className="h-6 w-px shrink-0 bg-border" />
 
 				<Menu>
 					<MenuTrigger
@@ -354,8 +350,9 @@ export function AppHeader({
 						<CogIcon className="size-4" />
 					</Link>
 				</nav>
-				<div aria-hidden className="h-6 w-px shrink-0 bg-border" />
+			</div>
 
+			<div className="ml-auto flex shrink-0 items-center">
 				<Menu>
 					<MenuTrigger
 						render={
@@ -364,7 +361,7 @@ export function AppHeader({
 								aria-label={t("Account")}
 								className="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
 							>
-								<UsersIcon className="size-4" />
+								<UserIcon className="size-4" />
 							</button>
 						}
 					/>
