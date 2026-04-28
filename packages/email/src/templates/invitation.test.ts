@@ -1,7 +1,7 @@
 import { Effect } from "effect";
 import { describe, expect, it, vi } from "vite-plus/test";
 
-import { sendInvitationEmail } from "@leuchtturm/email/invitation";
+import { sendInvitationEmail } from "@leuchtturm/email/templates/invitation";
 
 describe("sendInvitationEmail", () => {
 	it("passes the rendered invitation email to the provider", async () => {

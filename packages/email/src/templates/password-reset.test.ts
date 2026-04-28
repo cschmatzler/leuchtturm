@@ -1,7 +1,7 @@
 import { Effect } from "effect";
 import { describe, expect, it, vi } from "vite-plus/test";
 
-import { sendPasswordResetEmail } from "@leuchtturm/email/password-reset";
+import { sendPasswordResetEmail } from "@leuchtturm/email/templates/password-reset";
 
 describe("sendPasswordResetEmail", () => {
 	it("passes the rendered password reset email to the provider", async () => {

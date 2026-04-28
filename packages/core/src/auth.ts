@@ -46,8 +46,8 @@ import {
 import { Billing } from "@leuchtturm/core/billing";
 import { Database } from "@leuchtturm/core/drizzle";
 import { Email } from "@leuchtturm/core/email";
-import { sendInvitationEmail } from "@leuchtturm/email/invitation";
-import { sendPasswordResetEmail } from "@leuchtturm/email/password-reset";
+import { sendInvitationEmail } from "@leuchtturm/email/templates/invitation";
+import { sendPasswordResetEmail } from "@leuchtturm/email/templates/password-reset";
 
 export namespace Auth {
 	export interface Interface {

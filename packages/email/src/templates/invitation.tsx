@@ -14,19 +14,20 @@ import { render } from "@react-email/render";
 import { Tailwind } from "@react-email/tailwind";
 import { Effect } from "effect";
 
-import { type EmailSendParams } from "@leuchtturm/email/shared";
+import { EmailRenderError, type EmailSender } from "@leuchtturm/email/shared";
 import { tailwindConfig } from "@leuchtturm/email/tailwind";
 
-const preheaderText = "Reset your Leuchtturm password.";
+const preheaderText = "You have been invited to join a Leuchtturm organization.";
 const defaultFrom = "Leuchtturm <no-reply@leuchtturm.dev>";
-const defaultSubject = "Reset your Leuchtturm password";
+const defaultSubject = "You have been invited to Leuchtturm";
 
-export interface PasswordResetEmailParams {
-	readonly resetUrl: string;
-	readonly userName: string;
+export interface InvitationEmailParams {
+	readonly acceptUrl: string;
+	readonly inviterName: string;
+	readonly organizationName: string;
 }
 
-const PasswordResetEmail = ({ resetUrl, userName }: PasswordResetEmailParams) => {
+const InvitationEmail = ({ acceptUrl, inviterName, organizationName }: InvitationEmailParams) => {
 	return (
 		<Html lang="en">
 			<Tailwind config={tailwindConfig}>
@@ -41,36 +42,31 @@ const PasswordResetEmail = ({ resetUrl, userName }: PasswordResetEmailParams) =>
 							</Section>
 							<Section className="px-6 py-6">
 								<Heading className="m-0 mb-3 text-2xl font-semibold text-foreground">
-									Reset your password
+									Join {organizationName}
 								</Heading>
-								<Text className="m-0 mb-4 text-base leading-[24px] text-muted-foreground">
-									Hi {userName},
-								</Text>
 								<Text className="m-0 mb-5 text-base leading-[24px] text-muted-foreground">
-									We received a request to reset the password on your Leuchtturm account. Use the
-									button below to set a new password.
+									{inviterName} invited you to join {organizationName} on Leuchtturm.
 								</Text>
 								<Button
-									href={resetUrl}
+									href={acceptUrl}
 									className="rounded-md bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground no-underline"
 								>
-									Reset password
+									Accept invitation
 								</Button>
 								<Hr className="my-6 border-border" />
 								<Text className="m-0 text-sm leading-[20px] text-muted-foreground">
 									If the button does not work, paste this link into your browser:
 								</Text>
 								<Link
-									href={resetUrl}
+									href={acceptUrl}
 									className="break-all text-sm font-medium text-accent underline"
 								>
-									{resetUrl}
+									{acceptUrl}
 								</Link>
 							</Section>
 							<Section className="border-t border-border px-6 py-5">
 								<Text className="m-0 text-xs leading-[18px] text-muted-foreground">
-									If you did not request this, you can safely ignore this email. Your password will
-									not change until you use the link above.
+									If you did not expect this invitation, you can safely ignore this email.
 								</Text>
 							</Section>
 						</Section>
@@ -81,38 +77,55 @@ const PasswordResetEmail = ({ resetUrl, userName }: PasswordResetEmailParams) =>
 	);
 };
 
-export async function renderPasswordResetEmail({ resetUrl, userName }: PasswordResetEmailParams) {
-	const html = await render(<PasswordResetEmail resetUrl={resetUrl} userName={userName} />, {
-		pretty: false,
-	});
+export async function renderInvitationEmail({
+	acceptUrl,
+	inviterName,
+	organizationName,
+}: InvitationEmailParams) {
+	const html = await render(
+		<InvitationEmail
+			acceptUrl={acceptUrl}
+			inviterName={inviterName}
+			organizationName={organizationName}
+		/>,
+		{ pretty: false },
+	);
 
 	const text = [
-		"Reset your Leuchtturm password.",
+		`You have been invited to join ${organizationName} on Leuchtturm.`,
 		"",
-		"Use this link to choose a new password:",
-		resetUrl,
+		`${inviterName} invited you to join ${organizationName}.`,
 		"",
-		"If you did not request this, you can ignore this email.",
+		"Accept the invitation with this link:",
+		acceptUrl,
+		"",
+		"If you did not expect this invitation, you can ignore this email.",
 	].join("\n");
 
 	return { html, text };
 }
 
-export function sendPasswordResetEmail(params: {
+export function sendInvitationEmail<Success, SendError>(params: {
+	readonly acceptUrl: string;
 	readonly email: string;
-	readonly resetUrl: string;
-	readonly userName: string;
-	readonly send: (params: EmailSendParams) => Effect.Effect<unknown, unknown>;
+	readonly inviterName: string;
+	readonly organizationName: string;
+	readonly send: EmailSender<Success, SendError>;
 	readonly from?: string;
 	readonly subject?: string;
-}): Effect.Effect<unknown, unknown> {
+}): Effect.Effect<void, SendError | EmailRenderError> {
 	return Effect.gen(function* () {
 		const { html, text } = yield* Effect.tryPromise({
-			try: () => renderPasswordResetEmail({ resetUrl: params.resetUrl, userName: params.userName }),
-			catch: (cause) => cause,
+			try: () =>
+				renderInvitationEmail({
+					acceptUrl: params.acceptUrl,
+					inviterName: params.inviterName,
+					organizationName: params.organizationName,
+				}),
+			catch: () => new EmailRenderError({ message: "Failed to render invitation email" }),
 		});
 
-		return yield* params.send({
+		yield* params.send({
 			from: params.from ?? defaultFrom,
 			to: params.email,
 			subject: params.subject ?? defaultSubject,
