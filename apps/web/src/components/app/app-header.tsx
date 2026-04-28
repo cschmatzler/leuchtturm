@@ -253,7 +253,9 @@ export function AppHeader({
 			</Link>
 			<div aria-hidden className="h-6 w-px shrink-0 bg-border" />
 
-			<div className="flex min-w-0 flex-1 items-center gap-2">
+			<div className="flex-1" />
+
+			<div className="ml-auto flex shrink-0 items-center gap-2">
 				<Menu>
 					<MenuTrigger
 						render={
@@ -350,9 +352,9 @@ export function AppHeader({
 						<CogIcon className="size-4" />
 					</Link>
 				</nav>
-			</div>
 
-			<div className="ml-auto flex shrink-0 items-center">
+				<div aria-hidden className="mx-1 h-6 w-px shrink-0 bg-border" />
+
 				<Menu>
 					<MenuTrigger
 						render={
