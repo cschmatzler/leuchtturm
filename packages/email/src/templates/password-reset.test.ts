@@ -10,7 +10,7 @@ describe("sendPasswordResetEmail", () => {
 		await Effect.runPromise(
 			sendPasswordResetEmail({
 				email: "user@example.com",
-				from: "Leuchtturm <no-reply@leuchtturm.dev>",
+				from: "Leuchtturm <no-reply@mail.leuchtturm.dev>",
 				resetUrl: "https://leuchtturm.dev/reset?token=abc123",
 				send,
 				subject: "Reset your password",
@@ -20,7 +20,7 @@ describe("sendPasswordResetEmail", () => {
 
 		expect(send).toHaveBeenCalledTimes(1);
 		expect(send).toHaveBeenCalledWith({
-			from: "Leuchtturm <no-reply@leuchtturm.dev>",
+			from: "Leuchtturm <no-reply@mail.leuchtturm.dev>",
 			to: "user@example.com",
 			subject: "Reset your password",
 			html: expect.stringContaining("Reset your password"),
@@ -36,7 +36,7 @@ describe("sendPasswordResetEmail", () => {
 			Effect.runPromise(
 				sendPasswordResetEmail({
 					email: "user@example.com",
-					from: "Leuchtturm <no-reply@leuchtturm.dev>",
+					from: "Leuchtturm <no-reply@mail.leuchtturm.dev>",
 					resetUrl: "https://leuchtturm.dev/reset?token=abc123",
 					send,
 					subject: "Reset your password",

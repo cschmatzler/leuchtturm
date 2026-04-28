@@ -18,7 +18,7 @@ import { EmailRenderError, type EmailSender } from "@leuchtturm/email/shared";
 import { tailwindConfig } from "@leuchtturm/email/tailwind";
 
 const preheaderText = "You have been invited to join a Leuchtturm organization.";
-const defaultFrom = "Leuchtturm <no-reply@leuchtturm.dev>";
+const defaultFrom = "Leuchtturm <no-reply@mail.leuchtturm.dev>";
 const defaultSubject = "You have been invited to Leuchtturm";
 
 export interface InvitationEmailParams {

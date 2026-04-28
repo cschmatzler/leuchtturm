@@ -18,7 +18,7 @@ import { EmailRenderError, type EmailSender } from "@leuchtturm/email/shared";
 import { tailwindConfig } from "@leuchtturm/email/tailwind";
 
 const preheaderText = "Reset your Leuchtturm password.";
-const defaultFrom = "Leuchtturm <no-reply@leuchtturm.dev>";
+const defaultFrom = "Leuchtturm <no-reply@mail.leuchtturm.dev>";
 const defaultSubject = "Reset your Leuchtturm password";
 
 export interface PasswordResetEmailParams {

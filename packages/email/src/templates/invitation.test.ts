@@ -11,7 +11,7 @@ describe("sendInvitationEmail", () => {
 			sendInvitationEmail({
 				acceptUrl: "https://leuchtturm.dev/accept-invitation?id=inv_123",
 				email: "user@example.com",
-				from: "Leuchtturm <no-reply@leuchtturm.dev>",
+				from: "Leuchtturm <no-reply@mail.leuchtturm.dev>",
 				inviterName: "Chris",
 				organizationName: "Sopa",
 				send,
@@ -21,7 +21,7 @@ describe("sendInvitationEmail", () => {
 
 		expect(send).toHaveBeenCalledTimes(1);
 		expect(send).toHaveBeenCalledWith({
-			from: "Leuchtturm <no-reply@leuchtturm.dev>",
+			from: "Leuchtturm <no-reply@mail.leuchtturm.dev>",
 			to: "user@example.com",
 			subject: "Invitation to Leuchtturm",
 			html: expect.stringContaining("Join Sopa"),
@@ -38,7 +38,7 @@ describe("sendInvitationEmail", () => {
 				sendInvitationEmail({
 					acceptUrl: "https://leuchtturm.dev/accept-invitation?id=inv_123",
 					email: "user@example.com",
-					from: "Leuchtturm <no-reply@leuchtturm.dev>",
+					from: "Leuchtturm <no-reply@mail.leuchtturm.dev>",
 					inviterName: "Chris",
 					organizationName: "Sopa",
 					send,
