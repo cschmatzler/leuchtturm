@@ -1,4 +1,5 @@
 import { useHotkey } from "@tanstack/react-hotkeys";
+import { useQuery } from "@tanstack/react-query";
 import { getRouteApi, useMatchRoute, useNavigate } from "@tanstack/react-router";
 import {
 	BuildingIcon,
@@ -32,6 +33,7 @@ import { useCommandBar } from "@leuchtturm/web/hooks/use-command-bar";
 import { useCommandProvider } from "@leuchtturm/web/hooks/use-command-provider";
 import { cn } from "@leuchtturm/web/lib/cn";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
+import { organizationsQuery } from "@leuchtturm/web/queries/organizations";
 import { queries } from "@leuchtturm/zero/queries";
 
 type AppHeaderTeam = {
@@ -54,7 +56,7 @@ export function AppHeader({
 	const matchRoute = useMatchRoute();
 	const [currentUser] = useZeroQuery(queries.currentUser());
 	const [teams] = useZeroQuery(queries.organizationTeams({ organizationId }));
-	const [organizations] = useZeroQuery(queries.currentUserOrganizations());
+	const { data: organizations } = useQuery(organizationsQuery());
 
 	const { t, i18n } = useTranslation();
 	const { session, deviceSessions, signOutCurrent, signOutAll, setActiveSession } = useAuth();

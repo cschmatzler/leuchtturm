@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { getRouteApi } from "@tanstack/react-router";
 import { ChevronRightIcon, CreditCardIcon, LayersIcon, SettingsIcon, UserIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -24,6 +25,7 @@ import {
 	SidebarRail,
 } from "@leuchtturm/web/components/ui/sidebar";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
+import { organizationsQuery } from "@leuchtturm/web/queries/organizations";
 import { queries } from "@leuchtturm/zero/queries";
 
 const slugRoute = getRouteApi("/$organization");
@@ -37,7 +39,7 @@ export function SettingsSidebar({
 }) {
 	const { organizationId } = slugRoute.useRouteContext();
 	const [teams] = useZeroQuery(queries.organizationTeams({ organizationId }));
-	const [organizations] = useZeroQuery(queries.currentUserOrganizations());
+	const { data: organizations } = useQuery(organizationsQuery());
 
 	const { t } = useTranslation();
 
