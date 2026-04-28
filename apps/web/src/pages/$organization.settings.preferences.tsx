@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { ProfileCard } from "@leuchtturm/web/pages/$slug.settings/-components/profile-card";
+import { PreferencesCard } from "@leuchtturm/web/pages/$organization.settings/-components/preferences-card";
 import { queries } from "@leuchtturm/zero/queries";
 
-export const Route = createFileRoute("/$slug/settings/profile")({
+export const Route = createFileRoute("/$organization/settings/preferences")({
 	loader: ({ context: { zero } }) => {
 		zero.preload(queries.currentUser());
 	},
@@ -13,7 +13,7 @@ export const Route = createFileRoute("/$slug/settings/profile")({
 function Page() {
 	return (
 		<div className="flex flex-col gap-8">
-			<ProfileCard />
+			<PreferencesCard />
 		</div>
 	);
 }

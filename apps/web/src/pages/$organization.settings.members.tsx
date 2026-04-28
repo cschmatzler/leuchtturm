@@ -11,7 +11,7 @@ import {
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { queries } from "@leuchtturm/zero/queries";
 
-export const Route = createFileRoute("/$slug/settings/members")({
+export const Route = createFileRoute("/$organization/settings/members")({
 	loader: ({ context: { organizationId, zero } }) => {
 		zero.preload(queries.organizationMembers({ organizationId }));
 	},

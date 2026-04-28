@@ -42,7 +42,7 @@ type AppHeaderTeam = {
 	readonly slug: string;
 };
 
-const slugRoute = getRouteApi("/$slug");
+const slugRoute = getRouteApi("/$organization");
 
 export function AppHeader({
 	slug,
@@ -63,8 +63,8 @@ export function AppHeader({
 	const commandBar = useCommandBar();
 	const currentOrganization = organizations?.find((organization) => organization.slug === slug);
 	const settingsActive = Boolean(
-		matchRoute({ to: "/$slug/settings", params: { slug }, fuzzy: true }) ||
-		matchRoute({ to: "/$slug/teams/$teamSlug/settings", fuzzy: true }),
+		matchRoute({ to: "/$organization/settings", params: { organization: slug }, fuzzy: true }) ||
+		matchRoute({ to: "/$organization/teams/$team/settings", fuzzy: true }),
 	);
 
 	useHotkey("Mod+K", () => commandBar.show(), { ignoreInputs: false });
@@ -149,8 +149,8 @@ export function AppHeader({
 				icon: BuildingIcon,
 				run() {
 					navigate({
-						to: "/$slug/settings",
-						params: { slug: organization.slug },
+						to: "/$organization/settings",
+						params: { organization: organization.slug },
 					});
 				},
 			}));
@@ -167,7 +167,7 @@ export function AppHeader({
 				global: true,
 				icon: LayersIcon,
 				run() {
-					navigate({ to: "/$slug/settings/teams", params: { slug } });
+					navigate({ to: "/$organization/settings/teams", params: { organization: slug } });
 				},
 			},
 			{
@@ -194,8 +194,8 @@ export function AppHeader({
 				icon: LayersIcon,
 				run() {
 					navigate({
-						to: "/$slug/teams/$teamSlug",
-						params: { slug, teamSlug: team.slug },
+						to: "/$organization/teams/$team",
+						params: { organization: slug, team: team.slug },
 					});
 				},
 			})),
@@ -212,7 +212,7 @@ export function AppHeader({
 				global: true,
 				icon: CogIcon,
 				run() {
-					navigate({ to: "/$slug/settings", params: { slug } });
+					navigate({ to: "/$organization/settings", params: { organization: slug } });
 				},
 			},
 			...(activeTeam
@@ -224,8 +224,8 @@ export function AppHeader({
 							icon: CogIcon,
 							run() {
 								navigate({
-									to: "/$slug/teams/$teamSlug/settings/general",
-									params: { slug, teamSlug: activeTeam.slug },
+									to: "/$organization/teams/$team/settings/general",
+									params: { organization: slug, team: activeTeam.slug },
 								});
 							},
 						},
@@ -244,8 +244,8 @@ export function AppHeader({
 	return (
 		<header className="bg-background/80 sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-border px-4 backdrop-blur-md">
 			<Link
-				to="/$slug"
-				params={{ slug }}
+				to="/$organization"
+				params={{ organization: slug }}
 				aria-label="Leuchtturm"
 				className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-opacity hover:opacity-90"
 			>
@@ -278,8 +278,8 @@ export function AppHeader({
 								checked={organization.slug === slug}
 								onClick={() => {
 									void navigate({
-										to: "/$slug/settings",
-										params: { slug: organization.slug },
+										to: "/$organization/settings",
+										params: { organization: organization.slug },
 									});
 								}}
 							>
@@ -320,8 +320,8 @@ export function AppHeader({
 								checked={team.id === activeTeam?.id}
 								onClick={() => {
 									void navigate({
-										to: "/$slug/teams/$teamSlug",
-										params: { slug, teamSlug: team.slug },
+										to: "/$organization/teams/$team",
+										params: { organization: slug, team: team.slug },
 									});
 								}}
 							>
@@ -331,7 +331,10 @@ export function AppHeader({
 						<MenuSeparator />
 						<MenuItem
 							onClick={() => {
-								void navigate({ to: "/$slug/settings/teams", params: { slug } });
+								void navigate({
+									to: "/$organization/settings/teams",
+									params: { organization: slug },
+								});
 							}}
 						>
 							<PlusIcon />
@@ -342,8 +345,8 @@ export function AppHeader({
 
 				<nav className="flex items-center gap-1">
 					<Link
-						to="/$slug/settings"
-						params={{ slug }}
+						to="/$organization/settings"
+						params={{ organization: slug }}
 						aria-label={t("Settings")}
 						data-active={settingsActive ? true : undefined}
 						className={settingsLinkClassName}

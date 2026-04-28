@@ -4,8 +4,8 @@ import { ZeroProvider } from "@leuchtturm/web/contexts/zero";
 import { organizationsQuery } from "@leuchtturm/web/queries/organizations";
 import { sessionQuery } from "@leuchtturm/web/queries/session";
 
-export const Route = createFileRoute("/$slug")({
-	beforeLoad: async ({ params: { slug }, context: { queryClient } }) => {
+export const Route = createFileRoute("/$organization")({
+	beforeLoad: async ({ params: { organization: slug }, context: { queryClient } }) => {
 		const session = await queryClient.ensureQueryData(sessionQuery());
 		if (!session) throw redirect({ to: "/login" });
 
@@ -21,8 +21,8 @@ export const Route = createFileRoute("/$slug")({
 			const nextSlug = organizations[0]?.slug;
 			if (nextSlug) {
 				throw redirect({
-					to: "/$slug/settings",
-					params: { slug: nextSlug },
+					to: "/$organization/settings",
+					params: { organization: nextSlug },
 				});
 			}
 			throw redirect({ to: "/create-organization" });
@@ -34,7 +34,7 @@ export const Route = createFileRoute("/$slug")({
 });
 
 function Layout() {
-	const { slug } = Route.useParams();
+	const { organization: slug } = Route.useParams();
 	const { session } = Route.useRouteContext();
 
 	return (

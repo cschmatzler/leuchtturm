@@ -4,8 +4,8 @@ import { SettingsSidebar } from "@leuchtturm/web/components/app/settings-sidebar
 import { SidebarInset, SidebarProvider } from "@leuchtturm/web/components/ui/sidebar";
 import { queries } from "@leuchtturm/zero/queries";
 
-export const Route = createFileRoute("/$slug/teams/$teamSlug/settings")({
-	loader: ({ context: { organizationId, zero }, params: { teamSlug } }) => {
+export const Route = createFileRoute("/$organization/teams/$team/settings")({
+	loader: ({ context: { organizationId, zero }, params: { team: teamSlug } }) => {
 		zero.preload(queries.organizationTeams({ organizationId }));
 		zero.preload(queries.team({ organizationId, teamSlug }));
 	},
@@ -13,7 +13,7 @@ export const Route = createFileRoute("/$slug/teams/$teamSlug/settings")({
 });
 
 function SettingsLayout() {
-	const { slug, teamSlug } = Route.useParams();
+	const { organization: slug, team: teamSlug } = Route.useParams();
 
 	return (
 		<SidebarProvider className="relative h-full min-h-0">

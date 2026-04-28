@@ -5,12 +5,12 @@ import { Card, CardDescription, CardHeader, CardTitle } from "@leuchtturm/web/co
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { queries } from "@leuchtturm/zero/queries";
 
-export const Route = createFileRoute("/$slug/teams/$teamSlug/")({
+export const Route = createFileRoute("/$organization/teams/$team/")({
 	component: Page,
 });
 
 function Page() {
-	const { teamSlug } = Route.useParams();
+	const { team: teamSlug } = Route.useParams();
 	const { organizationId } = Route.useRouteContext();
 	const { t } = useTranslation();
 	const [team] = useZeroQuery(queries.team({ organizationId, teamSlug }));

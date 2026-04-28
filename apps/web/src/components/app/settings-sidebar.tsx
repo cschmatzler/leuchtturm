@@ -28,7 +28,7 @@ import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { organizationsQuery } from "@leuchtturm/web/queries/organizations";
 import { queries } from "@leuchtturm/zero/queries";
 
-const slugRoute = getRouteApi("/$slug");
+const slugRoute = getRouteApi("/$organization");
 
 export function SettingsSidebar({
 	slug,
@@ -56,14 +56,23 @@ export function SettingsSidebar({
 					<SidebarGroupContent>
 						<SidebarMenu>
 							<SidebarMenuItem>
-								<SidebarMenuButton render={<Link to="/$slug/settings/profile" params={{ slug }} />}>
+								<SidebarMenuButton
+									render={
+										<Link to="/$organization/settings/profile" params={{ organization: slug }} />
+									}
+								>
 									<UserIcon />
 									<span>{t("Profile")}</span>
 								</SidebarMenuButton>
 							</SidebarMenuItem>
 							<SidebarMenuItem>
 								<SidebarMenuButton
-									render={<Link to="/$slug/settings/preferences" params={{ slug }} />}
+									render={
+										<Link
+											to="/$organization/settings/preferences"
+											params={{ organization: slug }}
+										/>
+									}
 								>
 									<SettingsIcon />
 									<span>{t("Preferences")}</span>
@@ -78,19 +87,31 @@ export function SettingsSidebar({
 					<SidebarGroupContent>
 						<SidebarMenu>
 							<SidebarMenuItem>
-								<SidebarMenuButton render={<Link to="/$slug/settings/members" params={{ slug }} />}>
+								<SidebarMenuButton
+									render={
+										<Link to="/$organization/settings/members" params={{ organization: slug }} />
+									}
+								>
 									<UserIcon />
 									<span>{t("Members")}</span>
 								</SidebarMenuButton>
 							</SidebarMenuItem>
 							<SidebarMenuItem>
-								<SidebarMenuButton render={<Link to="/$slug/settings/teams" params={{ slug }} />}>
+								<SidebarMenuButton
+									render={
+										<Link to="/$organization/settings/teams" params={{ organization: slug }} />
+									}
+								>
 									<LayersIcon />
 									<span>{t("Teams")}</span>
 								</SidebarMenuButton>
 							</SidebarMenuItem>
 							<SidebarMenuItem>
-								<SidebarMenuButton render={<Link to="/$slug/settings/billing" params={{ slug }} />}>
+								<SidebarMenuButton
+									render={
+										<Link to="/$organization/settings/billing" params={{ organization: slug }} />
+									}
+								>
 									<CreditCardIcon />
 									<span>{t("Billing")}</span>
 								</SidebarMenuButton>
@@ -118,8 +139,8 @@ export function SettingsSidebar({
 														<SidebarMenuSubButton
 															render={
 																<Link
-																	to="/$slug/teams/$teamSlug/settings/general"
-																	params={{ slug, teamSlug: team.slug }}
+																	to="/$organization/teams/$team/settings/general"
+																	params={{ organization: slug, team: team.slug }}
 																/>
 															}
 														>
@@ -131,8 +152,8 @@ export function SettingsSidebar({
 														<SidebarMenuSubButton
 															render={
 																<Link
-																	to="/$slug/teams/$teamSlug/settings/members"
-																	params={{ slug, teamSlug: team.slug }}
+																	to="/$organization/teams/$team/settings/members"
+																	params={{ organization: slug, team: team.slug }}
 																/>
 															}
 														>

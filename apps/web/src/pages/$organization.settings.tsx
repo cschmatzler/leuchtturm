@@ -10,7 +10,7 @@ import {
 } from "@leuchtturm/web/components/ui/sidebar";
 import { queries } from "@leuchtturm/zero/queries";
 
-export const Route = createFileRoute("/$slug/settings")({
+export const Route = createFileRoute("/$organization/settings")({
 	loader: ({ context: { organizationId, zero } }) => {
 		zero.preload(queries.organizationTeams({ organizationId }));
 	},
@@ -18,7 +18,7 @@ export const Route = createFileRoute("/$slug/settings")({
 });
 
 function SettingsLayout() {
-	const { slug } = Route.useParams();
+	const { organization: slug } = Route.useParams();
 
 	return (
 		<div className="flex h-svh flex-col">

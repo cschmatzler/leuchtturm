@@ -33,7 +33,7 @@ import { Link } from "@leuchtturm/web/components/ui/link";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { queries } from "@leuchtturm/zero/queries";
 
-export const Route = createFileRoute("/$slug/settings/teams")({
+export const Route = createFileRoute("/$organization/settings/teams")({
 	loader: ({ context: { organizationId, zero } }) => {
 		zero.preload(queries.organizationTeams({ organizationId }));
 	},
@@ -41,7 +41,7 @@ export const Route = createFileRoute("/$slug/settings/teams")({
 });
 
 function Page() {
-	const { slug } = Route.useParams();
+	const { organization: slug } = Route.useParams();
 	const { organizationId, session } = Route.useRouteContext();
 	const { t } = useTranslation();
 	const [teams] = useZeroQuery(queries.organizationTeams({ organizationId }));
@@ -192,8 +192,8 @@ function Page() {
 												size="sm"
 												render={
 													<Link
-														to="/$slug/teams/$teamSlug/settings/general"
-														params={{ slug, teamSlug: team.slug }}
+														to="/$organization/teams/$team/settings/general"
+														params={{ organization: slug, team: team.slug }}
 													/>
 												}
 											>

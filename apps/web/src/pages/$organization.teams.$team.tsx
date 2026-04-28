@@ -4,15 +4,15 @@ import { AppHeader } from "@leuchtturm/web/components/app/app-header";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { queries } from "@leuchtturm/zero/queries";
 
-export const Route = createFileRoute("/$slug/teams/$teamSlug")({
-	loader: ({ context: { organizationId, zero }, params: { teamSlug } }) => {
+export const Route = createFileRoute("/$organization/teams/$team")({
+	loader: ({ context: { organizationId, zero }, params: { team: teamSlug } }) => {
 		zero.preload(queries.team({ organizationId, teamSlug }));
 	},
 	component: Layout,
 });
 
 function Layout() {
-	const { slug, teamSlug } = Route.useParams();
+	const { organization: slug, team: teamSlug } = Route.useParams();
 	const { organizationId } = Route.useRouteContext();
 	const [team] = useZeroQuery(queries.team({ organizationId, teamSlug }));
 	if (!team) return null;
