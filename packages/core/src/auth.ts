@@ -143,7 +143,7 @@ export namespace Auth {
 						sendInvitationEmail: ({ email: invitedEmail, id, inviter, organization }) =>
 							Effect.runPromise(
 								sendInvitationEmail({
-									acceptUrl: `${Resource.ApiConfig.BASE_URL}/accept-invitation?id=${id}`,
+									acceptUrl: `${Resource.ApiConfig.BASE_URL}/accept-invitation/${id}`,
 									email: invitedEmail,
 									inviterName: inviter.user.name,
 									organizationName: organization.name,

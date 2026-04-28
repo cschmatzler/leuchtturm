@@ -16,12 +16,24 @@ import { Input } from "@leuchtturm/web/components/ui/input";
 import { sessionQuery } from "@leuchtturm/web/queries/session";
 
 export const Route = createFileRoute("/login")({
+	validateSearch: (search) => {
+		if (
+			typeof search.redirect === "string" &&
+			search.redirect.startsWith("/") &&
+			!search.redirect.startsWith("//")
+		) {
+			return { redirect: search.redirect };
+		}
+
+		return {};
+	},
 	component: Page,
 });
 
 function Page() {
 	const { t } = useTranslation();
 	const navigate = useNavigate();
+	const { redirect } = Route.useSearch();
 	const queryClient = useQueryClient();
 	const [submitError, setSubmitError] = useState<string>();
 
@@ -36,7 +48,7 @@ function Page() {
 				{
 					email: Schema.decodeSync(User.fields.email)(value.email),
 					password: Schema.decodeSync(Password)(value.password),
-					callbackURL: "/app",
+					callbackURL: redirect ?? "/app",
 				},
 				{
 					onRequest: () => {
@@ -49,7 +61,7 @@ function Page() {
 						await queryClient.invalidateQueries({ queryKey: ["organizations"] });
 						toast.dismiss();
 						toast.success(t("Welcome back!"));
-						navigate({ to: "/app" });
+						navigate({ to: redirect ?? "/app" });
 					},
 					onError: (ctx) => {
 						toast.dismiss();

@@ -20,6 +20,7 @@ import { Route as AppRouteImport } from './pages/app'
 import { Route as OrganizationRouteImport } from './pages/$organization'
 import { Route as IndexRouteImport } from './pages/index'
 import { Route as OrganizationIndexRouteImport } from './pages/$organization.index'
+import { Route as AcceptInvitationIdRouteImport } from './pages/accept-invitation.$id'
 import { Route as OrganizationSettingsRouteImport } from './pages/$organization._settings'
 import { Route as OrganizationTeamsTeamRouteImport } from './pages/$organization.teams.$team'
 import { Route as OrganizationSettingsSettingsRouteImport } from './pages/$organization._settings.settings'
@@ -89,6 +90,11 @@ const OrganizationIndexRoute = OrganizationIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => OrganizationRoute,
+} as any)
+const AcceptInvitationIdRoute = AcceptInvitationIdRouteImport.update({
+  id: '/accept-invitation/$id',
+  path: '/accept-invitation/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const OrganizationSettingsRoute = OrganizationSettingsRouteImport.update({
   id: '/_settings',
@@ -183,6 +189,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/terms-of-service': typeof TermsOfServiceRoute
+  '/accept-invitation/$id': typeof AcceptInvitationIdRoute
   '/$organization/': typeof OrganizationIndexRoute
   '/$organization/settings': typeof OrganizationSettingsSettingsRouteWithChildren
   '/$organization/teams/$team': typeof OrganizationTeamsTeamRouteWithChildren
@@ -209,6 +216,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/terms-of-service': typeof TermsOfServiceRoute
   '/$organization': typeof OrganizationIndexRoute
+  '/accept-invitation/$id': typeof AcceptInvitationIdRoute
   '/$organization/settings/billing': typeof OrganizationSettingsSettingsBillingRoute
   '/$organization/settings/members': typeof OrganizationSettingsSettingsMembersRoute
   '/$organization/settings/preferences': typeof OrganizationSettingsSettingsPreferencesRoute
@@ -233,6 +241,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/terms-of-service': typeof TermsOfServiceRoute
   '/$organization/_settings': typeof OrganizationSettingsRouteWithChildren
+  '/accept-invitation/$id': typeof AcceptInvitationIdRoute
   '/$organization/': typeof OrganizationIndexRoute
   '/$organization/_settings/settings': typeof OrganizationSettingsSettingsRouteWithChildren
   '/$organization/teams/$team': typeof OrganizationTeamsTeamRouteWithChildren
@@ -261,6 +270,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/terms-of-service'
+    | '/accept-invitation/$id'
     | '/$organization/'
     | '/$organization/settings'
     | '/$organization/teams/$team'
@@ -287,6 +297,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/terms-of-service'
     | '/$organization'
+    | '/accept-invitation/$id'
     | '/$organization/settings/billing'
     | '/$organization/settings/members'
     | '/$organization/settings/preferences'
@@ -310,6 +321,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/terms-of-service'
     | '/$organization/_settings'
+    | '/accept-invitation/$id'
     | '/$organization/'
     | '/$organization/_settings/settings'
     | '/$organization/teams/$team'
@@ -337,6 +349,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
   TermsOfServiceRoute: typeof TermsOfServiceRoute
+  AcceptInvitationIdRoute: typeof AcceptInvitationIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -417,6 +430,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/$organization/'
       preLoaderRoute: typeof OrganizationIndexRouteImport
       parentRoute: typeof OrganizationRoute
+    }
+    '/accept-invitation/$id': {
+      id: '/accept-invitation/$id'
+      path: '/accept-invitation/$id'
+      fullPath: '/accept-invitation/$id'
+      preLoaderRoute: typeof AcceptInvitationIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/$organization/_settings': {
       id: '/$organization/_settings'
@@ -625,6 +645,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
   TermsOfServiceRoute: TermsOfServiceRoute,
+  AcceptInvitationIdRoute: AcceptInvitationIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
