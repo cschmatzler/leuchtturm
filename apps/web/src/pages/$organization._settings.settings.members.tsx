@@ -19,6 +19,7 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
+import { Role } from "@leuchtturm/core/auth/schema";
 import { Email } from "@leuchtturm/core/schema";
 import { authClient } from "@leuchtturm/web/clients/auth";
 import { DataTable } from "@leuchtturm/web/components/data-table";
@@ -27,6 +28,7 @@ import {
 	createTanStackFilters,
 } from "@leuchtturm/web/components/data-table-filter/tanstack";
 import type { ColumnConfig } from "@leuchtturm/web/components/data-table-filter/types";
+import { Badge } from "@leuchtturm/web/components/ui/badge";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import {
 	Dialog,
@@ -76,6 +78,15 @@ function Page() {
 		[invitations],
 	);
 
+	const roleOptions = useMemo(
+		() =>
+			Role.literals.map((role) => ({
+				label: `${role.charAt(0).toUpperCase()}${role.slice(1)}`,
+				value: role,
+			})),
+		[],
+	);
+
 	const memberColumns = useMemo<ColumnDef<(typeof members)[number]>[]>(
 		() => [
 			{
@@ -100,9 +111,12 @@ function Page() {
 				id: "role",
 				header: t("Role"),
 				accessorFn: (member) => member.role,
-				cell: ({ getValue }) => (
-					<p className="text-sm text-muted-foreground">{getValue<string>()}</p>
-				),
+				cell: ({ getValue }) => {
+					const role = getValue<string>();
+					return (
+						<Badge variant="outline">{`${role.charAt(0).toUpperCase()}${role.slice(1)}`}</Badge>
+					);
+				},
 			},
 		],
 		[t],
@@ -129,10 +143,11 @@ function Page() {
 					accessor: (member) => member.role,
 					displayName: t("Role"),
 					icon: ShieldIcon,
-					type: "text",
+					type: "option",
+					options: roleOptions,
 				},
 			] satisfies ColumnConfig<(typeof members)[number]>[],
-		[t],
+		[roleOptions, t],
 	);
 	const memberFilters = useDataTableFilters({
 		strategy: "client",
@@ -171,9 +186,12 @@ function Page() {
 				id: "role",
 				header: t("Role"),
 				accessorFn: (invitation) => invitation.role ?? "",
-				cell: ({ getValue }) => (
-					<p className="text-sm text-muted-foreground">{getValue<string>()}</p>
-				),
+				cell: ({ getValue }) => {
+					const role = getValue<string>();
+					return (
+						<Badge variant="outline">{`${role.charAt(0).toUpperCase()}${role.slice(1)}`}</Badge>
+					);
+				},
 			},
 			{
 				id: "expiresAt",
@@ -201,7 +219,8 @@ function Page() {
 					accessor: (invitation) => invitation.role ?? "",
 					displayName: t("Role"),
 					icon: ShieldIcon,
-					type: "text",
+					type: "option",
+					options: roleOptions,
 				},
 				{
 					id: "expiresAt",
@@ -211,7 +230,7 @@ function Page() {
 					type: "date",
 				},
 			] satisfies ColumnConfig<(typeof activeInvitations)[number]>[],
-		[t],
+		[roleOptions, t],
 	);
 	const invitationFilters = useDataTableFilters({
 		strategy: "client",

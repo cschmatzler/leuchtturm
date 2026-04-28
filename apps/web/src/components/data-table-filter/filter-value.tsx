@@ -556,6 +556,7 @@ function FilterValueTextController<TData>({
 				<CommandGroup>
 					<CommandItem>
 						<DebouncedInput
+							autoFocus
 							placeholder={t("Search")}
 							value={filter?.values[0] ?? ""}
 							onChange={changeText}

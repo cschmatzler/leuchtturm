@@ -14,6 +14,8 @@ export const OrganizationId = Schema.TemplateLiteral(["org_", Ulid]).pipe(
 
 export const MemberId = Schema.TemplateLiteral(["mem_", Ulid]).pipe(Schema.brand("MemberId"));
 
+export const Role = Schema.Literals(["admin", "owner", "member"]);
+
 export const TeamId = Schema.TemplateLiteral(["tea_", Ulid]).pipe(Schema.brand("TeamId"));
 
 export const Team = Schema.Struct({
