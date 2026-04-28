@@ -1,12 +1,32 @@
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, stripSearchParams, useNavigate } from "@tanstack/react-router";
+import {
+	getCoreRowModel,
+	getFilteredRowModel,
+	useReactTable,
+	type ColumnDef,
+} from "@tanstack/react-table";
 import { Effect, Schema } from "effect";
-import { Loader2Icon, MailPlusIcon } from "lucide-react";
+import {
+	CalendarIcon,
+	Loader2Icon,
+	MailIcon,
+	MailPlusIcon,
+	ShieldIcon,
+	UserIcon,
+} from "lucide-react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { Email } from "@leuchtturm/core/schema";
 import { authClient } from "@leuchtturm/web/clients/auth";
+import { DataTable } from "@leuchtturm/web/components/data-table";
+import {
+	createTanStackColumns,
+	createTanStackFilters,
+} from "@leuchtturm/web/components/data-table-filter/tanstack";
+import type { ColumnConfig } from "@leuchtturm/web/components/data-table-filter/types";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import {
 	Dialog,
@@ -18,6 +38,7 @@ import {
 } from "@leuchtturm/web/components/ui/dialog";
 import { FieldError, FieldLabel } from "@leuchtturm/web/components/ui/field";
 import { Input } from "@leuchtturm/web/components/ui/input";
+import { useDataTableFilters } from "@leuchtturm/web/hooks/use-data-table-filters";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { queries } from "@leuchtturm/zero/queries";
 
@@ -50,7 +71,172 @@ function Page() {
 	const { t } = useTranslation();
 	const [members] = useZeroQuery(queries.organizationMembers({ organizationId }));
 	const [invitations] = useZeroQuery(queries.organizationInvitations({ organizationId }));
-	const activeInvitations = invitations.filter((invitation) => invitation.expiresAt > Date.now());
+	const activeInvitations = useMemo(
+		() => invitations.filter((invitation) => invitation.expiresAt > Date.now()),
+		[invitations],
+	);
+
+	const memberColumns = useMemo<ColumnDef<(typeof members)[number]>[]>(
+		() => [
+			{
+				id: "name",
+				header: t("Name"),
+				accessorFn: (member) => member.user?.name ?? member.userId,
+				cell: ({ row }) => (
+					<div>
+						<p className="text-sm font-medium">{row.original.user?.name ?? row.original.userId}</p>
+						{row.original.user?.email && (
+							<p className="text-xs text-muted-foreground">{row.original.user.email}</p>
+						)}
+					</div>
+				),
+			},
+			{
+				id: "email",
+				header: t("Email"),
+				accessorFn: (member) => member.user?.email ?? "",
+			},
+			{
+				id: "role",
+				header: t("Role"),
+				accessorFn: (member) => member.role,
+				cell: ({ getValue }) => (
+					<p className="text-sm text-muted-foreground">{getValue<string>()}</p>
+				),
+			},
+		],
+		[t],
+	);
+	const memberFilterDefinitions = useMemo(
+		() =>
+			[
+				{
+					id: "name",
+					accessor: (member) => member.user?.name ?? member.userId,
+					displayName: t("Name"),
+					icon: UserIcon,
+					type: "text",
+				},
+				{
+					id: "email",
+					accessor: (member) => member.user?.email ?? "",
+					displayName: t("Email"),
+					icon: MailIcon,
+					type: "text",
+				},
+				{
+					id: "role",
+					accessor: (member) => member.role,
+					displayName: t("Role"),
+					icon: ShieldIcon,
+					type: "text",
+				},
+			] satisfies ColumnConfig<(typeof members)[number]>[],
+		[t],
+	);
+	const memberFilters = useDataTableFilters({
+		strategy: "client",
+		data: members,
+		filterDefinitions: memberFilterDefinitions,
+	});
+	const memberTableColumns = useMemo(
+		() =>
+			createTanStackColumns({
+				columns: memberColumns,
+				filterColumns: memberFilters.filterColumns,
+			}),
+		[memberColumns, memberFilters.filterColumns],
+	);
+	const memberColumnFilters = useMemo(
+		() => createTanStackFilters(memberFilters.filters),
+		[memberFilters.filters],
+	);
+	const memberTable = useReactTable({
+		data: members,
+		columns: memberTableColumns,
+		state: { columnFilters: memberColumnFilters },
+		getCoreRowModel: getCoreRowModel(),
+		getFilteredRowModel: getFilteredRowModel(),
+	});
+
+	const invitationColumns = useMemo<ColumnDef<(typeof activeInvitations)[number]>[]>(
+		() => [
+			{
+				id: "email",
+				header: t("Email"),
+				accessorFn: (invitation) => invitation.email,
+				cell: ({ getValue }) => <p className="text-sm font-medium">{getValue<string>()}</p>,
+			},
+			{
+				id: "role",
+				header: t("Role"),
+				accessorFn: (invitation) => invitation.role ?? "",
+				cell: ({ getValue }) => (
+					<p className="text-sm text-muted-foreground">{getValue<string>()}</p>
+				),
+			},
+			{
+				id: "expiresAt",
+				header: t("Expires"),
+				accessorFn: (invitation) => new Date(invitation.expiresAt),
+				cell: ({ getValue }) => (
+					<p className="text-sm text-muted-foreground">{getValue<Date>().toLocaleDateString()}</p>
+				),
+			},
+		],
+		[t],
+	);
+	const invitationFilterDefinitions = useMemo(
+		() =>
+			[
+				{
+					id: "email",
+					accessor: (invitation) => invitation.email,
+					displayName: t("Email"),
+					icon: MailIcon,
+					type: "text",
+				},
+				{
+					id: "role",
+					accessor: (invitation) => invitation.role ?? "",
+					displayName: t("Role"),
+					icon: ShieldIcon,
+					type: "text",
+				},
+				{
+					id: "expiresAt",
+					accessor: (invitation) => new Date(invitation.expiresAt),
+					displayName: t("Expires"),
+					icon: CalendarIcon,
+					type: "date",
+				},
+			] satisfies ColumnConfig<(typeof activeInvitations)[number]>[],
+		[t],
+	);
+	const invitationFilters = useDataTableFilters({
+		strategy: "client",
+		data: activeInvitations,
+		filterDefinitions: invitationFilterDefinitions,
+	});
+	const invitationTableColumns = useMemo(
+		() =>
+			createTanStackColumns({
+				columns: invitationColumns,
+				filterColumns: invitationFilters.filterColumns,
+			}),
+		[invitationColumns, invitationFilters.filterColumns],
+	);
+	const invitationColumnFilters = useMemo(
+		() => createTanStackFilters(invitationFilters.filters),
+		[invitationFilters.filters],
+	);
+	const invitationTable = useReactTable({
+		data: activeInvitations,
+		columns: invitationTableColumns,
+		state: { columnFilters: invitationColumnFilters },
+		getCoreRowModel: getCoreRowModel(),
+		getFilteredRowModel: getFilteredRowModel(),
+	});
 
 	const setInviteDialogOpen = (value: boolean) => {
 		void navigate({
@@ -165,27 +351,15 @@ function Page() {
 						{t("Invite member")}
 					</Button>
 				</div>
-				<div className="mt-5">
-					{members.length ? (
-						<ul className="divide-y divide-border">
-							{members.map((member) => (
-								<li key={member.id} className="flex items-center justify-between gap-4 py-4">
-									<div>
-										<p className="text-sm font-medium">{member.user?.name ?? member.userId}</p>
-										{member.user?.email && (
-											<p className="text-xs text-muted-foreground">{member.user.email}</p>
-										)}
-									</div>
-									<p className="text-sm text-muted-foreground">{member.role}</p>
-								</li>
-							))}
-						</ul>
-					) : (
-						<div className="py-10 text-center text-sm text-muted-foreground">
-							{t("No members found.")}
-						</div>
-					)}
-				</div>
+				<DataTable
+					className="mt-5"
+					table={memberTable}
+					filterColumns={memberFilters.filterColumns}
+					filters={memberFilters.filters}
+					actions={memberFilters.actions}
+					emptyIcon={UserIcon}
+					emptyRowName={t("members")}
+				/>
 			</section>
 
 			<section className="border-t border-border py-6">
@@ -195,29 +369,15 @@ function Page() {
 						{t("Invitations that have not been accepted yet.")}
 					</p>
 				</div>
-				<div className="mt-5">
-					{activeInvitations.length ? (
-						<ul className="divide-y divide-border">
-							{activeInvitations.map((invitation) => (
-								<li key={invitation.id} className="flex items-center justify-between gap-4 py-4">
-									<div>
-										<p className="text-sm font-medium">{invitation.email}</p>
-										<p className="text-xs text-muted-foreground">
-											{t("Expires {{date}}", {
-												date: new Date(invitation.expiresAt).toLocaleDateString(),
-											})}
-										</p>
-									</div>
-									<p className="text-sm text-muted-foreground">{invitation.role}</p>
-								</li>
-							))}
-						</ul>
-					) : (
-						<div className="py-10 text-center text-sm text-muted-foreground">
-							{t("No pending invitations.")}
-						</div>
-					)}
-				</div>
+				<DataTable
+					className="mt-5"
+					table={invitationTable}
+					filterColumns={invitationFilters.filterColumns}
+					filters={invitationFilters.filters}
+					actions={invitationFilters.actions}
+					emptyIcon={MailPlusIcon}
+					emptyRowName={t("invitations")}
+				/>
 			</section>
 		</div>
 	);
