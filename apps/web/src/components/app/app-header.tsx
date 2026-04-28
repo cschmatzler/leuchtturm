@@ -167,7 +167,11 @@ export function AppHeader({
 				global: true,
 				icon: LayersIcon,
 				run() {
-					navigate({ to: "/$organization/settings/teams", params: { organization: slug } });
+					navigate({
+						to: "/$organization/settings/teams",
+						params: { organization: slug },
+						search: { create: true },
+					});
 				},
 			},
 			{
@@ -332,6 +336,7 @@ export function AppHeader({
 								void navigate({
 									to: "/$organization/settings/teams",
 									params: { organization: slug },
+									search: { create: true },
 								});
 							}}
 						>

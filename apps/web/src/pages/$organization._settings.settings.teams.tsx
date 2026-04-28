@@ -1,6 +1,6 @@
 import { useForm } from "@tanstack/react-form";
-import { createFileRoute } from "@tanstack/react-router";
-import { Schema } from "effect";
+import { createFileRoute, stripSearchParams, useNavigate } from "@tanstack/react-router";
+import { Effect, Schema } from "effect";
 import { Loader2Icon, PlusIcon, SettingsIcon, Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -19,14 +19,34 @@ import {
 	AlertDialogTitle,
 } from "@leuchtturm/web/components/ui/alert-dialog";
 import { Button } from "@leuchtturm/web/components/ui/button";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@leuchtturm/web/components/ui/dialog";
 import { FieldError, FieldLabel } from "@leuchtturm/web/components/ui/field";
 import { Input } from "@leuchtturm/web/components/ui/input";
 import { Link } from "@leuchtturm/web/components/ui/link";
-import { Separator } from "@leuchtturm/web/components/ui/separator";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { queries } from "@leuchtturm/zero/queries";
 
+const searchDefaults = { create: false };
+
 export const Route = createFileRoute("/$organization/_settings/settings/teams")({
+	validateSearch: Schema.toStandardSchemaV1(
+		Schema.Struct({
+			create: Schema.Boolean.pipe(
+				Schema.optional,
+				Schema.withDecodingDefault(Effect.succeed(false)),
+			),
+		}),
+	),
+	search: {
+		middlewares: [stripSearchParams(searchDefaults)],
+	},
 	loader: ({ context: { organizationId, zero } }) => {
 		zero.preload(queries.organizationTeams({ organizationId }));
 	},
@@ -35,11 +55,21 @@ export const Route = createFileRoute("/$organization/_settings/settings/teams")(
 
 function Page() {
 	const { organization: slug } = Route.useParams();
+	const { create } = Route.useSearch();
 	const { organizationId, session } = Route.useRouteContext();
+	const navigate = useNavigate();
 	const { t } = useTranslation();
 	const [teams] = useZeroQuery(queries.organizationTeams({ organizationId }));
 	const [teamPendingDeletion, setTeamPendingDeletion] = useState<string>();
 	const [isDeletingTeam, setIsDeletingTeam] = useState(false);
+
+	const setCreateDialogOpen = (value: boolean) => {
+		void navigate({
+			to: "/$organization/settings/teams",
+			params: { organization: slug },
+			search: (previous) => ({ ...previous, create: value }),
+		});
+	};
 
 	const form = useForm({
 		defaultValues: {
@@ -84,6 +114,7 @@ function Page() {
 				return;
 			}
 			form.reset();
+			setCreateDialogOpen(false);
 			toast.success(t("Team created"));
 		},
 	});
@@ -102,72 +133,81 @@ function Page() {
 
 	return (
 		<div className="mx-auto w-full max-w-3xl">
-			<section className="py-6">
-				<div className="space-y-1">
-					<h2 className="text-lg font-semibold">{t("Create team")}</h2>
-					<p className="text-sm text-muted-foreground">
-						{t("Teams organize work inside this organization.")}
-					</p>
-				</div>
-				<form action={() => form.handleSubmit()} className="mt-5 space-y-6">
-					<form.Field
-						name="name"
-						validators={{
-							onBlur: Schema.toStandardSchemaV1(Team.fields.name),
-						}}
-					>
-						{(field) => (
-							<div className="grid gap-x-10 gap-y-2 lg:grid-cols-[1fr_2fr]">
-								<FieldLabel htmlFor={field.name}>{t("Name")}</FieldLabel>
-								<div>
-									<Input
-										id={field.name}
-										name={field.name}
-										placeholder={t("Engineering")}
-										value={field.state.value}
-										onBlur={field.handleBlur}
-										onInput={(event) => {
-											form.setFieldMeta("name", (previous) => ({
-												...previous,
-												errorMap: {
-													...previous.errorMap,
-													onSubmit: undefined,
-												},
-											}));
-											field.handleChange(event.currentTarget.value);
-										}}
-										className="max-w-sm"
-									/>
-									{field.state.meta.errors.length > 0 && (
-										<FieldError className="mt-2">{field.state.meta.errors[0]?.message}</FieldError>
-									)}
+			<Dialog open={create} onOpenChange={setCreateDialogOpen}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>{t("Create team")}</DialogTitle>
+						<DialogDescription>
+							{t("Teams organize work inside this organization.")}
+						</DialogDescription>
+					</DialogHeader>
+					<form action={() => form.handleSubmit()} className="space-y-6">
+						<form.Field
+							name="name"
+							validators={{
+								onBlur: Schema.toStandardSchemaV1(Team.fields.name),
+							}}
+						>
+							{(field) => (
+								<div className="space-y-2">
+									<FieldLabel htmlFor={field.name}>{t("Name")}</FieldLabel>
+									<div>
+										<Input
+											id={field.name}
+											name={field.name}
+											placeholder={t("Engineering")}
+											value={field.state.value}
+											onBlur={field.handleBlur}
+											onInput={(event) => {
+												form.setFieldMeta("name", (previous) => ({
+													...previous,
+													errorMap: {
+														...previous.errorMap,
+														onSubmit: undefined,
+													},
+												}));
+												field.handleChange(event.currentTarget.value);
+											}}
+										/>
+										{field.state.meta.errors.length > 0 && (
+											<FieldError className="mt-2">
+												{field.state.meta.errors[0]?.message}
+											</FieldError>
+										)}
+									</div>
 								</div>
-							</div>
-						)}
-					</form.Field>
-					<form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
-						{([canSubmit, isSubmitting]) => (
-							<div className="flex justify-end">
-								<Button type="submit" disabled={!canSubmit || isSubmitting}>
-									{isSubmitting ? (
-										<Loader2Icon className="size-4 animate-spin" />
-									) : (
-										<PlusIcon className="size-4" />
-									)}
-									{t("Create team")}
-								</Button>
-							</div>
-						)}
-					</form.Subscribe>
-				</form>
-			</section>
-
-			<Separator />
+							)}
+						</form.Field>
+						<form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
+							{([canSubmit, isSubmitting]) => (
+								<DialogFooter>
+									<Button type="submit" disabled={!canSubmit || isSubmitting}>
+										{isSubmitting ? (
+											<Loader2Icon className="size-4 animate-spin" />
+										) : (
+											<PlusIcon className="size-4" />
+										)}
+										{t("Create team")}
+									</Button>
+								</DialogFooter>
+							)}
+						</form.Subscribe>
+					</form>
+				</DialogContent>
+			</Dialog>
 
 			<section className="py-6">
-				<div className="space-y-1">
-					<h2 className="text-lg font-semibold">{t("Teams")}</h2>
-					<p className="text-sm text-muted-foreground">{t("Manage teams in this organization.")}</p>
+				<div className="flex items-start justify-between gap-4">
+					<div className="space-y-1">
+						<h2 className="text-lg font-semibold">{t("Teams")}</h2>
+						<p className="text-sm text-muted-foreground">
+							{t("Manage teams in this organization.")}
+						</p>
+					</div>
+					<Button type="button" onClick={() => setCreateDialogOpen(true)}>
+						<PlusIcon className="size-4" />
+						{t("Create team")}
+					</Button>
 				</div>
 				<div className="mt-5">
 					{teams.length ? (
