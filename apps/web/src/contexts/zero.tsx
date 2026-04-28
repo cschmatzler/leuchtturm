@@ -55,8 +55,6 @@ export function ZeroProvider({
 		<ZeroProviderPrimitive
 			schema={schema}
 			cacheURL={import.meta.env.VITE_SYNC_URL}
-			queryURL={`${location.origin}/api/zero/query`}
-			mutateURL={`${location.origin}/api/zero/mutate`}
 			userID={userId}
 			context={context}
 			mutators={mutators}

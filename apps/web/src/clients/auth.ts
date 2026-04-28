@@ -1,24 +1,9 @@
-import type { BetterAuthClientPlugin } from "better-auth/client";
-import { multiSessionClient, organizationClient } from "better-auth/client/plugins";
+import {
+	inferAdditionalFields,
+	multiSessionClient,
+	organizationClient,
+} from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
-
-const userAdditionalFieldsClient = {
-	id: "user-additional-fields",
-	$InferServerPlugin: {
-		id: "user-additional-fields",
-		schema: {
-			user: {
-				fields: {
-					language: {
-						type: "string",
-						required: false,
-						defaultValue: "en",
-					},
-				},
-			},
-		},
-	},
-} satisfies BetterAuthClientPlugin;
 
 export const authClient = createAuthClient({
 	baseURL: `${location.origin}/api/auth`,
@@ -27,7 +12,15 @@ export const authClient = createAuthClient({
 	},
 	plugins: [
 		multiSessionClient(),
-		userAdditionalFieldsClient,
+		inferAdditionalFields({
+			user: {
+				language: {
+					type: "string",
+					required: false,
+					defaultValue: "en",
+				},
+			},
+		}),
 		organizationClient({
 			teams: { enabled: true },
 			schema: {
