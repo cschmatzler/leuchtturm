@@ -42,7 +42,7 @@ function Page() {
 		onSubmit: async ({ value }) => {
 			const name = value.name.trim();
 			if (!name || !team) return;
-			const { error } = await authClient.organization.updateTeam({
+			const { data, error } = await authClient.organization.updateTeam({
 				teamId: team.id,
 				data: { name, organizationId },
 			});
@@ -67,6 +67,13 @@ function Page() {
 				return;
 			}
 			toast.success(t("Team updated"));
+			if (data.slug !== teamSlug) {
+				await navigate({
+					to: "/$slug/teams/$teamSlug/settings/general",
+					params: { slug, teamSlug: data.slug },
+					replace: true,
+				});
+			}
 		},
 	});
 

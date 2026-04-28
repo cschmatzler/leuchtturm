@@ -5,6 +5,9 @@ import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { queries } from "@leuchtturm/zero/queries";
 
 export const Route = createFileRoute("/$slug/teams/$teamSlug")({
+	loader: ({ context: { organizationId, zero }, params: { teamSlug } }) => {
+		zero.preload(queries.team({ organizationId, teamSlug }));
+	},
 	component: Layout,
 });
 
@@ -12,6 +15,7 @@ function Layout() {
 	const { slug, teamSlug } = Route.useParams();
 	const { organizationId } = Route.useRouteContext();
 	const [team] = useZeroQuery(queries.team({ organizationId, teamSlug }));
+	if (!team) return null;
 
 	return (
 		<div className="flex h-svh flex-col">
