@@ -28,22 +28,16 @@ import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { organizationsQuery } from "@leuchtturm/web/queries/organizations";
 import { queries } from "@leuchtturm/zero/queries";
 
-const slugRoute = getRouteApi("/$organization");
+const organizationRoute = getRouteApi("/$organization");
 
-export function SettingsSidebar({
-	slug,
-	teamSlug,
-}: {
-	readonly slug: string;
-	readonly teamSlug?: string;
-}) {
-	const { organizationId } = slugRoute.useRouteContext();
+export function SettingsSidebar({ organization }: { readonly organization: string }) {
+	const { organizationId } = organizationRoute.useRouteContext();
 	const [teams] = useZeroQuery(queries.organizationTeams({ organizationId }));
 	const { data: organizations } = useQuery(organizationsQuery());
 
 	const { t } = useTranslation();
 
-	const currentOrganization = organizations?.find((org) => org.slug === slug);
+	const currentOrganization = organizations?.find((item) => item.slug === organization);
 
 	return (
 		<Sidebar variant="inset" className="absolute inset-y-0 h-full">
@@ -57,9 +51,7 @@ export function SettingsSidebar({
 						<SidebarMenu>
 							<SidebarMenuItem>
 								<SidebarMenuButton
-									render={
-										<Link to="/$organization/settings/profile" params={{ organization: slug }} />
-									}
+									render={<Link to="/$organization/settings/profile" params={{ organization }} />}
 								>
 									<UserIcon />
 									<span>{t("Profile")}</span>
@@ -68,10 +60,7 @@ export function SettingsSidebar({
 							<SidebarMenuItem>
 								<SidebarMenuButton
 									render={
-										<Link
-											to="/$organization/settings/preferences"
-											params={{ organization: slug }}
-										/>
+										<Link to="/$organization/settings/preferences" params={{ organization }} />
 									}
 								>
 									<SettingsIcon />
@@ -88,9 +77,7 @@ export function SettingsSidebar({
 						<SidebarMenu>
 							<SidebarMenuItem>
 								<SidebarMenuButton
-									render={
-										<Link to="/$organization/settings/members" params={{ organization: slug }} />
-									}
+									render={<Link to="/$organization/settings/members" params={{ organization }} />}
 								>
 									<UserIcon />
 									<span>{t("Members")}</span>
@@ -98,9 +85,7 @@ export function SettingsSidebar({
 							</SidebarMenuItem>
 							<SidebarMenuItem>
 								<SidebarMenuButton
-									render={
-										<Link to="/$organization/settings/teams" params={{ organization: slug }} />
-									}
+									render={<Link to="/$organization/settings/teams" params={{ organization }} />}
 								>
 									<LayersIcon />
 									<span>{t("Teams")}</span>
@@ -108,9 +93,7 @@ export function SettingsSidebar({
 							</SidebarMenuItem>
 							<SidebarMenuItem>
 								<SidebarMenuButton
-									render={
-										<Link to="/$organization/settings/billing" params={{ organization: slug }} />
-									}
+									render={<Link to="/$organization/settings/billing" params={{ organization }} />}
 								>
 									<CreditCardIcon />
 									<span>{t("Billing")}</span>
@@ -126,7 +109,7 @@ export function SettingsSidebar({
 						<SidebarGroupContent>
 							<SidebarMenu>
 								{teams.map((team) => (
-									<Collapsible key={team.id} defaultOpen={team.slug === teamSlug}>
+									<Collapsible key={team.id}>
 										<SidebarMenuItem>
 											<CollapsibleTrigger render={<SidebarMenuButton className="group/team" />}>
 												<LayersIcon />
@@ -140,7 +123,7 @@ export function SettingsSidebar({
 															render={
 																<Link
 																	to="/$organization/teams/$team/settings/general"
-																	params={{ organization: slug, team: team.slug }}
+																	params={{ organization, team: team.slug }}
 																/>
 															}
 														>
@@ -153,7 +136,7 @@ export function SettingsSidebar({
 															render={
 																<Link
 																	to="/$organization/teams/$team/settings/members"
-																	params={{ organization: slug, team: team.slug }}
+																	params={{ organization, team: team.slug }}
 																/>
 															}
 														>

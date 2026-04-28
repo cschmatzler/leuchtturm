@@ -15,18 +15,23 @@ import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { queries } from "@leuchtturm/zero/queries";
 
 export const Route = createFileRoute("/$organization/_settings/teams/$team/settings/general")({
-	loader: ({ context: { organizationId, zero }, params: { team: teamSlug } }) => {
-		zero.preload(queries.team({ organizationId, teamSlug }));
+	loader: ({ context: { organizationId, zero }, params: { team } }) => {
+		zero.preload(queries.team({ organizationId, team }));
 	},
 	component: Page,
 });
 
 function Page() {
-	const { organization: slug, team: teamSlug } = Route.useParams();
+	const { organization, team } = Route.useParams();
+
+	return <GeneralSettings organization={organization} team={team} />;
+}
+
+function GeneralSettings(props: { readonly organization: string; readonly team: string }) {
 	const { organizationId } = Route.useRouteContext();
 	const navigate = useNavigate();
 	const { t } = useTranslation();
-	const [team] = useZeroQuery(queries.team({ organizationId, teamSlug }));
+	const [team] = useZeroQuery(queries.team({ organizationId, team: props.team }));
 
 	const form = useForm({
 		defaultValues: {
@@ -60,10 +65,10 @@ function Page() {
 				return;
 			}
 			toast.success(t("Team updated"));
-			if (data.slug !== teamSlug) {
+			if (data.slug !== props.team) {
 				await navigate({
 					to: "/$organization/teams/$team/settings/general",
-					params: { organization: slug, team: data.slug },
+					params: { organization: props.organization, team: data.slug },
 					replace: true,
 				});
 			}
@@ -82,7 +87,10 @@ function Page() {
 			return;
 		}
 		toast.success(t("Team deleted"));
-		await navigate({ to: "/$organization/settings/teams", params: { organization: slug } });
+		await navigate({
+			to: "/$organization/settings/teams",
+			params: { organization: props.organization },
+		});
 	};
 
 	return (

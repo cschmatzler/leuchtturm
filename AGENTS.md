@@ -1,5 +1,3 @@
-<!-- intent-skills:start -->
-
 ## Skill Loading
 
 Before substantial work:
@@ -17,6 +15,10 @@ Before substantial work:
 - Collaborate with the user. You are _not_ alone. If there's any ambiguity, stop editing files and use the questions tool. Do not _just_ go ahead.
 - Never try to generate migrations yourself. Tell the user to.
 - Do not stop at "yeah, you're right" or similar acknowledgement when the user is clearly pointing out a mistake that should be corrected. Fix it in the same turn.
+
+# Style
+
+DO NOT CREATE A MILLION SMALL HELPER FUNCTIONS. Most stuff can be inlined. Helper functions are ass.
 
 # Vite+ Toolchain
 

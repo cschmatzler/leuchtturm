@@ -10,19 +10,24 @@ import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { queries } from "@leuchtturm/zero/queries";
 
 export const Route = createFileRoute("/$organization/_settings/teams/$team/settings/members")({
-	loader: ({ context: { organizationId, zero }, params: { team: teamSlug } }) => {
-		zero.preload(queries.team({ organizationId, teamSlug }));
+	loader: ({ context: { organizationId, zero }, params: { team } }) => {
+		zero.preload(queries.team({ organizationId, team }));
 		zero.preload(queries.organizationMembers({ organizationId }));
-		zero.preload(queries.teamMembersByTeam({ organizationId, teamSlug }));
+		zero.preload(queries.teamMembersByTeam({ organizationId, team }));
 	},
 	component: Page,
 });
 
 function Page() {
-	const { team: teamSlug } = Route.useParams();
+	const { team } = Route.useParams();
+
+	return <MembersSettings team={team} />;
+}
+
+function MembersSettings(props: { readonly team: string }) {
 	const { organizationId, session } = Route.useRouteContext();
 	const { t } = useTranslation();
-	const [team] = useZeroQuery(queries.team({ organizationId, teamSlug }));
+	const [team] = useZeroQuery(queries.team({ organizationId, team: props.team }));
 	const [organizationMembers] = useZeroQuery(queries.organizationMembers({ organizationId }));
 	const [teamMembers] = useZeroQuery(queries.teamMembers({ teamId: team?.id ?? "" }));
 	const teamMemberUserIds = new Set(teamMembers.map((member) => member.userId));

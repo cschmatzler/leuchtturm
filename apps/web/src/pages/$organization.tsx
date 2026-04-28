@@ -1,11 +1,18 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { useHotkey } from "@tanstack/react-hotkeys";
+import { useQuery } from "@tanstack/react-query";
+import { createFileRoute, Outlet, redirect, useNavigate } from "@tanstack/react-router";
+import { BuildingIcon, CogIcon, LayersIcon, LogOutIcon, PlusIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { ZeroProvider } from "@leuchtturm/web/contexts/zero";
+import { useAuth } from "@leuchtturm/web/hooks/use-auth";
+import { useCommandBar } from "@leuchtturm/web/hooks/use-command-bar";
+import { useCommandProvider } from "@leuchtturm/web/hooks/use-command-provider";
 import { organizationsQuery } from "@leuchtturm/web/queries/organizations";
 import { sessionQuery } from "@leuchtturm/web/queries/session";
 
 export const Route = createFileRoute("/$organization")({
-	beforeLoad: async ({ params: { organization: slug }, context: { queryClient } }) => {
+	beforeLoad: async ({ params: { organization }, context: { queryClient } }) => {
 		const session = await queryClient.ensureQueryData(sessionQuery());
 		if (!session) throw redirect({ to: "/login" });
 
@@ -15,14 +22,14 @@ export const Route = createFileRoute("/$organization")({
 		}
 
 		const targetOrganization = organizations.find(
-			(currentOrganization) => currentOrganization.slug === slug,
+			(currentOrganization) => currentOrganization.slug === organization,
 		);
 		if (!targetOrganization) {
-			const nextSlug = organizations[0]?.slug;
-			if (nextSlug) {
+			const nextOrganization = organizations[0]?.slug;
+			if (nextOrganization) {
 				throw redirect({
 					to: "/$organization/settings",
-					params: { organization: nextSlug },
+					params: { organization: nextOrganization },
 				});
 			}
 			throw redirect({ to: "/create-organization" });
@@ -34,12 +41,147 @@ export const Route = createFileRoute("/$organization")({
 });
 
 function Layout() {
-	const { organization: slug } = Route.useParams();
+	const { organization } = Route.useParams();
 	const { session } = Route.useRouteContext();
 
 	return (
-		<ZeroProvider session={session} slug={slug}>
+		<ZeroProvider session={session} organization={organization}>
+			<OrganizationCommands organization={organization} />
 			<Outlet />
 		</ZeroProvider>
 	);
+}
+
+function OrganizationCommands({ organization }: { readonly organization: string }) {
+	const navigate = useNavigate();
+	const { data: organizations } = useQuery(organizationsQuery());
+	const { t } = useTranslation();
+	const { deviceSessions, signOutCurrent, signOutAll } = useAuth();
+	const commandBar = useCommandBar();
+
+	useHotkey("Mod+K", () => commandBar.show(), { ignoreInputs: false });
+	useHotkey("Alt+Shift+Q", () => {
+		void signOutCurrent();
+	});
+
+	useCommandProvider(
+		"account",
+		async () => [
+			{
+				title: t("Add another account"),
+				category: t("Account"),
+				global: true,
+				icon: PlusIcon,
+				run() {
+					navigate({ to: "/login" });
+				},
+			},
+			{
+				title: t("Log out"),
+				category: t("Account"),
+				global: true,
+				icon: LogOutIcon,
+				async run() {
+					await signOutCurrent();
+				},
+			},
+			{
+				title: t("Log out of all accounts"),
+				category: t("Account"),
+				global: true,
+				icon: LogOutIcon,
+				disabled: (deviceSessions?.length ?? 0) < 2,
+				async run() {
+					await signOutAll();
+				},
+			},
+		],
+		[deviceSessions, navigate, signOutAll, signOutCurrent, t],
+	);
+
+	useCommandProvider(
+		"organizations",
+		async () => [
+			{
+				title: t("Create organization"),
+				category: t("Organization"),
+				global: true,
+				icon: BuildingIcon,
+				run() {
+					navigate({ to: "/create-organization" });
+				},
+			},
+			{
+				title: t("Go to organization"),
+				category: t("Organization"),
+				global: true,
+				icon: BuildingIcon,
+				disabled: !organizations?.some((item) => item.slug !== organization),
+				run() {
+					commandBar.show("select-organization");
+				},
+			},
+		],
+		[commandBar, navigate, organizations, organization, t],
+	);
+
+	useCommandProvider(
+		"select-organization",
+		async () => {
+			const selectableOrganizations = organizations?.filter((item) => item.slug !== organization);
+			if (!selectableOrganizations) return [];
+
+			return selectableOrganizations.map((organization) => ({
+				title: t("Go to {{organization}}", { organization: organization.name }),
+				value: organization.slug,
+				category: t("Organization"),
+				icon: BuildingIcon,
+				run() {
+					navigate({
+						to: "/$organization/settings",
+						params: { organization: organization.slug },
+					});
+				},
+			}));
+		},
+		[navigate, organizations, organization, t],
+	);
+
+	useCommandProvider(
+		"teams",
+		async () => [
+			{
+				title: t("Create team"),
+				category: t("Team"),
+				global: true,
+				icon: LayersIcon,
+				run() {
+					navigate({
+						to: "/$organization/settings/teams",
+						params: { organization },
+						search: { create: true },
+					});
+				},
+			},
+		],
+		[navigate, organization, t],
+	);
+
+	useCommandProvider(
+		"navigation",
+		async () => [
+			{
+				title: t("Go to Settings"),
+				category: t("Navigation"),
+				global: true,
+				icon: CogIcon,
+				run() {
+					navigate({ to: "/$organization/settings", params: { organization } });
+				},
+			},
+		],
+		[navigate, organization, t],
+	);
+
+	return null;
 }

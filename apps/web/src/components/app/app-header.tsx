@@ -1,4 +1,3 @@
-import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQuery } from "@tanstack/react-query";
 import { getRouteApi, useMatchRoute, useNavigate } from "@tanstack/react-router";
 import {
@@ -7,15 +6,17 @@ import {
 	CogIcon,
 	LayersIcon,
 	LogOutIcon,
+	OptionIcon,
 	PlusIcon,
 	SparklesIcon,
+	ArrowBigUpIcon,
 	UserIcon,
 } from "lucide-react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 import { resolveLanguage } from "@leuchtturm/core/i18n";
-import { OptionShiftShortcut } from "@leuchtturm/web/components/ui/kbd";
+import { Kbd, KbdGroup } from "@leuchtturm/web/components/ui/kbd";
 import { Link } from "@leuchtturm/web/components/ui/link";
 import {
 	Menu,
@@ -29,8 +30,6 @@ import {
 	MenuTrigger,
 } from "@leuchtturm/web/components/ui/menu";
 import { useAuth } from "@leuchtturm/web/hooks/use-auth";
-import { useCommandBar } from "@leuchtturm/web/hooks/use-command-bar";
-import { useCommandProvider } from "@leuchtturm/web/hooks/use-command-provider";
 import { cn } from "@leuchtturm/web/lib/cn";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { organizationsQuery } from "@leuchtturm/web/queries/organizations";
@@ -42,16 +41,16 @@ type AppHeaderTeam = {
 	readonly slug: string;
 };
 
-const slugRoute = getRouteApi("/$organization");
+const organizationRoute = getRouteApi("/$organization");
 
 export function AppHeader({
-	slug,
+	organization,
 	activeTeam,
 }: {
-	readonly slug: string;
+	readonly organization: string;
 	readonly activeTeam?: AppHeaderTeam;
 }) {
-	const { organizationId } = slugRoute.useRouteContext();
+	const { organizationId } = organizationRoute.useRouteContext();
 	const navigate = useNavigate();
 	const matchRoute = useMatchRoute();
 	const [currentUser] = useZeroQuery(queries.currentUser());
@@ -60,183 +59,10 @@ export function AppHeader({
 
 	const { t, i18n } = useTranslation();
 	const { session, deviceSessions, signOutCurrent, signOutAll, setActiveSession } = useAuth();
-	const commandBar = useCommandBar();
-	const currentOrganization = organizations?.find((organization) => organization.slug === slug);
+	const currentOrganization = organizations?.find((item) => item.slug === organization);
 	const settingsActive = Boolean(
-		matchRoute({ to: "/$organization/settings", params: { organization: slug }, fuzzy: true }) ||
+		matchRoute({ to: "/$organization/settings", params: { organization }, fuzzy: true }) ||
 		matchRoute({ to: "/$organization/teams/$team/settings", fuzzy: true }),
-	);
-
-	useHotkey("Mod+K", () => commandBar.show(), { ignoreInputs: false });
-	useHotkey("Alt+Shift+Q", () => {
-		void signOutCurrent();
-	});
-
-	useCommandProvider(
-		"account",
-		async () => [
-			{
-				title: t("Add another account"),
-				category: t("Account"),
-				global: true,
-				icon: PlusIcon,
-				run() {
-					navigate({ to: "/login" });
-				},
-			},
-			{
-				title: t("Log out"),
-				category: t("Account"),
-				global: true,
-				icon: LogOutIcon,
-				shortcut: LogOutShortcut,
-				async run() {
-					await signOutCurrent();
-				},
-			},
-			{
-				title: t("Log out of all accounts"),
-				category: t("Account"),
-				global: true,
-				icon: LogOutIcon,
-				disabled: (deviceSessions?.length ?? 0) < 2,
-				async run() {
-					await signOutAll();
-				},
-			},
-		],
-		[deviceSessions, navigate, signOutAll, signOutCurrent, t],
-	);
-
-	useCommandProvider(
-		"organizations",
-		async () => [
-			{
-				title: t("Create organization"),
-				category: t("Organization"),
-				global: true,
-				icon: BuildingIcon,
-				run() {
-					navigate({ to: "/create-organization" });
-				},
-			},
-			{
-				title: t("Go to organization"),
-				category: t("Organization"),
-				global: true,
-				icon: BuildingIcon,
-				disabled: !organizations?.some((organization) => organization.slug !== slug),
-				run() {
-					commandBar.show("select-organization");
-				},
-			},
-		],
-		[commandBar, navigate, organizations, slug, t],
-	);
-
-	useCommandProvider(
-		"select-organization",
-		async () => {
-			const selectableOrganizations = organizations?.filter(
-				(organization) => organization.slug !== slug,
-			);
-			if (!selectableOrganizations) return [];
-
-			return selectableOrganizations.map((organization) => ({
-				title: t("Go to {{organization}}", { organization: organization.name }),
-				value: organization.slug,
-				category: t("Organization"),
-				icon: BuildingIcon,
-				run() {
-					navigate({
-						to: "/$organization/settings",
-						params: { organization: organization.slug },
-					});
-				},
-			}));
-		},
-		[navigate, organizations, slug, t],
-	);
-
-	useCommandProvider(
-		"teams",
-		async () => [
-			{
-				title: t("Create team"),
-				category: t("Team"),
-				global: true,
-				icon: LayersIcon,
-				run() {
-					navigate({
-						to: "/$organization/settings/teams",
-						params: { organization: slug },
-						search: { create: true },
-					});
-				},
-			},
-			{
-				title: t("Go to team"),
-				category: t("Team"),
-				global: true,
-				icon: LayersIcon,
-				disabled: teams.length === 0,
-				run() {
-					commandBar.show("select-team");
-				},
-			},
-		],
-		[commandBar, navigate, slug, t, teams],
-	);
-
-	useCommandProvider(
-		"select-team",
-		async () =>
-			teams.map((team) => ({
-				title: t("Go to {{team}}", { team: team.name }),
-				value: team.id,
-				category: t("Team"),
-				icon: LayersIcon,
-				run() {
-					navigate({
-						to: "/$organization/teams/$team",
-						params: { organization: slug, team: team.slug },
-					});
-				},
-			})),
-
-		[navigate, slug, t, teams],
-	);
-
-	useCommandProvider(
-		"navigation",
-		async () => [
-			{
-				title: t("Go to Settings"),
-				category: t("Navigation"),
-				global: true,
-				icon: CogIcon,
-				run() {
-					navigate({ to: "/$organization/settings", params: { organization: slug } });
-				},
-			},
-			...(activeTeam
-				? [
-						{
-							title: t("Go to Team settings"),
-							category: t("Navigation"),
-							global: true,
-							icon: CogIcon,
-							run() {
-								navigate({
-									to: "/$organization/teams/$team/settings/general",
-									params: { organization: slug, team: activeTeam.slug },
-								});
-							},
-						},
-					]
-				: []),
-		],
-		[activeTeam, navigate, slug, t],
 	);
 
 	useEffect(() => {
@@ -249,7 +75,7 @@ export function AppHeader({
 		<header className="bg-background/80 sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-border px-4 backdrop-blur-md">
 			<Link
 				to="/$organization"
-				params={{ organization: slug }}
+				params={{ organization }}
 				aria-label="Leuchtturm"
 				className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-opacity hover:opacity-90"
 			>
@@ -276,18 +102,18 @@ export function AppHeader({
 						}
 					/>
 					<MenuContent align="end" className="min-w-56">
-						{organizations?.map((organization) => (
+						{organizations?.map((item) => (
 							<MenuCheckboxItem
-								key={organization.id}
-								checked={organization.slug === slug}
+								key={item.id}
+								checked={item.slug === organization}
 								onClick={() => {
 									void navigate({
 										to: "/$organization/settings",
-										params: { organization: organization.slug },
+										params: { organization: item.slug },
 									});
 								}}
 							>
-								{organization.name}
+								{item.name}
 							</MenuCheckboxItem>
 						))}
 						<MenuSeparator />
@@ -323,7 +149,7 @@ export function AppHeader({
 								onClick={() => {
 									void navigate({
 										to: "/$organization/teams/$team",
-										params: { organization: slug, team: team.slug },
+										params: { organization, team: team.slug },
 									});
 								}}
 							>
@@ -335,7 +161,7 @@ export function AppHeader({
 							onClick={() => {
 								void navigate({
 									to: "/$organization/settings/teams",
-									params: { organization: slug },
+									params: { organization },
 									search: { create: true },
 								});
 							}}
@@ -349,7 +175,7 @@ export function AppHeader({
 				<nav className="flex items-center gap-1">
 					<Link
 						to="/$organization/settings"
-						params={{ organization: slug }}
+						params={{ organization }}
 						aria-label={t("Settings")}
 						data-active={settingsActive ? true : undefined}
 						className={settingsLinkClassName}
@@ -416,7 +242,19 @@ export function AppHeader({
 							<LogOutIcon />
 							<span>{t("Log out")}</span>
 							<div className="ml-auto">
-								<LogOutShortcut />
+								<KbdGroup>
+									<Kbd>
+										{/Mac|iPod|iPhone|iPad/.test(navigator.userAgent) ? (
+											<OptionIcon className="size-3" />
+										) : (
+											"Alt"
+										)}
+									</Kbd>
+									<Kbd>
+										<ArrowBigUpIcon className="size-3" />
+									</Kbd>
+									<Kbd>Q</Kbd>
+								</KbdGroup>
 							</div>
 						</MenuItem>
 						{deviceSessions && deviceSessions.length > 1 && (
@@ -435,11 +273,6 @@ export function AppHeader({
 		</header>
 	);
 }
-
-function LogOutShortcut() {
-	return <OptionShiftShortcut keyLabel="Q" />;
-}
-
 const settingsLinkClassName = cn(
 	"inline-flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
 	"data-[active]:bg-accent data-[active]:text-accent-foreground",

@@ -15,11 +15,11 @@ export type SessionData = {
 
 export function ZeroProvider({
 	session,
-	slug,
+	organization,
 	children,
 }: {
 	session: SessionData;
-	slug: string;
+	organization: string;
 	children: ReactNode;
 }) {
 	const router = useRouter();
@@ -45,10 +45,10 @@ export function ZeroProvider({
 			}
 
 			await zero.preload(queries.currentUser()).complete;
-			await zero.preload(queries.organization({ slug })).complete;
+			await zero.preload(queries.organization({ organization })).complete;
 			setReady(true);
 		},
-		[router, slug],
+		[router, organization],
 	);
 
 	return (
@@ -58,7 +58,7 @@ export function ZeroProvider({
 			userID={userId}
 			context={context}
 			mutators={mutators}
-			storageKey={slug}
+			storageKey={organization}
 			init={init}
 		>
 			{ready ? children : <Loading />}

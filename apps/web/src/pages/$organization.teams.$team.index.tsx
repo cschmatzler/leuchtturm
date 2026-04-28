@@ -9,10 +9,15 @@ export const Route = createFileRoute("/$organization/teams/$team/")({
 });
 
 function Page() {
-	const { team: teamSlug } = Route.useParams();
+	const { team } = Route.useParams();
+
+	return <TeamPage team={team} />;
+}
+
+function TeamPage(props: { readonly team: string }) {
 	const { organizationId } = Route.useRouteContext();
 	const { t } = useTranslation();
-	const [team] = useZeroQuery(queries.team({ organizationId, teamSlug }));
+	const [team] = useZeroQuery(queries.team({ organizationId, team: props.team }));
 
 	return (
 		<div className="flex h-full justify-center">

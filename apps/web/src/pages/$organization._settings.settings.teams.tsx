@@ -54,7 +54,7 @@ export const Route = createFileRoute("/$organization/_settings/settings/teams")(
 });
 
 function Page() {
-	const { organization: slug } = Route.useParams();
+	const { organization } = Route.useParams();
 	const { create } = Route.useSearch();
 	const { organizationId, session } = Route.useRouteContext();
 	const navigate = useNavigate();
@@ -66,7 +66,7 @@ function Page() {
 	const setCreateDialogOpen = (value: boolean) => {
 		void navigate({
 			to: "/$organization/settings/teams",
-			params: { organization: slug },
+			params: { organization },
 			search: (previous) => ({ ...previous, create: value }),
 		});
 	};
@@ -225,7 +225,7 @@ function Page() {
 												render={
 													<Link
 														to="/$organization/teams/$team/settings/general"
-														params={{ organization: slug, team: team.slug }}
+														params={{ organization, team: team.slug }}
 													/>
 												}
 											>

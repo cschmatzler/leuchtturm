@@ -66,7 +66,7 @@ export const Route = createFileRoute("/$organization/_settings/settings/members"
 });
 
 function Page() {
-	const { organization: slug } = Route.useParams();
+	const { organization } = Route.useParams();
 	const { invite } = Route.useSearch();
 	const { organizationId } = Route.useRouteContext();
 	const navigate = useNavigate();
@@ -260,7 +260,7 @@ function Page() {
 	const setInviteDialogOpen = (value: boolean) => {
 		void navigate({
 			to: "/$organization/settings/members",
-			params: { organization: slug },
+			params: { organization },
 			search: (previous) => ({ ...previous, invite: value }),
 		});
 	};

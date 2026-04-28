@@ -9,7 +9,7 @@ const defineQuery = defineQueryWithType<typeof schema, Context>();
 const defineQueries = defineQueriesWithType<typeof schema>();
 const organizationArgs = Schema.toStandardSchemaV1(
 	Schema.Struct({
-		slug: Slug,
+		organization: Slug,
 	}),
 );
 
@@ -22,7 +22,7 @@ const organizationIdArgs = Schema.toStandardSchemaV1(
 const teamArgs = Schema.toStandardSchemaV1(
 	Schema.Struct({
 		organizationId: Schema.String,
-		teamSlug: Schema.String,
+		team: Schema.String,
 	}),
 );
 
@@ -37,7 +37,7 @@ export const queries = defineQueries({
 
 	organization: defineQuery(organizationArgs, ({ ctx, args }) =>
 		zql.organization
-			.where("slug", args.slug)
+			.where("slug", args.organization)
 			.whereExists("members", (query) =>
 				query.whereExists("user", (userQuery) => userQuery.where("id", ctx?.userId ?? "")),
 			)
@@ -59,7 +59,7 @@ export const queries = defineQueries({
 	),
 
 	team: defineQuery(teamArgs, ({ args }) =>
-		zql.team.where("organizationId", args.organizationId).where("slug", args.teamSlug).one(),
+		zql.team.where("organizationId", args.organizationId).where("slug", args.team).one(),
 	),
 
 	teamMembers: defineQuery(teamIdArgs, ({ args }) =>
@@ -70,13 +70,13 @@ export const queries = defineQueries({
 		Schema.toStandardSchemaV1(
 			Schema.Struct({
 				organizationId: Schema.String,
-				teamSlug: Schema.String,
+				team: Schema.String,
 			}),
 		),
 		({ args }) =>
 			zql.team_member
 				.whereExists("team", (query) =>
-					query.where("organizationId", args.organizationId).where("slug", args.teamSlug),
+					query.where("organizationId", args.organizationId).where("slug", args.team),
 				)
 				.related("user"),
 	),
