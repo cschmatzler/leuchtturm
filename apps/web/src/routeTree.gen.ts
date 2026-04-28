@@ -17,22 +17,22 @@ import { Route as LoginRouteImport } from './pages/login'
 import { Route as ForgotPasswordRouteImport } from './pages/forgot-password'
 import { Route as CreateOrganizationRouteImport } from './pages/create-organization'
 import { Route as AppRouteImport } from './pages/app'
-import { Route as SlugRouteImport } from './pages/$organization'
+import { Route as OrganizationRouteImport } from './pages/$organization'
 import { Route as IndexRouteImport } from './pages/index'
-import { Route as SlugIndexRouteImport } from './pages/$organization.index'
-import { Route as SlugSettingsRouteImport } from './pages/$organization.settings'
-import { Route as SlugSettingsIndexRouteImport } from './pages/$organization.settings.index'
-import { Route as SlugTeamsTeamSlugRouteImport } from './pages/$organization.teams.$team'
-import { Route as SlugSettingsTeamsRouteImport } from './pages/$organization.settings.teams'
-import { Route as SlugSettingsProfileRouteImport } from './pages/$organization.settings.profile'
-import { Route as SlugSettingsPreferencesRouteImport } from './pages/$organization.settings.preferences'
-import { Route as SlugSettingsMembersRouteImport } from './pages/$organization.settings.members'
-import { Route as SlugSettingsBillingRouteImport } from './pages/$organization.settings.billing'
-import { Route as SlugTeamsTeamSlugIndexRouteImport } from './pages/$organization.teams.$team.index'
-import { Route as SlugTeamsTeamSlugSettingsRouteImport } from './pages/$organization.teams.$team.settings'
-import { Route as SlugTeamsTeamSlugSettingsIndexRouteImport } from './pages/$organization.teams.$team.settings.index'
-import { Route as SlugTeamsTeamSlugSettingsMembersRouteImport } from './pages/$organization.teams.$team.settings.members'
-import { Route as SlugTeamsTeamSlugSettingsGeneralRouteImport } from './pages/$organization.teams.$team.settings.general'
+import { Route as OrganizationIndexRouteImport } from './pages/$organization.index'
+import { Route as OrganizationSettingsRouteImport } from './pages/$organization.settings'
+import { Route as OrganizationSettingsIndexRouteImport } from './pages/$organization.settings.index'
+import { Route as OrganizationTeamsTeamRouteImport } from './pages/$organization.teams.$team'
+import { Route as OrganizationSettingsTeamsRouteImport } from './pages/$organization.settings.teams'
+import { Route as OrganizationSettingsProfileRouteImport } from './pages/$organization.settings.profile'
+import { Route as OrganizationSettingsPreferencesRouteImport } from './pages/$organization.settings.preferences'
+import { Route as OrganizationSettingsMembersRouteImport } from './pages/$organization.settings.members'
+import { Route as OrganizationSettingsBillingRouteImport } from './pages/$organization.settings.billing'
+import { Route as OrganizationTeamsTeamIndexRouteImport } from './pages/$organization.teams.$team.index'
+import { Route as OrganizationTeamsTeamSettingsRouteImport } from './pages/$organization.teams.$team.settings'
+import { Route as OrganizationTeamsTeamSettingsIndexRouteImport } from './pages/$organization.teams.$team.settings.index'
+import { Route as OrganizationTeamsTeamSettingsMembersRouteImport } from './pages/$organization.teams.$team.settings.members'
+import { Route as OrganizationTeamsTeamSettingsGeneralRouteImport } from './pages/$organization.teams.$team.settings.general'
 
 const TermsOfServiceRoute = TermsOfServiceRouteImport.update({
   id: '/terms-of-service',
@@ -74,7 +74,7 @@ const AppRoute = AppRouteImport.update({
   path: '/app',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SlugRoute = SlugRouteImport.update({
+const OrganizationRoute = OrganizationRouteImport.update({
   id: '/$organization',
   path: '/$organization',
   getParentRoute: () => rootRouteImport,
@@ -84,84 +84,91 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SlugIndexRoute = SlugIndexRouteImport.update({
+const OrganizationIndexRoute = OrganizationIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => SlugRoute,
+  getParentRoute: () => OrganizationRoute,
 } as any)
-const SlugSettingsRoute = SlugSettingsRouteImport.update({
+const OrganizationSettingsRoute = OrganizationSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
-  getParentRoute: () => SlugRoute,
+  getParentRoute: () => OrganizationRoute,
 } as any)
-const SlugSettingsIndexRoute = SlugSettingsIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => SlugSettingsRoute,
-} as any)
-const SlugTeamsTeamSlugRoute = SlugTeamsTeamSlugRouteImport.update({
-  id: '/teams/$team',
-  path: '/teams/$team',
-  getParentRoute: () => SlugRoute,
-} as any)
-const SlugSettingsTeamsRoute = SlugSettingsTeamsRouteImport.update({
-  id: '/teams',
-  path: '/teams',
-  getParentRoute: () => SlugSettingsRoute,
-} as any)
-const SlugSettingsProfileRoute = SlugSettingsProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => SlugSettingsRoute,
-} as any)
-const SlugSettingsPreferencesRoute = SlugSettingsPreferencesRouteImport.update({
-  id: '/preferences',
-  path: '/preferences',
-  getParentRoute: () => SlugSettingsRoute,
-} as any)
-const SlugSettingsMembersRoute = SlugSettingsMembersRouteImport.update({
-  id: '/members',
-  path: '/members',
-  getParentRoute: () => SlugSettingsRoute,
-} as any)
-const SlugSettingsBillingRoute = SlugSettingsBillingRouteImport.update({
-  id: '/billing',
-  path: '/billing',
-  getParentRoute: () => SlugSettingsRoute,
-} as any)
-const SlugTeamsTeamSlugIndexRoute = SlugTeamsTeamSlugIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => SlugTeamsTeamSlugRoute,
-} as any)
-const SlugTeamsTeamSlugSettingsRoute =
-  SlugTeamsTeamSlugSettingsRouteImport.update({
-    id: '/settings',
-    path: '/settings',
-    getParentRoute: () => SlugTeamsTeamSlugRoute,
-  } as any)
-const SlugTeamsTeamSlugSettingsIndexRoute =
-  SlugTeamsTeamSlugSettingsIndexRouteImport.update({
+const OrganizationSettingsIndexRoute =
+  OrganizationSettingsIndexRouteImport.update({
     id: '/',
     path: '/',
-    getParentRoute: () => SlugTeamsTeamSlugSettingsRoute,
+    getParentRoute: () => OrganizationSettingsRoute,
   } as any)
-const SlugTeamsTeamSlugSettingsMembersRoute =
-  SlugTeamsTeamSlugSettingsMembersRouteImport.update({
+const OrganizationTeamsTeamRoute = OrganizationTeamsTeamRouteImport.update({
+  id: '/teams/$team',
+  path: '/teams/$team',
+  getParentRoute: () => OrganizationRoute,
+} as any)
+const OrganizationSettingsTeamsRoute =
+  OrganizationSettingsTeamsRouteImport.update({
+    id: '/teams',
+    path: '/teams',
+    getParentRoute: () => OrganizationSettingsRoute,
+  } as any)
+const OrganizationSettingsProfileRoute =
+  OrganizationSettingsProfileRouteImport.update({
+    id: '/profile',
+    path: '/profile',
+    getParentRoute: () => OrganizationSettingsRoute,
+  } as any)
+const OrganizationSettingsPreferencesRoute =
+  OrganizationSettingsPreferencesRouteImport.update({
+    id: '/preferences',
+    path: '/preferences',
+    getParentRoute: () => OrganizationSettingsRoute,
+  } as any)
+const OrganizationSettingsMembersRoute =
+  OrganizationSettingsMembersRouteImport.update({
     id: '/members',
     path: '/members',
-    getParentRoute: () => SlugTeamsTeamSlugSettingsRoute,
+    getParentRoute: () => OrganizationSettingsRoute,
   } as any)
-const SlugTeamsTeamSlugSettingsGeneralRoute =
-  SlugTeamsTeamSlugSettingsGeneralRouteImport.update({
+const OrganizationSettingsBillingRoute =
+  OrganizationSettingsBillingRouteImport.update({
+    id: '/billing',
+    path: '/billing',
+    getParentRoute: () => OrganizationSettingsRoute,
+  } as any)
+const OrganizationTeamsTeamIndexRoute =
+  OrganizationTeamsTeamIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => OrganizationTeamsTeamRoute,
+  } as any)
+const OrganizationTeamsTeamSettingsRoute =
+  OrganizationTeamsTeamSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => OrganizationTeamsTeamRoute,
+  } as any)
+const OrganizationTeamsTeamSettingsIndexRoute =
+  OrganizationTeamsTeamSettingsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => OrganizationTeamsTeamSettingsRoute,
+  } as any)
+const OrganizationTeamsTeamSettingsMembersRoute =
+  OrganizationTeamsTeamSettingsMembersRouteImport.update({
+    id: '/members',
+    path: '/members',
+    getParentRoute: () => OrganizationTeamsTeamSettingsRoute,
+  } as any)
+const OrganizationTeamsTeamSettingsGeneralRoute =
+  OrganizationTeamsTeamSettingsGeneralRouteImport.update({
     id: '/general',
     path: '/general',
-    getParentRoute: () => SlugTeamsTeamSlugSettingsRoute,
+    getParentRoute: () => OrganizationTeamsTeamSettingsRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/$organization': typeof SlugRouteWithChildren
+  '/$organization': typeof OrganizationRouteWithChildren
   '/app': typeof AppRoute
   '/create-organization': typeof CreateOrganizationRoute
   '/forgot-password': typeof ForgotPasswordRoute
@@ -170,20 +177,20 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/terms-of-service': typeof TermsOfServiceRoute
-  '/$organization/settings': typeof SlugSettingsRouteWithChildren
-  '/$organization/': typeof SlugIndexRoute
-  '/$organization/settings/billing': typeof SlugSettingsBillingRoute
-  '/$organization/settings/members': typeof SlugSettingsMembersRoute
-  '/$organization/settings/preferences': typeof SlugSettingsPreferencesRoute
-  '/$organization/settings/profile': typeof SlugSettingsProfileRoute
-  '/$organization/settings/teams': typeof SlugSettingsTeamsRoute
-  '/$organization/teams/$team': typeof SlugTeamsTeamSlugRouteWithChildren
-  '/$organization/settings/': typeof SlugSettingsIndexRoute
-  '/$organization/teams/$team/settings': typeof SlugTeamsTeamSlugSettingsRouteWithChildren
-  '/$organization/teams/$team/': typeof SlugTeamsTeamSlugIndexRoute
-  '/$organization/teams/$team/settings/general': typeof SlugTeamsTeamSlugSettingsGeneralRoute
-  '/$organization/teams/$team/settings/members': typeof SlugTeamsTeamSlugSettingsMembersRoute
-  '/$organization/teams/$team/settings/': typeof SlugTeamsTeamSlugSettingsIndexRoute
+  '/$organization/settings': typeof OrganizationSettingsRouteWithChildren
+  '/$organization/': typeof OrganizationIndexRoute
+  '/$organization/settings/billing': typeof OrganizationSettingsBillingRoute
+  '/$organization/settings/members': typeof OrganizationSettingsMembersRoute
+  '/$organization/settings/preferences': typeof OrganizationSettingsPreferencesRoute
+  '/$organization/settings/profile': typeof OrganizationSettingsProfileRoute
+  '/$organization/settings/teams': typeof OrganizationSettingsTeamsRoute
+  '/$organization/teams/$team': typeof OrganizationTeamsTeamRouteWithChildren
+  '/$organization/settings/': typeof OrganizationSettingsIndexRoute
+  '/$organization/teams/$team/settings': typeof OrganizationTeamsTeamSettingsRouteWithChildren
+  '/$organization/teams/$team/': typeof OrganizationTeamsTeamIndexRoute
+  '/$organization/teams/$team/settings/general': typeof OrganizationTeamsTeamSettingsGeneralRoute
+  '/$organization/teams/$team/settings/members': typeof OrganizationTeamsTeamSettingsMembersRoute
+  '/$organization/teams/$team/settings/': typeof OrganizationTeamsTeamSettingsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -195,22 +202,22 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/terms-of-service': typeof TermsOfServiceRoute
-  '/$organization': typeof SlugIndexRoute
-  '/$organization/settings/billing': typeof SlugSettingsBillingRoute
-  '/$organization/settings/members': typeof SlugSettingsMembersRoute
-  '/$organization/settings/preferences': typeof SlugSettingsPreferencesRoute
-  '/$organization/settings/profile': typeof SlugSettingsProfileRoute
-  '/$organization/settings/teams': typeof SlugSettingsTeamsRoute
-  '/$organization/settings': typeof SlugSettingsIndexRoute
-  '/$organization/teams/$team': typeof SlugTeamsTeamSlugIndexRoute
-  '/$organization/teams/$team/settings/general': typeof SlugTeamsTeamSlugSettingsGeneralRoute
-  '/$organization/teams/$team/settings/members': typeof SlugTeamsTeamSlugSettingsMembersRoute
-  '/$organization/teams/$team/settings': typeof SlugTeamsTeamSlugSettingsIndexRoute
+  '/$organization': typeof OrganizationIndexRoute
+  '/$organization/settings/billing': typeof OrganizationSettingsBillingRoute
+  '/$organization/settings/members': typeof OrganizationSettingsMembersRoute
+  '/$organization/settings/preferences': typeof OrganizationSettingsPreferencesRoute
+  '/$organization/settings/profile': typeof OrganizationSettingsProfileRoute
+  '/$organization/settings/teams': typeof OrganizationSettingsTeamsRoute
+  '/$organization/settings': typeof OrganizationSettingsIndexRoute
+  '/$organization/teams/$team': typeof OrganizationTeamsTeamIndexRoute
+  '/$organization/teams/$team/settings/general': typeof OrganizationTeamsTeamSettingsGeneralRoute
+  '/$organization/teams/$team/settings/members': typeof OrganizationTeamsTeamSettingsMembersRoute
+  '/$organization/teams/$team/settings': typeof OrganizationTeamsTeamSettingsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/$organization': typeof SlugRouteWithChildren
+  '/$organization': typeof OrganizationRouteWithChildren
   '/app': typeof AppRoute
   '/create-organization': typeof CreateOrganizationRoute
   '/forgot-password': typeof ForgotPasswordRoute
@@ -219,20 +226,20 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/terms-of-service': typeof TermsOfServiceRoute
-  '/$organization/settings': typeof SlugSettingsRouteWithChildren
-  '/$organization/': typeof SlugIndexRoute
-  '/$organization/settings/billing': typeof SlugSettingsBillingRoute
-  '/$organization/settings/members': typeof SlugSettingsMembersRoute
-  '/$organization/settings/preferences': typeof SlugSettingsPreferencesRoute
-  '/$organization/settings/profile': typeof SlugSettingsProfileRoute
-  '/$organization/settings/teams': typeof SlugSettingsTeamsRoute
-  '/$organization/teams/$team': typeof SlugTeamsTeamSlugRouteWithChildren
-  '/$organization/settings/': typeof SlugSettingsIndexRoute
-  '/$organization/teams/$team/settings': typeof SlugTeamsTeamSlugSettingsRouteWithChildren
-  '/$organization/teams/$team/': typeof SlugTeamsTeamSlugIndexRoute
-  '/$organization/teams/$team/settings/general': typeof SlugTeamsTeamSlugSettingsGeneralRoute
-  '/$organization/teams/$team/settings/members': typeof SlugTeamsTeamSlugSettingsMembersRoute
-  '/$organization/teams/$team/settings/': typeof SlugTeamsTeamSlugSettingsIndexRoute
+  '/$organization/settings': typeof OrganizationSettingsRouteWithChildren
+  '/$organization/': typeof OrganizationIndexRoute
+  '/$organization/settings/billing': typeof OrganizationSettingsBillingRoute
+  '/$organization/settings/members': typeof OrganizationSettingsMembersRoute
+  '/$organization/settings/preferences': typeof OrganizationSettingsPreferencesRoute
+  '/$organization/settings/profile': typeof OrganizationSettingsProfileRoute
+  '/$organization/settings/teams': typeof OrganizationSettingsTeamsRoute
+  '/$organization/teams/$team': typeof OrganizationTeamsTeamRouteWithChildren
+  '/$organization/settings/': typeof OrganizationSettingsIndexRoute
+  '/$organization/teams/$team/settings': typeof OrganizationTeamsTeamSettingsRouteWithChildren
+  '/$organization/teams/$team/': typeof OrganizationTeamsTeamIndexRoute
+  '/$organization/teams/$team/settings/general': typeof OrganizationTeamsTeamSettingsGeneralRoute
+  '/$organization/teams/$team/settings/members': typeof OrganizationTeamsTeamSettingsMembersRoute
+  '/$organization/teams/$team/settings/': typeof OrganizationTeamsTeamSettingsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -313,7 +320,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  SlugRoute: typeof SlugRouteWithChildren
+  OrganizationRoute: typeof OrganizationRouteWithChildren
   AppRoute: typeof AppRoute
   CreateOrganizationRoute: typeof CreateOrganizationRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
@@ -386,7 +393,7 @@ declare module '@tanstack/react-router' {
       id: '/$organization'
       path: '/$organization'
       fullPath: '/$organization'
-      preLoaderRoute: typeof SlugRouteImport
+      preLoaderRoute: typeof OrganizationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -400,175 +407,180 @@ declare module '@tanstack/react-router' {
       id: '/$organization/'
       path: '/'
       fullPath: '/$organization/'
-      preLoaderRoute: typeof SlugIndexRouteImport
-      parentRoute: typeof SlugRoute
+      preLoaderRoute: typeof OrganizationIndexRouteImport
+      parentRoute: typeof OrganizationRoute
     }
     '/$organization/settings': {
       id: '/$organization/settings'
       path: '/settings'
       fullPath: '/$organization/settings'
-      preLoaderRoute: typeof SlugSettingsRouteImport
-      parentRoute: typeof SlugRoute
+      preLoaderRoute: typeof OrganizationSettingsRouteImport
+      parentRoute: typeof OrganizationRoute
     }
     '/$organization/settings/': {
       id: '/$organization/settings/'
       path: '/'
       fullPath: '/$organization/settings/'
-      preLoaderRoute: typeof SlugSettingsIndexRouteImport
-      parentRoute: typeof SlugSettingsRoute
+      preLoaderRoute: typeof OrganizationSettingsIndexRouteImport
+      parentRoute: typeof OrganizationSettingsRoute
     }
     '/$organization/teams/$team': {
       id: '/$organization/teams/$team'
       path: '/teams/$team'
       fullPath: '/$organization/teams/$team'
-      preLoaderRoute: typeof SlugTeamsTeamSlugRouteImport
-      parentRoute: typeof SlugRoute
+      preLoaderRoute: typeof OrganizationTeamsTeamRouteImport
+      parentRoute: typeof OrganizationRoute
     }
     '/$organization/settings/teams': {
       id: '/$organization/settings/teams'
       path: '/teams'
       fullPath: '/$organization/settings/teams'
-      preLoaderRoute: typeof SlugSettingsTeamsRouteImport
-      parentRoute: typeof SlugSettingsRoute
+      preLoaderRoute: typeof OrganizationSettingsTeamsRouteImport
+      parentRoute: typeof OrganizationSettingsRoute
     }
     '/$organization/settings/profile': {
       id: '/$organization/settings/profile'
       path: '/profile'
       fullPath: '/$organization/settings/profile'
-      preLoaderRoute: typeof SlugSettingsProfileRouteImport
-      parentRoute: typeof SlugSettingsRoute
+      preLoaderRoute: typeof OrganizationSettingsProfileRouteImport
+      parentRoute: typeof OrganizationSettingsRoute
     }
     '/$organization/settings/preferences': {
       id: '/$organization/settings/preferences'
       path: '/preferences'
       fullPath: '/$organization/settings/preferences'
-      preLoaderRoute: typeof SlugSettingsPreferencesRouteImport
-      parentRoute: typeof SlugSettingsRoute
+      preLoaderRoute: typeof OrganizationSettingsPreferencesRouteImport
+      parentRoute: typeof OrganizationSettingsRoute
     }
     '/$organization/settings/members': {
       id: '/$organization/settings/members'
       path: '/members'
       fullPath: '/$organization/settings/members'
-      preLoaderRoute: typeof SlugSettingsMembersRouteImport
-      parentRoute: typeof SlugSettingsRoute
+      preLoaderRoute: typeof OrganizationSettingsMembersRouteImport
+      parentRoute: typeof OrganizationSettingsRoute
     }
     '/$organization/settings/billing': {
       id: '/$organization/settings/billing'
       path: '/billing'
       fullPath: '/$organization/settings/billing'
-      preLoaderRoute: typeof SlugSettingsBillingRouteImport
-      parentRoute: typeof SlugSettingsRoute
+      preLoaderRoute: typeof OrganizationSettingsBillingRouteImport
+      parentRoute: typeof OrganizationSettingsRoute
     }
     '/$organization/teams/$team/': {
       id: '/$organization/teams/$team/'
       path: '/'
       fullPath: '/$organization/teams/$team/'
-      preLoaderRoute: typeof SlugTeamsTeamSlugIndexRouteImport
-      parentRoute: typeof SlugTeamsTeamSlugRoute
+      preLoaderRoute: typeof OrganizationTeamsTeamIndexRouteImport
+      parentRoute: typeof OrganizationTeamsTeamRoute
     }
     '/$organization/teams/$team/settings': {
       id: '/$organization/teams/$team/settings'
       path: '/settings'
       fullPath: '/$organization/teams/$team/settings'
-      preLoaderRoute: typeof SlugTeamsTeamSlugSettingsRouteImport
-      parentRoute: typeof SlugTeamsTeamSlugRoute
+      preLoaderRoute: typeof OrganizationTeamsTeamSettingsRouteImport
+      parentRoute: typeof OrganizationTeamsTeamRoute
     }
     '/$organization/teams/$team/settings/': {
       id: '/$organization/teams/$team/settings/'
       path: '/'
       fullPath: '/$organization/teams/$team/settings/'
-      preLoaderRoute: typeof SlugTeamsTeamSlugSettingsIndexRouteImport
-      parentRoute: typeof SlugTeamsTeamSlugSettingsRoute
+      preLoaderRoute: typeof OrganizationTeamsTeamSettingsIndexRouteImport
+      parentRoute: typeof OrganizationTeamsTeamSettingsRoute
     }
     '/$organization/teams/$team/settings/members': {
       id: '/$organization/teams/$team/settings/members'
       path: '/members'
       fullPath: '/$organization/teams/$team/settings/members'
-      preLoaderRoute: typeof SlugTeamsTeamSlugSettingsMembersRouteImport
-      parentRoute: typeof SlugTeamsTeamSlugSettingsRoute
+      preLoaderRoute: typeof OrganizationTeamsTeamSettingsMembersRouteImport
+      parentRoute: typeof OrganizationTeamsTeamSettingsRoute
     }
     '/$organization/teams/$team/settings/general': {
       id: '/$organization/teams/$team/settings/general'
       path: '/general'
       fullPath: '/$organization/teams/$team/settings/general'
-      preLoaderRoute: typeof SlugTeamsTeamSlugSettingsGeneralRouteImport
-      parentRoute: typeof SlugTeamsTeamSlugSettingsRoute
+      preLoaderRoute: typeof OrganizationTeamsTeamSettingsGeneralRouteImport
+      parentRoute: typeof OrganizationTeamsTeamSettingsRoute
     }
   }
 }
 
-interface SlugSettingsRouteChildren {
-  SlugSettingsBillingRoute: typeof SlugSettingsBillingRoute
-  SlugSettingsMembersRoute: typeof SlugSettingsMembersRoute
-  SlugSettingsPreferencesRoute: typeof SlugSettingsPreferencesRoute
-  SlugSettingsProfileRoute: typeof SlugSettingsProfileRoute
-  SlugSettingsTeamsRoute: typeof SlugSettingsTeamsRoute
-  SlugSettingsIndexRoute: typeof SlugSettingsIndexRoute
+interface OrganizationSettingsRouteChildren {
+  OrganizationSettingsBillingRoute: typeof OrganizationSettingsBillingRoute
+  OrganizationSettingsMembersRoute: typeof OrganizationSettingsMembersRoute
+  OrganizationSettingsPreferencesRoute: typeof OrganizationSettingsPreferencesRoute
+  OrganizationSettingsProfileRoute: typeof OrganizationSettingsProfileRoute
+  OrganizationSettingsTeamsRoute: typeof OrganizationSettingsTeamsRoute
+  OrganizationSettingsIndexRoute: typeof OrganizationSettingsIndexRoute
 }
 
-const SlugSettingsRouteChildren: SlugSettingsRouteChildren = {
-  SlugSettingsBillingRoute: SlugSettingsBillingRoute,
-  SlugSettingsMembersRoute: SlugSettingsMembersRoute,
-  SlugSettingsPreferencesRoute: SlugSettingsPreferencesRoute,
-  SlugSettingsProfileRoute: SlugSettingsProfileRoute,
-  SlugSettingsTeamsRoute: SlugSettingsTeamsRoute,
-  SlugSettingsIndexRoute: SlugSettingsIndexRoute,
+const OrganizationSettingsRouteChildren: OrganizationSettingsRouteChildren = {
+  OrganizationSettingsBillingRoute: OrganizationSettingsBillingRoute,
+  OrganizationSettingsMembersRoute: OrganizationSettingsMembersRoute,
+  OrganizationSettingsPreferencesRoute: OrganizationSettingsPreferencesRoute,
+  OrganizationSettingsProfileRoute: OrganizationSettingsProfileRoute,
+  OrganizationSettingsTeamsRoute: OrganizationSettingsTeamsRoute,
+  OrganizationSettingsIndexRoute: OrganizationSettingsIndexRoute,
 }
 
-const SlugSettingsRouteWithChildren = SlugSettingsRoute._addFileChildren(
-  SlugSettingsRouteChildren,
-)
+const OrganizationSettingsRouteWithChildren =
+  OrganizationSettingsRoute._addFileChildren(OrganizationSettingsRouteChildren)
 
-interface SlugTeamsTeamSlugSettingsRouteChildren {
-  SlugTeamsTeamSlugSettingsGeneralRoute: typeof SlugTeamsTeamSlugSettingsGeneralRoute
-  SlugTeamsTeamSlugSettingsMembersRoute: typeof SlugTeamsTeamSlugSettingsMembersRoute
-  SlugTeamsTeamSlugSettingsIndexRoute: typeof SlugTeamsTeamSlugSettingsIndexRoute
+interface OrganizationTeamsTeamSettingsRouteChildren {
+  OrganizationTeamsTeamSettingsGeneralRoute: typeof OrganizationTeamsTeamSettingsGeneralRoute
+  OrganizationTeamsTeamSettingsMembersRoute: typeof OrganizationTeamsTeamSettingsMembersRoute
+  OrganizationTeamsTeamSettingsIndexRoute: typeof OrganizationTeamsTeamSettingsIndexRoute
 }
 
-const SlugTeamsTeamSlugSettingsRouteChildren: SlugTeamsTeamSlugSettingsRouteChildren =
+const OrganizationTeamsTeamSettingsRouteChildren: OrganizationTeamsTeamSettingsRouteChildren =
   {
-    SlugTeamsTeamSlugSettingsGeneralRoute:
-      SlugTeamsTeamSlugSettingsGeneralRoute,
-    SlugTeamsTeamSlugSettingsMembersRoute:
-      SlugTeamsTeamSlugSettingsMembersRoute,
-    SlugTeamsTeamSlugSettingsIndexRoute: SlugTeamsTeamSlugSettingsIndexRoute,
+    OrganizationTeamsTeamSettingsGeneralRoute:
+      OrganizationTeamsTeamSettingsGeneralRoute,
+    OrganizationTeamsTeamSettingsMembersRoute:
+      OrganizationTeamsTeamSettingsMembersRoute,
+    OrganizationTeamsTeamSettingsIndexRoute:
+      OrganizationTeamsTeamSettingsIndexRoute,
   }
 
-const SlugTeamsTeamSlugSettingsRouteWithChildren =
-  SlugTeamsTeamSlugSettingsRoute._addFileChildren(
-    SlugTeamsTeamSlugSettingsRouteChildren,
+const OrganizationTeamsTeamSettingsRouteWithChildren =
+  OrganizationTeamsTeamSettingsRoute._addFileChildren(
+    OrganizationTeamsTeamSettingsRouteChildren,
   )
 
-interface SlugTeamsTeamSlugRouteChildren {
-  SlugTeamsTeamSlugSettingsRoute: typeof SlugTeamsTeamSlugSettingsRouteWithChildren
-  SlugTeamsTeamSlugIndexRoute: typeof SlugTeamsTeamSlugIndexRoute
+interface OrganizationTeamsTeamRouteChildren {
+  OrganizationTeamsTeamSettingsRoute: typeof OrganizationTeamsTeamSettingsRouteWithChildren
+  OrganizationTeamsTeamIndexRoute: typeof OrganizationTeamsTeamIndexRoute
 }
 
-const SlugTeamsTeamSlugRouteChildren: SlugTeamsTeamSlugRouteChildren = {
-  SlugTeamsTeamSlugSettingsRoute: SlugTeamsTeamSlugSettingsRouteWithChildren,
-  SlugTeamsTeamSlugIndexRoute: SlugTeamsTeamSlugIndexRoute,
+const OrganizationTeamsTeamRouteChildren: OrganizationTeamsTeamRouteChildren = {
+  OrganizationTeamsTeamSettingsRoute:
+    OrganizationTeamsTeamSettingsRouteWithChildren,
+  OrganizationTeamsTeamIndexRoute: OrganizationTeamsTeamIndexRoute,
 }
 
-const SlugTeamsTeamSlugRouteWithChildren =
-  SlugTeamsTeamSlugRoute._addFileChildren(SlugTeamsTeamSlugRouteChildren)
+const OrganizationTeamsTeamRouteWithChildren =
+  OrganizationTeamsTeamRoute._addFileChildren(
+    OrganizationTeamsTeamRouteChildren,
+  )
 
-interface SlugRouteChildren {
-  SlugSettingsRoute: typeof SlugSettingsRouteWithChildren
-  SlugIndexRoute: typeof SlugIndexRoute
-  SlugTeamsTeamSlugRoute: typeof SlugTeamsTeamSlugRouteWithChildren
+interface OrganizationRouteChildren {
+  OrganizationSettingsRoute: typeof OrganizationSettingsRouteWithChildren
+  OrganizationIndexRoute: typeof OrganizationIndexRoute
+  OrganizationTeamsTeamRoute: typeof OrganizationTeamsTeamRouteWithChildren
 }
 
-const SlugRouteChildren: SlugRouteChildren = {
-  SlugSettingsRoute: SlugSettingsRouteWithChildren,
-  SlugIndexRoute: SlugIndexRoute,
-  SlugTeamsTeamSlugRoute: SlugTeamsTeamSlugRouteWithChildren,
+const OrganizationRouteChildren: OrganizationRouteChildren = {
+  OrganizationSettingsRoute: OrganizationSettingsRouteWithChildren,
+  OrganizationIndexRoute: OrganizationIndexRoute,
+  OrganizationTeamsTeamRoute: OrganizationTeamsTeamRouteWithChildren,
 }
 
-const SlugRouteWithChildren = SlugRoute._addFileChildren(SlugRouteChildren)
+const OrganizationRouteWithChildren = OrganizationRoute._addFileChildren(
+  OrganizationRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  SlugRoute: SlugRouteWithChildren,
+  OrganizationRoute: OrganizationRouteWithChildren,
   AppRoute: AppRoute,
   CreateOrganizationRoute: CreateOrganizationRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,

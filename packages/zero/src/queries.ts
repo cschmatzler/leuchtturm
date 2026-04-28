@@ -35,6 +35,10 @@ const teamIdArgs = Schema.toStandardSchemaV1(
 export const queries = defineQueries({
 	currentUser: defineQuery(({ ctx }) => zql.user.where("id", ctx?.userId ?? "").one()),
 
+	currentUserOrganizations: defineQuery(({ ctx }) =>
+		zql.organization.whereExists("members", (query) => query.where("userId", ctx?.userId ?? "")),
+	),
+
 	organization: defineQuery(organizationArgs, ({ ctx, args }) =>
 		zql.organization
 			.where("slug", args.slug)

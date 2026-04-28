@@ -8,7 +8,7 @@ export const Route = createFileRoute("/app")({
 		const session = await queryClient.ensureQueryData(sessionQuery());
 		if (!session) throw redirect({ to: "/login" });
 
-		const organizations = await queryClient.ensureQueryData(organizationsQuery());
+		const organizations = await queryClient.ensureQueryData(organizationsQuery(session));
 		const firstOrganization = organizations[0];
 		if (!firstOrganization) throw redirect({ to: "/create-organization" });
 

@@ -19,7 +19,7 @@ function SettingsLayout() {
 		<SidebarProvider className="relative h-full min-h-0">
 			<SettingsSidebar slug={slug} teamSlug={teamSlug} />
 			<SidebarInset className="bg-background">
-				<div className="flex max-w-7xl grow flex-col px-4 pt-4 pb-1 sm:px-6 sm:pt-6">
+				<div className="mx-auto flex max-w-7xl grow flex-col px-4 pt-4 pb-1 sm:px-6 sm:pt-6">
 					<Outlet />
 				</div>
 			</SidebarInset>

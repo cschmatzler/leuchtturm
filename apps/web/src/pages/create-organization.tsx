@@ -21,7 +21,6 @@ import {
 	MenuTrigger,
 } from "@leuchtturm/web/components/ui/menu";
 import { useAuth } from "@leuchtturm/web/hooks/use-auth";
-import { organizationsQuery } from "@leuchtturm/web/queries/organizations";
 import { sessionQuery } from "@leuchtturm/web/queries/session";
 
 export const Route = createFileRoute("/create-organization")({
@@ -75,7 +74,7 @@ function Page() {
 
 			await queryClient.invalidateQueries({ queryKey: ["session"] });
 			await queryClient.invalidateQueries({ queryKey: ["deviceSessions"] });
-			await queryClient.invalidateQueries({ queryKey: organizationsQuery().queryKey });
+			await queryClient.invalidateQueries({ queryKey: ["organizations"] });
 			await navigate({
 				to: "/$organization/settings",
 				params: { organization: data.slug },

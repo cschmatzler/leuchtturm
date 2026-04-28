@@ -1,8 +1,9 @@
+import { defineMutator } from "@rocicorp/zero";
+
 import { defineMutators } from "@leuchtturm/zero/mutators/shared";
-import { userMutators } from "@leuchtturm/zero/mutators/user";
 
 export const mutators = defineMutators({
-	user: userMutators,
+	noop: defineMutator(async () => {}),
 });
 
 export type Mutators = typeof mutators;

@@ -9,7 +9,7 @@ export const Route = createFileRoute("/$organization")({
 		const session = await queryClient.ensureQueryData(sessionQuery());
 		if (!session) throw redirect({ to: "/login" });
 
-		const organizations = await queryClient.ensureQueryData(organizationsQuery());
+		const organizations = await queryClient.ensureQueryData(organizationsQuery(session));
 		if (organizations.length === 0) {
 			throw redirect({ to: "/create-organization" });
 		}

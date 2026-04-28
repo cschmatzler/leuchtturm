@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { DEFAULT_LANGUAGE, resolveLanguage, SupportedLanguage } from "@leuchtturm/core/i18n";
+import { authClient } from "@leuchtturm/web/clients/auth";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import {
 	Card,
@@ -22,8 +23,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@leuchtturm/web/components/ui/select";
-import { useZero, useZeroQuery } from "@leuchtturm/web/lib/query";
-import { mutators } from "@leuchtturm/zero/mutators";
+import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { queries } from "@leuchtturm/zero/queries";
 
 const LANGUAGE_LABELS = {
@@ -43,7 +43,6 @@ const LANGUAGE_ITEMS = SupportedLanguage.literals.map((value) => ({
 export function PreferencesCard() {
 	const [currentUser] = useZeroQuery(queries.currentUser());
 
-	const zero = useZero();
 	const { i18n, t } = useTranslation();
 
 	const currentLanguage = resolveLanguage(currentUser?.language, DEFAULT_LANGUAGE);
@@ -57,12 +56,8 @@ export function PreferencesCard() {
 			if (value.language !== currentLanguage) {
 				await i18n.changeLanguage(value.language);
 			}
-			zero.mutate(
-				mutators.user.update({
-					id: currentUser.id,
-					language: value.language,
-				}),
-			);
+			const { error } = await authClient.updateUser({ language: value.language });
+			if (error) throw error;
 			toast.success(t("Preferences updated"));
 		},
 	});

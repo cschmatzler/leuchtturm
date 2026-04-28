@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { User } from "@leuchtturm/core/auth/schema";
+import { authClient } from "@leuchtturm/web/clients/auth";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import {
 	Card,
@@ -21,14 +22,12 @@ import {
 	FieldLabel,
 } from "@leuchtturm/web/components/ui/field";
 import { Input } from "@leuchtturm/web/components/ui/input";
-import { useZero, useZeroQuery } from "@leuchtturm/web/lib/query";
-import { mutators } from "@leuchtturm/zero/mutators";
+import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { queries } from "@leuchtturm/zero/queries";
 
 export function ProfileCard() {
 	const [currentUser] = useZeroQuery(queries.currentUser());
 
-	const zero = useZero();
 	const { t } = useTranslation();
 
 	const form = useForm({
@@ -37,12 +36,10 @@ export function ProfileCard() {
 		},
 		onSubmit: async ({ value }) => {
 			if (!currentUser) return;
-			zero.mutate(
-				mutators.user.update({
-					id: currentUser.id,
-					name: Schema.decodeSync(User.fields.name)(value.name),
-				}),
-			);
+			const { error } = await authClient.updateUser({
+				name: Schema.decodeSync(User.fields.name)(value.name),
+			});
+			if (error) throw error;
 			toast.success(t("Profile updated"));
 		},
 	});

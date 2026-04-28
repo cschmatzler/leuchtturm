@@ -66,7 +66,7 @@ function Page() {
 	};
 
 	return (
-		<div className="flex flex-col gap-8">
+		<div className="mx-auto flex max-w-3xl flex-col gap-8">
 			<Card className="gap-0 overflow-hidden p-0">
 				<CardHeader className="px-6 py-5">
 					<CardTitle className="text-base">{t("Team members")}</CardTitle>
@@ -96,18 +96,17 @@ function Page() {
 												</p>
 											)}
 										</div>
-										<Button
-											variant="destructive"
-											size="sm"
-											disabled={
-												teamMember.userId === session.user.id ||
-												organizationMember?.role === "owner"
-											}
-											onClick={() => void removeMember(teamMember.userId)}
-										>
-											<Trash2Icon className="size-4" />
-											{t("Remove")}
-										</Button>
+										{teamMember.userId !== session.user.id &&
+										organizationMember?.role !== "owner" ? (
+											<Button
+												variant="destructive"
+												size="sm"
+												onClick={() => void removeMember(teamMember.userId)}
+											>
+												<Trash2Icon className="size-4" />
+												{t("Remove")}
+											</Button>
+										) : null}
 									</li>
 								);
 							})}

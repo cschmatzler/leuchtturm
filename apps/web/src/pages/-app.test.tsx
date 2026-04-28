@@ -24,8 +24,8 @@ describe("app route auth caching", () => {
 		};
 		const organizationId = Schema.decodeSync(OrganizationId)("org_01ARZ3NDEKTSV4RRFFQ69G5FAV");
 		queryClient.setQueryData(["session"], session);
-		queryClient.setQueryData(organizationsQuery().queryKey, [
-			{ id: organizationId, name: "Acme", slug: "acme", createdAt: new Date() },
+		queryClient.setQueryData(organizationsQuery(session as never).queryKey, [
+			{ id: organizationId, name: "Acme", slug: "acme", createdAt: Date.now() },
 		]);
 
 		await expect(

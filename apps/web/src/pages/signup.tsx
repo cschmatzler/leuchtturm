@@ -13,7 +13,6 @@ import { AuthSidePanel } from "@leuchtturm/web/components/app/auth-side-panel";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@leuchtturm/web/components/ui/field";
 import { Input } from "@leuchtturm/web/components/ui/input";
-import { organizationsQuery } from "@leuchtturm/web/queries/organizations";
 import { sessionQuery } from "@leuchtturm/web/queries/session";
 
 export const Route = createFileRoute("/signup")({
@@ -45,7 +44,7 @@ function Page() {
 						await queryClient.invalidateQueries({ queryKey: sessionQuery().queryKey });
 						await queryClient.fetchQuery(sessionQuery());
 						await queryClient.invalidateQueries({ queryKey: ["deviceSessions"] });
-						await queryClient.invalidateQueries({ queryKey: organizationsQuery().queryKey });
+						await queryClient.invalidateQueries({ queryKey: ["organizations"] });
 						toast.dismiss();
 						toast.success(t("Account created!"));
 						navigate({ to: "/app" });

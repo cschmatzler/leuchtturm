@@ -3,7 +3,6 @@ import { useNavigate, useRouter } from "@tanstack/react-router";
 
 import { authClient } from "@leuchtturm/web/clients/auth";
 import { deviceSessionsQuery } from "@leuchtturm/web/queries/device-sessions";
-import { organizationsQuery } from "@leuchtturm/web/queries/organizations";
 import { sessionQuery } from "@leuchtturm/web/queries/session";
 
 export function useAuth() {
@@ -11,7 +10,6 @@ export function useAuth() {
 	const router = useRouter();
 	const queryClient = useQueryClient();
 	const { queryKey: sessionQueryKey } = sessionQuery();
-	const { queryKey: organizationsQueryKey } = organizationsQuery();
 	const { data: session } = useQuery(sessionQuery());
 	const { data: deviceSessions } = useQuery(deviceSessionsQuery());
 
@@ -31,7 +29,7 @@ export function useAuth() {
 			});
 			await queryClient.invalidateQueries({ queryKey: ["session"] });
 			await queryClient.invalidateQueries({ queryKey: ["deviceSessions"] });
-			await queryClient.invalidateQueries({ queryKey: organizationsQueryKey });
+			await queryClient.invalidateQueries({ queryKey: ["organizations"] });
 			await router.invalidate();
 			await navigate({ to: "/app" });
 			return;
@@ -42,7 +40,7 @@ export function useAuth() {
 		});
 		queryClient.setQueryData(sessionQueryKey, null);
 		queryClient.removeQueries({ queryKey: ["deviceSessions"] });
-		queryClient.removeQueries({ queryKey: organizationsQueryKey });
+		queryClient.removeQueries({ queryKey: ["organizations"] });
 		await router.invalidate();
 		await navigate({ to: "/login" });
 	};
@@ -57,7 +55,7 @@ export function useAuth() {
 		await authClient.signOut();
 		queryClient.setQueryData(sessionQueryKey, null);
 		queryClient.removeQueries({ queryKey: ["deviceSessions"] });
-		queryClient.removeQueries({ queryKey: organizationsQueryKey });
+		queryClient.removeQueries({ queryKey: ["organizations"] });
 		await router.invalidate();
 		await navigate({ to: "/login" });
 	};
@@ -66,7 +64,7 @@ export function useAuth() {
 		await authClient.multiSession.setActive({ sessionToken });
 		await queryClient.invalidateQueries({ queryKey: ["session"] });
 		await queryClient.invalidateQueries({ queryKey: ["deviceSessions"] });
-		await queryClient.invalidateQueries({ queryKey: organizationsQueryKey });
+		await queryClient.invalidateQueries({ queryKey: ["organizations"] });
 		await router.invalidate();
 	};
 
