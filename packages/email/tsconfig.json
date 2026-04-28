@@ -1,7 +1,7 @@
 {
 	"extends": "../../tsconfig.web.json",
 	"compilerOptions": {
-		"types": ["node"]
+		"types": ["node", "@cloudflare/workers-types/experimental"]
 	},
 	"include": ["src"]
 }

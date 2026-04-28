@@ -17,6 +17,7 @@
 		"resend": "6.12.2"
 	},
 	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20260426.1",
 		"@types/react": "19.2.14",
 		"typescript": "6.0.3"
 	}

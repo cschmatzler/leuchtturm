@@ -77,10 +77,6 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "ResendApiKey": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
     "Storage": import("@cloudflare/workers-types").R2Bucket
     "Web": {
       "type": "sst.cloudflare.StaticSite"

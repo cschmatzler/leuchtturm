@@ -45,7 +45,7 @@ import {
 } from "@leuchtturm/core/auth/schema";
 import { Billing } from "@leuchtturm/core/billing";
 import { Database } from "@leuchtturm/core/drizzle";
-import { Email } from "@leuchtturm/core/email";
+import { Email } from "@leuchtturm/email/service";
 import { sendInvitationEmail } from "@leuchtturm/email/templates/invitation";
 import { sendPasswordResetEmail } from "@leuchtturm/email/templates/password-reset";
 
