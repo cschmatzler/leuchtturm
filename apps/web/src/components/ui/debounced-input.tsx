@@ -1,5 +1,5 @@
 import { useDebouncedCallback } from "@tanstack/react-pacer";
-import { type ChangeEvent, type InputHTMLAttributes } from "react";
+import { useEffect, useState, type ChangeEvent, type InputHTMLAttributes } from "react";
 
 import { Input } from "@leuchtturm/web/components/ui/input";
 
@@ -17,12 +17,17 @@ export function DebouncedInput({
 		wait: debounceMs,
 	});
 
-	const inputKey = `${typeof initialValue}:${initialValue}`;
+	const [value, setValue] = useState(initialValue);
+
+	useEffect(() => {
+		setValue(initialValue);
+	}, [initialValue]);
 
 	const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
 		const newValue = e.target.value;
+		setValue(newValue);
 		debouncedCallback(newValue);
 	};
 
-	return <Input key={inputKey} {...props} defaultValue={initialValue} onChange={handleChange} />;
+	return <Input {...props} value={value} onChange={handleChange} />;
 }
