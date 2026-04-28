@@ -12,7 +12,7 @@ export const Route = createFileRoute("/$organization/settings/profile")({
 
 function Page() {
 	return (
-		<div className="mx-auto flex w-full max-w-3xl flex-col gap-8">
+		<div className="mx-auto w-full max-w-3xl">
 			<ProfileCard />
 		</div>
 	);

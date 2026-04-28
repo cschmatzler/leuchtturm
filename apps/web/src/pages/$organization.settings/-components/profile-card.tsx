@@ -7,20 +7,7 @@ import { toast } from "sonner";
 import { User } from "@leuchtturm/core/auth/schema";
 import { authClient } from "@leuchtturm/web/clients/auth";
 import { Button } from "@leuchtturm/web/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardFooter,
-	CardHeader,
-	CardTitle,
-} from "@leuchtturm/web/components/ui/card";
-import {
-	FieldDescription,
-	FieldError,
-	FieldGroup,
-	FieldLabel,
-} from "@leuchtturm/web/components/ui/field";
+import { FieldDescription, FieldError, FieldLabel } from "@leuchtturm/web/components/ui/field";
 import { Input } from "@leuchtturm/web/components/ui/input";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { queries } from "@leuchtturm/zero/queries";
@@ -48,63 +35,57 @@ export function ProfileCard() {
 	};
 
 	return (
-		<Card className="gap-0 overflow-hidden p-0">
-			<CardHeader className="px-6 py-5">
-				<CardTitle className="text-base">{t("Profile")}</CardTitle>
-				<CardDescription>{t("Your personal information.")}</CardDescription>
-			</CardHeader>
-			<form action={submitForm}>
-				<FieldGroup>
-					<CardContent className="border-t border-border px-6 py-5">
-						<form.Field
-							name="name"
-							validators={{
-								onBlur: Schema.toStandardSchemaV1(User.fields.name),
-							}}
-						>
-							{(field) => (
-								<div className="grid gap-x-10 gap-y-2 lg:grid-cols-[1fr_2fr]">
-									<div>
-										<FieldLabel htmlFor={field.name}>{t("Name")}</FieldLabel>
-										<FieldDescription className="mt-1">
-											{t("What you'd like to be called throughout the application.")}
-										</FieldDescription>
-									</div>
-									<div>
-										<Input
-											id={field.name}
-											name={field.name}
-											value={field.state.value}
-											onBlur={field.handleBlur}
-											onInput={(e) => field.handleChange(e.currentTarget.value)}
-											className="max-w-sm"
-										/>
-										{!field.state.meta.isValid && (
-											<FieldError className="mt-2">
-												{field.state.meta.errors[0]?.message}
-											</FieldError>
-										)}
-									</div>
-								</div>
-							)}
-						</form.Field>
-					</CardContent>
-					<form.Subscribe
-						selector={(state) => ({
-							canSubmit: state.canSubmit,
-							isSubmitting: state.isSubmitting,
-						})}
-					>
-						{(state) => (
-							<CardFooter className="justify-end border-t border-border bg-muted/30 px-6 py-4">
-								<Button type="submit" disabled={!currentUser || !state.canSubmit}>
-									{state.isSubmitting ? <Loader2Icon className="size-4 animate-spin" /> : t("Save")}
-								</Button>
-							</CardFooter>
-						)}
-					</form.Subscribe>
-				</FieldGroup>
+		<section>
+			<div className="space-y-1">
+				<h2 className="text-lg font-semibold">{t("Profile")}</h2>
+				<p className="text-sm text-muted-foreground">{t("Your personal information.")}</p>
+			</div>
+			<form action={submitForm} className="mt-5 space-y-6">
+				<form.Field
+					name="name"
+					validators={{
+						onBlur: Schema.toStandardSchemaV1(User.fields.name),
+					}}
+				>
+					{(field) => (
+						<div className="grid gap-x-10 gap-y-2 lg:grid-cols-[1fr_2fr]">
+							<div>
+								<FieldLabel htmlFor={field.name}>{t("Name")}</FieldLabel>
+								<FieldDescription className="mt-1">
+									{t("What you'd like to be called throughout the application.")}
+								</FieldDescription>
+							</div>
+							<div>
+								<Input
+									id={field.name}
+									name={field.name}
+									value={field.state.value}
+									onBlur={field.handleBlur}
+									onInput={(e) => field.handleChange(e.currentTarget.value)}
+									className="max-w-sm"
+								/>
+								{!field.state.meta.isValid && (
+									<FieldError className="mt-2">{field.state.meta.errors[0]?.message}</FieldError>
+								)}
+							</div>
+						</div>
+					)}
+				</form.Field>
+				<form.Subscribe
+					selector={(state) => ({
+						canSubmit: state.canSubmit,
+						isSubmitting: state.isSubmitting,
+					})}
+				>
+					{(state) => (
+						<div className="flex justify-end">
+							<Button type="submit" disabled={!currentUser || !state.canSubmit}>
+								{state.isSubmitting ? <Loader2Icon className="size-4 animate-spin" /> : t("Save")}
+							</Button>
+						</div>
+					)}
+				</form.Subscribe>
 			</form>
-		</Card>
+		</section>
 	);
 }

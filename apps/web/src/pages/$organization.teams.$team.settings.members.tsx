@@ -5,13 +5,7 @@ import { toast } from "sonner";
 
 import { authClient } from "@leuchtturm/web/clients/auth";
 import { Button } from "@leuchtturm/web/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@leuchtturm/web/components/ui/card";
+import { Separator } from "@leuchtturm/web/components/ui/separator";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { queries } from "@leuchtturm/zero/queries";
 
@@ -66,13 +60,13 @@ function Page() {
 	};
 
 	return (
-		<div className="mx-auto flex w-full max-w-3xl flex-col gap-8">
-			<Card className="gap-0 overflow-hidden p-0">
-				<CardHeader className="px-6 py-5">
-					<CardTitle className="text-base">{t("Team members")}</CardTitle>
-					<CardDescription>{t("Members who can access this team.")}</CardDescription>
-				</CardHeader>
-				<CardContent className="border-t border-border p-0">
+		<div className="mx-auto w-full max-w-3xl">
+			<section className="py-6">
+				<div className="space-y-1">
+					<h2 className="text-lg font-semibold">{t("Team members")}</h2>
+					<p className="text-sm text-muted-foreground">{t("Members who can access this team.")}</p>
+				</div>
+				<div className="mt-5">
 					{teamMembers.length ? (
 						<ul className="divide-y divide-border">
 							{teamMembers.map((teamMember) => {
@@ -80,10 +74,7 @@ function Page() {
 									(member) => member.userId === teamMember.userId,
 								);
 								return (
-									<li
-										key={teamMember.id}
-										className="flex items-center justify-between gap-4 px-6 py-4"
-									>
+									<li key={teamMember.id} className="flex items-center justify-between gap-4 py-4">
 										<div>
 											<p className="text-sm font-medium">
 												{organizationMember?.user?.name ??
@@ -112,23 +103,27 @@ function Page() {
 							})}
 						</ul>
 					) : (
-						<div className="px-6 py-10 text-center text-sm text-muted-foreground">
+						<div className="py-10 text-center text-sm text-muted-foreground">
 							{t("No team members found.")}
 						</div>
 					)}
-				</CardContent>
-			</Card>
+				</div>
+			</section>
 
-			<Card className="gap-0 overflow-hidden p-0">
-				<CardHeader className="px-6 py-5">
-					<CardTitle className="text-base">{t("Add organization members")}</CardTitle>
-					<CardDescription>{t("Add existing organization members to this team.")}</CardDescription>
-				</CardHeader>
-				<CardContent className="border-t border-border p-0">
+			<Separator />
+
+			<section className="py-6">
+				<div className="space-y-1">
+					<h2 className="text-lg font-semibold">{t("Add organization members")}</h2>
+					<p className="text-sm text-muted-foreground">
+						{t("Add existing organization members to this team.")}
+					</p>
+				</div>
+				<div className="mt-5">
 					{availableMembers.length ? (
 						<ul className="divide-y divide-border">
 							{availableMembers.map((member) => (
-								<li key={member.id} className="flex items-center justify-between gap-4 px-6 py-4">
+								<li key={member.id} className="flex items-center justify-between gap-4 py-4">
 									<div>
 										<p className="text-sm font-medium">{member.user?.name ?? member.userId}</p>
 										{member.user?.email && (
@@ -143,12 +138,12 @@ function Page() {
 							))}
 						</ul>
 					) : (
-						<div className="px-6 py-10 text-center text-sm text-muted-foreground">
+						<div className="py-10 text-center text-sm text-muted-foreground">
 							{t("All organization members are already in this team.")}
 						</div>
 					)}
-				</CardContent>
-			</Card>
+				</div>
+			</section>
 		</div>
 	);
 }

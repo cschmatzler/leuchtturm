@@ -19,17 +19,10 @@ import {
 	AlertDialogTitle,
 } from "@leuchtturm/web/components/ui/alert-dialog";
 import { Button } from "@leuchtturm/web/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardFooter,
-	CardHeader,
-	CardTitle,
-} from "@leuchtturm/web/components/ui/card";
-import { FieldError, FieldGroup, FieldLabel } from "@leuchtturm/web/components/ui/field";
+import { FieldError, FieldLabel } from "@leuchtturm/web/components/ui/field";
 import { Input } from "@leuchtturm/web/components/ui/input";
 import { Link } from "@leuchtturm/web/components/ui/link";
+import { Separator } from "@leuchtturm/web/components/ui/separator";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { queries } from "@leuchtturm/zero/queries";
 
@@ -108,81 +101,80 @@ function Page() {
 	};
 
 	return (
-		<div className="mx-auto flex w-full max-w-3xl flex-col gap-8">
-			<Card className="gap-0 overflow-hidden p-0">
-				<CardHeader className="px-6 py-5">
-					<CardTitle className="text-base">{t("Create team")}</CardTitle>
-					<CardDescription>{t("Teams organize work inside this organization.")}</CardDescription>
-				</CardHeader>
-				<form action={() => form.handleSubmit()}>
-					<FieldGroup>
-						<CardContent className="border-t border-border px-6 py-5">
-							<form.Field
-								name="name"
-								validators={{
-									onBlur: Schema.toStandardSchemaV1(Team.fields.name),
-								}}
-							>
-								{(field) => (
-									<div className="grid gap-x-10 gap-y-2 lg:grid-cols-[1fr_2fr]">
-										<FieldLabel htmlFor={field.name}>{t("Name")}</FieldLabel>
-										<div>
-											<Input
-												id={field.name}
-												name={field.name}
-												placeholder={t("Engineering")}
-												value={field.state.value}
-												onBlur={field.handleBlur}
-												onInput={(event) => {
-													form.setFieldMeta("name", (previous) => ({
-														...previous,
-														errorMap: {
-															...previous.errorMap,
-															onSubmit: undefined,
-														},
-													}));
-													field.handleChange(event.currentTarget.value);
-												}}
-												className="max-w-sm"
-											/>
-											{field.state.meta.errors.length > 0 && (
-												<FieldError className="mt-2">
-													{field.state.meta.errors[0]?.message}
-												</FieldError>
-											)}
-										</div>
-									</div>
-								)}
-							</form.Field>
-						</CardContent>
-						<form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
-							{([canSubmit, isSubmitting]) => (
-								<CardFooter className="justify-end border-t border-border bg-muted/30 px-6 py-4">
-									<Button type="submit" disabled={!canSubmit || isSubmitting}>
-										{isSubmitting ? (
-											<Loader2Icon className="size-4 animate-spin" />
-										) : (
-											<PlusIcon className="size-4" />
-										)}
-										{t("Create team")}
-									</Button>
-								</CardFooter>
-							)}
-						</form.Subscribe>
-					</FieldGroup>
+		<div className="mx-auto w-full max-w-3xl">
+			<section className="py-6">
+				<div className="space-y-1">
+					<h2 className="text-lg font-semibold">{t("Create team")}</h2>
+					<p className="text-sm text-muted-foreground">
+						{t("Teams organize work inside this organization.")}
+					</p>
+				</div>
+				<form action={() => form.handleSubmit()} className="mt-5 space-y-6">
+					<form.Field
+						name="name"
+						validators={{
+							onBlur: Schema.toStandardSchemaV1(Team.fields.name),
+						}}
+					>
+						{(field) => (
+							<div className="grid gap-x-10 gap-y-2 lg:grid-cols-[1fr_2fr]">
+								<FieldLabel htmlFor={field.name}>{t("Name")}</FieldLabel>
+								<div>
+									<Input
+										id={field.name}
+										name={field.name}
+										placeholder={t("Engineering")}
+										value={field.state.value}
+										onBlur={field.handleBlur}
+										onInput={(event) => {
+											form.setFieldMeta("name", (previous) => ({
+												...previous,
+												errorMap: {
+													...previous.errorMap,
+													onSubmit: undefined,
+												},
+											}));
+											field.handleChange(event.currentTarget.value);
+										}}
+										className="max-w-sm"
+									/>
+									{field.state.meta.errors.length > 0 && (
+										<FieldError className="mt-2">{field.state.meta.errors[0]?.message}</FieldError>
+									)}
+								</div>
+							</div>
+						)}
+					</form.Field>
+					<form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
+						{([canSubmit, isSubmitting]) => (
+							<div className="flex justify-end">
+								<Button type="submit" disabled={!canSubmit || isSubmitting}>
+									{isSubmitting ? (
+										<Loader2Icon className="size-4 animate-spin" />
+									) : (
+										<PlusIcon className="size-4" />
+									)}
+									{t("Create team")}
+								</Button>
+							</div>
+						)}
+					</form.Subscribe>
 				</form>
-			</Card>
-			<Card className="gap-0 overflow-hidden p-0">
-				<CardHeader className="px-6 py-5">
-					<CardTitle className="text-base">{t("Teams")}</CardTitle>
-					<CardDescription>{t("Manage teams in this organization.")}</CardDescription>
-				</CardHeader>
-				<CardContent className="border-t border-border p-0">
+			</section>
+
+			<Separator />
+
+			<section className="py-6">
+				<div className="space-y-1">
+					<h2 className="text-lg font-semibold">{t("Teams")}</h2>
+					<p className="text-sm text-muted-foreground">{t("Manage teams in this organization.")}</p>
+				</div>
+				<div className="mt-5">
 					{teams.length ? (
 						<>
 							<ul className="divide-y divide-border">
 								{teams.map((team) => (
-									<li key={team.id} className="flex items-center justify-between gap-4 px-6 py-4">
+									<li key={team.id} className="flex items-center justify-between gap-4 py-4">
 										<div>
 											<p className="text-sm font-medium">{team.name}</p>
 										</div>
@@ -242,12 +234,12 @@ function Page() {
 							</AlertDialog>
 						</>
 					) : (
-						<div className="px-6 py-10 text-center text-sm text-muted-foreground">
+						<div className="py-10 text-center text-sm text-muted-foreground">
 							{t("Create your first team to start working in this organization.")}
 						</div>
 					)}
-				</CardContent>
-			</Card>
+				</div>
+			</section>
 		</div>
 	);
 }
