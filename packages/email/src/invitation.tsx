@@ -12,7 +12,9 @@ import {
 } from "@react-email/components";
 import { render } from "@react-email/render";
 import { Tailwind } from "@react-email/tailwind";
+import { Effect } from "effect";
 
+import { type EmailSendParams } from "@leuchtturm/email/shared";
 import { tailwindConfig } from "@leuchtturm/email/tailwind";
 
 const preheaderText = "You have been invited to join a Leuchtturm organization.";
@@ -23,14 +25,6 @@ export interface InvitationEmailParams {
 	readonly acceptUrl: string;
 	readonly inviterName: string;
 	readonly organizationName: string;
-}
-
-export interface InvitationEmailSendParams {
-	readonly from: string;
-	readonly to: string;
-	readonly subject: string;
-	readonly html: string;
-	readonly text: string;
 }
 
 const InvitationEmail = ({ acceptUrl, inviterName, organizationName }: InvitationEmailParams) => {
@@ -111,31 +105,32 @@ export async function renderInvitationEmail({
 	return { html, text };
 }
 
-export async function sendInvitationEmail({
-	acceptUrl,
-	email,
-	from = defaultFrom,
-	inviterName,
-	organizationName,
-	send,
-	subject = defaultSubject,
-}: InvitationEmailParams & {
+export function sendInvitationEmail(params: {
+	readonly acceptUrl: string;
 	readonly email: string;
+	readonly inviterName: string;
+	readonly organizationName: string;
+	readonly send: (params: EmailSendParams) => Effect.Effect<unknown, unknown>;
 	readonly from?: string;
-	readonly send: (params: InvitationEmailSendParams) => Promise<unknown>;
 	readonly subject?: string;
-}) {
-	const { html, text } = await renderInvitationEmail({
-		acceptUrl,
-		inviterName,
-		organizationName,
-	});
+}): Effect.Effect<unknown, unknown> {
+	return Effect.gen(function* () {
+		const { html, text } = yield* Effect.tryPromise({
+			try: () =>
+				renderInvitationEmail({
+					acceptUrl: params.acceptUrl,
+					inviterName: params.inviterName,
+					organizationName: params.organizationName,
+				}),
+			catch: (cause) => cause,
+		});
 
-	await send({
-		from,
-		to: email,
-		subject,
-		html,
-		text,
+		return yield* params.send({
+			from: params.from ?? defaultFrom,
+			to: params.email,
+			subject: params.subject ?? defaultSubject,
+			html,
+			text,
+		});
 	});
 }

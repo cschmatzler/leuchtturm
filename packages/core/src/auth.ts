@@ -101,15 +101,11 @@ export namespace Auth {
 					minPasswordLength: 13,
 					sendResetPassword: ({ user, url }, _request) =>
 						Effect.runPromise(
-							Effect.tryPromise({
-								try: () =>
-									sendPasswordResetEmail({
-										email: user.email,
-										resetUrl: url,
-										send: (emailParams) => Effect.runPromise(email.send(emailParams)),
-										userName: user.name,
-									}),
-								catch: (cause) => cause,
+							sendPasswordResetEmail({
+								email: user.email,
+								resetUrl: url,
+								userName: user.name,
+								send: (params) => email.send(params),
 							}).pipe(
 								Effect.catchCause((cause) =>
 									Effect.gen(function* () {
@@ -146,16 +142,12 @@ export namespace Auth {
 					organizationPlugin({
 						sendInvitationEmail: ({ email: invitedEmail, id, inviter, organization }) =>
 							Effect.runPromise(
-								Effect.tryPromise({
-									try: () =>
-										sendInvitationEmail({
-											acceptUrl: `${Resource.ApiConfig.BASE_URL}/accept-invitation?id=${id}`,
-											email: invitedEmail,
-											inviterName: inviter.user.name,
-											organizationName: organization.name,
-											send: (emailParams) => Effect.runPromise(email.send(emailParams)),
-										}),
-									catch: (cause) => cause,
+								sendInvitationEmail({
+									acceptUrl: `${Resource.ApiConfig.BASE_URL}/accept-invitation?id=${id}`,
+									email: invitedEmail,
+									inviterName: inviter.user.name,
+									organizationName: organization.name,
+									send: (params) => email.send(params),
 								}).pipe(
 									Effect.catchCause((cause) =>
 										Effect.gen(function* () {

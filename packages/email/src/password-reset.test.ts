@@ -1,19 +1,22 @@
+import { Effect } from "effect";
 import { describe, expect, it, vi } from "vite-plus/test";
 
 import { sendPasswordResetEmail } from "@leuchtturm/email/password-reset";
 
 describe("sendPasswordResetEmail", () => {
 	it("passes the rendered password reset email to the provider", async () => {
-		const send = vi.fn().mockResolvedValue({ id: "email_123" });
+		const send = vi.fn(() => Effect.succeed({ id: "email_123" }));
 
-		await sendPasswordResetEmail({
-			email: "user@example.com",
-			from: "Leuchtturm <no-reply@leuchtturm.dev>",
-			resetUrl: "https://leuchtturm.dev/reset?token=abc123",
-			send,
-			subject: "Reset your password",
-			userName: "Chris",
-		});
+		await Effect.runPromise(
+			sendPasswordResetEmail({
+				email: "user@example.com",
+				from: "Leuchtturm <no-reply@leuchtturm.dev>",
+				resetUrl: "https://leuchtturm.dev/reset?token=abc123",
+				send,
+				subject: "Reset your password",
+				userName: "Chris",
+			}),
+		);
 
 		expect(send).toHaveBeenCalledTimes(1);
 		expect(send).toHaveBeenCalledWith({
@@ -27,17 +30,19 @@ describe("sendPasswordResetEmail", () => {
 
 	it("rethrows provider errors unchanged", async () => {
 		const error = new Error("rate limited");
-		const send = vi.fn().mockRejectedValue(error);
+		const send = vi.fn(() => Effect.fail(error));
 
 		await expect(
-			sendPasswordResetEmail({
-				email: "user@example.com",
-				from: "Leuchtturm <no-reply@leuchtturm.dev>",
-				resetUrl: "https://leuchtturm.dev/reset?token=abc123",
-				send,
-				subject: "Reset your password",
-				userName: "Chris",
-			}),
+			Effect.runPromise(
+				sendPasswordResetEmail({
+					email: "user@example.com",
+					from: "Leuchtturm <no-reply@leuchtturm.dev>",
+					resetUrl: "https://leuchtturm.dev/reset?token=abc123",
+					send,
+					subject: "Reset your password",
+					userName: "Chris",
+				}),
+			),
 		).rejects.toBe(error);
 	});
 });

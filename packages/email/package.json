@@ -4,9 +4,7 @@
 	"type": "module",
 	"sideEffects": false,
 	"exports": {
-		"./*": "./src/*.ts",
-		"./invitation": "./src/invitation.tsx",
-		"./password-reset": "./src/password-reset.tsx"
+		"./*": "./src/*"
 	},
 	"dependencies": {
 		"@react-email/components": "1.0.12",

@@ -12,7 +12,9 @@ import {
 } from "@react-email/components";
 import { render } from "@react-email/render";
 import { Tailwind } from "@react-email/tailwind";
+import { Effect } from "effect";
 
+import { type EmailSendParams } from "@leuchtturm/email/shared";
 import { tailwindConfig } from "@leuchtturm/email/tailwind";
 
 const preheaderText = "Reset your Leuchtturm password.";
@@ -22,14 +24,6 @@ const defaultSubject = "Reset your Leuchtturm password";
 export interface PasswordResetEmailParams {
 	readonly resetUrl: string;
 	readonly userName: string;
-}
-
-export interface PasswordResetEmailSendParams {
-	readonly from: string;
-	readonly to: string;
-	readonly subject: string;
-	readonly html: string;
-	readonly text: string;
 }
 
 const PasswordResetEmail = ({ resetUrl, userName }: PasswordResetEmailParams) => {
@@ -104,26 +98,26 @@ export async function renderPasswordResetEmail({ resetUrl, userName }: PasswordR
 	return { html, text };
 }
 
-export async function sendPasswordResetEmail({
-	email,
-	from = defaultFrom,
-	resetUrl,
-	send,
-	subject = defaultSubject,
-	userName,
-}: PasswordResetEmailParams & {
+export function sendPasswordResetEmail(params: {
 	readonly email: string;
+	readonly resetUrl: string;
+	readonly userName: string;
+	readonly send: (params: EmailSendParams) => Effect.Effect<unknown, unknown>;
 	readonly from?: string;
-	readonly send: (params: PasswordResetEmailSendParams) => Promise<unknown>;
 	readonly subject?: string;
-}) {
-	const { html, text } = await renderPasswordResetEmail({ resetUrl, userName });
+}): Effect.Effect<unknown, unknown> {
+	return Effect.gen(function* () {
+		const { html, text } = yield* Effect.tryPromise({
+			try: () => renderPasswordResetEmail({ resetUrl: params.resetUrl, userName: params.userName }),
+			catch: (cause) => cause,
+		});
 
-	await send({
-		from,
-		to: email,
-		subject,
-		html,
-		text,
+		return yield* params.send({
+			from: params.from ?? defaultFrom,
+			to: params.email,
+			subject: params.subject ?? defaultSubject,
+			html,
+			text,
+		});
 	});
 }
