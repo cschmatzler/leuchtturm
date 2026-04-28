@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { ChevronLeftIcon, Loader2Icon } from "lucide-react";
 import { useState } from "react";
@@ -84,6 +85,7 @@ function Page() {
 	const { id } = Route.useParams();
 	const { invitation } = Route.useLoaderData();
 	const navigate = useNavigate();
+	const queryClient = useQueryClient();
 	const { t } = useTranslation();
 	const { invalidateDeviceSessions } = useAuth();
 
@@ -101,9 +103,18 @@ function Page() {
 			return;
 		}
 
+		await queryClient.invalidateQueries({ queryKey: ["organizations"] });
 		await invalidateDeviceSessions();
 
 		toast.success(t("Successfully joined organization!"));
+		if (invitation.data?.organizationSlug) {
+			await navigate({
+				to: "/$organization/settings",
+				params: { organization: invitation.data.organizationSlug },
+			});
+			return;
+		}
+
 		await navigate({ to: "/app" });
 	};
 
