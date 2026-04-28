@@ -20,10 +20,10 @@
 		"drizzle-orm": "1.0.0-beta.21",
 		"effect": "4.0.0-beta.56",
 		"pg": "8.20.0",
-		"resend": "6.12.2",
 		"ulid": "3.0.2"
 	},
 	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20260426.1",
 		"@types/pg": "8.20.0",
 		"typescript": "6.0.3"
 	}

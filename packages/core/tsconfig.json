@@ -1,4 +1,7 @@
 {
 	"extends": "../../tsconfig.node.json",
+	"compilerOptions": {
+		"types": ["node", "@cloudflare/workers-types/experimental"]
+	},
 	"include": ["migrations", "src", "drizzle.config.ts", "sst-env.d.ts"]
 }

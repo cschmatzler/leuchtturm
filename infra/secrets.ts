@@ -14,7 +14,6 @@ export const secrets = {
 	polarAccessToken: new sst.Secret("PolarAccessToken"),
 	polarSuccessUrl: new sst.Secret("PolarSuccessUrl"),
 	polarWebhookSecret: new sst.Secret("PolarWebhookSecret"),
-	resendApiKey: new sst.Secret("ResendApiKey"),
 	renderOwnerId: new sst.Secret("RenderOwnerId"),
 	zeroAdminPassword: new sst.Secret("ZeroAdminPassword"),
 	zeroDatabasePassword: new sst.Secret("ZeroDatabasePassword"),
@@ -35,5 +34,4 @@ export const apiSecrets = [
 	secrets.polarAccessToken,
 	secrets.polarSuccessUrl,
 	secrets.polarWebhookSecret,
-	secrets.resendApiKey,
 ];

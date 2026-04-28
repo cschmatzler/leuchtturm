@@ -58,7 +58,7 @@ function Page() {
 						</p>
 						<ul className="list-disc space-y-2 pl-5 leading-relaxed text-muted-foreground">
 							<li>Hetzner for hosting and infrastructure in the EU.</li>
-							<li>Resend for transactional email delivery.</li>
+							<li>Cloudflare for transactional email delivery.</li>
 							<li>Autumn for billing infrastructure.</li>
 							<li>Stripe for payment processing.</li>
 						</ul>
