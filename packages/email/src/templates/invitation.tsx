@@ -1,24 +1,11 @@
-import {
-	Body,
-	Button,
-	Container,
-	Heading,
-	Hr,
-	Html,
-	Link,
-	Preview,
-	Section,
-	Text,
-} from "@react-email/components";
+import { Button, Heading, Hr, Link, Text } from "@react-email/components";
 import { render } from "@react-email/render";
-import { Tailwind } from "@react-email/tailwind";
 import { Effect } from "effect";
 
 import { EmailRenderError, type EmailSender } from "@leuchtturm/email/shared";
-import { tailwindConfig } from "@leuchtturm/email/tailwind";
+import { defaultFrom, EmailFrame } from "@leuchtturm/email/templates/email-frame";
 
 const preheaderText = "You have been invited to join a Leuchtturm organization.";
-const defaultFrom = "Leuchtturm <no-reply@mail.leuchtturm.dev>";
 const defaultSubject = "You have been invited to Leuchtturm";
 
 export interface InvitationEmailParams {
@@ -29,51 +16,30 @@ export interface InvitationEmailParams {
 
 const InvitationEmail = ({ acceptUrl, inviterName, organizationName }: InvitationEmailParams) => {
 	return (
-		<Html lang="en">
-			<Tailwind config={tailwindConfig}>
-				<Preview>{preheaderText}</Preview>
-				<Body className="bg-background font-sans text-foreground">
-					<Container className="mx-auto w-full max-w-[560px] px-4 py-10">
-						<Section className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-							<Section className="border-b border-border px-6 py-5">
-								<Text className="m-0 text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-									Leuchtturm
-								</Text>
-							</Section>
-							<Section className="px-6 py-6">
-								<Heading className="m-0 mb-3 text-2xl font-semibold text-foreground">
-									Join {organizationName}
-								</Heading>
-								<Text className="m-0 mb-5 text-base leading-[24px] text-muted-foreground">
-									{inviterName} invited you to join {organizationName} on Leuchtturm.
-								</Text>
-								<Button
-									href={acceptUrl}
-									className="rounded-md bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground no-underline"
-								>
-									Accept invitation
-								</Button>
-								<Hr className="my-6 border-border" />
-								<Text className="m-0 text-sm leading-[20px] text-muted-foreground">
-									If the button does not work, paste this link into your browser:
-								</Text>
-								<Link
-									href={acceptUrl}
-									className="break-all text-sm font-medium text-accent underline"
-								>
-									{acceptUrl}
-								</Link>
-							</Section>
-							<Section className="border-t border-border px-6 py-5">
-								<Text className="m-0 text-xs leading-[18px] text-muted-foreground">
-									If you did not expect this invitation, you can safely ignore this email.
-								</Text>
-							</Section>
-						</Section>
-					</Container>
-				</Body>
-			</Tailwind>
-		</Html>
+		<EmailFrame
+			preheader={preheaderText}
+			footer="If you did not expect this invitation, you can safely ignore this email."
+		>
+			<Heading className="m-0 mb-3 text-2xl font-semibold text-foreground">
+				Join {organizationName}
+			</Heading>
+			<Text className="m-0 mb-5 text-base leading-[24px] text-muted-foreground">
+				{inviterName} invited you to join {organizationName} on Leuchtturm.
+			</Text>
+			<Button
+				href={acceptUrl}
+				className="rounded-md bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground no-underline"
+			>
+				Accept invitation
+			</Button>
+			<Hr className="my-6 border-border" />
+			<Text className="m-0 text-sm leading-[20px] text-muted-foreground">
+				If the button does not work, paste this link into your browser:
+			</Text>
+			<Link href={acceptUrl} className="break-all text-sm font-medium text-accent underline">
+				{acceptUrl}
+			</Link>
+		</EmailFrame>
 	);
 };
 
