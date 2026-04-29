@@ -6,6 +6,11 @@
 
 declare module "sst" {
   export interface Resource {
+    "ApiConfig": {
+      "BASE_URL": string
+      "POLAR_SERVER": string
+      "type": "sst.sst.Linkable"
+    }
     "ApiWorker": import("@cloudflare/workers-types").Service
     "AxiomDomain": {
       "type": "sst.sst.Secret"
