@@ -24,32 +24,27 @@ const zeroEnvVars = [
 	},
 ];
 
-export const zero = new render.services.WebService(
-	"ZeroService",
-	{
-		name: `${$app.name}-${$app.stage}-zero`,
+export const zero = new render.services.WebService("ZeroService", {
+	name: `${$app.name}-${$app.stage}-zero`,
+	ownerId: secrets.renderOwnerId.value,
+	type: "web_service",
+	image: {
+		imagePath: "rocicorp/zero:1.3.0",
 		ownerId: secrets.renderOwnerId.value,
-		type: "web_service",
-		image: {
-			imagePath: "rocicorp/zero:1.3.0",
-			ownerId: secrets.renderOwnerId.value,
-		},
-		serviceDetails: {
-			region: "frankfurt",
-			plan: "starter",
-			runtime: "image",
-			numInstances: 1,
-			healthCheckPath: "/keepalive",
-			disk: {
-				mountPath: "/var/data",
-				name: `${$app.name}-${$app.stage}-zero-data`,
-				sizeGB: 1,
-			},
-		},
-		envVars: zeroEnvVars,
 	},
-	{ ignoreChanges: ["envVars"] },
-);
+	serviceDetails: {
+		region: "frankfurt",
+		plan: "starter",
+		runtime: "image",
+		numInstances: 1,
+		healthCheckPath: "/keepalive",
+		disk: {
+			mountPath: "/var/data",
+			name: `${$app.name}-${$app.stage}-zero-data`,
+			sizeGB: 1,
+		},
+	},
+});
 
 new render.services.EnvVarsForService("ZeroServiceEnvVars", {
 	serviceId: zero.id,
