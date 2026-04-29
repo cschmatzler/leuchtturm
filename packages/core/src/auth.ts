@@ -19,6 +19,7 @@ import {
 } from "@leuchtturm/core/auth/auth.sql";
 import {
 	AuthDeviceSessionsListError,
+	AuthDuplicateOrganizationNameError,
 	AuthDuplicateTeamNameError,
 	AuthInvitationEmailError,
 	AuthError,
@@ -172,6 +173,31 @@ export namespace Auth {
 							},
 						},
 						organizationHooks: {
+							beforeCreateOrganization: ({ organization }) =>
+								Effect.runPromise(
+									Effect.gen(function* () {
+										const organizationName = yield* Schema.decodeEffect(Organization.fields.name)(
+											organization.name ?? "",
+										);
+										const existingOrganization = yield* database
+											.select({ id: organizationTable.id })
+											.from(organizationTable)
+											.where(eq(organizationTable.slug, organizationName.toLowerCase()))
+											.limit(1);
+
+										if (existingOrganization.length > 0) {
+											return yield* new AuthDuplicateOrganizationNameError();
+										}
+
+										return {
+											data: {
+												...organization,
+												name: organizationName,
+												slug: organizationName.toLowerCase(),
+											},
+										};
+									}),
+								),
 							afterCreateOrganization: ({ organization, user }) =>
 								Effect.runPromise(
 									billing.createCustomer({

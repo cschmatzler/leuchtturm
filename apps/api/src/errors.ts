@@ -21,6 +21,7 @@ export const Errors = [
 	HttpApiSchema.status(500)(Auth.AuthInvalidDeviceSessionsPayloadError),
 	HttpApiSchema.status(500)(Auth.AuthOrganizationLookupError),
 	HttpApiSchema.status(500)(Auth.AuthInvalidOrganizationPayloadError),
+	HttpApiSchema.status(409)(Auth.AuthDuplicateOrganizationNameError),
 	HttpApiSchema.status(400)(Auth.AuthInvalidTeamPayloadError),
 	HttpApiSchema.status(500)(Auth.AuthTeamLookupError),
 	HttpApiSchema.status(409)(Auth.AuthDuplicateTeamNameError),

@@ -47,25 +47,40 @@ function Page() {
 	const form = useForm({
 		defaultValues: {
 			name: "",
-			slug: "",
 		},
 		onSubmit: async ({ value }) => {
 			setSubmitError(undefined);
+			const name = Schema.decodeSync(Organization.fields.name)(value.name);
 			const organization = Schema.decodeSync(
 				Organization.mapFields(({ name, slug }) => ({ name, slug })),
-			)(value);
+			)({ name, slug: name.toLowerCase() });
 			const { data, error } = await authClient.organization.create(organization);
 
 			if (error) {
 				if (
+					error.code === "AuthDuplicateOrganizationNameError" ||
 					error.code === "ORGANIZATION_ALREADY_EXISTS" ||
-					error.code === "ORGANIZATION_SLUG_ALREADY_TAKEN"
+					error.code === "ORGANIZATION_SLUG_ALREADY_TAKEN" ||
+					error.message === "Organization name already exists"
 				) {
-					form.setFieldMeta("slug", (previous) => ({
+					form.setFieldMeta("name", (previous) => ({
 						...previous,
 						errorMap: {
 							...previous.errorMap,
-							onSubmit: { message: t("This slug is already in use.") },
+							onSubmit: { message: t("This organization name is already in use.") },
+						},
+					}));
+					return;
+				}
+				if (
+					error.code === "AuthInvalidOrganizationPayloadError" ||
+					error.message === "Organization name must contain only ASCII letters, numbers, and dashes"
+				) {
+					form.setFieldMeta("name", (previous) => ({
+						...previous,
+						errorMap: {
+							...previous.errorMap,
+							onSubmit: { message: error.message },
 						},
 					}));
 					return;
@@ -163,34 +178,7 @@ function Page() {
 												value={field.state.value}
 												onBlur={field.handleBlur}
 												onInput={(event) => {
-													setSubmitError(undefined);
-													field.handleChange(event.currentTarget.value);
-												}}
-												required
-											/>
-											{field.state.meta.errors.length > 0 && (
-												<FieldError>{field.state.meta.errors[0]?.message}</FieldError>
-											)}
-										</Field>
-									)}
-								</form.Field>
-								<form.Field
-									name="slug"
-									validators={{
-										onBlur: Schema.toStandardSchemaV1(Organization.fields.slug),
-									}}
-								>
-									{(field) => (
-										<Field>
-											<FieldLabel htmlFor={field.name}>{t("Slug")}</FieldLabel>
-											<Input
-												id={field.name}
-												name={field.name}
-												placeholder="acme"
-												value={field.state.value}
-												onBlur={field.handleBlur}
-												onInput={(event) => {
-													form.setFieldMeta("slug", (previous) => ({
+													form.setFieldMeta("name", (previous) => ({
 														...previous,
 														errorMap: {
 															...previous.errorMap,

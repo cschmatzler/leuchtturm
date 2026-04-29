@@ -98,7 +98,20 @@ export const VerificationId = Schema.TemplateLiteral(["ver_", Ulid]).pipe(
 
 export const Organization = Schema.Struct({
 	id: OrganizationId,
-	name: TrimmedNonEmptyString.annotate({ message: "Organization name is required" }),
+	name: Schema.String.pipe(
+		Schema.decodeTo(
+			Schema.String.check(Schema.isPattern(/^[A-Za-z0-9-]+$/))
+				.annotate({
+					message: "Organization name must contain only ASCII letters, numbers, and dashes",
+				})
+				.check(Schema.isMinLength(4))
+				.annotate({ message: "Organization name must be more than 3 characters" }),
+			{
+				decode: SchemaGetter.transform((value: string) => value.trim()),
+				encode: SchemaGetter.transform((value: string) => value),
+			},
+		),
+	),
 	slug: Slug,
 	logo: Schema.optional(Schema.NullOr(Schema.String)),
 	metadata: Schema.optional(Schema.NullOr(Schema.String)),

@@ -4,6 +4,11 @@
 			"url": "https://mcp.cloudflare.com/mcp",
 			"auth": "oauth",
 			"lifecycle": "eager"
-		}
+		},
+		"planetscale": {
+      "url": "https://mcp.pscale.dev/mcp/planetscale",
+			"auth": "oauth",
+			"lifecycle": "eager"
+    }
 	}
 }

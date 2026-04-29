@@ -90,6 +90,15 @@ export class AuthInvalidTeamPayloadError extends Schema.TaggedErrorClass<AuthInv
 	}
 }
 
+export class AuthDuplicateOrganizationNameError extends Schema.TaggedErrorClass<AuthDuplicateOrganizationNameError>()(
+	"AuthDuplicateOrganizationNameError",
+	{ message: Schema.String },
+) {
+	constructor() {
+		super({ message: "Organization name already exists" });
+	}
+}
+
 export class AuthTeamLookupError extends Schema.TaggedErrorClass<AuthTeamLookupError>()(
 	"AuthTeamLookupError",
 	{ message: Schema.String },
@@ -119,6 +128,7 @@ export const AuthErrors = [
 	AuthOrganizationLookupError,
 	AuthInvalidOrganizationPayloadError,
 	AuthInvalidTeamPayloadError,
+	AuthDuplicateOrganizationNameError,
 	AuthTeamLookupError,
 	AuthDuplicateTeamNameError,
 ] as const;
