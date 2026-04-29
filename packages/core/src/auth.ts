@@ -208,12 +208,29 @@ export namespace Auth {
 										ownerName: user.name,
 									}),
 								),
+							beforeUpdateOrganization: ({ organization, member }) =>
+								Effect.runPromise(
+									Effect.logInfo("Auth organization update requested").pipe(
+										Effect.annotateLogs({
+											organizationId: member.organizationId,
+											updatedFields: Object.keys(organization).sort().join(","),
+										}),
+									),
+								),
 							afterUpdateOrganization: ({ organization }) => {
+								const updatedOrganization = organization!;
+
 								return Effect.runPromise(
-									billing.updateCustomer({
-										organizationId: organization!.id,
-										name: organization!.name,
-										slug: organization!.slug,
+									Effect.gen(function* () {
+										yield* Effect.logInfo("Auth organization updated").pipe(
+											Effect.annotateLogs({ organizationId: updatedOrganization.id }),
+										);
+
+										return yield* billing.updateCustomer({
+											organizationId: updatedOrganization.id,
+											name: updatedOrganization.name,
+											slug: updatedOrganization.slug,
+										});
 									}),
 								);
 							},
@@ -249,6 +266,14 @@ export namespace Auth {
 							beforeUpdateTeam: ({ team, updates, organization }) =>
 								Effect.runPromise(
 									Effect.gen(function* () {
+										yield* Effect.logInfo("Auth team update requested").pipe(
+											Effect.annotateLogs({
+												teamId: team.id,
+												organizationId: organization.id,
+												updatedFields: Object.keys(updates).sort().join(","),
+											}),
+										);
+
 										if (updates.name === undefined) {
 											return { data: updates };
 										}
@@ -278,6 +303,15 @@ export namespace Auth {
 											},
 										};
 									}),
+								),
+							afterUpdateTeam: ({ team, organization }) =>
+								Effect.runPromise(
+									Effect.logInfo("Auth team updated").pipe(
+										Effect.annotateLogs({
+											teamId: team!.id,
+											organizationId: organization.id,
+										}),
+									),
 								),
 						},
 					}),
