@@ -12,7 +12,7 @@
 		"@react-email/render": "2.0.8",
 		"@react-email/tailwind": "2.0.7",
 		"@react-email/text": "0.1.6",
-		"effect": "4.0.0-beta.56",
+		"effect": "4.0.0-beta.59",
 		"react": "19.2.5",
 		"resend": "6.12.2"
 	},

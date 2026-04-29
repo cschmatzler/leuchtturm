@@ -21,15 +21,15 @@
 	"packageManager": "pnpm@10.28.0",
 	"pnpm": {
 		"overrides": {
-			"effect": "4.0.0-beta.56"
+			"effect": "4.0.0-beta.59"
 		},
 		"peerDependencyRules": {
 			"allowedVersions": {
-				"@effect/sql-pg": "4.0.0-beta.56"
+				"@effect/sql-pg": "4.0.0-beta.59"
 			}
 		},
 		"patchedDependencies": {
-			"drizzle-orm@1.0.0-beta.21": "patches/drizzle-orm@1.0.0-beta.21.patch"
+			"drizzle-orm@1.0.0-beta.22": "patches/drizzle-orm@1.0.0-beta.22.patch"
 		}
 	},
 	"trustedDependencies": [

@@ -7,16 +7,6 @@ import { Auth } from "@leuchtturm/core/auth";
 import { AuthError, AuthHandlerError } from "@leuchtturm/core/auth/errors";
 
 export namespace AuthHandler {
-	const authErrorFromCause = (cause: Cause.Cause<unknown>) => {
-		for (const reason of cause.reasons) {
-			if (Cause.isFailReason(reason) && Schema.is(AuthError)(reason.error)) {
-				return reason.error;
-			}
-		}
-
-		return null;
-	};
-
 	export const handlePassthrough = Effect.fn("auth.passthrough.handle")(function* (
 		request: HttpServerRequest.HttpServerRequest,
 	) {
@@ -29,8 +19,11 @@ export namespace AuthHandler {
 			Effect.map(HttpServerResponse.fromWeb),
 			Effect.catchCause((cause) =>
 				Effect.gen(function* () {
-					const authError = authErrorFromCause(cause);
-					if (authError) return yield* Effect.fail(authError);
+					for (const reason of cause.reasons) {
+						if (Cause.isFailReason(reason) && Schema.is(AuthError)(reason.error)) {
+							return yield* Effect.fail(reason.error);
+						}
+					}
 
 					yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
 					return yield* Effect.fail(new AuthHandlerError({ message: "Auth handler failed" }));

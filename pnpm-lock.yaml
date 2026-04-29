@@ -5,12 +5,12 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  effect: 4.0.0-beta.56
+  effect: 4.0.0-beta.59
 
 patchedDependencies:
-  drizzle-orm@1.0.0-beta.21:
-    hash: 80c37868409db2b62a27356e10bedb9ad1baefdfac4d67a0a87ead20f828b81d
-    path: patches/drizzle-orm@1.0.0-beta.21.patch
+  drizzle-orm@1.0.0-beta.22:
+    hash: 8fa07cfdaa2ba78c1db8fb8a53a9dfc1743837b2081d2e33c88707dada9354a0
+    path: patches/drizzle-orm@1.0.0-beta.22.patch
 
 importers:
 
@@ -38,8 +38,8 @@ importers:
   apps/api:
     dependencies:
       '@effect/opentelemetry':
-        specifier: 4.0.0-beta.56
-        version: 4.0.0-beta.56(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.7.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.214.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.6.1(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.6.1(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.6.1(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.6.1(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.40.0)(effect@4.0.0-beta.56)
+        specifier: 4.0.0-beta.59
+        version: 4.0.0-beta.59(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.7.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.214.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.6.1(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.6.1(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.6.1(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.6.1(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.40.0)(effect@4.0.0-beta.59)
       '@leuchtturm/core':
         specifier: workspace:*
         version: link:../../packages/core
@@ -62,8 +62,8 @@ importers:
         specifier: 1.3.0
         version: 1.3.0(@opentelemetry/core@2.7.0(@opentelemetry/api@1.9.1))
       effect:
-        specifier: 4.0.0-beta.56
-        version: 4.0.0-beta.56
+        specifier: 4.0.0-beta.59
+        version: 4.0.0-beta.59
       posthog-node:
         specifier: ^5.30.6
         version: 5.30.6
@@ -148,7 +148,7 @@ importers:
         version: 8.21.3(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       better-auth:
         specifier: 1.6.9
-        version: 1.6.9(@cloudflare/workers-types@4.20260426.1)(@opentelemetry/api@1.9.1)(@prisma/client@7.4.2(prisma@7.4.2(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.3))(typescript@6.0.3))(drizzle-kit@1.0.0-beta.21)(drizzle-orm@1.0.0-beta.21(patch_hash=80c37868409db2b62a27356e10bedb9ad1baefdfac4d67a0a87ead20f828b81d)(@cloudflare/workers-types@4.20260426.1)(@effect/sql-pg@4.0.0-beta.56(effect@4.0.0-beta.56))(@electric-sql/pglite@0.3.15)(@opentelemetry/api@1.9.1)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.20.0)(mssql@11.0.1(@azure/core-client@1.10.1))(mysql2@3.15.3)(pg@8.20.0)(postgres@3.4.8)(valibot@1.2.0(typescript@6.0.3))(zod@4.3.6))(mongodb@7.1.0(socks@2.8.7))(mysql2@3.15.3)(pg@8.20.0)(prisma@7.4.2(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.3))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12)
+        version: 1.6.9(@cloudflare/workers-types@4.20260426.1)(@opentelemetry/api@1.9.1)(@prisma/client@7.4.2(prisma@7.4.2(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.3))(typescript@6.0.3))(drizzle-kit@1.0.0-beta.22)(drizzle-orm@1.0.0-beta.22(patch_hash=8fa07cfdaa2ba78c1db8fb8a53a9dfc1743837b2081d2e33c88707dada9354a0)(@cloudflare/workers-types@4.20260426.1)(@effect/sql-pg@4.0.0-beta.59(effect@4.0.0-beta.59))(@electric-sql/pglite@0.3.15)(@opentelemetry/api@1.9.1)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.20.0)(mssql@11.0.1(@azure/core-client@1.10.1))(mysql2@3.15.3)(pg@8.20.0)(postgres@3.4.8)(valibot@1.2.0(typescript@6.0.3))(zod@4.3.6))(mongodb@7.1.0(socks@2.8.7))(mysql2@3.15.3)(pg@8.20.0)(prisma@7.4.2(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.3))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12)
       class-variance-authority:
         specifier: 0.7.1
         version: 0.7.1
@@ -162,8 +162,8 @@ importers:
         specifier: 4.1.0
         version: 4.1.0
       effect:
-        specifier: 4.0.0-beta.56
-        version: 4.0.0-beta.56
+        specifier: 4.0.0-beta.59
+        version: 4.0.0-beta.59
       i18next:
         specifier: 26.0.8
         version: 26.0.8(typescript@6.0.3)
@@ -243,8 +243,8 @@ importers:
   packages/core:
     dependencies:
       '@effect/sql-pg':
-        specifier: 4.0.0-beta.56
-        version: 4.0.0-beta.56(effect@4.0.0-beta.56)
+        specifier: 4.0.0-beta.59
+        version: 4.0.0-beta.59(effect@4.0.0-beta.59)
       '@leuchtturm/email':
         specifier: 'workspace:'
         version: link:../email
@@ -256,16 +256,16 @@ importers:
         version: 0.47.1
       better-auth:
         specifier: 1.6.9
-        version: 1.6.9(@cloudflare/workers-types@4.20260426.1)(@opentelemetry/api@1.9.1)(@prisma/client@7.4.2(prisma@7.4.2(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.3))(typescript@6.0.3))(drizzle-kit@1.0.0-beta.21)(drizzle-orm@1.0.0-beta.21(patch_hash=80c37868409db2b62a27356e10bedb9ad1baefdfac4d67a0a87ead20f828b81d)(@cloudflare/workers-types@4.20260426.1)(@effect/sql-pg@4.0.0-beta.56(effect@4.0.0-beta.56))(@electric-sql/pglite@0.3.15)(@opentelemetry/api@1.9.1)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.20.0)(mssql@11.0.1(@azure/core-client@1.10.1))(mysql2@3.15.3)(pg@8.20.0)(postgres@3.4.8)(valibot@1.2.0(typescript@6.0.3))(zod@4.3.6))(mongodb@7.1.0(socks@2.8.7))(mysql2@3.15.3)(pg@8.20.0)(prisma@7.4.2(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.3))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12)
+        version: 1.6.9(@cloudflare/workers-types@4.20260426.1)(@opentelemetry/api@1.9.1)(@prisma/client@7.4.2(prisma@7.4.2(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.3))(typescript@6.0.3))(drizzle-kit@1.0.0-beta.22)(drizzle-orm@1.0.0-beta.22(patch_hash=8fa07cfdaa2ba78c1db8fb8a53a9dfc1743837b2081d2e33c88707dada9354a0)(@cloudflare/workers-types@4.20260426.1)(@effect/sql-pg@4.0.0-beta.59(effect@4.0.0-beta.59))(@electric-sql/pglite@0.3.15)(@opentelemetry/api@1.9.1)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.20.0)(mssql@11.0.1(@azure/core-client@1.10.1))(mysql2@3.15.3)(pg@8.20.0)(postgres@3.4.8)(valibot@1.2.0(typescript@6.0.3))(zod@4.3.6))(mongodb@7.1.0(socks@2.8.7))(mysql2@3.15.3)(pg@8.20.0)(prisma@7.4.2(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.3))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12)
       drizzle-kit:
-        specifier: 1.0.0-beta.21
-        version: 1.0.0-beta.21
+        specifier: 1.0.0-beta.22
+        version: 1.0.0-beta.22
       drizzle-orm:
-        specifier: 1.0.0-beta.21
-        version: 1.0.0-beta.21(patch_hash=80c37868409db2b62a27356e10bedb9ad1baefdfac4d67a0a87ead20f828b81d)(@cloudflare/workers-types@4.20260426.1)(@effect/sql-pg@4.0.0-beta.56(effect@4.0.0-beta.56))(@electric-sql/pglite@0.3.15)(@opentelemetry/api@1.9.1)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.20.0)(mssql@11.0.1(@azure/core-client@1.10.1))(mysql2@3.15.3)(pg@8.20.0)(postgres@3.4.8)(valibot@1.2.0(typescript@6.0.3))(zod@4.3.6)
+        specifier: 1.0.0-beta.22
+        version: 1.0.0-beta.22(patch_hash=8fa07cfdaa2ba78c1db8fb8a53a9dfc1743837b2081d2e33c88707dada9354a0)(@cloudflare/workers-types@4.20260426.1)(@effect/sql-pg@4.0.0-beta.59(effect@4.0.0-beta.59))(@electric-sql/pglite@0.3.15)(@opentelemetry/api@1.9.1)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.20.0)(mssql@11.0.1(@azure/core-client@1.10.1))(mysql2@3.15.3)(pg@8.20.0)(postgres@3.4.8)(valibot@1.2.0(typescript@6.0.3))(zod@4.3.6)
       effect:
-        specifier: 4.0.0-beta.56
-        version: 4.0.0-beta.56
+        specifier: 4.0.0-beta.59
+        version: 4.0.0-beta.59
       pg:
         specifier: 8.20.0
         version: 8.20.0
@@ -298,8 +298,8 @@ importers:
         specifier: 0.1.6
         version: 0.1.6(react@19.2.5)
       effect:
-        specifier: 4.0.0-beta.56
-        version: 4.0.0-beta.56
+        specifier: 4.0.0-beta.59
+        version: 4.0.0-beta.59
       react:
         specifier: 19.2.5
         version: 19.2.5
@@ -332,8 +332,8 @@ importers:
         specifier: 1.3.0
         version: 1.3.0(@opentelemetry/core@2.7.0(@opentelemetry/api@1.9.1))
       effect:
-        specifier: 4.0.0-beta.56
-        version: 4.0.0-beta.56
+        specifier: 4.0.0-beta.59
+        version: 4.0.0-beta.59
     devDependencies:
       typescript:
         specifier: 6.0.3
@@ -853,8 +853,8 @@ packages:
     resolution: {integrity: sha512-EXnJjIy6zQ3nUO/MZ+ynWUb8B895KZPotd1++oTs9JjDkplwM7cb6zo8Zq2zU6piwq+KflO7amXbEfj1UMpHkw==}
     hasBin: true
 
-  '@effect/opentelemetry@4.0.0-beta.56':
-    resolution: {integrity: sha512-syoCWMmRANJaggWXA2doCmIkQmyCCoGIxp3jeQI1YTxwjMS4Vdt3BBDnuZme1wzS92thuOfacVlJB1ZcIzn7dw==}
+  '@effect/opentelemetry@4.0.0-beta.59':
+    resolution: {integrity: sha512-nUpfzGvi0yhYAL1UgN6rB34qEFw5VPYgBZH2vymUDitvMyDnqSFXmfq5Zv4FuRMjRKfpV6YKqtw/sq+GupCk5w==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       '@opentelemetry/api': ^1.9
@@ -865,7 +865,7 @@ packages:
       '@opentelemetry/sdk-trace-node': ^2.0.0
       '@opentelemetry/sdk-trace-web': ^2.0.0
       '@opentelemetry/semantic-conventions': ^1.33.0
-      effect: 4.0.0-beta.56
+      effect: 4.0.0-beta.59
     peerDependenciesMeta:
       '@opentelemetry/api':
         optional: true
@@ -882,10 +882,10 @@ packages:
       '@opentelemetry/sdk-trace-web':
         optional: true
 
-  '@effect/sql-pg@4.0.0-beta.56':
-    resolution: {integrity: sha512-qzhitLUKrQtpfA+gWoAZzwFPEhZeH9r95RFKBA1AjGoHJFtwNPvYcSzP369hv1vyxl41U8rNNg99DbZSOjNubQ==}
+  '@effect/sql-pg@4.0.0-beta.59':
+    resolution: {integrity: sha512-DFSzlRR8o6ugaSQDBeiGPBkPL4qlUPcZRc+BB+mWA6R7STHBpqIN2eNAYaf61Rm85rhSh426O04FgZSsI5y7/Q==}
     peerDependencies:
-      effect: 4.0.0-beta.56
+      effect: 4.0.0-beta.59
 
   '@electric-sql/pglite-socket@0.0.20':
     resolution: {integrity: sha512-J5nLGsicnD9wJHnno9r+DGxfcZWh+YJMCe0q/aCgtG6XOm9Z7fKeite8IZSNXgZeGltSigM9U/vAWZQWdgcSFg==}
@@ -4800,12 +4800,12 @@ packages:
     resolution: {integrity: sha512-nI4U3TottKAcAD9LLud4Cb7b2QztQMUEfHbvhTH09bqXTxnSie8WnjPALV/WMCrJZ6UV/qHJ6L03OqO3LcdYZw==}
     engines: {node: '>=12'}
 
-  drizzle-kit@1.0.0-beta.21:
-    resolution: {integrity: sha512-qG1vkkXPhz9GJ6RZhM/DvzL5jeDNYn35cyGeFA0+8iZQ6GTP4FhbOltNDHh/8XNmcI89b40lXJuH1PdxaA7zdQ==}
+  drizzle-kit@1.0.0-beta.22:
+    resolution: {integrity: sha512-9HTZuQRljQKTgCx4UhiGn8KYYfHGk4+B/bRR1714W67kz0qgJvdrG527i8rQD8uUyET9UTGR1u8syySJD4znGw==}
     hasBin: true
 
-  drizzle-orm@1.0.0-beta.21:
-    resolution: {integrity: sha512-HZcIbVn5J9T/Z91Wj12Pn7Pi8/1aykS/GPJf2lXeZnEuPjxaBfQ+YAt0Sl+XI+9R/D1BpK+2fdIqbpuaTbcvqA==}
+  drizzle-orm@1.0.0-beta.22:
+    resolution: {integrity: sha512-F+DZyVIvH0oVKa/w08Cle1xfoH+pc+htIXHG/frnMLG72aby9NYYr9oc+9XvghnoO4umxFItduz0OMmQJMnenw==}
     peerDependencies:
       '@aws-sdk/client-rds-data': '>=3'
       '@cloudflare/workers-types': '>=4'
@@ -4882,6 +4882,8 @@ packages:
         optional: true
       '@types/better-sqlite3':
         optional: true
+      '@types/mssql':
+        optional: true
       '@types/pg':
         optional: true
       '@types/sql.js':
@@ -4901,6 +4903,8 @@ packages:
       expo-sqlite:
         optional: true
       gel:
+        optional: true
+      mssql:
         optional: true
       mysql2:
         optional: true
@@ -4933,8 +4937,8 @@ packages:
     resolution: {integrity: sha512-wG99Zcfcys9fZux7Cft8BAX/YrOJLJSZ3jyYPfhZHqN2E+Ffx+QXBDsv3gubEgPtV6dTzJMSQUwk1H98/t/0wQ==}
     engines: {bun: '>=1', deno: '>=2', node: '>=16'}
 
-  effect@4.0.0-beta.56:
-    resolution: {integrity: sha512-VToZmpoEkH4hHFHeHDMPRwsPQY7BOCEY7uy8yI1LaFEtjZ5w3T3S4yDbKFA7L63OhPo+kZdSvL3tBLOLLcmrQA==}
+  effect@4.0.0-beta.59:
+    resolution: {integrity: sha512-xyUDLeHSe8d6lWGOvR6Fgn2HL6gYeTZ/S4Jzk9uc4ZUxMPPsNZlNXrvk0C7/utQFzeX7uAWcVnG2BjbA0SRoAA==}
 
   electron-to-chromium@1.5.336:
     resolution: {integrity: sha512-AbH9q9J455r/nLmdNZes0G0ZKcRX73FicwowalLs6ijwOmCJSRRrLX63lcAlzy9ux3dWK1w1+1nsBJEWN11hcQ==}
@@ -7383,10 +7387,12 @@ snapshots:
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
+    optional: true
 
   '@azure/abort-controller@2.1.2':
     dependencies:
       tslib: 2.8.1
+    optional: true
 
   '@azure/core-auth@1.10.1':
     dependencies:
@@ -7395,6 +7401,7 @@ snapshots:
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
+    optional: true
 
   '@azure/core-client@1.10.1':
     dependencies:
@@ -7407,12 +7414,14 @@ snapshots:
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
+    optional: true
 
   '@azure/core-http-compat@2.4.0(@azure/core-client@1.10.1)(@azure/core-rest-pipeline@1.23.0)':
     dependencies:
       '@azure/abort-controller': 2.1.2
       '@azure/core-client': 1.10.1
       '@azure/core-rest-pipeline': 1.23.0
+    optional: true
 
   '@azure/core-lro@2.7.2':
     dependencies:
@@ -7422,10 +7431,12 @@ snapshots:
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
+    optional: true
 
   '@azure/core-paging@1.6.2':
     dependencies:
       tslib: 2.8.1
+    optional: true
 
   '@azure/core-rest-pipeline@1.23.0':
     dependencies:
@@ -7438,10 +7449,12 @@ snapshots:
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
+    optional: true
 
   '@azure/core-tracing@1.3.1':
     dependencies:
       tslib: 2.8.1
+    optional: true
 
   '@azure/core-util@1.13.1':
     dependencies:
@@ -7450,6 +7463,7 @@ snapshots:
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
+    optional: true
 
   '@azure/identity@4.13.1':
     dependencies:
@@ -7466,6 +7480,7 @@ snapshots:
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
+    optional: true
 
   '@azure/keyvault-common@2.1.0':
     dependencies:
@@ -7479,6 +7494,7 @@ snapshots:
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
+    optional: true
 
   '@azure/keyvault-keys@4.10.0(@azure/core-client@1.10.1)':
     dependencies:
@@ -7497,6 +7513,7 @@ snapshots:
     transitivePeerDependencies:
       - '@azure/core-client'
       - supports-color
+    optional: true
 
   '@azure/logger@1.3.0':
     dependencies:
@@ -7504,17 +7521,21 @@ snapshots:
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
+    optional: true
 
   '@azure/msal-browser@5.9.0':
     dependencies:
       '@azure/msal-common': 16.5.2
+    optional: true
 
-  '@azure/msal-common@16.5.2': {}
+  '@azure/msal-common@16.5.2':
+    optional: true
 
   '@azure/msal-node@5.1.5':
     dependencies:
       '@azure/msal-common': 16.5.2
       jsonwebtoken: 9.0.3
+    optional: true
 
   '@babel/code-frame@7.29.0':
     dependencies:
@@ -7678,12 +7699,12 @@ snapshots:
       '@cloudflare/workers-types': 4.20260426.1
       '@opentelemetry/api': 1.9.1
 
-  '@better-auth/drizzle-adapter@1.6.9(@better-auth/core@1.6.9(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260426.1)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.4.0)(drizzle-orm@1.0.0-beta.21(patch_hash=80c37868409db2b62a27356e10bedb9ad1baefdfac4d67a0a87ead20f828b81d)(@cloudflare/workers-types@4.20260426.1)(@effect/sql-pg@4.0.0-beta.56(effect@4.0.0-beta.56))(@electric-sql/pglite@0.3.15)(@opentelemetry/api@1.9.1)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.20.0)(mssql@11.0.1(@azure/core-client@1.10.1))(mysql2@3.15.3)(pg@8.20.0)(postgres@3.4.8)(valibot@1.2.0(typescript@6.0.3))(zod@4.3.6))':
+  '@better-auth/drizzle-adapter@1.6.9(@better-auth/core@1.6.9(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260426.1)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.4.0)(drizzle-orm@1.0.0-beta.22(patch_hash=8fa07cfdaa2ba78c1db8fb8a53a9dfc1743837b2081d2e33c88707dada9354a0)(@cloudflare/workers-types@4.20260426.1)(@effect/sql-pg@4.0.0-beta.59(effect@4.0.0-beta.59))(@electric-sql/pglite@0.3.15)(@opentelemetry/api@1.9.1)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.20.0)(mssql@11.0.1(@azure/core-client@1.10.1))(mysql2@3.15.3)(pg@8.20.0)(postgres@3.4.8)(valibot@1.2.0(typescript@6.0.3))(zod@4.3.6))':
     dependencies:
       '@better-auth/core': 1.6.9(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260426.1)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0)
       '@better-auth/utils': 0.4.0
     optionalDependencies:
-      drizzle-orm: 1.0.0-beta.21(patch_hash=80c37868409db2b62a27356e10bedb9ad1baefdfac4d67a0a87ead20f828b81d)(@cloudflare/workers-types@4.20260426.1)(@effect/sql-pg@4.0.0-beta.56(effect@4.0.0-beta.56))(@electric-sql/pglite@0.3.15)(@opentelemetry/api@1.9.1)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.20.0)(mssql@11.0.1(@azure/core-client@1.10.1))(mysql2@3.15.3)(pg@8.20.0)(postgres@3.4.8)(valibot@1.2.0(typescript@6.0.3))(zod@4.3.6)
+      drizzle-orm: 1.0.0-beta.22(patch_hash=8fa07cfdaa2ba78c1db8fb8a53a9dfc1743837b2081d2e33c88707dada9354a0)(@cloudflare/workers-types@4.20260426.1)(@effect/sql-pg@4.0.0-beta.59(effect@4.0.0-beta.59))(@electric-sql/pglite@0.3.15)(@opentelemetry/api@1.9.1)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.20.0)(mssql@11.0.1(@azure/core-client@1.10.1))(mysql2@3.15.3)(pg@8.20.0)(postgres@3.4.8)(valibot@1.2.0(typescript@6.0.3))(zod@4.3.6)
 
   '@better-auth/kysely-adapter@1.6.9(@better-auth/core@1.6.9(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260426.1)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.4.0)(kysely@0.28.16)':
     dependencies:
@@ -7813,10 +7834,10 @@ snapshots:
 
   '@effect/language-service@0.85.1': {}
 
-  '@effect/opentelemetry@4.0.0-beta.56(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.7.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.214.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.6.1(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.6.1(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.6.1(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.6.1(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.40.0)(effect@4.0.0-beta.56)':
+  '@effect/opentelemetry@4.0.0-beta.59(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.7.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.214.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.6.1(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.6.1(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.6.1(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.6.1(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.40.0)(effect@4.0.0-beta.59)':
     dependencies:
       '@opentelemetry/semantic-conventions': 1.40.0
-      effect: 4.0.0-beta.56
+      effect: 4.0.0-beta.59
     optionalDependencies:
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/resources': 2.7.0(@opentelemetry/api@1.9.1)
@@ -7826,9 +7847,9 @@ snapshots:
       '@opentelemetry/sdk-trace-node': 2.6.1(@opentelemetry/api@1.9.1)
       '@opentelemetry/sdk-trace-web': 2.6.1(@opentelemetry/api@1.9.1)
 
-  '@effect/sql-pg@4.0.0-beta.56(effect@4.0.0-beta.56)':
+  '@effect/sql-pg@4.0.0-beta.59(effect@4.0.0-beta.59)':
     dependencies:
-      effect: 4.0.0-beta.56
+      effect: 4.0.0-beta.59
       pg: 8.20.0
       pg-connection-string: 2.12.0
       pg-cursor: 2.19.0(pg@8.20.0)
@@ -8125,7 +8146,8 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  '@js-joda/core@5.7.0': {}
+  '@js-joda/core@5.7.0':
+    optional: true
 
   '@js-sdsl/ordered-map@4.4.2': {}
 
@@ -9253,7 +9275,7 @@ snapshots:
     dependencies:
       '@polar-sh/checkout': 0.2.0(@stripe/react-stripe-js@4.0.2(@stripe/stripe-js@7.9.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(@stripe/stripe-js@7.9.0)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react-is@19.2.4)(react@19.2.5)(redux@5.0.1)
       '@polar-sh/sdk': 0.47.1
-      better-auth: 1.6.9(@cloudflare/workers-types@4.20260426.1)(@opentelemetry/api@1.9.1)(@prisma/client@7.4.2(prisma@7.4.2(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.3))(typescript@6.0.3))(drizzle-kit@1.0.0-beta.21)(drizzle-orm@1.0.0-beta.21(patch_hash=80c37868409db2b62a27356e10bedb9ad1baefdfac4d67a0a87ead20f828b81d)(@cloudflare/workers-types@4.20260426.1)(@effect/sql-pg@4.0.0-beta.56(effect@4.0.0-beta.56))(@electric-sql/pglite@0.3.15)(@opentelemetry/api@1.9.1)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.20.0)(mssql@11.0.1(@azure/core-client@1.10.1))(mysql2@3.15.3)(pg@8.20.0)(postgres@3.4.8)(valibot@1.2.0(typescript@6.0.3))(zod@4.3.6))(mongodb@7.1.0(socks@2.8.7))(mysql2@3.15.3)(pg@8.20.0)(prisma@7.4.2(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.3))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12)
+      better-auth: 1.6.9(@cloudflare/workers-types@4.20260426.1)(@opentelemetry/api@1.9.1)(@prisma/client@7.4.2(prisma@7.4.2(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.3))(typescript@6.0.3))(drizzle-kit@1.0.0-beta.22)(drizzle-orm@1.0.0-beta.22(patch_hash=8fa07cfdaa2ba78c1db8fb8a53a9dfc1743837b2081d2e33c88707dada9354a0)(@cloudflare/workers-types@4.20260426.1)(@effect/sql-pg@4.0.0-beta.59(effect@4.0.0-beta.59))(@electric-sql/pglite@0.3.15)(@opentelemetry/api@1.9.1)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.20.0)(mssql@11.0.1(@azure/core-client@1.10.1))(mysql2@3.15.3)(pg@8.20.0)(postgres@3.4.8)(valibot@1.2.0(typescript@6.0.3))(zod@4.3.6))(mongodb@7.1.0(socks@2.8.7))(mysql2@3.15.3)(pg@8.20.0)(prisma@7.4.2(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.3))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12)
       zod: 4.3.6
     transitivePeerDependencies:
       - '@stripe/react-stripe-js'
@@ -9365,7 +9387,7 @@ snapshots:
     dependencies:
       c12: 3.1.0
       deepmerge-ts: 7.1.5
-      effect: 4.0.0-beta.56
+      effect: 4.0.0-beta.59
       empathic: 2.0.0
     transitivePeerDependencies:
       - magicast
@@ -11009,7 +11031,8 @@ snapshots:
 
   '@tanstack/virtual-file-routes@1.161.7': {}
 
-  '@tediousjs/connection-string@0.5.0': {}
+  '@tediousjs/connection-string@0.5.0':
+    optional: true
 
   '@testing-library/dom@10.4.1':
     dependencies:
@@ -11096,6 +11119,7 @@ snapshots:
     transitivePeerDependencies:
       - '@azure/core-client'
       - supports-color
+    optional: true
 
   '@types/mysql@2.15.27':
     dependencies:
@@ -11136,6 +11160,7 @@ snapshots:
   '@types/readable-stream@4.0.23':
     dependencies:
       '@types/node': 25.6.0
+    optional: true
 
   '@types/tedious@4.0.14':
     dependencies:
@@ -11168,6 +11193,7 @@ snapshots:
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
+    optional: true
 
   '@vitejs/plugin-react@6.0.1(babel-plugin-react-compiler@1.0.0)(vite@8.0.0(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))':
     dependencies:
@@ -11260,6 +11286,7 @@ snapshots:
   abort-controller@3.0.0:
     dependencies:
       event-target-shim: 5.0.1
+    optional: true
 
   abstract-logging@2.0.1: {}
 
@@ -11351,10 +11378,10 @@ snapshots:
     dependencies:
       safe-buffer: 5.1.2
 
-  better-auth@1.6.9(@cloudflare/workers-types@4.20260426.1)(@opentelemetry/api@1.9.1)(@prisma/client@7.4.2(prisma@7.4.2(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.3))(typescript@6.0.3))(drizzle-kit@1.0.0-beta.21)(drizzle-orm@1.0.0-beta.21(patch_hash=80c37868409db2b62a27356e10bedb9ad1baefdfac4d67a0a87ead20f828b81d)(@cloudflare/workers-types@4.20260426.1)(@effect/sql-pg@4.0.0-beta.56(effect@4.0.0-beta.56))(@electric-sql/pglite@0.3.15)(@opentelemetry/api@1.9.1)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.20.0)(mssql@11.0.1(@azure/core-client@1.10.1))(mysql2@3.15.3)(pg@8.20.0)(postgres@3.4.8)(valibot@1.2.0(typescript@6.0.3))(zod@4.3.6))(mongodb@7.1.0(socks@2.8.7))(mysql2@3.15.3)(pg@8.20.0)(prisma@7.4.2(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.3))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12):
+  better-auth@1.6.9(@cloudflare/workers-types@4.20260426.1)(@opentelemetry/api@1.9.1)(@prisma/client@7.4.2(prisma@7.4.2(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.3))(typescript@6.0.3))(drizzle-kit@1.0.0-beta.22)(drizzle-orm@1.0.0-beta.22(patch_hash=8fa07cfdaa2ba78c1db8fb8a53a9dfc1743837b2081d2e33c88707dada9354a0)(@cloudflare/workers-types@4.20260426.1)(@effect/sql-pg@4.0.0-beta.59(effect@4.0.0-beta.59))(@electric-sql/pglite@0.3.15)(@opentelemetry/api@1.9.1)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.20.0)(mssql@11.0.1(@azure/core-client@1.10.1))(mysql2@3.15.3)(pg@8.20.0)(postgres@3.4.8)(valibot@1.2.0(typescript@6.0.3))(zod@4.3.6))(mongodb@7.1.0(socks@2.8.7))(mysql2@3.15.3)(pg@8.20.0)(prisma@7.4.2(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.3))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12):
     dependencies:
       '@better-auth/core': 1.6.9(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260426.1)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0)
-      '@better-auth/drizzle-adapter': 1.6.9(@better-auth/core@1.6.9(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260426.1)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.4.0)(drizzle-orm@1.0.0-beta.21(patch_hash=80c37868409db2b62a27356e10bedb9ad1baefdfac4d67a0a87ead20f828b81d)(@cloudflare/workers-types@4.20260426.1)(@effect/sql-pg@4.0.0-beta.56(effect@4.0.0-beta.56))(@electric-sql/pglite@0.3.15)(@opentelemetry/api@1.9.1)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.20.0)(mssql@11.0.1(@azure/core-client@1.10.1))(mysql2@3.15.3)(pg@8.20.0)(postgres@3.4.8)(valibot@1.2.0(typescript@6.0.3))(zod@4.3.6))
+      '@better-auth/drizzle-adapter': 1.6.9(@better-auth/core@1.6.9(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260426.1)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.4.0)(drizzle-orm@1.0.0-beta.22(patch_hash=8fa07cfdaa2ba78c1db8fb8a53a9dfc1743837b2081d2e33c88707dada9354a0)(@cloudflare/workers-types@4.20260426.1)(@effect/sql-pg@4.0.0-beta.59(effect@4.0.0-beta.59))(@electric-sql/pglite@0.3.15)(@opentelemetry/api@1.9.1)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.20.0)(mssql@11.0.1(@azure/core-client@1.10.1))(mysql2@3.15.3)(pg@8.20.0)(postgres@3.4.8)(valibot@1.2.0(typescript@6.0.3))(zod@4.3.6))
       '@better-auth/kysely-adapter': 1.6.9(@better-auth/core@1.6.9(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260426.1)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.4.0)(kysely@0.28.16)
       '@better-auth/memory-adapter': 1.6.9(@better-auth/core@1.6.9(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260426.1)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.4.0)
       '@better-auth/mongo-adapter': 1.6.9(@better-auth/core@1.6.9(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260426.1)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.4.0)(mongodb@7.1.0(socks@2.8.7))
@@ -11372,8 +11399,8 @@ snapshots:
       zod: 4.3.6
     optionalDependencies:
       '@prisma/client': 7.4.2(prisma@7.4.2(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.3))(typescript@6.0.3)
-      drizzle-kit: 1.0.0-beta.21
-      drizzle-orm: 1.0.0-beta.21(patch_hash=80c37868409db2b62a27356e10bedb9ad1baefdfac4d67a0a87ead20f828b81d)(@cloudflare/workers-types@4.20260426.1)(@effect/sql-pg@4.0.0-beta.56(effect@4.0.0-beta.56))(@electric-sql/pglite@0.3.15)(@opentelemetry/api@1.9.1)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.20.0)(mssql@11.0.1(@azure/core-client@1.10.1))(mysql2@3.15.3)(pg@8.20.0)(postgres@3.4.8)(valibot@1.2.0(typescript@6.0.3))(zod@4.3.6)
+      drizzle-kit: 1.0.0-beta.22
+      drizzle-orm: 1.0.0-beta.22(patch_hash=8fa07cfdaa2ba78c1db8fb8a53a9dfc1743837b2081d2e33c88707dada9354a0)(@cloudflare/workers-types@4.20260426.1)(@effect/sql-pg@4.0.0-beta.59(effect@4.0.0-beta.59))(@electric-sql/pglite@0.3.15)(@opentelemetry/api@1.9.1)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.20.0)(mssql@11.0.1(@azure/core-client@1.10.1))(mysql2@3.15.3)(pg@8.20.0)(postgres@3.4.8)(valibot@1.2.0(typescript@6.0.3))(zod@4.3.6)
       mongodb: 7.1.0(socks@2.8.7)
       mysql2: 3.15.3
       pg: 8.20.0
@@ -11419,6 +11446,7 @@ snapshots:
       buffer: 6.0.3
       inherits: 2.0.4
       readable-stream: 4.7.0
+    optional: true
 
   bowser@2.14.1: {}
 
@@ -11437,7 +11465,8 @@ snapshots:
   bson@7.2.0:
     optional: true
 
-  buffer-equal-constant-time@1.0.1: {}
+  buffer-equal-constant-time@1.0.1:
+    optional: true
 
   buffer@5.7.1:
     dependencies:
@@ -11448,10 +11477,12 @@ snapshots:
     dependencies:
       base64-js: 1.5.1
       ieee754: 1.2.1
+    optional: true
 
   bundle-name@4.1.0:
     dependencies:
       run-applescript: 7.1.0
+    optional: true
 
   c12@3.1.0:
     dependencies:
@@ -11706,12 +11737,14 @@ snapshots:
 
   deepmerge@4.3.1: {}
 
-  default-browser-id@5.0.1: {}
+  default-browser-id@5.0.1:
+    optional: true
 
   default-browser@5.5.0:
     dependencies:
       bundle-name: 4.1.0
       default-browser-id: 5.0.1
+    optional: true
 
   define-data-property@1.1.4:
     dependencies:
@@ -11719,7 +11752,8 @@ snapshots:
       es-errors: 1.3.0
       gopd: 1.2.0
 
-  define-lazy-prop@3.0.0: {}
+  define-lazy-prop@3.0.0:
+    optional: true
 
   defu@6.1.7: {}
 
@@ -11765,7 +11799,7 @@ snapshots:
 
   dotenv@17.4.2: {}
 
-  drizzle-kit@1.0.0-beta.21:
+  drizzle-kit@1.0.0-beta.22:
     dependencies:
       '@drizzle-team/brocli': 0.11.0
       '@js-temporal/polyfill': 0.5.1
@@ -11773,16 +11807,15 @@ snapshots:
       get-tsconfig: 4.14.0
       jiti: 2.6.1
 
-  drizzle-orm@1.0.0-beta.21(patch_hash=80c37868409db2b62a27356e10bedb9ad1baefdfac4d67a0a87ead20f828b81d)(@cloudflare/workers-types@4.20260426.1)(@effect/sql-pg@4.0.0-beta.56(effect@4.0.0-beta.56))(@electric-sql/pglite@0.3.15)(@opentelemetry/api@1.9.1)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.20.0)(mssql@11.0.1(@azure/core-client@1.10.1))(mysql2@3.15.3)(pg@8.20.0)(postgres@3.4.8)(valibot@1.2.0(typescript@6.0.3))(zod@4.3.6):
-    dependencies:
-      '@types/mssql': 9.1.9(@azure/core-client@1.10.1)
-      mssql: 11.0.1(@azure/core-client@1.10.1)
+  drizzle-orm@1.0.0-beta.22(patch_hash=8fa07cfdaa2ba78c1db8fb8a53a9dfc1743837b2081d2e33c88707dada9354a0)(@cloudflare/workers-types@4.20260426.1)(@effect/sql-pg@4.0.0-beta.59(effect@4.0.0-beta.59))(@electric-sql/pglite@0.3.15)(@opentelemetry/api@1.9.1)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.20.0)(mssql@11.0.1(@azure/core-client@1.10.1))(mysql2@3.15.3)(pg@8.20.0)(postgres@3.4.8)(valibot@1.2.0(typescript@6.0.3))(zod@4.3.6):
     optionalDependencies:
       '@cloudflare/workers-types': 4.20260426.1
-      '@effect/sql-pg': 4.0.0-beta.56(effect@4.0.0-beta.56)
+      '@effect/sql-pg': 4.0.0-beta.59(effect@4.0.0-beta.59)
       '@electric-sql/pglite': 0.3.15
       '@opentelemetry/api': 1.9.1
+      '@types/mssql': 9.1.9(@azure/core-client@1.10.1)
       '@types/pg': 8.20.0
+      mssql: 11.0.1(@azure/core-client@1.10.1)
       mysql2: 3.15.3
       pg: 8.20.0
       postgres: 3.4.8
@@ -11805,6 +11838,7 @@ snapshots:
   ecdsa-sig-formatter@1.0.11:
     dependencies:
       safe-buffer: 5.2.1
+    optional: true
 
   eciesjs@0.4.18:
     dependencies:
@@ -11813,7 +11847,7 @@ snapshots:
       '@noble/curves': 1.9.7
       '@noble/hashes': 1.8.0
 
-  effect@4.0.0-beta.56:
+  effect@4.0.0-beta.59:
     dependencies:
       '@standard-schema/spec': 1.1.0
       fast-check: 4.6.0
@@ -11926,11 +11960,13 @@ snapshots:
     dependencies:
       ofetch: 1.5.1
 
-  event-target-shim@5.0.1: {}
+  event-target-shim@5.0.1:
+    optional: true
 
   eventemitter3@5.0.4: {}
 
-  events@3.3.0: {}
+  events@3.3.0:
+    optional: true
 
   execa@5.1.1:
     dependencies:
@@ -12212,6 +12248,7 @@ snapshots:
       debug: 4.4.3
     transitivePeerDependencies:
       - supports-color
+    optional: true
 
   http-status-codes@2.3.0:
     optional: true
@@ -12242,10 +12279,12 @@ snapshots:
   iconv-lite@0.6.3:
     dependencies:
       safer-buffer: 2.1.2
+    optional: true
 
   iconv-lite@0.7.2:
     dependencies:
       safer-buffer: 2.1.2
+    optional: true
 
   ieee754@1.2.1: {}
 
@@ -12295,7 +12334,8 @@ snapshots:
     dependencies:
       hasown: 2.0.2
 
-  is-docker@3.0.0: {}
+  is-docker@3.0.0:
+    optional: true
 
   is-extglob@2.1.1: {}
 
@@ -12318,6 +12358,7 @@ snapshots:
   is-inside-container@1.0.0:
     dependencies:
       is-docker: 3.0.0
+    optional: true
 
   is-number@7.0.0: {}
 
@@ -12343,6 +12384,7 @@ snapshots:
   is-wsl@3.1.1:
     dependencies:
       is-inside-container: 1.0.0
+    optional: true
 
   isbot@5.1.39: {}
 
@@ -12360,7 +12402,8 @@ snapshots:
 
   jose@6.2.2: {}
 
-  js-md4@0.3.2: {}
+  js-md4@0.3.2:
+    optional: true
 
   js-tokens@4.0.0: {}
 
@@ -12423,17 +12466,20 @@ snapshots:
       lodash.once: 4.1.1
       ms: 2.1.3
       semver: 7.7.4
+    optional: true
 
   jwa@2.0.1:
     dependencies:
       buffer-equal-constant-time: 1.0.1
       ecdsa-sig-formatter: 1.0.11
       safe-buffer: 5.2.1
+    optional: true
 
   jws@4.0.1:
     dependencies:
       jwa: 2.0.1
       safe-buffer: 5.2.1
+    optional: true
 
   kasi@1.1.2: {}
 
@@ -12508,19 +12554,26 @@ snapshots:
 
   lodash.camelcase@4.3.0: {}
 
-  lodash.includes@4.3.0: {}
+  lodash.includes@4.3.0:
+    optional: true
 
-  lodash.isboolean@3.0.3: {}
+  lodash.isboolean@3.0.3:
+    optional: true
 
-  lodash.isinteger@4.0.4: {}
+  lodash.isinteger@4.0.4:
+    optional: true
 
-  lodash.isnumber@3.0.3: {}
+  lodash.isnumber@3.0.3:
+    optional: true
 
-  lodash.isplainobject@4.0.6: {}
+  lodash.isplainobject@4.0.6:
+    optional: true
 
-  lodash.isstring@4.0.1: {}
+  lodash.isstring@4.0.1:
+    optional: true
 
-  lodash.once@4.1.1: {}
+  lodash.once@4.1.1:
+    optional: true
 
   lodash@4.17.21:
     optional: true
@@ -12635,6 +12688,7 @@ snapshots:
     transitivePeerDependencies:
       - '@azure/core-client'
       - supports-color
+    optional: true
 
   multipasta@0.2.7: {}
 
@@ -12664,7 +12718,8 @@ snapshots:
 
   napi-build-utils@2.0.0: {}
 
-  native-duplexpair@1.0.0: {}
+  native-duplexpair@1.0.0:
+    optional: true
 
   node-abi@3.89.0:
     dependencies:
@@ -12735,6 +12790,7 @@ snapshots:
       define-lazy-prop: 3.0.0
       is-inside-container: 1.0.0
       wsl-utils: 0.1.0
+    optional: true
 
   openid-client@5.6.4:
     dependencies:
@@ -13203,6 +13259,7 @@ snapshots:
       events: 3.3.0
       process: 0.11.10
       string_decoder: 1.3.0
+    optional: true
 
   readdirp@3.6.0:
     dependencies:
@@ -13311,7 +13368,8 @@ snapshots:
 
   rou3@0.7.12: {}
 
-  run-applescript@7.1.0: {}
+  run-applescript@7.1.0:
+    optional: true
 
   safe-buffer@5.1.2: {}
 
@@ -13329,7 +13387,8 @@ snapshots:
 
   safe-stable-stringify@2.5.0: {}
 
-  safer-buffer@2.1.2: {}
+  safer-buffer@2.1.2:
+    optional: true
 
   saxes@6.0.0:
     dependencies:
@@ -13432,7 +13491,8 @@ snapshots:
 
   split2@4.2.0: {}
 
-  sprintf-js@1.1.3: {}
+  sprintf-js@1.1.3:
+    optional: true
 
   sqlstring@2.3.3:
     optional: true
@@ -13551,7 +13611,8 @@ snapshots:
       inherits: 2.0.4
       readable-stream: 3.6.2
 
-  tarn@3.0.2: {}
+  tarn@3.0.2:
+    optional: true
 
   tedious@18.6.2(@azure/core-client@1.10.1):
     dependencies:
@@ -13568,6 +13629,7 @@ snapshots:
     transitivePeerDependencies:
       - '@azure/core-client'
       - supports-color
+    optional: true
 
   tedious@19.2.1(@azure/core-client@1.10.1):
     dependencies:
@@ -13584,6 +13646,7 @@ snapshots:
     transitivePeerDependencies:
       - '@azure/core-client'
       - supports-color
+    optional: true
 
   thread-stream@4.0.0:
     dependencies:
@@ -13886,6 +13949,7 @@ snapshots:
   wsl-utils@0.1.0:
     dependencies:
       is-wsl: 3.1.1
+    optional: true
 
   xml-name-validator@5.0.0:
     optional: true

@@ -6,11 +6,6 @@
 
 declare module "sst" {
   export interface Resource {
-    "ApiConfig": {
-      "BASE_URL": string
-      "POLAR_SERVER": string
-      "type": "sst.sst.Linkable"
-    }
     "ApiWorker": import("@cloudflare/workers-types").Service
     "AxiomDomain": {
       "type": "sst.sst.Secret"
@@ -37,6 +32,11 @@ declare module "sst" {
       "value": string
     }
     "Database": import("@cloudflare/workers-types").Hyperdrive
+    "Dns": {
+      "APP_DOMAIN": string
+      "SYNC_DOMAIN": string
+      "type": "sst.sst.Linkable"
+    }
     "GitHubClientId": {
       "type": "sst.sst.Secret"
       "value": string

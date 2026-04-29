@@ -36,7 +36,7 @@ index 81c7f512e0c1b8180d817ba58bcab0018fe1814b..e1e2164800c41141a484812d658d2138
  };
  
 diff --git a/cache/core/cache-effect.d.cts b/cache/core/cache-effect.d.cts
-index 6efc42de510030ee6b837a296a0e1f37209df607..77a486a11f421cd96bc46083e8ebfe20ee433a76 100644
+index e9db8118852b7e7769e06066d53dcf6f1f6e85b2..11dd480230f2f68fb68befa849781c19feea9d78 100644
 --- a/cache/core/cache-effect.d.cts
 +++ b/cache/core/cache-effect.d.cts
 @@ -1,20 +1,18 @@
@@ -52,7 +52,7 @@ index 6efc42de510030ee6b837a296a0e1f37209df607..77a486a11f421cd96bc46083e8ebfe20
 -declare const EffectCache_base: Effect.Service.Class<EffectCache, "drizzle-orm/EffectCache", {
 -  readonly sync: () => {
 +declare const EffectCache_base: Context.ServiceClass<EffectCache, {
-     strategy: () => "all" | "explicit";
+     strategy: () => "explicit" | "all";
      get: (key: string, tables: string[], isTag: boolean, isAutoInvalidate?: boolean | undefined) => Effect.Effect<any[] | undefined, EffectCacheError, never>;
      put: (hashedQuery: string, response: any, tables: string[], isTag: boolean, config?: CacheConfig | undefined) => Effect.Effect<void, EffectCacheError, never>;
      onMutate: (params: MutationOption) => Effect.Effect<void, EffectCacheError, never>;
@@ -71,7 +71,7 @@ index 6efc42de510030ee6b837a296a0e1f37209df607..77a486a11f421cd96bc46083e8ebfe20
     * Creates an EffectCache instance from a standard Drizzle cache.
     *
 diff --git a/cache/core/cache-effect.d.ts b/cache/core/cache-effect.d.ts
-index 7532b4e7ef2757af4cc9000e20d7fa21b650cc9c..da663cc4c19a7f8917a1662e1d71101673b3d47d 100644
+index f9885645c00a2e08e9c41204d0893e69fe2f1f03..7a637c925e24df4da6e7ce59b85f4a8c76544ecb 100644
 --- a/cache/core/cache-effect.d.ts
 +++ b/cache/core/cache-effect.d.ts
 @@ -1,20 +1,18 @@
@@ -87,7 +87,7 @@ index 7532b4e7ef2757af4cc9000e20d7fa21b650cc9c..da663cc4c19a7f8917a1662e1d711016
 -declare const EffectCache_base: Effect.Service.Class<EffectCache, "drizzle-orm/EffectCache", {
 -  readonly sync: () => {
 +declare const EffectCache_base: Context.ServiceClass<EffectCache, {
-     strategy: () => "all" | "explicit";
+     strategy: () => "explicit" | "all";
      get: (key: string, tables: string[], isTag: boolean, isAutoInvalidate?: boolean | undefined) => Effect.Effect<any[] | undefined, EffectCacheError, never>;
      put: (hashedQuery: string, response: any, tables: string[], isTag: boolean, config?: CacheConfig | undefined) => Effect.Effect<void, EffectCacheError, never>;
      onMutate: (params: MutationOption) => Effect.Effect<void, EffectCacheError, never>;
@@ -332,14 +332,10 @@ index b56cacb7870c087dfb342208fd383c5d95a8b1ae..25bb696970a58a72dbf671149ff29b0e
  	* Creates an EffectLogger instance from a standard Drizzle logger.
  	*
 diff --git a/effect-core/query-effect.cjs b/effect-core/query-effect.cjs
-index c8d7fa1f1518d469a5abd3c17f555b2368a9e0bc..8f8930070048a351d2b33102222d6a463e7f2288 100644
+index c8d7fa1f1518d469a5abd3c17f555b2368a9e0bc..cba95de3704c894dc257a3e8a58a91ed4314d8b6 100644
 --- a/effect-core/query-effect.cjs
 +++ b/effect-core/query-effect.cjs
-@@ -1,14 +1,19 @@
- Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
- const require_runtime = require('../_virtual/_rolldown/runtime.cjs');
- let effect_Effectable = require("effect/Effectable");
- effect_Effectable = require_runtime.__toESM(effect_Effectable);
+@@ -5,8 +5,13 @@ effect_Effectable = require_runtime.__toESM(effect_Effectable);
  
  //#region src/effect-core/query-effect.ts
  function applyEffectWrapper(baseClass) {
@@ -355,14 +351,11 @@ index c8d7fa1f1518d469a5abd3c17f555b2368a9e0bc..8f8930070048a351d2b33102222d6a46
  		return this.execute();
  	};
  }
- 
- //#endregion
 diff --git a/effect-core/query-effect.js b/effect-core/query-effect.js
-index b841ac5c22b8db2043e04d6b3f39d145ac21c5eb..4104c3bc1e8a5015197e5ff8653ff483a6b7fb34 100644
+index b841ac5c22b8db2043e04d6b3f39d145ac21c5eb..a38abd5fb50cf8c7c1702d0cf75d73e60fcc08a0 100644
 --- a/effect-core/query-effect.js
 +++ b/effect-core/query-effect.js
-@@ -1,11 +1,16 @@
- import * as Effectable from "effect/Effectable";
+@@ -2,8 +2,13 @@ import * as Effectable from "effect/Effectable";
  
  //#region src/effect-core/query-effect.ts
  function applyEffectWrapper(baseClass) {
@@ -378,8 +371,6 @@ index b841ac5c22b8db2043e04d6b3f39d145ac21c5eb..4104c3bc1e8a5015197e5ff8653ff483
  		return this.execute();
  	};
  }
- 
- //#endregion
 diff --git a/effect-postgres/session.cjs b/effect-postgres/session.cjs
 index a7f5bc8b5b2606710b13be81719ed50c1bd4688c..bdf83ad8dcb6be01b342139e591f018083980662 100644
 --- a/effect-postgres/session.cjs
@@ -746,7 +737,7 @@ index ae58640d3742a837f7db31f69921b8272fe66dfe..61f5a777e6c2a1996e3316c8e6047fc5
  	}
  };
 diff --git a/pg-core/effect/session.d.cts b/pg-core/effect/session.d.cts
-index c9f40f809fed1d66573db0c7aeb7a8aec86c68c8..44bcdbe854e7a4d3edaa26f1417c6f3929c3d6e3 100644
+index becf4d8d210ed37f9e08b2fc703e7793dd744e4b..8851f929d9d1a69d9983b0027d47902b3561947f 100644
 --- a/pg-core/effect/session.d.cts
 +++ b/pg-core/effect/session.d.cts
 @@ -10,7 +10,7 @@ import { WithCacheConfig } from "../../cache/core/types.cjs";
@@ -759,7 +750,7 @@ index c9f40f809fed1d66573db0c7aeb7a8aec86c68c8..44bcdbe854e7a4d3edaa26f1417c6f39
  import { QueryEffectHKTBase, QueryEffectKind } from "../../effect-core/query-effect.cjs";
  
 diff --git a/pg-core/effect/session.d.ts b/pg-core/effect/session.d.ts
-index c819a4690a96fe1f4ed58a3f7d4eb9cb27f95d51..e69ab3752c88c1e3221e1a7691b7913d5052b8a4 100644
+index 71831bd4130592653d2bc51c393aa3f75877aec5..dbbbb7cea6168534d7b74da22f1a200c97496ee2 100644
 --- a/pg-core/effect/session.d.ts
 +++ b/pg-core/effect/session.d.ts
 @@ -12,7 +12,7 @@ import { EffectDrizzleQueryError, EffectTransactionRollbackError, MigratorInitEr

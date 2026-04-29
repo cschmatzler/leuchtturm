@@ -107,7 +107,7 @@ export namespace Billing {
 			const { database } = yield* Database.Service;
 			const polarClient = new Polar({
 				accessToken: Resource.PolarAccessToken.value,
-				server: Resource.ApiConfig.POLAR_SERVER as "production" | "sandbox",
+				server: "sandbox",
 			});
 
 			const billingErrorFromCause = (cause: Cause.Cause<unknown>) => {

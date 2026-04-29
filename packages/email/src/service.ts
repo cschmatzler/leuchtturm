@@ -22,8 +22,6 @@ export namespace Email {
 
 	export const layer = Layer.effect(Service)(
 		Effect.gen(function* () {
-			yield* Effect.logInfo("Email initialized");
-
 			const send = Effect.fn("Email.send")(function* (params: EmailSendParams) {
 				return yield* Effect.tryPromise({
 					try: (): Promise<EmailSendResult> => env.EMAIL.send(params),

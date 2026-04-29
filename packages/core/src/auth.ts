@@ -76,9 +76,8 @@ export namespace Auth {
 			const email = yield* Email.Service;
 
 			const auth = betterAuth({
-				baseURL: `${Resource.ApiConfig.BASE_URL}/api/auth`,
+				baseURL: `https://${Resource.Dns.APP_DOMAIN}/api/auth`,
 				secret: Resource.BetterAuthSecret.value,
-				trustedOrigins: [Resource.ApiConfig.BASE_URL, "http://localhost:*", "http://127.0.0.1:*"],
 				onAPIError: {
 					throw: true,
 				},
@@ -143,7 +142,7 @@ export namespace Auth {
 						sendInvitationEmail: ({ email: invitedEmail, id, inviter, organization }) =>
 							Effect.runPromise(
 								sendInvitationEmail({
-									acceptUrl: `${Resource.ApiConfig.BASE_URL}/accept-invitation/${id}`,
+									acceptUrl: `https://${Resource.Dns.APP_DOMAIN}/accept-invitation/${id}`,
 									email: invitedEmail,
 									inviterName: inviter.user.name,
 									organizationName: organization.name,
@@ -276,9 +275,17 @@ export namespace Auth {
 					},
 				},
 				advanced: {
+					disableOriginCheck: true,
+					...(Resource.App.stage !== "prod" && {
+						defaultCookieAttributes: {
+							sameSite: "none" as const,
+							secure: true,
+							partitioned: true,
+						},
+					}),
 					crossSubDomainCookies: {
 						enabled: true,
-						domain: new URL(Resource.ApiConfig.BASE_URL).hostname,
+						domain: Resource.Dns.APP_DOMAIN,
 					},
 					database: {
 						generateId: ({ model }) => {
