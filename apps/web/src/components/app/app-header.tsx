@@ -68,16 +68,16 @@ export function AppHeader({
 	}, [currentUser, i18n]);
 
 	return (
-		<header className="bg-background/80 sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-border px-4 backdrop-blur-md">
+		<header className="bg-background/80 sticky top-0 z-20 flex h-12 items-center gap-2 border-b border-border px-3 backdrop-blur-md">
 			<Link
 				to="/$organization"
 				params={{ organization }}
 				aria-label="Leuchtturm"
-				className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-opacity hover:opacity-90"
+				className="flex size-6 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground transition-opacity hover:opacity-90"
 			>
 				<SparkleIcon className="size-4" />
 			</Link>
-			<div aria-hidden className="h-6 w-px shrink-0 bg-border" />
+			<div aria-hidden className="h-5 w-px shrink-0 bg-border" />
 
 			<Breadcrumb aria-label={t("Workspace")} className="min-w-0">
 				<BreadcrumbList className="flex-nowrap gap-1 sm:gap-1">
@@ -92,7 +92,7 @@ export function AppHeader({
 										<span className="truncate">
 											{currentOrganization?.name ?? t("Organization")}
 										</span>
-										<CaretDownIcon className="size-4 shrink-0" />
+										<CaretDownIcon className="size-3.5 shrink-0" />
 									</BreadcrumbLink>
 								}
 							/>
@@ -137,7 +137,7 @@ export function AppHeader({
 												className="inline-flex max-w-48 items-center gap-1 text-foreground"
 											>
 												<span className="truncate">{activeTeam.name}</span>
-												<CaretDownIcon className="size-4 shrink-0" />
+												<CaretDownIcon className="size-3.5 shrink-0" />
 											</BreadcrumbLink>
 										}
 									/>
@@ -179,20 +179,20 @@ export function AppHeader({
 
 			<div className="flex-1" />
 
-			<div className="ml-auto flex shrink-0 items-center gap-2">
+			<div className="ml-auto flex shrink-0 items-center gap-1.5">
 				<nav className="flex items-center gap-1">
 					<Link
 						to="/$organization/settings"
 						params={{ organization }}
 						aria-label={t("Settings")}
 						data-active={settingsActive ? true : undefined}
-						className="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground data-[active]:bg-accent data-[active]:text-accent-foreground"
+						className="inline-flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground data-[active]:bg-accent data-[active]:text-accent-foreground"
 					>
-						<GearIcon className="size-4" />
+						<GearIcon className="size-3.5" />
 					</Link>
 				</nav>
 
-				<div aria-hidden className="mx-1 h-6 w-px shrink-0 bg-border" />
+				<div aria-hidden className="mx-0.5 h-5 w-px shrink-0 bg-border" />
 
 				<DropdownMenu>
 					<DropdownMenuTrigger
@@ -200,9 +200,9 @@ export function AppHeader({
 							<button
 								type="button"
 								aria-label={t("Account")}
-								className="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+								className="inline-flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
 							>
-								<UserIcon className="size-4" />
+								<UserIcon className="size-3.5" />
 							</button>
 						}
 					/>

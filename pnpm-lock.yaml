@@ -244,7 +244,7 @@ importers:
         version: link:../email
       '@polar-sh/better-auth':
         specifier: 1.8.3
-        version: 1.8.3(640cda5b49d2036d8b4520ebe5be41d7)
+        version: 1.8.3(7e025c29e287ba9de90b16cc81067926)
       '@polar-sh/sdk':
         specifier: 0.47.1
         version: 0.47.1
@@ -10145,9 +10145,9 @@ snapshots:
 
   '@pinojs/redact@0.4.0': {}
 
-  '@polar-sh/better-auth@1.8.3(640cda5b49d2036d8b4520ebe5be41d7)':
+  '@polar-sh/better-auth@1.8.3(7e025c29e287ba9de90b16cc81067926)':
     dependencies:
-      '@polar-sh/checkout': 0.2.0(@stripe/react-stripe-js@4.0.2(@stripe/stripe-js@7.9.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(@stripe/stripe-js@7.9.0)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react-is@19.2.4)(react@19.2.5)(redux@5.0.1)
+      '@polar-sh/checkout': 0.2.0(@stripe/react-stripe-js@4.0.2(@stripe/stripe-js@7.9.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(@stripe/stripe-js@7.9.0)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react-is@19.2.4)(react@19.2.5)
       '@polar-sh/sdk': 0.47.1
       better-auth: 1.6.9(@cloudflare/workers-types@4.20260426.1)(@opentelemetry/api@1.9.1)(@prisma/client@7.4.2(prisma@7.4.2(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.3))(typescript@6.0.3))(drizzle-kit@1.0.0-beta.22)(drizzle-orm@1.0.0-beta.22(patch_hash=8fa07cfdaa2ba78c1db8fb8a53a9dfc1743837b2081d2e33c88707dada9354a0)(@cloudflare/workers-types@4.20260426.1)(@effect/sql-pg@4.0.0-beta.59(effect@4.0.0-beta.59))(@electric-sql/pglite@0.3.15)(@opentelemetry/api@1.9.1)(@types/mssql@9.1.9(@azure/core-client@1.10.1))(@types/pg@8.20.0)(mssql@11.0.1(@azure/core-client@1.10.1))(mysql2@3.15.3)(pg@8.20.0)(postgres@3.4.8)(valibot@1.2.0(typescript@6.0.3))(zod@4.3.6))(mongodb@7.1.0(socks@2.8.7))(mysql2@3.15.3)(pg@8.20.0)(prisma@7.4.2(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.3))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12)
       zod: 4.3.6
@@ -10161,10 +10161,10 @@ snapshots:
       - react-is
       - redux
 
-  '@polar-sh/checkout@0.2.0(@stripe/react-stripe-js@4.0.2(@stripe/stripe-js@7.9.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(@stripe/stripe-js@7.9.0)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react-is@19.2.4)(react@19.2.5)(redux@5.0.1)':
+  '@polar-sh/checkout@0.2.0(@stripe/react-stripe-js@4.0.2(@stripe/stripe-js@7.9.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(@stripe/stripe-js@7.9.0)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react-is@19.2.4)(react@19.2.5)':
     dependencies:
       '@polar-sh/sdk': 0.42.5
-      '@polar-sh/ui': 0.1.2(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react-is@19.2.4)(react@19.2.5)(redux@5.0.1)
+      '@polar-sh/ui': 0.1.2(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react-is@19.2.4)(react@19.2.5)
       '@stripe/react-stripe-js': 4.0.2(@stripe/stripe-js@7.9.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@stripe/stripe-js': 7.9.0
       event-source-plus: 0.1.15
@@ -10189,7 +10189,7 @@ snapshots:
       standardwebhooks: 1.0.0
       zod: 4.3.6
 
-  '@polar-sh/ui@0.1.2(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react-is@19.2.4)(react@19.2.5)(redux@5.0.1)':
+  '@polar-sh/ui@0.1.2(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react-is@19.2.4)(react@19.2.5)':
     dependencies:
       '@radix-ui/react-accordion': 1.2.12(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@radix-ui/react-alert-dialog': 1.1.15(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
@@ -11031,7 +11031,7 @@ snapshots:
     dependencies:
       react: 19.2.5
 
-  '@reduxjs/toolkit@2.11.2(react-redux@9.2.0(@types/react@19.2.14)(react@19.2.5)(redux@5.0.1))(react@19.2.5)':
+  '@reduxjs/toolkit@2.11.2(react-redux@9.2.0(@types/react@19.2.14)(react@19.2.5))(react@19.2.5)':
     dependencies:
       '@standard-schema/spec': 1.1.0
       '@standard-schema/utils': 0.3.0
@@ -14647,7 +14647,7 @@ snapshots:
 
   recharts@3.8.0(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react-is@19.2.4)(react@19.2.5)(redux@5.0.1):
     dependencies:
-      '@reduxjs/toolkit': 2.11.2(react-redux@9.2.0(@types/react@19.2.14)(react@19.2.5)(redux@5.0.1))(react@19.2.5)
+      '@reduxjs/toolkit': 2.11.2(react-redux@9.2.0(@types/react@19.2.14)(react@19.2.5))(react@19.2.5)
       clsx: 2.1.1
       decimal.js-light: 2.5.1
       es-toolkit: 1.45.1
