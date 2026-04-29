@@ -26,6 +26,7 @@ export const zero = new render.services.WebService("ZeroService", {
 	envVars: [
 		{ key: "ZERO_ADMIN_PASSWORD", value: secrets.zeroAdminPassword.value },
 		{ key: "ZERO_APP_ID", value: "leuchtturm" },
+		{ key: "PORT", value: "4848" },
 		{
 			key: "ZERO_CHANGE_DB",
 			value: interpolate`postgres://${secrets.zeroDatabaseUsername.value}:${secrets.zeroDatabasePassword.value}@eu-central-1.pg.psdb.cloud:5432/postgres?sslmode=verify-full`,
