@@ -23,7 +23,6 @@ import { FieldError, FieldLabel } from "@leuchtturm/web/components/ui/field";
 import { Input } from "@leuchtturm/web/components/ui/input";
 import { Separator } from "@leuchtturm/web/components/ui/separator";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
-import { isTeamNameError } from "@leuchtturm/web/pages/-lib/team-errors";
 import { queries } from "@leuchtturm/zero/queries";
 
 const searchDefaults = { delete: false };
@@ -81,7 +80,10 @@ function GeneralSettings(props: { readonly organization: string; readonly team: 
 				data: { name, organizationId },
 			});
 			if (error) {
-				if (isTeamNameError(error)) {
+				if (
+					error.code === "AuthDuplicateTeamNameError" ||
+					error.code === "AuthInvalidTeamPayloadError"
+				) {
 					form.setFieldMeta("name", (previous) => ({
 						...previous,
 						errorMap: {
