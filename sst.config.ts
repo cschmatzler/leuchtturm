@@ -8,8 +8,8 @@ export default $config({
 				cloudflare: "6.13.0",
 				planetscale: "1.0.0",
 			},
-			protect: input.stage === "production",
-			removal: input.stage === "production" ? "retain" : "remove",
+			protect: input.stage === "prod",
+			removal: input.stage === "prod" ? "retain" : "remove",
 		};
 	},
 	async run() {

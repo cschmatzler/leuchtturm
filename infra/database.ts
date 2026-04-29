@@ -6,7 +6,7 @@ const database = planetscale.getDatabasePostgresOutput({
 });
 
 const branch =
-	$app.stage === "production"
+	$app.stage === "prod"
 		? planetscale.getPostgresBranchOutput({
 				id: "main",
 				organization: database.organization,

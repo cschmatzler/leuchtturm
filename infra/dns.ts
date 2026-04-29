@@ -1,7 +1,7 @@
 export const root = "leuchtturm.dev";
-export const appDomain = $app.stage === "production" ? root : `${$app.stage}.${root}`;
+export const appDomain = $app.stage === "prod" ? root : `${$app.stage}.${root}`;
 export const syncDomain =
-	$app.stage === "production" ? `sync.${root}` : `sync.${$app.stage}.${root}`;
+	$app.stage === "prod" ? `sync.${root}` : `sync.${$app.stage}.${root}`;
 
 export const zone = cloudflare.getZoneOutput({
 	filter: {
