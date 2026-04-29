@@ -31,6 +31,7 @@ import { FieldError, FieldLabel } from "@leuchtturm/web/components/ui/field";
 import { Input } from "@leuchtturm/web/components/ui/input";
 import { Link } from "@leuchtturm/web/components/ui/link";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
+import { isTeamNameError } from "@leuchtturm/web/pages/-lib/team-errors";
 import { queries } from "@leuchtturm/zero/queries";
 
 const searchDefaults = { create: false };
@@ -84,13 +85,7 @@ function Page() {
 				organizationId,
 			});
 			if (error) {
-				if (
-					error.code === "AuthDuplicateTeamNameError" ||
-					error.code === "AuthInvalidTeamPayloadError" ||
-					error.message === "Team name already exists" ||
-					error.message ===
-						"Team name must contain only ASCII letters, numbers, dashes, and underscores"
-				) {
+				if (isTeamNameError(error)) {
 					form.setFieldMeta("name", (previous) => ({
 						...previous,
 						errorMap: {
