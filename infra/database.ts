@@ -36,4 +36,5 @@ export const hyperdrive = new sst.cloudflare.Hyperdrive("Database", {
 		database: hyperdriveRole.databaseName,
 		password: hyperdriveRole.password,
 	},
+	caching: false,
 });
