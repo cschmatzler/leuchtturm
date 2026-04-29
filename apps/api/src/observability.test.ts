@@ -117,4 +117,75 @@ describe("observability helpers", () => {
 			}),
 		]);
 	});
+
+	it("ships logs run through a captured request context", async () => {
+		const fetchRequests: Array<{ body: string; url: string }> = [];
+		const waitUntilPromises: Promise<unknown>[] = [];
+		const fetcher = ((input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) => {
+			const body = init?.body;
+			fetchRequests.push({
+				body: typeof body === "string" ? body : "",
+				url: typeof input === "string" ? input : input instanceof URL ? input.href : input.url,
+			});
+
+			return Promise.resolve(Response.json({ failed: 0, ingested: 1 }));
+		}) as typeof fetch;
+
+		await Effect.runPromise(
+			Effect.gen(function* () {
+				const context = yield* Effect.context<never>();
+
+				yield* Effect.promise(() =>
+					Effect.runPromiseWith(context)(
+						Effect.logInfo("Auth team updated").pipe(
+							Effect.annotateLogs({ organizationId: "org_123", teamId: "tea_123" }),
+						),
+					),
+				);
+			}).pipe(
+				Effect.provide(
+					Layer.mergeAll(
+						Logger.layer([
+							makeAxiomLogger(
+								{
+									dataset: "logs",
+									domain: "axiom.example",
+									token: "secret",
+								},
+								fetcher,
+							),
+						]),
+						Layer.succeed(
+							RequestRuntime.Service,
+							RequestRuntime.Service.of({
+								waitUntil: (promise) => waitUntilPromises.push(promise),
+							}),
+						),
+						Layer.succeed(
+							RequestContext.Current,
+							RequestContext.Current.of({
+								method: "POST",
+								path: "/api/auth/organization/update-team",
+								requestId: "req_123",
+							}),
+						),
+					),
+				),
+			),
+		);
+		await Promise.all(waitUntilPromises);
+
+		expect(fetchRequests).toHaveLength(1);
+		expect(JSON.parse(fetchRequests[0]?.body ?? "")).toEqual([
+			expect.objectContaining({
+				level: "info",
+				message: "Auth team updated",
+				method: "POST",
+				organizationId: "org_123",
+				path: "/api/auth/organization/update-team",
+				requestId: "req_123",
+				teamId: "tea_123",
+			}),
+		]);
+	});
 });

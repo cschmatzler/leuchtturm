@@ -12,10 +12,7 @@ export namespace AuthHandler {
 	) {
 		const auth = yield* Auth.Service;
 
-		return yield* Effect.tryPromise({
-			try: () => auth.client.handler(request.source as Request),
-			catch: (cause) => cause,
-		}).pipe(
+		return yield* auth.handle(request.source as Request).pipe(
 			Effect.map(HttpServerResponse.fromWeb),
 			Effect.catchCause((cause) =>
 				Effect.gen(function* () {
