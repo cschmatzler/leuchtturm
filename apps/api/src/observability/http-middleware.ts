@@ -63,11 +63,11 @@ const recordRequestResponse = (
 		}
 
 		if (response.status >= 400) {
-			yield* Effect.logWarning("API request completed").pipe(Effect.annotateLogs(annotations));
+			yield* Effect.logWarning("API request rejected").pipe(Effect.annotateLogs(annotations));
 			return;
 		}
 
-		yield* Effect.logInfo("API request completed").pipe(Effect.annotateLogs(annotations));
+		yield* Effect.logInfo("API request succeeded").pipe(Effect.annotateLogs(annotations));
 	});
 
 export const Middleware = HttpMiddleware.make((app) =>

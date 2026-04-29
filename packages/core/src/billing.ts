@@ -664,8 +664,20 @@ export namespace Billing {
 						secret: Resource.PolarWebhookSecret.value,
 						onPayload: (payload) =>
 							Effect.runPromise(
-								Effect.logInfo("Polar webhook received").pipe(
-									Effect.annotateLogs("type", payload.type),
+								Effect.logInfo(`Polar webhook ${payload.type} received`).pipe(
+									Effect.annotateLogs({
+										type: payload.type,
+										...("id" in payload.data ? { polarResourceId: payload.data.id } : {}),
+										...("customerId" in payload.data
+											? { polarCustomerId: payload.data.customerId }
+											: {}),
+										...("subscriptionId" in payload.data && payload.data.subscriptionId
+											? { polarSubscriptionId: payload.data.subscriptionId }
+											: {}),
+										...("externalId" in payload.data && payload.data.externalId
+											? { organizationId: payload.data.externalId }
+											: {}),
+									}),
 								),
 							),
 						onCustomerStateChanged: (payload) =>
