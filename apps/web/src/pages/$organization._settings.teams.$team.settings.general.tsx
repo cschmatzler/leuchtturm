@@ -1,7 +1,7 @@
 import { SpinnerIcon, TrashIcon } from "@phosphor-icons/react";
 import { useForm } from "@tanstack/react-form";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Schema } from "effect";
+import { createFileRoute, stripSearchParams, useNavigate } from "@tanstack/react-router";
+import { Effect, Schema } from "effect";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -26,7 +26,20 @@ import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { isTeamNameError } from "@leuchtturm/web/pages/-lib/team-errors";
 import { queries } from "@leuchtturm/zero/queries";
 
+const searchDefaults = { delete: false };
+
 export const Route = createFileRoute("/$organization/_settings/teams/$team/settings/general")({
+	validateSearch: Schema.toStandardSchemaV1(
+		Schema.Struct({
+			delete: Schema.Boolean.pipe(
+				Schema.optional,
+				Schema.withDecodingDefault(Effect.succeed(false)),
+			),
+		}),
+	),
+	search: {
+		middlewares: [stripSearchParams(searchDefaults)],
+	},
 	loader: ({ context: { organizationId, zero }, params: { team } }) => {
 		zero.preload(queries.team({ organizationId, team }));
 	},
@@ -43,9 +56,18 @@ function GeneralSettings(props: { readonly organization: string; readonly team: 
 	const { organizationId } = Route.useRouteContext();
 	const navigate = useNavigate();
 	const { t } = useTranslation();
+	const { delete: isDeleteDialogOpen } = Route.useSearch();
 	const [team] = useZeroQuery(queries.team({ organizationId, team: props.team }));
-	const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+	const [deleteTeamConfirmation, setDeleteTeamConfirmation] = useState("");
 	const [isDeletingTeam, setIsDeletingTeam] = useState(false);
+
+	const setDeleteDialogOpen = (value: boolean) => {
+		void navigate({
+			to: "/$organization/teams/$team/settings/general",
+			params: { organization: props.organization, team: props.team },
+			search: (previous) => ({ ...previous, delete: value }),
+		});
+	};
 
 	const form = useForm({
 		defaultValues: {
@@ -84,7 +106,7 @@ function GeneralSettings(props: { readonly organization: string; readonly team: 
 	});
 
 	const removeTeam = async () => {
-		if (!team) return;
+		if (!team || deleteTeamConfirmation !== team.name) return;
 		setIsDeletingTeam(true);
 		const { error } = await authClient.organization.removeTeam({
 			teamId: team.id,
@@ -95,7 +117,8 @@ function GeneralSettings(props: { readonly organization: string; readonly team: 
 			toast.error(error.message);
 			return;
 		}
-		setIsDeleteDialogOpen(false);
+		setDeleteDialogOpen(false);
+		setDeleteTeamConfirmation("");
 		toast.success(t("Team deleted"));
 		await navigate({
 			to: "/$organization/settings/teams",
@@ -167,22 +190,38 @@ function GeneralSettings(props: { readonly organization: string; readonly team: 
 					</p>
 				</div>
 				<div className="mt-5">
-					<Button variant="destructive" onClick={() => setIsDeleteDialogOpen(true)}>
+					<Button variant="destructive" onClick={() => setDeleteDialogOpen(true)}>
 						<TrashIcon className="size-4" />
 						{t("Delete team")}
 					</Button>
 				</div>
-				<AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+				<AlertDialog
+					open={isDeleteDialogOpen}
+					onOpenChange={(open) => {
+						setDeleteDialogOpen(open);
+						if (!open) setDeleteTeamConfirmation("");
+					}}
+				>
 					<AlertDialogContent>
 						<AlertDialogHeader>
 							<AlertDialogTitle>{t("Delete this team?")}</AlertDialogTitle>
 							<AlertDialogDescription>{t("This action cannot be undone.")}</AlertDialogDescription>
 						</AlertDialogHeader>
+						<div className="space-y-2">
+							<FieldLabel htmlFor="delete-team-confirmation">
+								{t("Type {{team}} to confirm deletion.", { team: team?.name })}
+							</FieldLabel>
+							<Input
+								id="delete-team-confirmation"
+								value={deleteTeamConfirmation}
+								onInput={(event) => setDeleteTeamConfirmation(event.currentTarget.value)}
+							/>
+						</div>
 						<AlertDialogFooter>
 							<AlertDialogCancel disabled={isDeletingTeam}>{t("Cancel")}</AlertDialogCancel>
 							<AlertDialogAction
 								variant="destructive"
-								disabled={isDeletingTeam || !team}
+								disabled={isDeletingTeam || !team || deleteTeamConfirmation !== team.name}
 								onClick={() => void removeTeam()}
 							>
 								{isDeletingTeam ? <SpinnerIcon className="size-4 animate-spin" /> : null}
