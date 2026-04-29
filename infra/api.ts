@@ -20,10 +20,10 @@ export const api = new sst.cloudflare.Worker("ApiWorker", {
 	link: [config, storage, hyperdrive, ...apiSecrets],
 	transform: {
 		worker: (args: WorkerScriptArgs) => {
-			args.bindings = [
-				...args.bindings,
+			args.bindings = $resolve(args.bindings!).apply((bindings) => [
+				...bindings,
 				{ name: "EMAIL", type: "send_email" },
-			];
+			]);
 		},
 	},
 });
