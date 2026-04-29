@@ -1,6 +1,6 @@
 import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useNavigate, useRouter } from "@tanstack/react-router";
 import { Schema } from "effect";
 import { ChevronDownIcon, SparklesIcon } from "lucide-react";
 import { useState } from "react";
@@ -21,6 +21,7 @@ import {
 	MenuTrigger,
 } from "@leuchtturm/web/components/ui/menu";
 import { useAuth } from "@leuchtturm/web/hooks/use-auth";
+import { organizationsQuery } from "@leuchtturm/web/queries/organizations";
 import { sessionQuery } from "@leuchtturm/web/queries/session";
 
 export const Route = createFileRoute("/create-organization")({
@@ -36,6 +37,7 @@ export const Route = createFileRoute("/create-organization")({
 function Page() {
 	const { session } = Route.useRouteContext();
 	const navigate = useNavigate();
+	const router = useRouter();
 	const queryClient = useQueryClient();
 	const { t } = useTranslation();
 	const { deviceSessions, setActiveSession, signOutCurrent } = useAuth();
@@ -74,7 +76,9 @@ function Page() {
 
 			await queryClient.invalidateQueries({ queryKey: ["session"] });
 			await queryClient.invalidateQueries({ queryKey: ["deviceSessions"] });
-			await queryClient.invalidateQueries({ queryKey: ["organizations"] });
+			await queryClient.invalidateQueries({ queryKey: organizationsQuery().queryKey });
+			await queryClient.fetchQuery(organizationsQuery());
+			await router.invalidate();
 			await navigate({
 				to: "/$organization/settings",
 				params: { organization: data.slug },

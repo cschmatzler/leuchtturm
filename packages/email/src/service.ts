@@ -21,7 +21,7 @@ export namespace Email {
 	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/Email") {}
 
 	export const layer = Layer.effect(Service)(
-		Effect.gen(function* () {
+		Effect.sync(() => {
 			const send = Effect.fn("Email.send")(function* (params: EmailSendParams) {
 				return yield* Effect.tryPromise({
 					try: (): Promise<EmailSendResult> => env.EMAIL.send(params),
