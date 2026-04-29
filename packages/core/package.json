@@ -14,7 +14,7 @@
 		"@effect/sql-pg": "4.0.0-beta.56",
 		"@leuchtturm/email": "workspace:",
 		"@polar-sh/better-auth": "^1.8.3",
-		"@polar-sh/sdk": "^0.47.0",
+		"@polar-sh/sdk": "^0.47.1",
 		"better-auth": "1.6.9",
 		"drizzle-kit": "1.0.0-beta.21",
 		"drizzle-orm": "1.0.0-beta.21",
