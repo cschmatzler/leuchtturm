@@ -11,6 +11,8 @@ declare module "sst" {
       "POLAR_SERVER": string
       "type": "sst.sst.Linkable"
     }
+    "ApiWorker": import("@cloudflare/workers-types").Service
+    "Database": import("@cloudflare/workers-types").Hyperdrive
     "Storage": import("@cloudflare/workers-types").R2Bucket
     "Web": {
       "type": "sst.cloudflare.StaticSite"
