@@ -5,17 +5,25 @@ const database = planetscale.getDatabasePostgresOutput({
 	organization: secrets.planetScaleOrganization.value,
 });
 
-const branch = planetscale.getPostgresBranchOutput({
-	id: database.defaultBranch,
-	organization: database.organization,
-	database: database.name,
-});
+const branch =
+	$app.stage === "production"
+		? planetscale.getPostgresBranchOutput({
+				id: "main",
+				organization: database.organization,
+				database: database.name,
+			})
+		: new planetscale.PostgresBranch("DatabaseBranch", {
+				name: $app.stage,
+				parentBranch: "main",
+				database: database.name,
+				organization: database.organization,
+			});
 
 const hyperdriveRole = new planetscale.PostgresBranchRole("HyperdriveRole", {
 	branch: branch.name,
 	database: database.name,
 	organization: database.organization,
-	name: `${$app.name}-${$app.stage}-hyperdrive`,
+	name: $app.stage,
 	inheritedRoles: ["pg_read_all_data", "pg_write_all_data"],
 });
 
