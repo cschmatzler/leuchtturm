@@ -11,4 +11,6 @@ export class ErrorCatalog extends HttpApiMiddleware.Service<ErrorCatalog>()("Err
 	error: Errors,
 }) {}
 
-export const errorCatalogLayer = Layer.succeed(ErrorCatalog, (httpApp) => httpApp);
+export namespace ErrorCatalog {
+	export const layer = Layer.succeed(ErrorCatalog, (httpApp) => httpApp);
+}

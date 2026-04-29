@@ -191,6 +191,8 @@ export const makeAxiomLogger = (
 		void promise;
 	});
 
-export const loggingLayer = Logger.layer([Effect.sync(() => makeAxiomLogger(getLogConfig()))], {
-	mergeWithExisting: true,
-});
+export namespace Logging {
+	export const layer = Logger.layer([Effect.sync(() => makeAxiomLogger(getLogConfig()))], {
+		mergeWithExisting: true,
+	});
+}

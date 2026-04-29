@@ -28,14 +28,16 @@ const run = Effect.fn("AuthMiddleware.run")(function* <E, R>(
 	return yield* httpApp.pipe(Effect.provideService(AuthMiddleware.CurrentUser, currentUser));
 });
 
-export const authMiddlewareLayer = Layer.effect(AuthMiddleware.Service)(
-	Effect.gen(function* () {
-		const auth = yield* Auth.Service;
+export namespace AuthMiddlewareLayer {
+	export const layer = Layer.effect(AuthMiddleware.Service)(
+		Effect.gen(function* () {
+			const auth = yield* Auth.Service;
 
-		return (httpApp, _options) =>
-			Effect.gen(function* () {
-				const request = yield* HttpServerRequest.HttpServerRequest;
-				return yield* run(auth, request, httpApp);
-			});
-	}),
-);
+			return (httpApp, _options) =>
+				Effect.gen(function* () {
+					const request = yield* HttpServerRequest.HttpServerRequest;
+					return yield* run(auth, request, httpApp);
+				});
+		}),
+	);
+}
