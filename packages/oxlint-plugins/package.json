@@ -13,6 +13,7 @@
 		"./no-live-suffix": "./src/no-live-suffix.ts",
 		"./no-local-effect-callback-wrapper": "./src/no-local-effect-callback-wrapper.ts",
 		"./no-local-web-schema": "./src/no-local-web-schema.ts",
+		"./no-non-exact-package-json-versions": "./src/no-non-exact-package-json-versions.ts",
 		"./no-process-env": "./src/no-process-env.ts",
 		"./no-vi-mock": "./src/no-vi-mock.ts",
 		"./no-relative-imports": "./src/no-relative-imports.ts",
