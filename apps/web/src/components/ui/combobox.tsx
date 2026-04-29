@@ -5,7 +5,7 @@ import type { ComponentProps, ReactNode } from "react";
 
 import { cn } from "@leuchtturm/web/lib/cn";
 
-interface ComboboxRootProps extends BasePopover.Root.Props {
+export interface ComboboxRootProps extends BasePopover.Root.Props {
 	children?: ReactNode;
 }
 
@@ -17,7 +17,10 @@ function Combobox({ children, ...props }: ComboboxRootProps) {
 	);
 }
 
-interface ComboboxTriggerProps extends Omit<BasePopover.Trigger.Props, "className" | "children"> {
+export interface ComboboxTriggerProps extends Omit<
+	BasePopover.Trigger.Props,
+	"className" | "children"
+> {
 	className?: string;
 	children?: ReactNode;
 	placeholder?: string;
@@ -43,7 +46,7 @@ function ComboboxTrigger({ className, children, placeholder, ...props }: Combobo
 	);
 }
 
-interface ComboboxContentProps
+export interface ComboboxContentProps
 	extends
 		Omit<BasePopover.Popup.Props, "className" | "children">,
 		Pick<BasePopover.Positioner.Props, "align" | "alignOffset" | "side" | "sideOffset"> {
@@ -141,7 +144,7 @@ function ComboboxGroup({ className, ...props }: ComponentProps<typeof CommandPri
 	);
 }
 
-interface ComboboxItemProps extends ComponentProps<typeof CommandPrimitive.Item> {
+export interface ComboboxItemProps extends ComponentProps<typeof CommandPrimitive.Item> {
 	selected?: boolean;
 }
 

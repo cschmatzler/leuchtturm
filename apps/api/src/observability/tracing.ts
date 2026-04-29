@@ -12,7 +12,7 @@ import { requestSpanName } from "@leuchtturm/api/observability/request";
 
 export { traceExporterConfig, traceServiceConfig };
 
-export const layer = Layer.suspend(() =>
+export const tracingLayer = Layer.suspend(() =>
 	Layer.mergeAll(
 		OtelTracer.layerGlobal.pipe(Layer.provide(OtelResource.layer(makeResourceConfig()))),
 		Layer.succeed(HttpMiddleware.SpanNameGenerator, requestSpanName),

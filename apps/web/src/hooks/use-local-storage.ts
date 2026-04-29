@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type SetStateAction } from "react";
 
-type LocalStorageOptions<T> = {
+export type LocalStorageOptions<T> = {
 	serialize?: (value: T) => string;
 	deserialize?: (value: string) => T;
 };

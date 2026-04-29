@@ -3,7 +3,7 @@ import { useCallback, type SetStateAction } from "react";
 
 import type { FiltersState } from "@leuchtturm/web/components/data-table-filter/types";
 
-type SearchRoute = {
+export type SearchRoute = {
 	useSearch: () => Record<string, unknown>;
 	useNavigate: () => (options: {
 		search: (prev: Record<string, unknown>) => Record<string, unknown>;

@@ -16,13 +16,13 @@ import type {
 import { isAnyOf, uniq } from "@leuchtturm/web/lib/array";
 import { memo } from "@leuchtturm/web/lib/memo";
 
-type NumberColumnType<TType extends ColumnDataType> = TType extends "number" ? TType : never;
+export type NumberColumnType<TType extends ColumnDataType> = TType extends "number" ? TType : never;
 
-type OptionColumnType<TType extends ColumnDataType> = TType extends "option" | "multiOption"
+export type OptionColumnType<TType extends ColumnDataType> = TType extends "option" | "multiOption"
 	? TType
 	: never;
 
-class FilterBuilder<
+export class FilterBuilder<
 	TData,
 	TType extends ColumnDataType = any,
 	TVal = unknown,
@@ -139,7 +139,7 @@ class FilterBuilder<
 	}
 }
 
-interface FluentColumnConfigHelper<TData> {
+export interface FluentColumnConfigHelper<TData> {
 	text: () => FilterBuilder<TData, "text", string>;
 	number: () => FilterBuilder<TData, "number", number>;
 	date: () => FilterBuilder<TData, "date", Date>;

@@ -8,12 +8,12 @@ import type {
 	FilterValues,
 } from "@leuchtturm/web/components/data-table-filter/types";
 
-type FilterInput<TType extends ColumnDataType, TValue = FilterValues<TType>> = {
+export type FilterInput<TType extends ColumnDataType, TValue = FilterValues<TType>> = {
 	operator: FilterOperators[TType];
 	values: TValue;
 };
 
-type DateFilterInput = FilterInput<"date", Array<Date | string | number>>;
+export type DateFilterInput = FilterInput<"date", Array<Date | string | number>>;
 
 export function optionFilterFn(inputData: string, filterValue: FilterInput<"option">) {
 	if (!inputData) return false;

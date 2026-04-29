@@ -8,7 +8,7 @@ type JsonValue = null | boolean | number | string | JsonValue[] | { [key: string
 
 type LogLevel = "debug" | "error" | "fatal" | "info" | "trace" | "warn";
 
-type Fetch = typeof fetch;
+export type Fetch = typeof fetch;
 
 const rawFetch = globalThis.fetch.bind(globalThis);
 const objectType = Object.prototype.toString;
@@ -191,6 +191,6 @@ export const makeAxiomLogger = (
 		void promise;
 	});
 
-export const layer = Logger.layer([Effect.sync(() => makeAxiomLogger(getLogConfig()))], {
+export const loggingLayer = Logger.layer([Effect.sync(() => makeAxiomLogger(getLogConfig()))], {
 	mergeWithExisting: true,
 });

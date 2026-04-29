@@ -1,7 +1,7 @@
 import { Layer } from "effect";
 
 import { Middleware as HttpMiddleware } from "@leuchtturm/api/observability/http-middleware";
-import { layer as loggingLayer } from "@leuchtturm/api/observability/logging";
+import { loggingLayer } from "@leuchtturm/api/observability/logging";
 import {
 	requestCount as apiRequestCount,
 	requestDuration as apiRequestDuration,
@@ -17,7 +17,7 @@ import {
 	statusGroup as getStatusGroup,
 } from "@leuchtturm/api/observability/request";
 import {
-	layer as tracingLayer,
+	tracingLayer,
 	traceExporterConfig as getTraceExporterConfig,
 	traceServiceConfig as serviceTraceConfig,
 } from "@leuchtturm/api/observability/tracing";

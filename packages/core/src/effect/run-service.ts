@@ -1,6 +1,6 @@
 import { Effect, Layer, ManagedRuntime, Context } from "effect";
 
-export const memoMap = Layer.makeMemoMapUnsafe();
+const memoMap = Layer.makeMemoMapUnsafe();
 
 export function makeRuntime<R, S, E>(service: Context.Service<R, S>, layer: Layer.Layer<R, E>) {
 	let runtime: ManagedRuntime.ManagedRuntime<R, E> | undefined;

@@ -2,7 +2,7 @@ import { queryOptions } from "@tanstack/react-query";
 
 import { authClient } from "@leuchtturm/web/clients/auth";
 
-export type Organizations = Array<{
+type Organizations = Array<{
 	readonly id: string;
 	readonly name: string;
 	readonly slug: string;

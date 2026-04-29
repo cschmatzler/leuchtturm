@@ -17,9 +17,9 @@ import { cn } from "@leuchtturm/web/lib/cn";
 
 const THEMES = { light: "", dark: ".dark" } as const;
 
-type ResponsiveContainerProps = ComponentProps<RechartsModule["ResponsiveContainer"]>;
-type TooltipProps = ComponentProps<RechartsModule["Tooltip"]>;
-type LegendProps = ComponentProps<RechartsModule["Legend"]>;
+export type ResponsiveContainerProps = ComponentProps<RechartsModule["ResponsiveContainer"]>;
+export type TooltipProps = ComponentProps<RechartsModule["Tooltip"]>;
+export type LegendProps = ComponentProps<RechartsModule["Legend"]>;
 type TooltipPayloadItem = Payload<ValueType, NameType>;
 
 export type ChartConfig = Record<
@@ -49,7 +49,7 @@ function useChart() {
 	return context;
 }
 
-interface ChartContainerProps
+export interface ChartContainerProps
 	extends
 		Omit<ComponentProps<"div">, "children">,
 		Pick<

@@ -16,7 +16,7 @@ import { FieldError } from "@leuchtturm/web/components/ui/field";
 import { Input } from "@leuchtturm/web/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@leuchtturm/web/components/ui/popover";
 
-type DateInputProps = Omit<ComponentProps<"input">, "value" | "onChange"> & {
+export type DateInputProps = Omit<ComponentProps<"input">, "value" | "onChange"> & {
 	value?: Date;
 	onChange?: (newDate: Date | undefined) => void;
 	format?: string;

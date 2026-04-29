@@ -3,7 +3,7 @@ export type RequestLike = {
 	readonly url: string;
 };
 
-export interface RequestDetails {
+interface RequestDetails {
 	readonly host?: string;
 	readonly method: string;
 	readonly path: string;
@@ -20,7 +20,7 @@ const parseRequestUrl = (url: string) => {
 	}
 };
 
-export const describeRequest = (request: RequestLike): RequestDetails => {
+const describeRequest = (request: RequestLike): RequestDetails => {
 	const url = parseRequestUrl(request.url);
 
 	return {

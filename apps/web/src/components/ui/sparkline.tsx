@@ -2,7 +2,7 @@ import { ChartContainer, type ChartConfig } from "@leuchtturm/web/components/ui/
 import { RechartsBoundary, useRechartsModule } from "@leuchtturm/web/components/ui/recharts";
 import { cn } from "@leuchtturm/web/lib/cn";
 
-type SparklineProps = {
+export type SparklineProps = {
 	data: { value: number | null }[];
 	label?: string;
 	color?: string;

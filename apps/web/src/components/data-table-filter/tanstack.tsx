@@ -16,7 +16,7 @@ import type {
 	FiltersState,
 } from "@leuchtturm/web/components/data-table-filter/types";
 
-interface CreateTanStackColumnsOptions<TData> {
+export interface CreateTanStackColumnsOptions<TData> {
 	columns: ColumnDef<TData, any>[];
 	filterColumns: Column<TData>[];
 }

@@ -122,25 +122,6 @@ export type NumberColumnIds<T extends ReadonlyArray<ColumnConfig<any, any, any, 
 	[K in keyof T]: NumberColumnId<T[K]>;
 }[number];
 
-/*
- * Describes a helper function for creating column configurations.
- */
-export type ColumnConfigHelper<TData> = {
-	accessor: <
-		TAccessor extends TAccessorFn<TData>,
-		TType extends ColumnDataType,
-		TVal extends ReturnType<TAccessor>,
-	>(
-		accessor: TAccessor,
-		config?: Omit<ColumnConfig<TData, TType, TVal>, "accessor">,
-	) => ColumnConfig<TData, TType, unknown>;
-};
-
-export type DataTableFilterConfig<TData> = {
-	data: TData[];
-	columns: ColumnConfig<TData>[];
-};
-
 export type ColumnProperties<_TData, TVal> = {
 	getOptions: () => ColumnOption[];
 	getValues: () => ElementType<NonNullable<TVal>>[];

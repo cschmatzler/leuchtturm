@@ -1,0 +1,116 @@
+{
+	"ignoreDependencies": ["recharts"],
+	"ignorePatterns": [
+		"apps/web/src/components/ui/accordion.tsx",
+		"apps/web/src/components/ui/avatar.tsx",
+		"apps/web/src/components/ui/chart.tsx",
+		"apps/web/src/components/ui/combobox.tsx",
+		"apps/web/src/components/ui/date-input.tsx",
+		"apps/web/src/components/ui/recharts.tsx",
+		"apps/web/src/components/ui/sparkline.tsx",
+		"apps/web/src/components/ui/star-rating.tsx",
+		"apps/web/src/components/ui/switch.tsx",
+		"apps/web/src/components/ui/textarea.tsx",
+		"sst.config.ts"
+	],
+	"ignoreExports": [
+		{
+			"file": "apps/web/src/components/data-table-filter/filter-selector.tsx",
+			"exports": ["FilterableColumn", "QuickSearchFilters"]
+		},
+		{
+			"file": "apps/web/src/components/data-table-filter/filters.ts",
+			"exports": ["FilterBuilder"]
+		},
+		{
+			"file": "apps/web/src/components/data-table-filter/operators.ts",
+			"exports": ["optionFilterOperators", "multiOptionFilterOperators", "textFilterOperators"]
+		},
+		{
+			"file": "apps/web/src/components/ui/alert-dialog.tsx",
+			"exports": [
+				"AlertDialogMedia",
+				"AlertDialogOverlay",
+				"AlertDialogPortal",
+				"AlertDialogTrigger"
+			]
+		},
+		{
+			"file": "apps/web/src/components/ui/badge.tsx",
+			"exports": ["badgeVariants"]
+		},
+		{
+			"file": "apps/web/src/components/ui/breadcrumb.tsx",
+			"exports": ["BreadcrumbPage", "BreadcrumbEllipsis"]
+		},
+		{
+			"file": "apps/web/src/components/ui/calendar.tsx",
+			"exports": ["CalendarDayButton"]
+		},
+		{
+			"file": "apps/web/src/components/ui/card.tsx",
+			"exports": ["CardAction", "CardFooter"]
+		},
+		{
+			"file": "apps/web/src/components/ui/dialog.tsx",
+			"exports": ["DialogClose", "DialogOverlay", "DialogPortal", "DialogTrigger"]
+		},
+		{
+			"file": "apps/web/src/components/ui/empty.tsx",
+			"exports": ["EmptyHeader"]
+		},
+		{
+			"file": "apps/web/src/components/ui/field.tsx",
+			"exports": ["FieldLegend", "FieldSeparator", "FieldSet", "FieldContent", "FieldTitle"]
+		},
+		{
+			"file": "apps/web/src/components/ui/menu.tsx",
+			"exports": [
+				"MenuPortal",
+				"MenuGroup",
+				"MenuLabel",
+				"MenuRadioGroup",
+				"MenuRadioItem",
+				"MenuShortcut"
+			]
+		},
+		{
+			"file": "apps/web/src/components/ui/popover.tsx",
+			"exports": ["PopoverDescription", "PopoverHeader", "PopoverTitle"]
+		},
+		{
+			"file": "apps/web/src/components/ui/select.tsx",
+			"exports": [
+				"SelectLabel",
+				"SelectScrollDownButton",
+				"SelectScrollUpButton",
+				"SelectSeparator"
+			]
+		},
+		{
+			"file": "apps/web/src/components/ui/sheet.tsx",
+			"exports": ["SheetTrigger", "SheetClose", "SheetFooter"]
+		},
+		{
+			"file": "apps/web/src/components/ui/sidebar.tsx",
+			"exports": [
+				"SidebarFooter",
+				"SidebarGroupAction",
+				"SidebarInput",
+				"SidebarMenuAction",
+				"SidebarMenuBadge",
+				"SidebarMenuSkeleton",
+				"SidebarSeparator",
+				"useSidebar"
+			]
+		},
+		{
+			"file": "apps/web/src/components/ui/table.tsx",
+			"exports": ["TableCaption", "TableFooter"]
+		},
+		{
+			"file": "apps/web/src/components/ui/tabs.tsx",
+			"exports": ["tabsListVariants"]
+		}
+	]
+}

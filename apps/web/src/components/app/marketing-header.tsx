@@ -7,7 +7,7 @@ import { cn } from "@leuchtturm/web/lib/cn";
 import { useReactQuery } from "@leuchtturm/web/lib/query";
 import { sessionQuery } from "@leuchtturm/web/queries/session";
 
-type MarketingHeaderProps = {
+export type MarketingHeaderProps = {
 	variant?: "default" | "hero";
 };
 

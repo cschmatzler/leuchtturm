@@ -20,7 +20,7 @@ import {
 } from "@leuchtturm/web/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@leuchtturm/web/components/ui/popover";
 
-interface FilterOperatorProps<TData, TType extends ColumnDataType> {
+export interface FilterOperatorProps<TData, TType extends ColumnDataType> {
 	column: Column<TData, TType>;
 	filter: FilterModel<TType>;
 }
