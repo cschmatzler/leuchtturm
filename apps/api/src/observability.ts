@@ -1,9 +1,7 @@
+import { Layer } from "effect";
+
 import { Middleware as HttpMiddleware } from "@leuchtturm/api/observability/http-middleware";
-import {
-	logError as emitErrorLog,
-	logInfo as emitInfoLog,
-	logWarning as emitWarningLog,
-} from "@leuchtturm/api/observability/logging";
+import { layer as loggingLayer } from "@leuchtturm/api/observability/logging";
 import {
 	requestCount as apiRequestCount,
 	requestDuration as apiRequestDuration,
@@ -25,10 +23,6 @@ import {
 } from "@leuchtturm/api/observability/tracing";
 
 export namespace Observability {
-	export const logInfo = emitInfoLog;
-	export const logWarning = emitWarningLog;
-	export const logError = emitErrorLog;
-
 	export const requestCount = apiRequestCount;
 	export const requestErrorCount = apiRequestErrorCount;
 	export const requestDuration = apiRequestDuration;
@@ -42,7 +36,7 @@ export namespace Observability {
 	export const statusGroup = getStatusGroup;
 
 	export const Middleware = HttpMiddleware;
-	export const layer = tracingLayer;
+	export const layer = Layer.mergeAll(tracingLayer, loggingLayer);
 	export const traceServiceConfig = serviceTraceConfig;
 	export const traceExporterConfig = getTraceExporterConfig;
 }

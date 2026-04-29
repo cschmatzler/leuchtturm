@@ -6,7 +6,6 @@ import {
 	type HttpServerResponse,
 } from "effect/unstable/http";
 
-import { logError, logInfo, logWarning } from "@leuchtturm/api/observability/logging";
 import {
 	requestCount,
 	requestDuration,
@@ -59,16 +58,16 @@ const recordRequestResponse = (
 				}),
 				1,
 			);
-			yield* logError("API request failed", annotations);
+			yield* Effect.logError("API request failed").pipe(Effect.annotateLogs(annotations));
 			return;
 		}
 
 		if (response.status >= 400) {
-			yield* logWarning("API request completed", annotations);
+			yield* Effect.logWarning("API request completed").pipe(Effect.annotateLogs(annotations));
 			return;
 		}
 
-		yield* logInfo("API request completed", annotations);
+		yield* Effect.logInfo("API request completed").pipe(Effect.annotateLogs(annotations));
 	});
 
 export const Middleware = HttpMiddleware.make((app) =>

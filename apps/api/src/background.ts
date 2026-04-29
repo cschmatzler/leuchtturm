@@ -1,6 +1,5 @@
 import { Context, Effect, Fiber, Layer } from "effect";
 
-import { Observability } from "@leuchtturm/api/observability";
 import { RequestRuntime } from "@leuchtturm/api/request-runtime";
 
 export namespace BackgroundTasks {
@@ -13,7 +12,9 @@ export namespace BackgroundTasks {
 				attributes: { label },
 				kind: "internal",
 			}),
-			Effect.tapError(() => Observability.logError(`${label} failed`, { label })),
+			Effect.tapError(() =>
+				Effect.logError(`${label} failed`).pipe(Effect.annotateLogs({ label })),
+			),
 			Effect.forkDetach({ startImmediately: true }),
 		);
 

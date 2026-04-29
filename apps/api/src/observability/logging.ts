@@ -1,4 +1,4 @@
-import { Effect, Option, References } from "effect";
+import { Context, Effect, Logger, Option, References } from "effect";
 
 import { RequestContext } from "@leuchtturm/api/middleware/request-context";
 import { serviceName, serviceNamespace, getLogConfig } from "@leuchtturm/api/observability/config";
@@ -6,13 +6,9 @@ import { RequestRuntime } from "@leuchtturm/api/request-runtime";
 
 type JsonValue = null | boolean | number | string | JsonValue[] | { [key: string]: JsonValue };
 
-type LogLevel = "info" | "warn" | "error";
+type LogLevel = "debug" | "error" | "fatal" | "info" | "trace" | "warn";
 
-type LogEvent = {
-	readonly annotations?: Record<string, unknown>;
-	readonly level: LogLevel;
-	readonly message: string;
-};
+type Fetch = typeof fetch;
 
 const rawFetch = globalThis.fetch.bind(globalThis);
 const objectType = Object.prototype.toString;
@@ -62,7 +58,8 @@ const serializeLogValue = (value: unknown, depth = 0): JsonValue => {
 };
 
 const formatLogMessage = (message: unknown) => {
-	const serialized = serializeLogValue(message);
+	const value = Array.isArray(message) && message.length === 1 ? message[0] : message;
+	const serialized = serializeLogValue(value);
 
 	if (typeof serialized === "string") {
 		return serialized;
@@ -71,12 +68,19 @@ const formatLogMessage = (message: unknown) => {
 	return JSON.stringify(serialized);
 };
 
+const toLogLevel = (level: Logger.Options<unknown>["logLevel"]): LogLevel | undefined => {
+	if (level === "All" || level === "None") return undefined;
+	if (level === "Warn") return "warn";
+	return level.toLowerCase() as LogLevel;
+};
+
 const ingestPayload = async (
+	fetcher: Fetch,
 	config: ReturnType<typeof getLogConfig>,
 	payload: Record<string, unknown>,
 ) => {
 	try {
-		const response = await rawFetch(
+		const response = await fetcher(
 			`https://${config.domain}/v1/datasets/${config.dataset}/ingest`,
 			{
 				body: JSON.stringify([payload]),
@@ -105,33 +109,40 @@ const ingestPayload = async (
 	}
 };
 
-const emit = (event: LogEvent) =>
-	Effect.gen(function* () {
-		const config = getLogConfig();
+export const makeAxiomLogger = (
+	config: ReturnType<typeof getLogConfig>,
+	fetcher: Fetch = rawFetch,
+): Logger.Logger<unknown, void> =>
+	Logger.make((options) => {
+		const level = toLogLevel(options.logLevel);
+		if (!level) return;
+
+
 		const logAnnotations = Object.fromEntries(
-			Object.entries(yield* References.CurrentLogAnnotations).map(([key, value]) => [
+			Object.entries(options.fiber.getRef(References.CurrentLogAnnotations)).map(([key, value]) => [
 				key,
 				serializeLogValue(value),
 			]),
 		);
-		const currentSpan = yield* Effect.option(Effect.currentSpan);
-		const currentRequest = yield* Effect.serviceOption(RequestContext.Current);
-		const spanAnnotations = Option.isSome(currentSpan)
-			? {
-					...(currentSpan.value.attributes.has("error.original_cause")
-						? {
-								original_cause: serializeLogValue(
-									currentSpan.value.attributes.get("error.original_cause"),
-								),
-							}
-						: {}),
-					...(currentSpan.value.attributes.has("request.error")
-						? {
-								request_error: serializeLogValue(currentSpan.value.attributes.get("request.error")),
-							}
-						: {}),
-				}
-			: {};
+		const currentSpan = options.fiber.currentSpan;
+		const spanAnnotations =
+			currentSpan?._tag === "Span"
+				? {
+						...(currentSpan.attributes.has("error.original_cause")
+							? {
+									original_cause: serializeLogValue(
+										currentSpan.attributes.get("error.original_cause"),
+									),
+								}
+							: {}),
+						...(currentSpan.attributes.has("request.error")
+							? {
+									request_error: serializeLogValue(currentSpan.attributes.get("request.error")),
+								}
+							: {}),
+					}
+				: {};
+		const currentRequest = Context.getOption(options.fiber.context, RequestContext.Current);
 		const requestAnnotations = Option.isSome(currentRequest)
 			? {
 					method: currentRequest.value.method,
@@ -140,63 +151,47 @@ const emit = (event: LogEvent) =>
 				}
 			: {};
 		const logSpans = Object.fromEntries(
-			(yield* References.CurrentLogSpans)
-				.map(([label, startTime]) => [label, Date.now() - startTime] as const)
+			options.fiber
+				.getRef(References.CurrentLogSpans)
+				.map(([label, startTime]) => [label, options.date.getTime() - startTime] as const)
 				.filter(([, duration]) => Number.isFinite(duration)),
 		);
 		const mergedAnnotations = {
 			...requestAnnotations,
 			...spanAnnotations,
 			...logAnnotations,
-			...Object.fromEntries(
-				Object.entries(event.annotations ?? {}).map(([key, value]) => [
-					key,
-					serializeLogValue(value),
-				]),
-			),
 		};
 		const payload = {
-			_time: new Date().toISOString(),
-			level: event.level,
+			_time: options.date.toISOString(),
+			level,
 			log_spans: logSpans,
-			message: formatLogMessage(event.message),
+			message: formatLogMessage(options.message),
 			requestId:
 				mergedAnnotations.requestId ??
-				(Option.isSome(currentSpan)
-					? serializeLogValue(currentSpan.value.attributes.get("http.request.id"))
+				(currentSpan?._tag === "Span"
+					? serializeLogValue(currentSpan.attributes.get("http.request.id"))
 					: null),
 			service_name: serviceName,
 			service_namespace: serviceNamespace,
 			...mergedAnnotations,
-			...(Option.isSome(currentSpan)
+			...(currentSpan
 				? {
-						span_id: currentSpan.value.spanId,
-						trace_id: currentSpan.value.traceId,
+						span_id: currentSpan.spanId,
+						trace_id: currentSpan.traceId,
 					}
 				: {}),
 		};
+		const promise = ingestPayload(fetcher, config, payload);
+		const runtime = Context.getOption(options.fiber.context, RequestRuntime.Service);
 
-		yield* RequestRuntime.register(ingestPayload(config, payload));
-	});
-
-const log = (level: LogLevel, message: string, annotations: Record<string, unknown> = {}) =>
-	Effect.gen(function* () {
-		if (level === "error") {
-			yield* Effect.logError(message).pipe(Effect.annotateLogs(annotations));
-		} else if (level === "warn") {
-			yield* Effect.logWarning(message).pipe(Effect.annotateLogs(annotations));
-		} else {
-			yield* Effect.logInfo(message).pipe(Effect.annotateLogs(annotations));
+		if (Option.isSome(runtime) && runtime.value.waitUntil) {
+			runtime.value.waitUntil(promise);
+			return;
 		}
 
-		yield* emit({ annotations, level, message });
+		void promise;
 	});
 
-export const logInfo = (message: string, annotations: Record<string, unknown> = {}) =>
-	log("info", message, annotations);
-
-export const logWarning = (message: string, annotations: Record<string, unknown> = {}) =>
-	log("warn", message, annotations);
-
-export const logError = (message: string, annotations: Record<string, unknown> = {}) =>
-	log("error", message, annotations);
+export const layer = Logger.layer([makeAxiomLogger(getLogConfig())], {
+	mergeWithExisting: true,
+});
