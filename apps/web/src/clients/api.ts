@@ -17,7 +17,7 @@ type PromiseApi<T> = {
 };
 
 const effectApi = HttpApiClient.make(LeuchtturmApi, {
-	baseUrl: location.origin,
+	baseUrl: import.meta.env.VITE_API_URL,
 }).pipe(
 	Effect.scoped,
 	Effect.provide(

@@ -7,6 +7,7 @@ export const web = new sst.cloudflare.StaticSiteV2("Web", {
 	trailingSlash: "drop",
 	notFound: "single-page-application",
 	environment: {
+		VITE_API_URL: $interpolate`https://${appDomain}`,
 		VITE_POSTHOG_HOST: secrets.postHogHost.value,
 		VITE_POSTHOG_KEY: secrets.postHogProjectApiKey.value,
 		VITE_SYNC_URL: $interpolate`https://${syncDomain}`,
