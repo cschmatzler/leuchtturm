@@ -1,6 +1,6 @@
+import { DotsThreeIcon } from "@phosphor-icons/react";
 import { useDebouncedCallback } from "@tanstack/react-pacer";
 import { addDays, format, isEqual } from "date-fns";
-import { EllipsisIcon } from "lucide-react";
 import { cloneElement, isValidElement, memo, useCallback, useMemo, useState } from "react";
 import type { DateRange } from "react-day-picker";
 import { useTranslation } from "react-i18next";
@@ -195,18 +195,18 @@ function formatDateRange(startValue: unknown, endValue: unknown) {
 
 function FilterValueDateDisplay<TData>({ filter }: FilterValueDisplayProps<TData, "date">) {
 	if (!filter) return null;
-	if (filter.values.length === 0) return <EllipsisIcon className="size-4" />;
+	if (filter.values.length === 0) return <DotsThreeIcon className="size-4" />;
 	if (filter.values.length === 1) {
 		const single = formatDateValue(filter.values[0]);
 
-		if (!single) return <EllipsisIcon className="size-4" />;
+		if (!single) return <DotsThreeIcon className="size-4" />;
 
 		return <span>{single}</span>;
 	}
 
 	const formattedRangeStr = formatDateRange(filter.values[0], filter.values[1]);
 
-	if (!formattedRangeStr) return <EllipsisIcon className="size-4" />;
+	if (!formattedRangeStr) return <DotsThreeIcon className="size-4" />;
 
 	return <span>{formattedRangeStr}</span>;
 }
@@ -214,7 +214,7 @@ function FilterValueDateDisplay<TData>({ filter }: FilterValueDisplayProps<TData
 function FilterValueTextDisplay<TData>({ filter }: FilterValueDisplayProps<TData, "text">) {
 	if (!filter) return null;
 	if (filter.values.length === 0 || filter.values[0].trim() === "")
-		return <EllipsisIcon className="size-4" />;
+		return <DotsThreeIcon className="size-4" />;
 
 	const value = filter.values[0];
 

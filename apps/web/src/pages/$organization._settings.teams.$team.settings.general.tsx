@@ -1,7 +1,7 @@
+import { SpinnerIcon, TrashIcon } from "@phosphor-icons/react";
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Schema } from "effect";
-import { Loader2Icon, Trash2Icon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
@@ -134,7 +134,7 @@ function GeneralSettings(props: { readonly organization: string; readonly team: 
 						{([canSubmit, isSubmitting]) => (
 							<div className="flex justify-end">
 								<Button type="submit" disabled={!canSubmit || isSubmitting}>
-									{isSubmitting ? <Loader2Icon className="size-4 animate-spin" /> : t("Save")}
+									{isSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : t("Save")}
 								</Button>
 							</div>
 						)}
@@ -153,7 +153,7 @@ function GeneralSettings(props: { readonly organization: string; readonly team: 
 				</div>
 				<div className="mt-5">
 					<Button variant="destructive" onClick={() => void removeTeam()}>
-						<Trash2Icon className="size-4" />
+						<TrashIcon className="size-4" />
 						{t("Delete team")}
 					</Button>
 				</div>

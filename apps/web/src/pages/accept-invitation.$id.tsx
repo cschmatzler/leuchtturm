@@ -1,6 +1,6 @@
+import { CaretLeftIcon, SpinnerIcon } from "@phosphor-icons/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { ChevronLeftIcon, Loader2Icon } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -129,7 +129,7 @@ function Page() {
 		<div className="flex h-dvh w-dvw flex-col items-center gap-4 bg-background px-3 py-2">
 			<div className="flex w-full justify-between">
 				<Button onClick={() => navigate({ to: "/app" })} size="sm" variant="ghost">
-					<ChevronLeftIcon className="mr-2 size-3" />
+					<CaretLeftIcon className="mr-2 size-3" />
 					{t("Go back")}
 				</Button>
 			</div>
@@ -150,7 +150,7 @@ function Page() {
 								disabled={isSubmitting}
 								className="flex-1"
 							>
-								{isSubmitting ? <Loader2Icon className="size-4 animate-spin" /> : t("Accept")}
+								{isSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : t("Accept")}
 							</Button>
 							<Button type="button" variant="outline" onClick={handleReject} className="flex-1">
 								{t("Reject")}

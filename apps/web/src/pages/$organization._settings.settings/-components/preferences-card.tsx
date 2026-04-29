@@ -1,5 +1,5 @@
+import { SpinnerIcon } from "@phosphor-icons/react";
 import { useForm } from "@tanstack/react-form";
-import { Loader2Icon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
@@ -108,7 +108,7 @@ export function PreferencesCard() {
 					{(state) => (
 						<div className="flex justify-end">
 							<Button type="submit" disabled={!currentUser || !state.canSubmit}>
-								{state.isSubmitting ? <Loader2Icon className="size-4 animate-spin" /> : t("Save")}
+								{state.isSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : t("Save")}
 							</Button>
 						</div>
 					)}

@@ -1,5 +1,10 @@
+import {
+	ArrowRightIcon,
+	CompassIcon,
+	MagnifyingGlassIcon,
+	SparkleIcon,
+} from "@phosphor-icons/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRightIcon, CompassIcon, SearchIcon, SparklesIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -80,7 +85,7 @@ function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
 			<section className="relative mx-auto max-w-7xl px-6 pb-40 pt-28 md:pb-52 md:pt-36">
 				<div className="mx-auto max-w-3xl text-center">
 					<div className="animate-hero inline-flex items-center gap-2 rounded-full border border-background/10 bg-background/[0.06] px-4 py-1.5 text-xs font-medium tracking-wide text-background/60">
-						<SparklesIcon className="size-3" />
+						<SparkleIcon className="size-3" />
 						{t("Built for focus")}
 					</div>
 					<h1
@@ -160,7 +165,7 @@ function FeaturesSection() {
 					)}
 				/>
 				<FeatureCard
-					icon={<SparklesIcon className="size-5" />}
+					icon={<SparkleIcon className="size-5" />}
 					title={t("Automation")}
 					description={t(
 						"Automate repetitive tasks and spend more time on the work that actually matters.",
@@ -168,7 +173,7 @@ function FeaturesSection() {
 				/>
 				<FeatureCard
 					className="sm:col-span-2 lg:col-span-1"
-					icon={<SearchIcon className="size-5" />}
+					icon={<MagnifyingGlassIcon className="size-5" />}
 					title={t("Search")}
 					description={t("Find anything instantly with fast, reliable full-text search.")}
 				/>
@@ -352,7 +357,7 @@ function BrandLink({ accent = false }: { accent?: boolean }) {
 						: "flex size-8 items-center justify-center rounded-lg bg-background/15"
 				}
 			>
-				<SparklesIcon className="size-4" />
+				<SparkleIcon className="size-4" />
 			</div>
 			<span className="text-base font-semibold tracking-tight">Leuchtturm</span>
 		</Link>

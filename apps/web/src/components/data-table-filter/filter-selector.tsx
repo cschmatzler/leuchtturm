@@ -1,4 +1,4 @@
-import { ArrowRightIcon, ChevronRightIcon, FunnelIcon } from "lucide-react";
+import { ArrowRightIcon, CaretRightIcon, FunnelIcon } from "@phosphor-icons/react";
 import { Fragment, isValidElement, memo, useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -184,7 +184,7 @@ function QuickSearchFiltersComponent<TData>({ search }: { search?: string }) {
 										</div>
 										<div className="flex items-center gap-0.5">
 											<span className="text-muted-foreground">{column.displayName}</span>
-											<ChevronRightIcon className="text-muted-foreground/75 size-3.5" />
+											<CaretRightIcon className="text-muted-foreground/75 size-3.5" />
 											<span>
 												{v.label}
 												<sup

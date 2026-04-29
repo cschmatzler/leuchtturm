@@ -1,4 +1,4 @@
-import { Circle } from "lucide-react";
+import { Circle } from "@phosphor-icons/react";
 import { describe, expect, it } from "vite-plus/test";
 
 import {

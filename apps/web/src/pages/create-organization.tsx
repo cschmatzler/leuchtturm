@@ -1,8 +1,8 @@
+import { CaretDownIcon, SparkleIcon } from "@phosphor-icons/react";
 import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, redirect, useNavigate, useRouter } from "@tanstack/react-router";
 import { Schema } from "effect";
-import { ChevronDownIcon, SparklesIcon } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -110,13 +110,13 @@ function Page() {
 						className="flex items-center gap-2.5 font-medium transition-colors hover:text-primary"
 					>
 						<div className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-							<SparklesIcon className="size-4" />
+							<SparkleIcon className="size-4" />
 						</div>
 						<span className="text-base font-semibold">Leuchtturm</span>
 					</Link>
 					<DropdownMenu open={accountMenuOpen} onOpenChange={setAccountMenuOpen}>
 						<DropdownMenuTrigger render={<Button size="sm" variant="ghost" />}>
-							<ChevronDownIcon className="mr-2 size-3" />
+							<CaretDownIcon className="mr-2 size-3" />
 							{session.user.email}
 						</DropdownMenuTrigger>
 						<DropdownMenuContent>

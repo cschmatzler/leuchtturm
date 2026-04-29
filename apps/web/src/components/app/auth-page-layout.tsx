@@ -1,5 +1,5 @@
+import { SparkleIcon } from "@phosphor-icons/react";
 import { Link } from "@tanstack/react-router";
-import { SparklesIcon } from "lucide-react";
 import { type ReactNode } from "react";
 
 import { AuthSidePanel } from "@leuchtturm/web/components/app/auth-side-panel";
@@ -14,7 +14,7 @@ export function AuthPageLayout({ children }: { readonly children: ReactNode }) {
 						className="flex items-center gap-2.5 font-medium transition-colors hover:text-primary"
 					>
 						<div className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-							<SparklesIcon className="size-4" />
+							<SparkleIcon className="size-4" />
 						</div>
 						<span className="text-base font-semibold">Leuchtturm</span>
 					</Link>

@@ -1,4 +1,4 @@
-import { XIcon } from "lucide-react";
+import { XIcon } from "@phosphor-icons/react";
 import { memo, useEffect, useRef, useState, type ReactNode } from "react";
 
 import { useDataTableFilterContext } from "@leuchtturm/web/components/data-table-filter/context";

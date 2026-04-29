@@ -1,4 +1,4 @@
-import type { LucideIcon } from "lucide-react";
+import type { Icon } from "@phosphor-icons/react";
 
 import { isColumnOptionArray } from "@leuchtturm/web/components/data-table-filter/helpers";
 import type {
@@ -77,7 +77,7 @@ export class FilterBuilder<
 		return newInstance;
 	}
 
-	icon(value: LucideIcon): FilterBuilder<TData, TType, TVal, TId> {
+	icon(value: Icon): FilterBuilder<TData, TType, TVal, TId> {
 		const newInstance = this.clone();
 		newInstance.config.icon = value;
 		return newInstance;

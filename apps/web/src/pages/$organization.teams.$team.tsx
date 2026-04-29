@@ -1,5 +1,5 @@
+import { GearIcon, StackIcon } from "@phosphor-icons/react";
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
-import { CogIcon, LayersIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { AppHeader } from "@leuchtturm/web/components/app/app-header";
@@ -57,7 +57,7 @@ function TeamCommands({
 				title: t("Go to team"),
 				category: t("Team"),
 				global: true,
-				icon: LayersIcon,
+				icon: StackIcon,
 				disabled: teams.length === 0,
 				run() {
 					commandBar.show("select-team");
@@ -74,7 +74,7 @@ function TeamCommands({
 				title: t("Go to {{team}}", { team: team.name }),
 				value: team.id,
 				category: t("Team"),
-				icon: LayersIcon,
+				icon: StackIcon,
 				run() {
 					navigate({
 						to: "/$organization/teams/$team",
@@ -92,7 +92,7 @@ function TeamCommands({
 				title: t("Go to Team settings"),
 				category: t("Navigation"),
 				global: true,
-				icon: CogIcon,
+				icon: GearIcon,
 				run() {
 					navigate({
 						to: "/$organization/teams/$team/settings/general",

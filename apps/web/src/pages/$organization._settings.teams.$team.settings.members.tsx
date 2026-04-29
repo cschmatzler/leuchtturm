@@ -1,5 +1,5 @@
+import { PlusIcon, TrashIcon } from "@phosphor-icons/react";
 import { createFileRoute } from "@tanstack/react-router";
-import { PlusIcon, Trash2Icon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
@@ -99,7 +99,7 @@ function MembersSettings(props: { readonly team: string }) {
 												size="sm"
 												onClick={() => void removeMember(teamMember.userId)}
 											>
-												<Trash2Icon className="size-4" />
+												<TrashIcon className="size-4" />
 												{t("Remove")}
 											</Button>
 										) : null}

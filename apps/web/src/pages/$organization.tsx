@@ -1,7 +1,7 @@
+import { BuildingIcon, GearIcon, StackIcon, SignOutIcon, PlusIcon } from "@phosphor-icons/react";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Outlet, redirect, useNavigate } from "@tanstack/react-router";
-import { BuildingIcon, CogIcon, LayersIcon, LogOutIcon, PlusIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { ZeroProvider } from "@leuchtturm/web/contexts/zero";
@@ -80,7 +80,7 @@ function OrganizationCommands({ organization }: { readonly organization: string 
 				title: t("Log out"),
 				category: t("Account"),
 				global: true,
-				icon: LogOutIcon,
+				icon: SignOutIcon,
 				async run() {
 					await signOutCurrent();
 				},
@@ -89,7 +89,7 @@ function OrganizationCommands({ organization }: { readonly organization: string 
 				title: t("Log out of all accounts"),
 				category: t("Account"),
 				global: true,
-				icon: LogOutIcon,
+				icon: SignOutIcon,
 				disabled: (deviceSessions?.length ?? 0) < 2,
 				async run() {
 					await signOutAll();
@@ -154,7 +154,7 @@ function OrganizationCommands({ organization }: { readonly organization: string 
 				title: t("Create team"),
 				category: t("Team"),
 				global: true,
-				icon: LayersIcon,
+				icon: StackIcon,
 				run() {
 					navigate({
 						to: "/$organization/settings/teams",
@@ -174,7 +174,7 @@ function OrganizationCommands({ organization }: { readonly organization: string 
 				title: t("Go to Settings"),
 				category: t("Navigation"),
 				global: true,
-				icon: CogIcon,
+				icon: GearIcon,
 				run() {
 					navigate({ to: "/$organization/settings", params: { organization } });
 				},

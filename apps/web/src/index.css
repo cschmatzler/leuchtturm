@@ -1,8 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/noto-sans";
-@import "@fontsource-variable/playfair-display";
 @import "@fontsource-variable/geist";
 
 @custom-variant dark (&:is(.dark *));
@@ -159,7 +157,7 @@
 	--color-sidebar-border: var(--sidebar-border);
 	--color-sidebar-ring: var(--sidebar-ring);
 
-	--font-sans: 'Geist Variable', sans-serif;
+	--font-sans: "Geist Variable", sans-serif;
 	--font-mono: var(--font-mono);
 	--font-serif: var(--font-serif);
 

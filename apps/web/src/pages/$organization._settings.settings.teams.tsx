@@ -1,7 +1,7 @@
+import { SpinnerIcon, PlusIcon, GearIcon, TrashIcon } from "@phosphor-icons/react";
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, stripSearchParams, useNavigate } from "@tanstack/react-router";
 import { Effect, Schema } from "effect";
-import { Loader2Icon, PlusIcon, SettingsIcon, Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -178,7 +178,7 @@ function Page() {
 								<DialogFooter>
 									<Button type="submit" disabled={!canSubmit || isSubmitting}>
 										{isSubmitting ? (
-											<Loader2Icon className="size-4 animate-spin" />
+											<SpinnerIcon className="size-4 animate-spin" />
 										) : (
 											<PlusIcon className="size-4" />
 										)}
@@ -225,7 +225,7 @@ function Page() {
 													/>
 												}
 											>
-												<SettingsIcon className="size-4" />
+												<GearIcon className="size-4" />
 												{t("Settings")}
 											</Button>
 											<Button
@@ -233,7 +233,7 @@ function Page() {
 												size="sm"
 												onClick={() => setTeamPendingDeletion(team.id)}
 											>
-												<Trash2Icon className="size-4" />
+												<TrashIcon className="size-4" />
 												{t("Delete")}
 											</Button>
 										</div>
@@ -262,7 +262,7 @@ function Page() {
 												if (teamPendingDeletion) void removeTeam(teamPendingDeletion);
 											}}
 										>
-											{isDeletingTeam ? <Loader2Icon className="size-4 animate-spin" /> : null}
+											{isDeletingTeam ? <SpinnerIcon className="size-4 animate-spin" /> : null}
 											{t("Delete")}
 										</AlertDialogAction>
 									</AlertDialogFooter>

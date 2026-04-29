@@ -1,6 +1,6 @@
+import { ArrowSquareOutIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { ExternalLinkIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { api } from "@leuchtturm/web/clients/api";
@@ -59,7 +59,7 @@ function Page() {
 				<div className="mt-5">
 					<Button variant="outline" onClick={() => void openPortal()}>
 						{t("Manage billing")}
-						<ExternalLinkIcon className="ml-2 size-4" />
+						<ArrowSquareOutIcon className="ml-2 size-4" />
 					</Button>
 				</div>
 			</section>

@@ -1,6 +1,12 @@
+import {
+	CaretRightIcon,
+	CreditCardIcon,
+	StackIcon,
+	GearIcon,
+	UserIcon,
+} from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { getRouteApi } from "@tanstack/react-router";
-import { ChevronRightIcon, CreditCardIcon, LayersIcon, SettingsIcon, UserIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -63,7 +69,7 @@ export function SettingsSidebar({ organization }: { readonly organization: strin
 										<Link to="/$organization/settings/preferences" params={{ organization }} />
 									}
 								>
-									<SettingsIcon />
+									<GearIcon />
 									<span>{t("Preferences")}</span>
 								</SidebarMenuButton>
 							</SidebarMenuItem>
@@ -87,7 +93,7 @@ export function SettingsSidebar({ organization }: { readonly organization: strin
 								<SidebarMenuButton
 									render={<Link to="/$organization/settings/teams" params={{ organization }} />}
 								>
-									<LayersIcon />
+									<StackIcon />
 									<span>{t("Teams")}</span>
 								</SidebarMenuButton>
 							</SidebarMenuItem>
@@ -112,9 +118,9 @@ export function SettingsSidebar({ organization }: { readonly organization: strin
 									<Collapsible key={team.id}>
 										<SidebarMenuItem>
 											<CollapsibleTrigger render={<SidebarMenuButton className="group/team" />}>
-												<LayersIcon />
+												<StackIcon />
 												<span>{team.name}</span>
-												<ChevronRightIcon className="ml-auto transition-transform group-data-[panel-open]/team:rotate-90" />
+												<CaretRightIcon className="ml-auto transition-transform group-data-[panel-open]/team:rotate-90" />
 											</CollapsibleTrigger>
 											<CollapsibleContent>
 												<SidebarMenuSub>
@@ -127,7 +133,7 @@ export function SettingsSidebar({ organization }: { readonly organization: strin
 																/>
 															}
 														>
-															<SettingsIcon />
+															<GearIcon />
 															<span>{t("General")}</span>
 														</SidebarMenuSubButton>
 													</SidebarMenuSubItem>

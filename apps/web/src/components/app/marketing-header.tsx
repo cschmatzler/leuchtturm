@@ -1,5 +1,5 @@
+import { SparkleIcon } from "@phosphor-icons/react";
 import { Link } from "@tanstack/react-router";
-import { SparklesIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@leuchtturm/web/components/ui/button";
@@ -38,7 +38,7 @@ export function MarketingHeader({ variant = "default" }: MarketingHeaderProps) {
 							variant === "hero" && "size-8",
 						)}
 					>
-						<SparklesIcon
+						<SparkleIcon
 							className={cn(variant === "default" && "size-4", variant === "hero" && "size-4")}
 						/>
 					</div>

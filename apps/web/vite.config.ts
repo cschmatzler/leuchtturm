@@ -30,6 +30,6 @@ export default defineConfig({
 		__BUILD_HASH__: JSON.stringify(Date.now().toString(36)),
 	},
 	optimizeDeps: {
-		include: ["lucide-react"],
+		include: ["@phosphor-icons/react"],
 	},
 });

@@ -1,4 +1,4 @@
-import { StarIcon } from "lucide-react";
+import { StarIcon } from "@phosphor-icons/react";
 import { useTranslation } from "react-i18next";
 
 export function StarRating({ rating, size = "md" }: { rating: number; size?: "sm" | "md" }) {

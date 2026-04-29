@@ -1,3 +1,4 @@
+import { WarningCircleIcon } from "@phosphor-icons/react";
 import {
 	PostHogErrorBoundary,
 	type PostHogErrorBoundaryFallbackProps,
@@ -15,7 +16,6 @@ import {
 	useRouter,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
-import { AlertCircleIcon } from "lucide-react";
 import { useEffect } from "react";
 import { I18nextProvider, useTranslation } from "react-i18next";
 
@@ -34,7 +34,7 @@ function RootErrorView() {
 	return (
 		<div role="alert" className="flex min-h-svh w-full flex-col items-center justify-center gap-4">
 			<div className="flex size-14 items-center justify-center rounded-full bg-destructive/10">
-				<AlertCircleIcon className="text-destructive size-6" />
+				<WarningCircleIcon className="text-destructive size-6" />
 			</div>
 			<h1 className="text-xl font-semibold">{t("Something went wrong")}</h1>
 			<p className="text-muted-foreground max-w-md text-center text-sm">{t("Please try again.")}</p>

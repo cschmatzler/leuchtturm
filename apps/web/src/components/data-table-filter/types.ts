@@ -1,4 +1,4 @@
-import type { LucideIcon } from "lucide-react";
+import type { Icon } from "@phosphor-icons/react";
 
 /*
  * # GENERAL NOTES:
@@ -21,7 +21,7 @@ export interface ColumnOption {
 	/* The internal value of the option. */
 	value: string;
 	/* An optional icon to display next to the label. */
-	icon?: LucideIcon;
+	icon?: Icon;
 }
 
 export interface ColumnOptionExtended extends ColumnOption {
@@ -99,7 +99,7 @@ export type ColumnConfig<
 	id: TId;
 	accessor: TAccessorFn<TData, TVal>;
 	displayName: string;
-	icon: LucideIcon;
+	icon: Icon;
 	type: TType;
 	options?: TType extends OptionBasedColumnDataType ? ColumnOption[] : never;
 	facetedOptions?: TType extends OptionBasedColumnDataType ? Map<string, number> : never;

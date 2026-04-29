@@ -1,3 +1,11 @@
+import {
+	CalendarIcon,
+	SpinnerIcon,
+	EnvelopeIcon,
+	EnvelopeSimpleIcon,
+	ShieldIcon,
+	UserIcon,
+} from "@phosphor-icons/react";
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, stripSearchParams, useNavigate } from "@tanstack/react-router";
 import {
@@ -7,14 +15,6 @@ import {
 	type ColumnDef,
 } from "@tanstack/react-table";
 import { Effect, Schema } from "effect";
-import {
-	CalendarIcon,
-	Loader2Icon,
-	MailIcon,
-	MailPlusIcon,
-	ShieldIcon,
-	UserIcon,
-} from "lucide-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -135,7 +135,7 @@ function Page() {
 					id: "email",
 					accessor: (member) => member.user?.email ?? "",
 					displayName: t("Email"),
-					icon: MailIcon,
+					icon: EnvelopeIcon,
 					type: "text",
 				},
 				{
@@ -211,7 +211,7 @@ function Page() {
 					id: "email",
 					accessor: (invitation) => invitation.email,
 					displayName: t("Email"),
-					icon: MailIcon,
+					icon: EnvelopeIcon,
 					type: "text",
 				},
 				{
@@ -344,9 +344,9 @@ function Page() {
 								<DialogFooter>
 									<Button type="submit" disabled={!canSubmit || isSubmitting}>
 										{isSubmitting ? (
-											<Loader2Icon className="size-4 animate-spin" />
+											<SpinnerIcon className="size-4 animate-spin" />
 										) : (
-											<MailPlusIcon className="size-4" />
+											<EnvelopeSimpleIcon className="size-4" />
 										)}
 										{t("Invite member")}
 									</Button>
@@ -366,7 +366,7 @@ function Page() {
 						</p>
 					</div>
 					<Button type="button" onClick={() => setInviteDialogOpen(true)}>
-						<MailPlusIcon className="size-4" />
+						<EnvelopeSimpleIcon className="size-4" />
 						{t("Invite member")}
 					</Button>
 				</div>
@@ -394,7 +394,7 @@ function Page() {
 					filterColumns={invitationFilters.filterColumns}
 					filters={invitationFilters.filters}
 					actions={invitationFilters.actions}
-					emptyIcon={MailPlusIcon}
+					emptyIcon={EnvelopeSimpleIcon}
 					emptyRowName={t("invitations")}
 				/>
 			</section>

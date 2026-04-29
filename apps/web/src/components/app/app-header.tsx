@@ -1,15 +1,15 @@
-import { useQuery } from "@tanstack/react-query";
-import { useMatchRoute, useNavigate } from "@tanstack/react-router";
 import {
-	ArrowBigUpIcon,
-	ChevronDownIcon,
-	CogIcon,
-	LogOutIcon,
+	ArrowFatUpIcon,
+	CaretDownIcon,
+	GearIcon,
+	SignOutIcon,
 	OptionIcon,
 	PlusIcon,
-	SparklesIcon,
+	SparkleIcon,
 	UserIcon,
-} from "lucide-react";
+} from "@phosphor-icons/react";
+import { useQuery } from "@tanstack/react-query";
+import { useMatchRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -75,7 +75,7 @@ export function AppHeader({
 				aria-label="Leuchtturm"
 				className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-opacity hover:opacity-90"
 			>
-				<SparklesIcon className="size-4" />
+				<SparkleIcon className="size-4" />
 			</Link>
 			<div aria-hidden className="h-6 w-px shrink-0 bg-border" />
 
@@ -92,7 +92,7 @@ export function AppHeader({
 										<span className="truncate">
 											{currentOrganization?.name ?? t("Organization")}
 										</span>
-										<ChevronDownIcon className="size-4 shrink-0" />
+										<CaretDownIcon className="size-4 shrink-0" />
 									</BreadcrumbLink>
 								}
 							/>
@@ -137,7 +137,7 @@ export function AppHeader({
 												className="inline-flex max-w-48 items-center gap-1 text-foreground"
 											>
 												<span className="truncate">{activeTeam.name}</span>
-												<ChevronDownIcon className="size-4 shrink-0" />
+												<CaretDownIcon className="size-4 shrink-0" />
 											</BreadcrumbLink>
 										}
 									/>
@@ -188,7 +188,7 @@ export function AppHeader({
 						data-active={settingsActive ? true : undefined}
 						className="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground data-[active]:bg-accent data-[active]:text-accent-foreground"
 					>
-						<CogIcon className="size-4" />
+						<GearIcon className="size-4" />
 					</Link>
 				</nav>
 
@@ -247,7 +247,7 @@ export function AppHeader({
 								void signOutCurrent();
 							}}
 						>
-							<LogOutIcon />
+							<SignOutIcon />
 							<span>{t("Log out")}</span>
 							<div className="ml-auto">
 								<KbdGroup>
@@ -259,7 +259,7 @@ export function AppHeader({
 										)}
 									</Kbd>
 									<Kbd>
-										<ArrowBigUpIcon className="size-3" />
+										<ArrowFatUpIcon className="size-3" />
 									</Kbd>
 									<Kbd>Q</Kbd>
 								</KbdGroup>
@@ -271,7 +271,7 @@ export function AppHeader({
 									void signOutAll();
 								}}
 							>
-								<LogOutIcon />
+								<SignOutIcon />
 								<span>{t("Log out of all accounts")}</span>
 							</DropdownMenuItem>
 						)}

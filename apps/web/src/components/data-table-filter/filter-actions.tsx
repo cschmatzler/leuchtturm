@@ -1,4 +1,4 @@
-import { FunnelXIcon } from "lucide-react";
+import { FunnelXIcon } from "@phosphor-icons/react";
 import { memo } from "react";
 import { useTranslation } from "react-i18next";
 
