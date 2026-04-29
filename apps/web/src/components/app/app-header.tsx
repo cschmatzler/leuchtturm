@@ -10,7 +10,8 @@ import {
 } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { useMatchRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { Fragment, useEffect } from "react";
+import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 import { resolveLanguage } from "@leuchtturm/core/i18n";
@@ -19,6 +20,7 @@ import {
 	BreadcrumbItem,
 	BreadcrumbLink,
 	BreadcrumbList,
+	BreadcrumbPage,
 	BreadcrumbSeparator,
 } from "@leuchtturm/web/components/ui/breadcrumb";
 import {
@@ -40,9 +42,11 @@ import { organizationsQuery } from "@leuchtturm/web/queries/organizations";
 import { queries } from "@leuchtturm/zero/queries";
 
 export function AppHeader({
+	breadcrumbs,
 	organization,
 	team,
 }: {
+	readonly breadcrumbs?: readonly ReactNode[];
 	readonly organization: string;
 	readonly team?: string;
 }) {
@@ -174,6 +178,16 @@ export function AppHeader({
 							</BreadcrumbItem>
 						</>
 					)}
+
+					{breadcrumbs?.map((breadcrumb, index) => (
+						<Fragment key={index}>
+							<BreadcrumbSeparator />
+
+							<BreadcrumbItem>
+								<BreadcrumbPage>{breadcrumb}</BreadcrumbPage>
+							</BreadcrumbItem>
+						</Fragment>
+					))}
 				</BreadcrumbList>
 			</Breadcrumb>
 

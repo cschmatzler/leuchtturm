@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { createContext, useState } from "react";
 import type { CSSProperties } from "react";
+import { useTranslation } from "react-i18next";
 
 import { AppHeader } from "@leuchtturm/web/components/app/app-header";
 import { SettingsSidebar } from "@leuchtturm/web/components/app/settings-sidebar";
@@ -18,12 +19,13 @@ export const Route = createFileRoute("/$organization/_settings")({
 
 function SettingsLayout() {
 	const { organization } = Route.useParams();
+	const { t } = useTranslation();
 	const [team, setTeam] = useState<string>();
 
 	return (
 		<SettingsTeamContext.Provider value={setTeam}>
 			<div className="flex h-svh flex-col">
-				<AppHeader organization={organization} team={team} />
+				<AppHeader breadcrumbs={[t("Settings")]} organization={organization} team={team} />
 				<main id="main-content" className="min-h-0 grow bg-background">
 					<SidebarProvider
 						className="relative h-full min-h-0"
