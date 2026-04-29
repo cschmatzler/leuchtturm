@@ -17,10 +17,7 @@ export namespace BillingHandler {
 			organizationId,
 		);
 		if (!organization) {
-			return yield* new NotFoundError({
-				resource: "organization",
-				message: "Organization not found",
-			});
+			return yield* new NotFoundError({ resource: "organization" });
 		}
 
 		return organization;

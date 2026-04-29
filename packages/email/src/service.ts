@@ -7,8 +7,11 @@ export namespace Email {
 	export class EmailProviderRequestError extends Schema.TaggedErrorClass<EmailProviderRequestError>()(
 		"EmailProviderRequestError",
 		{ message: Schema.String },
-		{ httpApiStatus: 500 },
-	) {}
+	) {
+		constructor() {
+			super({ message: "Cloudflare Email request failed" });
+		}
+	}
 
 	export const EmailError = Schema.Union([EmailProviderRequestError]);
 
@@ -30,9 +33,7 @@ export namespace Email {
 					Effect.catchCause((cause) =>
 						Effect.gen(function* () {
 							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-							return yield* Effect.fail(
-								new EmailProviderRequestError({ message: "Cloudflare Email request failed" }),
-							);
+							return yield* Effect.fail(new EmailProviderRequestError());
 						}),
 					),
 				);

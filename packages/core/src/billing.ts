@@ -132,7 +132,7 @@ export namespace Billing {
 			};
 
 			const mapBillingFailure =
-				(message: string) =>
+				(operation: string) =>
 				(
 					cause: Cause.Cause<
 						typeof BillingError.Type | EffectDrizzleQueryError | EffectTransactionRollbackError
@@ -143,7 +143,7 @@ export namespace Billing {
 
 					return Effect.gen(function* () {
 						yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-						return yield* Effect.fail(new BillingPersistenceError({ message }));
+						return yield* Effect.fail(new BillingPersistenceError({ operation }));
 					});
 				};
 
@@ -160,7 +160,6 @@ export namespace Billing {
 							return yield* Effect.fail(
 								new BillingInvalidSnapshotError({
 									resource: "subscription",
-									message: "Invalid billing subscription snapshot",
 								}),
 							);
 						}),
@@ -192,7 +191,6 @@ export namespace Billing {
 								return yield* Effect.fail(
 									new BillingInvalidSnapshotError({
 										resource: "customer",
-										message: "Invalid billing customer snapshot",
 									}),
 								);
 							}),
@@ -249,14 +247,12 @@ export namespace Billing {
 				if (!externalId) {
 					return yield* new BillingMissingExternalOrganizationError({
 						resource,
-						message: `Polar ${resource} webhook payload is missing an external organization id`,
 					});
 				}
 
 				return yield* new BillingUnknownOrganizationError({
 					resource,
 					externalId,
-					message: `Polar ${resource} webhook references unknown local organization: ${externalId}`,
 				});
 			});
 
@@ -273,7 +269,6 @@ export namespace Billing {
 							return yield* Effect.fail(
 								new BillingPolarRequestError({
 									operation: `Unable to load Polar customer state for ${customerId}`,
-									message: `Polar request failed: Unable to load Polar customer state for ${customerId}`,
 								}),
 							);
 						}),
@@ -294,7 +289,6 @@ export namespace Billing {
 							return yield* Effect.fail(
 								new BillingPolarRequestError({
 									operation: `Unable to load Polar customer state for organization ${organizationId}`,
-									message: `Polar request failed: Unable to load Polar customer state for organization ${organizationId}`,
 								}),
 							);
 						}),
@@ -319,7 +313,6 @@ export namespace Billing {
 								return yield* Effect.fail(
 									new BillingOrganizationLookupError({
 										externalId,
-										message: `Failed to look up organization ${externalId}`,
 									}),
 								);
 							}),
@@ -360,7 +353,6 @@ export namespace Billing {
 							return yield* Effect.fail(
 								new BillingPolarRequestError({
 									operation: `Failed to create billing customer for organization ${params.organizationId}`,
-									message: `Polar request failed: Failed to create billing customer for organization ${params.organizationId}`,
 								}),
 							);
 						}),
@@ -393,7 +385,6 @@ export namespace Billing {
 							return yield* Effect.fail(
 								new BillingPolarRequestError({
 									operation: `Failed to update billing customer for organization ${params.organizationId}`,
-									message: `Polar request failed: Failed to update billing customer for organization ${params.organizationId}`,
 								}),
 							);
 						}),
@@ -431,7 +422,6 @@ export namespace Billing {
 							return yield* Effect.fail(
 								new BillingPolarRequestError({
 									operation: `Failed to create checkout for organization ${params.organizationId}`,
-									message: `Polar request failed: Failed to create checkout for organization ${params.organizationId}`,
 								}),
 							);
 						}),
@@ -459,7 +449,6 @@ export namespace Billing {
 							return yield* Effect.fail(
 								new BillingPolarRequestError({
 									operation: `Failed to create billing portal for organization ${params.organizationId}`,
-									message: `Polar request failed: Failed to create billing portal for organization ${params.organizationId}`,
 								}),
 							);
 						}),
@@ -554,25 +543,34 @@ export namespace Billing {
 												existingSubscription.polarCustomerId !== order.customerId
 											) {
 												return yield* new BillingSubscriptionOwnershipMismatchError({
-													message: `Polar order ${order.id} references subscription ${order.subscriptionId} with mismatched local ownership`,
+													kind: "local",
+													orderId: order.id,
+													subscriptionId: order.subscriptionId,
 												});
 											}
 										} else {
 											if (!order.subscription) {
 												return yield* new BillingMissingSubscriptionSnapshotError({
-													message: `Polar order ${order.id} references subscription ${order.subscriptionId} before its snapshot is available`,
+													orderId: order.id,
+													subscriptionId: order.subscriptionId,
 												});
 											}
 
 											if (order.subscription.id !== order.subscriptionId) {
 												return yield* new BillingSubscriptionReferenceMismatchError({
-													message: `Polar order ${order.id} embeds subscription ${order.subscription.id} but references ${order.subscriptionId}`,
+													orderId: order.id,
+													embeddedSubscriptionId: order.subscription.id,
+													referencedSubscriptionId: order.subscriptionId,
 												});
 											}
 
 											if (order.subscription.customerId !== order.customerId) {
 												return yield* new BillingSubscriptionOwnershipMismatchError({
-													message: `Polar order ${order.id} subscription customer ${order.subscription.customerId} does not match order customer ${order.customerId}`,
+													kind: "snapshot",
+													orderId: order.id,
+													subscriptionId: order.subscriptionId,
+													subscriptionCustomerId: order.subscription.customerId,
+													orderCustomerId: order.customerId,
 												});
 											}
 
@@ -640,7 +638,6 @@ export namespace Billing {
 											return yield* Effect.fail(
 												new BillingInvalidSnapshotError({
 													resource: "order",
-													message: "Invalid billing order snapshot",
 												}),
 											);
 										}),

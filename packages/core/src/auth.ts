@@ -22,6 +22,7 @@ import {
 	AuthDuplicateTeamNameError,
 	AuthInvitationEmailError,
 	AuthError,
+	AuthInvalidDeviceSessionsPayloadError,
 	AuthInvalidSessionPayloadError,
 	AuthInvalidOrganizationPayloadError,
 	AuthOrganizationLookupError,
@@ -111,11 +112,7 @@ export namespace Auth {
 										yield* Effect.annotateCurrentSpan({
 											"error.original_cause": Cause.pretty(cause),
 										});
-										return yield* Effect.fail(
-											new AuthPasswordResetEmailError({
-												message: "Failed to send password reset email",
-											}),
-										);
+										return yield* Effect.fail(new AuthPasswordResetEmailError());
 									}),
 								),
 							),
@@ -153,11 +150,7 @@ export namespace Auth {
 											yield* Effect.annotateCurrentSpan({
 												"error.original_cause": Cause.pretty(cause),
 											});
-											return yield* Effect.fail(
-												new AuthInvitationEmailError({
-													message: "Failed to send invitation email",
-												}),
-											);
+											return yield* Effect.fail(new AuthInvitationEmailError());
 										}),
 									),
 								),
@@ -214,9 +207,7 @@ export namespace Auth {
 											.limit(1);
 
 										if (existingTeam.length > 0) {
-											return yield* new AuthDuplicateTeamNameError({
-												message: "Team name already exists",
-											});
+											return yield* new AuthDuplicateTeamNameError();
 										}
 
 										return {
@@ -250,9 +241,7 @@ export namespace Auth {
 											.limit(1);
 
 										if (existingTeam.length > 0) {
-											return yield* new AuthDuplicateTeamNameError({
-												message: "Team name already exists",
-											});
+											return yield* new AuthDuplicateTeamNameError();
 										}
 
 										return {
@@ -324,9 +313,7 @@ export namespace Auth {
 					Effect.catchCause((cause) =>
 						Effect.gen(function* () {
 							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-							return yield* Effect.fail(
-								new AuthSessionLookupError({ message: "Auth session lookup failed" }),
-							);
+							return yield* Effect.fail(new AuthSessionLookupError());
 						}),
 					),
 					Effect.flatMap((session) =>
@@ -336,11 +323,7 @@ export namespace Auth {
 									yield* Effect.annotateCurrentSpan({
 										"error.original_cause": Cause.pretty(cause),
 									});
-									return yield* Effect.fail(
-										new AuthInvalidSessionPayloadError({
-											message: "Invalid auth session payload",
-										}),
-									);
+									return yield* Effect.fail(new AuthInvalidSessionPayloadError());
 								}),
 							),
 						),
@@ -363,9 +346,7 @@ export namespace Auth {
 					Effect.catchCause((cause) =>
 						Effect.gen(function* () {
 							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-							return yield* Effect.fail(
-								new AuthOrganizationLookupError({ message: "Auth organization lookup failed" }),
-							);
+							return yield* Effect.fail(new AuthOrganizationLookupError());
 						}),
 					),
 					Effect.flatMap((organization) =>
@@ -375,11 +356,7 @@ export namespace Auth {
 									yield* Effect.annotateCurrentSpan({
 										"error.original_cause": Cause.pretty(cause),
 									});
-									return yield* Effect.fail(
-										new AuthInvalidOrganizationPayloadError({
-											message: "Invalid auth organization payload",
-										}),
-									);
+									return yield* Effect.fail(new AuthInvalidOrganizationPayloadError());
 								}),
 							),
 						),
@@ -396,9 +373,7 @@ export namespace Auth {
 					Effect.catchCause((cause) =>
 						Effect.gen(function* () {
 							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-							return yield* Effect.fail(
-								new AuthDeviceSessionsListError({ message: "Auth device session list failed" }),
-							);
+							return yield* Effect.fail(new AuthDeviceSessionsListError());
 						}),
 					),
 					Effect.flatMap((deviceSessions) =>
@@ -408,11 +383,7 @@ export namespace Auth {
 									yield* Effect.annotateCurrentSpan({
 										"error.original_cause": Cause.pretty(cause),
 									});
-									return yield* Effect.fail(
-										new AuthInvalidSessionPayloadError({
-											message: "Invalid auth device sessions payload",
-										}),
-									);
+									return yield* Effect.fail(new AuthInvalidDeviceSessionsPayloadError());
 								}),
 							),
 						),

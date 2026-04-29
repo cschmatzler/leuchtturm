@@ -122,7 +122,7 @@ export function sendInvitationEmail<Success, SendError>(params: {
 					inviterName: params.inviterName,
 					organizationName: params.organizationName,
 				}),
-			catch: () => new EmailRenderError({ message: "Failed to render invitation email" }),
+			catch: () => new EmailRenderError({ template: "invitation" }),
 		});
 
 		yield* params.send({

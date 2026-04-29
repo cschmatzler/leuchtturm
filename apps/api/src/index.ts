@@ -116,9 +116,7 @@ namespace Api {
 										Effect.annotateLogs({ cause: prettyCause, url: request.url }),
 									);
 
-									return yield* Effect.fail(
-										new InternalServerError({ message: "API handler failed" }),
-									);
+									return yield* Effect.fail(new InternalServerError());
 								}),
 							),
 						);

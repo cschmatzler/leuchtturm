@@ -26,7 +26,7 @@ export namespace AuthHandler {
 					}
 
 					yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-					return yield* Effect.fail(new AuthHandlerError({ message: "Auth handler failed" }));
+					return yield* Effect.fail(new AuthHandlerError());
 				}),
 			),
 		);

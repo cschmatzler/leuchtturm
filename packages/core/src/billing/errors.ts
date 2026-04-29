@@ -6,14 +6,23 @@ export class BillingPolarRequestError extends Schema.TaggedErrorClass<BillingPol
 		operation: Schema.String,
 		message: Schema.String,
 	},
-	{ httpApiStatus: 500 },
-) {}
+) {
+	constructor(params: { readonly operation: string }) {
+		super({ ...params, message: `Polar request failed: ${params.operation}` });
+	}
+}
 
 export class BillingPersistenceError extends Schema.TaggedErrorClass<BillingPersistenceError>()(
 	"BillingPersistenceError",
-	{ message: Schema.String },
-	{ httpApiStatus: 500 },
-) {}
+	{
+		operation: Schema.String,
+		message: Schema.String,
+	},
+) {
+	constructor(params: { readonly operation: string }) {
+		super({ ...params, message: params.operation });
+	}
+}
 
 export class BillingInvalidSnapshotError extends Schema.TaggedErrorClass<BillingInvalidSnapshotError>()(
 	"BillingInvalidSnapshotError",
@@ -21,8 +30,11 @@ export class BillingInvalidSnapshotError extends Schema.TaggedErrorClass<Billing
 		resource: Schema.String,
 		message: Schema.String,
 	},
-	{ httpApiStatus: 500 },
-) {}
+) {
+	constructor(params: { readonly resource: string }) {
+		super({ ...params, message: `Invalid billing ${params.resource} snapshot` });
+	}
+}
 
 export class BillingMissingExternalOrganizationError extends Schema.TaggedErrorClass<BillingMissingExternalOrganizationError>()(
 	"BillingMissingExternalOrganizationError",
@@ -30,8 +42,14 @@ export class BillingMissingExternalOrganizationError extends Schema.TaggedErrorC
 		resource: Schema.String,
 		message: Schema.String,
 	},
-	{ httpApiStatus: 500 },
-) {}
+) {
+	constructor(params: { readonly resource: string }) {
+		super({
+			...params,
+			message: `Polar ${params.resource} webhook payload is missing an external organization id`,
+		});
+	}
+}
 
 export class BillingUnknownOrganizationError extends Schema.TaggedErrorClass<BillingUnknownOrganizationError>()(
 	"BillingUnknownOrganizationError",
@@ -40,8 +58,14 @@ export class BillingUnknownOrganizationError extends Schema.TaggedErrorClass<Bil
 		externalId: Schema.String,
 		message: Schema.String,
 	},
-	{ httpApiStatus: 500 },
-) {}
+) {
+	constructor(params: { readonly resource: string; readonly externalId: string }) {
+		super({
+			...params,
+			message: `Polar ${params.resource} webhook references unknown local organization: ${params.externalId}`,
+		});
+	}
+}
 
 export class BillingOrganizationLookupError extends Schema.TaggedErrorClass<BillingOrganizationLookupError>()(
 	"BillingOrganizationLookupError",
@@ -49,26 +73,84 @@ export class BillingOrganizationLookupError extends Schema.TaggedErrorClass<Bill
 		externalId: Schema.String,
 		message: Schema.String,
 	},
-	{ httpApiStatus: 500 },
-) {}
+) {
+	constructor(params: { readonly externalId: string }) {
+		super({ ...params, message: `Failed to look up organization ${params.externalId}` });
+	}
+}
 
 export class BillingSubscriptionOwnershipMismatchError extends Schema.TaggedErrorClass<BillingSubscriptionOwnershipMismatchError>()(
 	"BillingSubscriptionOwnershipMismatchError",
-	{ message: Schema.String },
-	{ httpApiStatus: 500 },
-) {}
+	{
+		orderId: Schema.String,
+		subscriptionId: Schema.String,
+		subscriptionCustomerId: Schema.optional(Schema.String),
+		orderCustomerId: Schema.optional(Schema.String),
+		message: Schema.String,
+	},
+) {
+	constructor(
+		params: {
+			readonly orderId: string;
+			readonly subscriptionId: string;
+		} & (
+			| {
+					readonly kind: "local";
+			  }
+			| {
+					readonly kind: "snapshot";
+					readonly subscriptionCustomerId: string;
+					readonly orderCustomerId: string;
+			  }
+		),
+	) {
+		const { kind: _, ...fields } = params;
+		super({
+			...fields,
+			message:
+				params.kind === "local"
+					? `Polar order ${params.orderId} references subscription ${params.subscriptionId} with mismatched local ownership`
+					: `Polar order ${params.orderId} subscription customer ${params.subscriptionCustomerId} does not match order customer ${params.orderCustomerId}`,
+		});
+	}
+}
 
 export class BillingMissingSubscriptionSnapshotError extends Schema.TaggedErrorClass<BillingMissingSubscriptionSnapshotError>()(
 	"BillingMissingSubscriptionSnapshotError",
-	{ message: Schema.String },
-	{ httpApiStatus: 500 },
-) {}
+	{
+		orderId: Schema.String,
+		subscriptionId: Schema.String,
+		message: Schema.String,
+	},
+) {
+	constructor(params: { readonly orderId: string; readonly subscriptionId: string }) {
+		super({
+			...params,
+			message: `Polar order ${params.orderId} references subscription ${params.subscriptionId} before its snapshot is available`,
+		});
+	}
+}
 
 export class BillingSubscriptionReferenceMismatchError extends Schema.TaggedErrorClass<BillingSubscriptionReferenceMismatchError>()(
 	"BillingSubscriptionReferenceMismatchError",
-	{ message: Schema.String },
-	{ httpApiStatus: 500 },
-) {}
+	{
+		orderId: Schema.String,
+		embeddedSubscriptionId: Schema.String,
+		referencedSubscriptionId: Schema.String,
+		message: Schema.String,
+	},
+) {
+	constructor(params: {
+		readonly orderId: string;
+		readonly embeddedSubscriptionId: string;
+		readonly referencedSubscriptionId: string;
+	}) {
+		super({
+			...params,
+			message: `Polar order ${params.orderId} embeds subscription ${params.embeddedSubscriptionId} but references ${params.referencedSubscriptionId}`,
+		});
+	}
+}
 
 export const BillingErrors = [
 	BillingPolarRequestError,

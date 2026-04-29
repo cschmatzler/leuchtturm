@@ -6,15 +6,33 @@ import { ApiConfig } from "@leuchtturm/api/config";
 export namespace FeatureFlags {
 	export class FeatureFlagProviderRequestError extends Schema.TaggedErrorClass<FeatureFlagProviderRequestError>()(
 		"FeatureFlagProviderRequestError",
-		{ message: Schema.String },
+		{
+			operation: Schema.String,
+			message: Schema.String,
+		},
 		{ httpApiStatus: 500 },
-	) {}
+	) {
+		constructor(params: { readonly operation: string }) {
+			super({ ...params, message: `PostHog request failed: ${params.operation}` });
+		}
+	}
 
 	export class FeatureFlagMissingEvaluationError extends Schema.TaggedErrorClass<FeatureFlagMissingEvaluationError>()(
 		"FeatureFlagMissingEvaluationError",
-		{ message: Schema.String },
+		{
+			key: Schema.String,
+			userId: Schema.String,
+			message: Schema.String,
+		},
 		{ httpApiStatus: 500 },
-	) {}
+	) {
+		constructor(params: { readonly key: string; readonly userId: string }) {
+			super({
+				...params,
+				message: `PostHog returned no feature flag evaluation result for ${params.key} and user ${params.userId}`,
+			});
+		}
+	}
 
 	export const FeatureFlagsError = Schema.Union([
 		FeatureFlagProviderRequestError,
@@ -65,7 +83,7 @@ export namespace FeatureFlags {
 									});
 									return yield* Effect.fail(
 										new FeatureFlagProviderRequestError({
-											message: `Failed to evaluate PostHog feature flag ${key} for user ${userId}`,
+											operation: `Failed to evaluate feature flag ${key} for user ${userId}`,
 										}),
 									);
 								}),
@@ -74,7 +92,8 @@ export namespace FeatureFlags {
 
 						if (enabled === undefined) {
 							return yield* new FeatureFlagMissingEvaluationError({
-								message: `PostHog returned no feature flag evaluation result for ${key} and user ${userId}`,
+								key,
+								userId,
 							});
 						}
 
@@ -92,7 +111,7 @@ export namespace FeatureFlags {
 								});
 								return yield* Effect.fail(
 									new FeatureFlagProviderRequestError({
-										message: `Failed to list PostHog feature flags for user ${userId}`,
+										operation: `Failed to list feature flags for user ${userId}`,
 									}),
 								);
 							}),

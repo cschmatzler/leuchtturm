@@ -23,9 +23,7 @@ export namespace HealthHandler {
 					);
 
 					return yield* Effect.fail(
-						new DatabaseError({
-							message: "Health database check failed",
-						}),
+						new DatabaseError({ operation: "Health database check failed" }),
 					);
 				}),
 			),

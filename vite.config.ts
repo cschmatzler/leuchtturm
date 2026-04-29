@@ -23,6 +23,7 @@ export default defineConfig({
 			"./packages/oxlint-plugins/src/no-direct-fetch.ts",
 			"./packages/oxlint-plugins/src/no-effect-try-helper.ts",
 			"./packages/oxlint-plugins/src/no-generic-domain-error-class.ts",
+			"./packages/oxlint-plugins/src/no-http-status-in-core.ts",
 			"./packages/oxlint-plugins/src/no-live-suffix.ts",
 			"./packages/oxlint-plugins/src/no-local-effect-callback-wrapper.ts",
 			"./packages/oxlint-plugins/src/no-local-web-schema.ts",
@@ -45,6 +46,7 @@ export default defineConfig({
 			"no-api-response-schema-in-core/no-api-response-schema-in-core": "error",
 			"no-effect-try-helper/no-effect-try-helper": "error",
 			"no-generic-domain-error-class/no-generic-domain-error-class": "error",
+			"no-http-status-in-core/no-http-status-in-core": "error",
 			"no-live-suffix/no-live-suffix": "error",
 			"no-local-effect-callback-wrapper/no-local-effect-callback-wrapper": "error",
 			"no-local-web-schema/no-local-web-schema": "error",
@@ -78,6 +80,9 @@ export default defineConfig({
 					root: "./apps/web",
 					environment: "happy-dom",
 					include: ["src/**/*.test.{ts,tsx}"],
+					env: {
+						VITE_API_URL: "http://localhost:3000",
+					},
 				},
 			},
 			{

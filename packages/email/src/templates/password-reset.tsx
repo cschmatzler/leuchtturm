@@ -109,7 +109,7 @@ export function sendPasswordResetEmail<Success, SendError>(params: {
 	return Effect.gen(function* () {
 		const { html, text } = yield* Effect.tryPromise({
 			try: () => renderPasswordResetEmail({ resetUrl: params.resetUrl, userName: params.userName }),
-			catch: () => new EmailRenderError({ message: "Failed to render password reset email" }),
+			catch: () => new EmailRenderError({ template: "password reset" }),
 		});
 
 		yield* params.send({

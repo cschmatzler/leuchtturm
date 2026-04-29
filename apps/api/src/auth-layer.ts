@@ -22,7 +22,7 @@ const run = Effect.fn("AuthMiddleware.run")(function* <E, R>(
 		);
 
 	if (!currentUser) {
-		return yield* Effect.fail(new UnauthorizedError({ message: "Unauthorized" }));
+		return yield* Effect.fail(new UnauthorizedError());
 	}
 
 	return yield* httpApp.pipe(Effect.provideService(AuthMiddleware.CurrentUser, currentUser));

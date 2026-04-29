@@ -34,7 +34,7 @@ export namespace ZeroHandler {
 			Effect.catchCause((cause) =>
 				Effect.gen(function* () {
 					yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-					return yield* Effect.fail(new DatabaseError({ message: "Query execution failed" }));
+					return yield* Effect.fail(new DatabaseError({ operation: "Query execution failed" }));
 				}),
 			),
 		);
@@ -68,7 +68,7 @@ export namespace ZeroHandler {
 			Effect.catchCause((cause) =>
 				Effect.gen(function* () {
 					yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-					return yield* Effect.fail(new DatabaseError({ message: "Mutation execution failed" }));
+					return yield* Effect.fail(new DatabaseError({ operation: "Mutation execution failed" }));
 				}),
 			),
 		);

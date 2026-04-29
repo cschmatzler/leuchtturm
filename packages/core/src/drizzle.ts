@@ -54,7 +54,7 @@ export namespace Database {
 							Effect.gen(function* () {
 								yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
 								return yield* Effect.fail(
-									new DatabaseError({ message: "Failed to connect raw Postgres client" }),
+									new DatabaseError({ operation: "Failed to connect raw Postgres client" }),
 								);
 							}),
 						),
@@ -71,7 +71,7 @@ export namespace Database {
 						Effect.gen(function* () {
 							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
 							return yield* Effect.fail(
-								new DatabaseError({ message: "Failed to connect Effect Postgres client" }),
+								new DatabaseError({ operation: "Failed to connect Effect Postgres client" }),
 							);
 						}),
 					),

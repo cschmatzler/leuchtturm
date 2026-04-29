@@ -14,6 +14,12 @@ export type EmailSender<Success, SendError> = (
 
 export class EmailRenderError extends Schema.TaggedErrorClass<EmailRenderError>()(
 	"EmailRenderError",
-	{ message: Schema.String },
-	{ httpApiStatus: 500 },
-) {}
+	{
+		template: Schema.String,
+		message: Schema.String,
+	},
+) {
+	constructor(params: { readonly template: string }) {
+		super({ ...params, message: `Failed to render ${params.template} email` });
+	}
+}
