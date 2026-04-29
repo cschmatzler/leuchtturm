@@ -1,19 +1,18 @@
-import type { ComponentProps } from "react";
+import * as React from "react"
 
-import { cn } from "@leuchtturm/web/lib/cn";
+import { cn } from "@leuchtturm/web/lib/utils"
 
-function Textarea({ className, ...props }: ComponentProps<"textarea">) {
-	return (
-		<textarea
-			data-slot="textarea"
-			className={cn(
-				"placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground border border-border min-h-20 w-full min-w-0 rounded bg-background px-3 py-2 text-base shadow-xs outline-none transition-[color,box-shadow] disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-primary focus-visible:ring-0 focus-visible:shadow-md",
-				"aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
-				className,
-			)}
-			{...props}
-		/>
-	);
+function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
+  return (
+    <textarea
+      data-slot="textarea"
+      className={cn(
+        "flex field-sizing-content min-h-16 w-full resize-none rounded-none border border-transparent border-b-input bg-transparent px-0 py-3 text-base transition-[color,border-color] outline-none placeholder:text-muted-foreground focus-visible:border-b-ring disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-b-destructive md:text-sm dark:aria-invalid:border-b-destructive/50",
+        className
+      )}
+      {...props}
+    />
+  )
 }
 
-export { Textarea };
+export { Textarea }

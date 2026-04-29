@@ -10,16 +10,16 @@ import { Organization } from "@leuchtturm/core/auth/schema";
 import { authClient } from "@leuchtturm/web/clients/auth";
 import { AuthSidePanel } from "@leuchtturm/web/components/app/auth-side-panel";
 import { Button } from "@leuchtturm/web/components/ui/button";
+import {
+	DropdownMenu,
+	DropdownMenuCheckboxItem,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@leuchtturm/web/components/ui/dropdown-menu";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@leuchtturm/web/components/ui/field";
 import { Input } from "@leuchtturm/web/components/ui/input";
-import {
-	Menu,
-	MenuCheckboxItem,
-	MenuContent,
-	MenuItem,
-	MenuSeparator,
-	MenuTrigger,
-} from "@leuchtturm/web/components/ui/menu";
 import { useAuth } from "@leuchtturm/web/hooks/use-auth";
 import { organizationsQuery } from "@leuchtturm/web/queries/organizations";
 import { sessionQuery } from "@leuchtturm/web/queries/session";
@@ -114,14 +114,14 @@ function Page() {
 						</div>
 						<span className="text-base font-semibold">Leuchtturm</span>
 					</Link>
-					<Menu open={accountMenuOpen} onOpenChange={setAccountMenuOpen}>
-						<MenuTrigger render={<Button size="sm" variant="ghost" />}>
+					<DropdownMenu open={accountMenuOpen} onOpenChange={setAccountMenuOpen}>
+						<DropdownMenuTrigger render={<Button size="sm" variant="ghost" />}>
 							<ChevronDownIcon className="mr-2 size-3" />
 							{session.user.email}
-						</MenuTrigger>
-						<MenuContent>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent>
 							{deviceSessions?.map((deviceSession) => (
-								<MenuCheckboxItem
+								<DropdownMenuCheckboxItem
 									key={deviceSession.session.id}
 									checked={deviceSession.session.token === session.session.token}
 									onClick={async () => {
@@ -130,25 +130,25 @@ function Page() {
 									}}
 								>
 									{deviceSession.user.email}
-								</MenuCheckboxItem>
+								</DropdownMenuCheckboxItem>
 							))}
-							<MenuSeparator />
-							<MenuItem
+							<DropdownMenuSeparator />
+							<DropdownMenuItem
 								onClick={() => {
 									void navigate({ to: "/login" });
 								}}
 							>
 								{t("Add account")}
-							</MenuItem>
-							<MenuItem
+							</DropdownMenuItem>
+							<DropdownMenuItem
 								onClick={() => {
 									void signOutCurrent();
 								}}
 							>
 								{t("Log out")}
-							</MenuItem>
-						</MenuContent>
-					</Menu>
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
 				</div>
 				<div className="flex flex-1 items-center justify-center">
 					<div className="w-full max-w-md">

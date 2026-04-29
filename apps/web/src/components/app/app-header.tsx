@@ -21,19 +21,19 @@ import {
 	BreadcrumbList,
 	BreadcrumbSeparator,
 } from "@leuchtturm/web/components/ui/breadcrumb";
+import {
+	DropdownMenu,
+	DropdownMenuCheckboxItem,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuSub,
+	DropdownMenuSubContent,
+	DropdownMenuSubTrigger,
+	DropdownMenuTrigger,
+} from "@leuchtturm/web/components/ui/dropdown-menu";
 import { Kbd, KbdGroup } from "@leuchtturm/web/components/ui/kbd";
 import { Link } from "@leuchtturm/web/components/ui/link";
-import {
-	Menu,
-	MenuCheckboxItem,
-	MenuContent,
-	MenuItem,
-	MenuSeparator,
-	MenuSub,
-	MenuSubContent,
-	MenuSubTrigger,
-	MenuTrigger,
-} from "@leuchtturm/web/components/ui/menu";
 import { useAuth } from "@leuchtturm/web/hooks/use-auth";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { organizationsQuery } from "@leuchtturm/web/queries/organizations";
@@ -82,8 +82,8 @@ export function AppHeader({
 			<Breadcrumb aria-label={t("Workspace")} className="min-w-0">
 				<BreadcrumbList className="flex-nowrap gap-1 sm:gap-1">
 					<BreadcrumbItem>
-						<Menu>
-							<MenuTrigger
+						<DropdownMenu>
+							<DropdownMenuTrigger
 								render={
 									<BreadcrumbLink
 										render={<button type="button" />}
@@ -96,9 +96,9 @@ export function AppHeader({
 									</BreadcrumbLink>
 								}
 							/>
-							<MenuContent align="start" className="min-w-56">
+							<DropdownMenuContent align="start" className="min-w-56">
 								{organizations?.map((item) => (
-									<MenuCheckboxItem
+									<DropdownMenuCheckboxItem
 										key={item.id}
 										checked={item.slug === organization}
 										onClick={() => {
@@ -109,19 +109,19 @@ export function AppHeader({
 										}}
 									>
 										{item.name}
-									</MenuCheckboxItem>
+									</DropdownMenuCheckboxItem>
 								))}
-								<MenuSeparator />
-								<MenuItem
+								<DropdownMenuSeparator />
+								<DropdownMenuItem
 									onClick={() => {
 										void navigate({ to: "/create-organization" });
 									}}
 								>
 									<PlusIcon />
 									<span>{t("Create organization")}</span>
-								</MenuItem>
-							</MenuContent>
-						</Menu>
+								</DropdownMenuItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
 					</BreadcrumbItem>
 
 					{activeTeam && (
@@ -129,8 +129,8 @@ export function AppHeader({
 							<BreadcrumbSeparator />
 
 							<BreadcrumbItem>
-								<Menu>
-									<MenuTrigger
+								<DropdownMenu>
+									<DropdownMenuTrigger
 										render={
 											<BreadcrumbLink
 												render={<button type="button" />}
@@ -141,9 +141,9 @@ export function AppHeader({
 											</BreadcrumbLink>
 										}
 									/>
-									<MenuContent align="start" className="min-w-56">
+									<DropdownMenuContent align="start" className="min-w-56">
 										{teams.map((team) => (
-											<MenuCheckboxItem
+											<DropdownMenuCheckboxItem
 												key={team.id}
 												checked={team.id === activeTeam.id}
 												onClick={() => {
@@ -154,10 +154,10 @@ export function AppHeader({
 												}}
 											>
 												{team.name}
-											</MenuCheckboxItem>
+											</DropdownMenuCheckboxItem>
 										))}
-										<MenuSeparator />
-										<MenuItem
+										<DropdownMenuSeparator />
+										<DropdownMenuItem
 											onClick={() => {
 												void navigate({
 													to: "/$organization/settings/teams",
@@ -168,9 +168,9 @@ export function AppHeader({
 										>
 											<PlusIcon />
 											<span>{t("Create team")}</span>
-										</MenuItem>
-									</MenuContent>
-								</Menu>
+										</DropdownMenuItem>
+									</DropdownMenuContent>
+								</DropdownMenu>
 							</BreadcrumbItem>
 						</>
 					)}
@@ -194,8 +194,8 @@ export function AppHeader({
 
 				<div aria-hidden className="mx-1 h-6 w-px shrink-0 bg-border" />
 
-				<Menu>
-					<MenuTrigger
+				<DropdownMenu>
+					<DropdownMenuTrigger
 						render={
 							<button
 								type="button"
@@ -206,19 +206,19 @@ export function AppHeader({
 							</button>
 						}
 					/>
-					<MenuContent align="end" className="min-w-64">
+					<DropdownMenuContent align="end" className="min-w-64">
 						<div className="px-2 py-1.5">
 							<p className="text-sm font-medium">{currentUser?.name}</p>
 							<p className="text-xs text-muted-foreground">{currentUser?.email}</p>
 						</div>
-						<MenuSeparator />
+						<DropdownMenuSeparator />
 						{deviceSessions && deviceSessions.length > 1 && (
 							<>
-								<MenuSub>
-									<MenuSubTrigger>{t("Switch account")}</MenuSubTrigger>
-									<MenuSubContent>
+								<DropdownMenuSub>
+									<DropdownMenuSubTrigger>{t("Switch account")}</DropdownMenuSubTrigger>
+									<DropdownMenuSubContent>
 										{deviceSessions.map((deviceSession) => (
-											<MenuCheckboxItem
+											<DropdownMenuCheckboxItem
 												key={deviceSession.session.id}
 												checked={deviceSession.session.token === session?.session.token}
 												onClick={() => {
@@ -226,23 +226,23 @@ export function AppHeader({
 												}}
 											>
 												{deviceSession.user.email}
-											</MenuCheckboxItem>
+											</DropdownMenuCheckboxItem>
 										))}
-									</MenuSubContent>
-								</MenuSub>
-								<MenuSeparator />
+									</DropdownMenuSubContent>
+								</DropdownMenuSub>
+								<DropdownMenuSeparator />
 							</>
 						)}
-						<MenuItem
+						<DropdownMenuItem
 							onClick={() => {
 								void navigate({ to: "/login" });
 							}}
 						>
 							<PlusIcon />
 							<span>{t("Add another account")}</span>
-						</MenuItem>
-						<MenuSeparator />
-						<MenuItem
+						</DropdownMenuItem>
+						<DropdownMenuSeparator />
+						<DropdownMenuItem
 							onClick={() => {
 								void signOutCurrent();
 							}}
@@ -264,19 +264,19 @@ export function AppHeader({
 									<Kbd>Q</Kbd>
 								</KbdGroup>
 							</div>
-						</MenuItem>
+						</DropdownMenuItem>
 						{deviceSessions && deviceSessions.length > 1 && (
-							<MenuItem
+							<DropdownMenuItem
 								onClick={() => {
 									void signOutAll();
 								}}
 							>
 								<LogOutIcon />
 								<span>{t("Log out of all accounts")}</span>
-							</MenuItem>
+							</DropdownMenuItem>
 						)}
-					</MenuContent>
-				</Menu>
+					</DropdownMenuContent>
+				</DropdownMenu>
 			</div>
 		</header>
 	);

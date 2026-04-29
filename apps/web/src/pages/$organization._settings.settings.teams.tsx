@@ -217,6 +217,7 @@ function Page() {
 											<Button
 												variant="outline"
 												size="sm"
+												nativeButton={false}
 												render={
 													<Link
 														to="/$organization/teams/$team/settings/general"

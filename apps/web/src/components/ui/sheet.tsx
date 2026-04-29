@@ -1,32 +1,34 @@
-import { Dialog as BaseSheet } from "@base-ui/react/dialog";
+"use client";
+
+import { Dialog as SheetPrimitive } from "@base-ui/react/dialog";
 import { XIcon } from "lucide-react";
-import type { ComponentProps } from "react";
+import * as React from "react";
 
 import { Button } from "@leuchtturm/web/components/ui/button";
-import { cn } from "@leuchtturm/web/lib/cn";
+import { cn } from "@leuchtturm/web/lib/utils";
 
-function Sheet({ ...props }: BaseSheet.Root.Props) {
-	return <BaseSheet.Root data-slot="sheet" {...props} />;
+function Sheet({ ...props }: SheetPrimitive.Root.Props) {
+	return <SheetPrimitive.Root data-slot="sheet" {...props} />;
 }
 
-function SheetTrigger({ ...props }: BaseSheet.Trigger.Props) {
-	return <BaseSheet.Trigger data-slot="sheet-trigger" {...props} />;
+function SheetTrigger({ ...props }: SheetPrimitive.Trigger.Props) {
+	return <SheetPrimitive.Trigger data-slot="sheet-trigger" {...props} />;
 }
 
-function SheetClose({ ...props }: BaseSheet.Close.Props) {
-	return <BaseSheet.Close data-slot="sheet-close" {...props} />;
+function SheetClose({ ...props }: SheetPrimitive.Close.Props) {
+	return <SheetPrimitive.Close data-slot="sheet-close" {...props} />;
 }
 
-function SheetPortal({ ...props }: BaseSheet.Portal.Props) {
-	return <BaseSheet.Portal data-slot="sheet-portal" {...props} />;
+function SheetPortal({ ...props }: SheetPrimitive.Portal.Props) {
+	return <SheetPrimitive.Portal data-slot="sheet-portal" {...props} />;
 }
 
-function SheetOverlay({ className, ...props }: BaseSheet.Backdrop.Props) {
+function SheetOverlay({ className, ...props }: SheetPrimitive.Backdrop.Props) {
 	return (
-		<BaseSheet.Backdrop
+		<SheetPrimitive.Backdrop
 			data-slot="sheet-overlay"
 			className={cn(
-				"fixed inset-0 z-50 bg-black/50 transition-opacity duration-150 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0",
+				"fixed inset-0 z-50 bg-black/20 transition-opacity duration-150 data-ending-style:opacity-0 data-starting-style:opacity-0 supports-backdrop-filter:backdrop-blur-sm",
 				className,
 			)}
 			{...props}
@@ -40,86 +42,81 @@ function SheetContent({
 	side = "right",
 	showCloseButton = true,
 	...props
-}: BaseSheet.Popup.Props & {
+}: SheetPrimitive.Popup.Props & {
 	side?: "top" | "right" | "bottom" | "left";
 	showCloseButton?: boolean;
 }) {
 	return (
 		<SheetPortal>
 			<SheetOverlay />
-			<BaseSheet.Popup
+			<SheetPrimitive.Popup
 				data-slot="sheet-content"
 				data-side={side}
 				className={cn(
-					"bg-background fixed z-50 flex flex-col gap-4 shadow-lg transition-all duration-300 ease-in-out",
-					side === "right" &&
-						"inset-y-0 right-0 h-full w-3/4 translate-x-0 border-l data-[ending-style]:translate-x-full data-[starting-style]:translate-x-full sm:max-w-sm",
-					side === "left" &&
-						"inset-y-0 left-0 h-full w-3/4 translate-x-0 border-r data-[ending-style]:-translate-x-full data-[starting-style]:-translate-x-full sm:max-w-sm",
-					side === "top" &&
-						"inset-x-0 top-0 h-auto translate-y-0 border-b data-[ending-style]:-translate-y-full data-[starting-style]:-translate-y-full",
-					side === "bottom" &&
-						"inset-x-0 bottom-0 h-auto translate-y-0 border-t data-[ending-style]:translate-y-full data-[starting-style]:translate-y-full",
+					"fixed z-50 flex flex-col bg-popover bg-clip-padding text-sm text-popover-foreground shadow-md transition duration-200 ease-in-out data-ending-style:opacity-0 data-starting-style:opacity-0 data-[side=bottom]:inset-x-0 data-[side=bottom]:bottom-0 data-[side=bottom]:h-auto data-[side=bottom]:border-t data-[side=bottom]:data-ending-style:translate-y-[2.5rem] data-[side=bottom]:data-starting-style:translate-y-[2.5rem] data-[side=left]:inset-y-0 data-[side=left]:left-0 data-[side=left]:h-full data-[side=left]:w-3/4 data-[side=left]:border-r data-[side=left]:data-ending-style:translate-x-[-2.5rem] data-[side=left]:data-starting-style:translate-x-[-2.5rem] data-[side=right]:inset-y-0 data-[side=right]:right-0 data-[side=right]:h-full data-[side=right]:w-3/4 data-[side=right]:border-l data-[side=right]:data-ending-style:translate-x-[2.5rem] data-[side=right]:data-starting-style:translate-x-[2.5rem] data-[side=top]:inset-x-0 data-[side=top]:top-0 data-[side=top]:h-auto data-[side=top]:border-b data-[side=top]:data-ending-style:translate-y-[-2.5rem] data-[side=top]:data-starting-style:translate-y-[-2.5rem] data-[side=left]:sm:max-w-sm data-[side=right]:sm:max-w-sm",
 					className,
 				)}
 				{...props}
 			>
 				{children}
 				{showCloseButton && (
-					<BaseSheet.Close
+					<SheetPrimitive.Close
 						data-slot="sheet-close"
 						render={
 							<Button
 								variant="ghost"
+								className="absolute top-4 right-4 bg-secondary"
 								size="icon-sm"
-								className="absolute top-4 right-4 opacity-70 hover:opacity-100"
 							/>
 						}
 					>
 						<XIcon />
 						<span className="sr-only">Close</span>
-					</BaseSheet.Close>
+					</SheetPrimitive.Close>
 				)}
-			</BaseSheet.Popup>
+			</SheetPrimitive.Popup>
 		</SheetPortal>
 	);
 }
 
-function SheetHeader({ className, ...props }: ComponentProps<"div">) {
+function SheetHeader({ className, ...props }: React.ComponentProps<"div">) {
 	return (
 		<div
 			data-slot="sheet-header"
-			className={cn("flex flex-col gap-1.5 p-4", className)}
+			className={cn("flex flex-col gap-1.5 p-8", className)}
 			{...props}
 		/>
 	);
 }
 
-function SheetFooter({ className, ...props }: ComponentProps<"div">) {
+function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
 	return (
 		<div
 			data-slot="sheet-footer"
-			className={cn("mt-auto flex flex-col gap-2 p-4", className)}
+			className={cn("mt-auto flex flex-col gap-2 p-8", className)}
 			{...props}
 		/>
 	);
 }
 
-function SheetTitle({ className, ...props }: BaseSheet.Title.Props) {
+function SheetTitle({ className, ...props }: SheetPrimitive.Title.Props) {
 	return (
-		<BaseSheet.Title
+		<SheetPrimitive.Title
 			data-slot="sheet-title"
-			className={cn("text-foreground font-semibold", className)}
+			className={cn(
+				"font-heading text-lg font-semibold tracking-wider text-foreground uppercase",
+				className,
+			)}
 			{...props}
 		/>
 	);
 }
 
-function SheetDescription({ className, ...props }: BaseSheet.Description.Props) {
+function SheetDescription({ className, ...props }: SheetPrimitive.Description.Props) {
 	return (
-		<BaseSheet.Description
+		<SheetPrimitive.Description
 			data-slot="sheet-description"
-			className={cn("text-muted-foreground text-sm", className)}
+			className={cn("mt-0.5 text-sm leading-relaxed text-muted-foreground", className)}
 			{...props}
 		/>
 	);
