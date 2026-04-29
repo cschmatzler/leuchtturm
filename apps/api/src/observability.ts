@@ -16,11 +16,7 @@ import {
 	requestSpanName as getRequestSpanName,
 	statusGroup as getStatusGroup,
 } from "@leuchtturm/api/observability/request";
-import {
-	tracingLayer,
-	traceExporterConfig as getTraceExporterConfig,
-	traceServiceConfig as serviceTraceConfig,
-} from "@leuchtturm/api/observability/tracing";
+import { Tracing } from "@leuchtturm/api/observability/tracing";
 
 export namespace Observability {
 	export const requestCount = apiRequestCount;
@@ -36,7 +32,7 @@ export namespace Observability {
 	export const statusGroup = getStatusGroup;
 
 	export const Middleware = HttpMiddleware;
-	export const layer = Layer.mergeAll(tracingLayer, loggingLayer);
-	export const traceServiceConfig = serviceTraceConfig;
-	export const traceExporterConfig = getTraceExporterConfig;
+	export const layer = Layer.mergeAll(Tracing.layer, loggingLayer);
+	export const traceServiceConfig = Tracing.traceServiceConfig;
+	export const traceExporterConfig = Tracing.traceExporterConfig;
 }

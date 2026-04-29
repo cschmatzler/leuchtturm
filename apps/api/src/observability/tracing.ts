@@ -5,16 +5,18 @@ import { HttpMiddleware } from "effect/unstable/http";
 
 import {
 	makeResourceConfig,
-	traceExporterConfig,
-	traceServiceConfig,
+	traceExporterConfig as getTraceExporterConfig,
+	traceServiceConfig as getTraceServiceConfig,
 } from "@leuchtturm/api/observability/config";
 import { requestSpanName } from "@leuchtturm/api/observability/request";
 
-export { traceExporterConfig, traceServiceConfig };
-
-export const tracingLayer = Layer.suspend(() =>
-	Layer.mergeAll(
-		OtelTracer.layerGlobal.pipe(Layer.provide(OtelResource.layer(makeResourceConfig()))),
-		Layer.succeed(HttpMiddleware.SpanNameGenerator, requestSpanName),
-	),
-);
+export namespace Tracing {
+	export const traceExporterConfig = getTraceExporterConfig;
+	export const traceServiceConfig = getTraceServiceConfig;
+	export const layer = Layer.suspend(() =>
+		Layer.mergeAll(
+			OtelTracer.layerGlobal.pipe(Layer.provide(OtelResource.layer(makeResourceConfig()))),
+			Layer.succeed(HttpMiddleware.SpanNameGenerator, requestSpanName),
+		),
+	);
+}
