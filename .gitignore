@@ -3,8 +3,9 @@
 .devenv/
 .direnv/
 .env.keys
-.tanstack/
+.fallow/
 .sst/
+.tanstack/
 dist/
 node_modules/
 result
