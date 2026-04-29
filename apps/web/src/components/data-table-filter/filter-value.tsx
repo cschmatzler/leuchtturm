@@ -7,7 +7,10 @@ import { useTranslation } from "react-i18next";
 import { take } from "remeda";
 
 import { useDataTableFilterContext } from "@leuchtturm/web/components/data-table-filter/context";
-import { createNumberRange } from "@leuchtturm/web/components/data-table-filter/helpers";
+import {
+	createNumberRange,
+	normalizeDateValue,
+} from "@leuchtturm/web/components/data-table-filter/helpers";
 import {
 	dateFilterOperators,
 	DEFAULT_OPERATORS,
@@ -163,18 +166,6 @@ function FilterValueOptionDisplay<TData>({
 			</span>
 		</div>
 	);
-}
-
-function normalizeDateValue(value: unknown): Date | undefined {
-	if (!value) return undefined;
-	if (Object.prototype.toString.call(value) === "[object Date]") return value as Date;
-
-	if (typeof value === "string" || typeof value === "number") {
-		const parsed = new Date(value);
-		if (!Number.isNaN(parsed.getTime())) return parsed;
-	}
-
-	return undefined;
 }
 
 function formatDateValue(value: unknown) {

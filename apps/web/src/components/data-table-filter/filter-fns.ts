@@ -1,6 +1,7 @@
 import { endOfDay, isAfter, isBefore, isSameDay, isWithinInterval, startOfDay } from "date-fns";
 import { intersection } from "remeda";
 
+import { normalizeDateValue } from "@leuchtturm/web/components/data-table-filter/helpers";
 import { dateFilterOperators } from "@leuchtturm/web/components/data-table-filter/operators";
 import type {
 	ColumnDataType,
@@ -65,22 +66,12 @@ export function multiOptionFilterFn(
 	}
 }
 
-function normalizeDateInput(value: unknown): Date | undefined {
-	if (!value) return undefined;
-	if (Object.prototype.toString.call(value) === "[object Date]") return value as Date;
-	if (typeof value === "string" || typeof value === "number") {
-		const parsed = new Date(value);
-		if (!Number.isNaN(parsed.getTime())) return parsed;
-	}
-	return undefined;
-}
-
 export function dateFilterFn(inputData: Date, filterValue?: DateFilterInput) {
 	if (!filterValue || filterValue.values.length === 0) return true;
 
 	const operatorDetails = dateFilterOperators[filterValue.operator];
 	const normalizedValues = filterValue.values
-		.map((value) => normalizeDateInput(value))
+		.map((value) => normalizeDateValue(value))
 		.filter((value): value is Date => Boolean(value));
 
 	if (normalizedValues.length === 0) return true;

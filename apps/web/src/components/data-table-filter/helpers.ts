@@ -26,6 +26,18 @@ export function createDateFilterValue(values: [Date, Date] | [Date] | [] | undef
 	throw new Error("Cannot create date filter value from more than 2 values");
 }
 
+export function normalizeDateValue(value: unknown): Date | undefined {
+	if (!value) return undefined;
+	if (Object.prototype.toString.call(value) === "[object Date]") return value as Date;
+
+	if (typeof value === "string" || typeof value === "number") {
+		const parsed = new Date(value);
+		if (!Number.isNaN(parsed.getTime())) return parsed;
+	}
+
+	return undefined;
+}
+
 export function createDateRange(values: [Date, Date]) {
 	const [a, b] = values;
 	const [min, max] = isBefore(a, b) ? [a, b] : [b, a];
