@@ -12,11 +12,87 @@ declare module "sst" {
       "type": "sst.sst.Linkable"
     }
     "ApiWorker": import("@cloudflare/workers-types").Service
+    "AxiomDomain": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "AxiomLogsDataset": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "AxiomMetricsDataset": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "AxiomToken": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "AxiomTracesDataset": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "BetterAuthSecret": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
     "Database": import("@cloudflare/workers-types").Hyperdrive
+    "GitHubClientId": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "GitHubClientSecret": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "PlanetScaleDatabaseId": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "PlanetScaleOrganization": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "PolarAccessToken": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "PolarSuccessUrl": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "PolarWebhookSecret": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "PostHogHost": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "PostHogProjectApiKey": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "RenderOwnerId": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
     "Storage": import("@cloudflare/workers-types").R2Bucket
     "Web": {
       "type": "sst.cloudflare.StaticSite"
       "url": string
+    }
+    "ZeroAdminPassword": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "ZeroDatabasePassword": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "ZeroDatabaseUsername": {
+      "type": "sst.sst.Secret"
+      "value": string
     }
   }
 }

@@ -117,7 +117,6 @@ export const makeAxiomLogger = (
 		const level = toLogLevel(options.logLevel);
 		if (!level) return;
 
-
 		const logAnnotations = Object.fromEntries(
 			Object.entries(options.fiber.getRef(References.CurrentLogAnnotations)).map(([key, value]) => [
 				key,
@@ -192,6 +191,6 @@ export const makeAxiomLogger = (
 		void promise;
 	});
 
-export const layer = Logger.layer([makeAxiomLogger(getLogConfig())], {
+export const layer = Logger.layer([Effect.sync(() => makeAxiomLogger(getLogConfig()))], {
 	mergeWithExisting: true,
 });

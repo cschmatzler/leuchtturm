@@ -15,6 +15,10 @@ const config = new sst.Linkable("ApiConfig", {
 export const api = new sst.cloudflare.Worker("ApiWorker", {
 	handler: "apps/api/src/index.ts",
 	placement: { mode: "smart" },
+	domain: appDomain,
+	compatibility: {
+		date: "2026-04-21",
+	},
 	link: [config, storage, hyperdrive, ...apiSecrets],
 	transform: {
 		worker: (args: any) => {

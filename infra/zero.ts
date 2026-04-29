@@ -11,6 +11,18 @@ export const zero = new render.services.WebService("ZeroService", {
 		imagePath: "rocicorp/zero:1.3.0",
 		ownerId: secrets.renderOwnerId.value,
 	},
+	serviceDetails: {
+		region: "frankfurt",
+		plan: "starter",
+		runtime: "image",
+		numInstances: 1,
+		healthCheckPath: "/keepalive",
+		disk: {
+			mountPath: "/var/data",
+			name: `${$app.name}-${$app.stage}-zero-data`,
+			sizeGB: 1,
+		},
+	},
 	envVars: [
 		{ key: "ZERO_ADMIN_PASSWORD", value: secrets.zeroAdminPassword.value },
 		{ key: "ZERO_APP_ID", value: "leuchtturm" },
@@ -32,18 +44,6 @@ export const zero = new render.services.WebService("ZeroService", {
 			value: interpolate`postgres://${secrets.zeroDatabaseUsername.value}:${secrets.zeroDatabasePassword.value}@eu-central-1.pg.psdb.cloud:5432/postgres?sslmode=verify-full`,
 		},
 	],
-	serviceDetails: {
-		disk: {
-			mountPath: "/var/data",
-			name: `${$app.name}-${$app.stage}-zero-data`,
-			sizeGB: 1,
-		},
-		healthCheckPath: "/keepalive",
-		numInstances: 1,
-		plan: "starter",
-		region: "frankfurt",
-		runtime: "image",
-	},
 });
 
 new render.services.CustomDomain("ZeroCustomDomain", {

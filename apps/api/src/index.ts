@@ -1,9 +1,10 @@
 import { instrument } from "@microlabs/otel-cf-workers";
 import { trace } from "@opentelemetry/api";
 import { Cause, Context, Effect, Layer } from "effect";
-import { HttpEffect, HttpRouter, HttpServer } from "effect/unstable/http";
+import { HttpEffect, HttpMiddleware, HttpRouter, HttpServer } from "effect/unstable/http";
 import { HttpApiBuilder } from "effect/unstable/httpapi";
-import { fromCloudflareEnv } from "sst/resource/cloudflare";
+import { Resource } from "sst";
+import { wrapCloudflareHandler } from "sst/resource/cloudflare";
 
 import { authMiddlewareLayer } from "@leuchtturm/api/auth-layer";
 import { BackgroundTasks } from "@leuchtturm/api/background";
@@ -71,7 +72,20 @@ namespace Api {
 			Observability.layer,
 		);
 		const handler = HttpEffect.toWebHandlerLayer(api, runtime, {
-			middleware: (app) => RequestContext.Middleware(Observability.Middleware(app)),
+			middleware: (app) =>
+				HttpMiddleware.cors({
+					allowedOrigins: (origin) => {
+						if (!origin) return false;
+
+						const url = new URL(origin);
+						return (
+							url.hostname === "localhost" ||
+							url.hostname === "127.0.0.1" ||
+							origin === Resource.ApiConfig.BASE_URL
+						);
+					},
+					credentials: true,
+				})(RequestContext.Middleware(Observability.Middleware(app))),
 		});
 
 		return Layer.succeed(
@@ -117,26 +131,30 @@ namespace Api {
 	export const create = (env: Env) => makeRuntime(Service, layer(env));
 }
 
-export default instrument(
-	{
-		fetch(request: Request, env: Api.Env, ctx: { waitUntil: (promise: Promise<unknown>) => void }) {
-			fromCloudflareEnv(env);
-			return Api.create(env).runPromise((api) => api.handle(request, ctx.waitUntil.bind(ctx)));
-		},
-	},
-	(env) => {
-		fromCloudflareEnv(env);
-		const { domain, token, tracesDataset } = Observability.traceExporterConfig();
-
-		return {
-			exporter: {
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"X-Axiom-Dataset": tracesDataset,
-				},
-				url: `https://${domain}/v1/traces`,
+export default wrapCloudflareHandler(
+	instrument(
+		{
+			fetch(
+				request: Request,
+				env: Api.Env,
+				ctx: { waitUntil: (promise: Promise<unknown>) => void },
+			) {
+				return Api.create(env).runPromise((api) => api.handle(request, ctx.waitUntil.bind(ctx)));
 			},
-			service: Observability.traceServiceConfig,
-		};
-	},
+		},
+		() => {
+			const { domain, token, tracesDataset } = Observability.traceExporterConfig();
+
+			return {
+				exporter: {
+					headers: {
+						Authorization: `Bearer ${token}`,
+						"X-Axiom-Dataset": tracesDataset,
+					},
+					url: `https://${domain}/v1/traces`,
+				},
+				service: Observability.traceServiceConfig,
+			};
+		},
+	),
 );

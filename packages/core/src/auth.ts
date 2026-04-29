@@ -78,7 +78,7 @@ export namespace Auth {
 			const auth = betterAuth({
 				baseURL: `${Resource.ApiConfig.BASE_URL}/api/auth`,
 				secret: Resource.BetterAuthSecret.value,
-				trustedOrigins: [Resource.ApiConfig.BASE_URL],
+				trustedOrigins: [Resource.ApiConfig.BASE_URL, "http://localhost:*", "http://127.0.0.1:*"],
 				onAPIError: {
 					throw: true,
 				},
