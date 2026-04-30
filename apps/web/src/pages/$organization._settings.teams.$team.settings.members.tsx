@@ -117,40 +117,42 @@ function MembersSettings(props: { readonly team: string }) {
 				</div>
 			</section>
 
-			<Separator />
+			{availableMembers.length > 0 && (
+				<>
+					<Separator />
 
-			<section className="py-6">
-				<div className="space-y-1">
-					<h2 className="text-lg font-semibold">{t("Add organization members")}</h2>
-					<p className="text-sm text-muted-foreground">
-						{t("Add existing organization members to this team.")}
-					</p>
-				</div>
-				<div className="mt-5">
-					{availableMembers.length ? (
-						<ul className="divide-y divide-border">
-							{availableMembers.map((member) => (
-								<li key={member.id} className="flex items-center justify-between gap-4 py-4">
-									<div>
-										<p className="text-sm font-medium">{member.user?.name ?? member.userId}</p>
-										{member.user?.email && (
-											<p className="text-xs text-muted-foreground">{member.user.email}</p>
-										)}
-									</div>
-									<Button variant="outline" size="sm" onClick={() => void addMember(member.userId)}>
-										<PlusIcon className="size-4" />
-										{t("Add")}
-									</Button>
-								</li>
-							))}
-						</ul>
-					) : (
-						<div className="py-10 text-center text-sm text-muted-foreground">
-							{t("All organization members are already in this team.")}
+					<section className="py-6">
+						<div className="space-y-1">
+							<h2 className="text-lg font-semibold">{t("Add organization members")}</h2>
+							<p className="text-sm text-muted-foreground">
+								{t("Add existing organization members to this team.")}
+							</p>
 						</div>
-					)}
-				</div>
-			</section>
+						<div className="mt-5">
+							<ul className="divide-y divide-border">
+								{availableMembers.map((member) => (
+									<li key={member.id} className="flex items-center justify-between gap-4 py-4">
+										<div>
+											<p className="text-sm font-medium">{member.user?.name ?? member.userId}</p>
+											{member.user?.email && (
+												<p className="text-xs text-muted-foreground">{member.user.email}</p>
+											)}
+										</div>
+										<Button
+											variant="outline"
+											size="sm"
+											onClick={() => void addMember(member.userId)}
+										>
+											<PlusIcon className="size-4" />
+											{t("Add")}
+										</Button>
+									</li>
+								))}
+							</ul>
+						</div>
+					</section>
+				</>
+			)}
 		</div>
 	);
 }

@@ -381,23 +381,25 @@ function Page() {
 				/>
 			</section>
 
-			<section className="border-t border-border py-6">
-				<div className="space-y-1">
-					<h2 className="text-lg font-semibold">{t("Pending invitations")}</h2>
-					<p className="text-sm text-muted-foreground">
-						{t("Invitations that have not been accepted yet.")}
-					</p>
-				</div>
-				<DataTable
-					className="mt-5"
-					table={invitationTable}
-					filterColumns={invitationFilters.filterColumns}
-					filters={invitationFilters.filters}
-					actions={invitationFilters.actions}
-					emptyIcon={EnvelopeSimpleIcon}
-					emptyRowName={t("invitations")}
-				/>
-			</section>
+			{activeInvitations.length > 0 && (
+				<section className="border-t border-border py-6">
+					<div className="space-y-1">
+						<h2 className="text-lg font-semibold">{t("Pending invitations")}</h2>
+						<p className="text-sm text-muted-foreground">
+							{t("Invitations that have not been accepted yet.")}
+						</p>
+					</div>
+					<DataTable
+						className="mt-5"
+						table={invitationTable}
+						filterColumns={invitationFilters.filterColumns}
+						filters={invitationFilters.filters}
+						actions={invitationFilters.actions}
+						emptyIcon={EnvelopeSimpleIcon}
+						emptyRowName={t("invitations")}
+					/>
+				</section>
+			)}
 		</div>
 	);
 }
