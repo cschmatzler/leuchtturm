@@ -18,6 +18,10 @@ export const Role = Schema.Literals(["admin", "owner", "member"]);
 
 export const TeamId = Schema.TemplateLiteral(["tea_", Ulid]).pipe(Schema.brand("TeamId"));
 
+export const TeamSlug = Schema.String.check(Schema.isPattern(/^[a-z0-9_-]+$/)).annotate({
+	message: "Team slug must contain only lowercase ASCII letters, numbers, dashes, and underscores",
+});
+
 export const Team = Schema.Struct({
 	id: TeamId,
 	name: Schema.String.pipe(
@@ -31,10 +35,7 @@ export const Team = Schema.Struct({
 			},
 		),
 	),
-	slug: Schema.String.check(Schema.isPattern(/^[a-z0-9_-]+$/)).annotate({
-		message:
-			"Team slug must contain only lowercase ASCII letters, numbers, dashes, and underscores",
-	}),
+	slug: TeamSlug,
 	organizationId: OrganizationId,
 	createdAt: Schema.Date,
 	updatedAt: Schema.Date,

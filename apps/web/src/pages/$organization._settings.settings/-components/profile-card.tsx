@@ -79,8 +79,12 @@ export function ProfileCard() {
 				>
 					{(state) => (
 						<div className="flex justify-end">
-							<Button type="submit" disabled={!currentUser || !state.canSubmit}>
-								{state.isSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : t("Save")}
+							<Button
+								type="submit"
+								disabled={!currentUser || !state.canSubmit || state.isSubmitting}
+							>
+								{state.isSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : null}
+								{t("Save")}
 							</Button>
 						</div>
 					)}

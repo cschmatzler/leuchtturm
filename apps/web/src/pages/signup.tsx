@@ -1,3 +1,4 @@
+import { SpinnerIcon } from "@phosphor-icons/react";
 import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
@@ -168,8 +169,9 @@ function Page() {
 					</form.Field>
 					{submitError ? <FieldError>{submitError}</FieldError> : null}
 					<form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
-						{([canSubmit]) => (
-							<Button type="submit" className="w-full" disabled={!canSubmit}>
+						{([canSubmit, isSubmitting]) => (
+							<Button type="submit" className="w-full" disabled={!canSubmit || isSubmitting}>
+								{isSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : null}
 								{t("Sign Up")}
 							</Button>
 						)}

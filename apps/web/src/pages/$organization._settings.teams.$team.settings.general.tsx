@@ -174,7 +174,8 @@ function GeneralSettings(props: { readonly organization: string; readonly team: 
 						{([canSubmit, isSubmitting]) => (
 							<div className="flex justify-end">
 								<Button type="submit" disabled={!canSubmit || isSubmitting}>
-									{isSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : t("Save")}
+									{isSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : null}
+									{t("Save")}
 								</Button>
 							</div>
 						)}

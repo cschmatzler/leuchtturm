@@ -5,6 +5,11 @@
 			"auth": "oauth",
 			"lifecycle": "eager"
 		},
+		"axiom": {
+			"url": "https://mcp.axiom.co/mcp",
+			"auth": "oauth",
+			"lifecycle": "eager"
+		},
 		"planetscale": {
 			"url": "https://mcp.pscale.dev/mcp/planetscale",
 			"auth": "oauth",

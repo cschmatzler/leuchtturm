@@ -150,7 +150,8 @@ function Page() {
 								disabled={isSubmitting}
 								className="flex-1"
 							>
-								{isSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : t("Accept")}
+								{isSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : null}
+								{t("Accept")}
 							</Button>
 							<Button type="button" variant="outline" onClick={handleReject} className="flex-1">
 								{t("Reject")}

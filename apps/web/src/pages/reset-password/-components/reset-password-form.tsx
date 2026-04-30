@@ -1,3 +1,4 @@
+import { SpinnerIcon } from "@phosphor-icons/react";
 import { useForm } from "@tanstack/react-form";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { Schema } from "effect";
@@ -99,8 +100,9 @@ export function ResetPasswordForm() {
 
 				<form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
 					{([canSubmit, isSubmitting]) => (
-						<Button type="submit" className="w-full" disabled={!canSubmit}>
-							{isSubmitting ? t("Updating password...") : t("Update password")}
+						<Button type="submit" className="w-full" disabled={!canSubmit || isSubmitting}>
+							{isSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : null}
+							{t("Update password")}
 						</Button>
 					)}
 				</form.Subscribe>

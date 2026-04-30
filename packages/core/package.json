@@ -23,7 +23,7 @@
 		"ulid": "3.0.2"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "4.20260426.1",
+		"@cloudflare/workers-types": "4.20260429.1",
 		"@types/pg": "8.20.0",
 		"typescript": "6.0.3"
 	}
