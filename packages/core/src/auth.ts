@@ -145,7 +145,8 @@ export namespace Auth {
 										email: params.email,
 										inviterName: params.inviter.user.name,
 										organizationName: params.organization.name,
-										send: (params) => email.send(params), }).pipe(
+										send: (params) => email.send(params),
+									}).pipe(
 										Effect.catchCause((cause) =>
 											Effect.gen(function* () {
 												yield* Effect.annotateCurrentSpan({
