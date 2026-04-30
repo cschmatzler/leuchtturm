@@ -52,7 +52,6 @@ import { sendPasswordResetEmail } from "@leuchtturm/email/templates/password-res
 
 export namespace Auth {
 	export interface Interface {
-		readonly client: { readonly handler: (request: Request) => Promise<Response> };
 		readonly handle: (request: Request) => Effect.Effect<Response, unknown>;
 		readonly getSession: (
 			headers: Headers,
@@ -80,7 +79,7 @@ export namespace Auth {
 
 			const makeAuth = (runAuthEffect: <A, E>(effect: Effect.Effect<A, E>) => Promise<A>) =>
 				betterAuth({
-					baseURL: `https://${Resource.Dns.APP_DOMAIN}/api/auth`,
+					baseURL: `https://${Resource.Dns.AppDomain}/api/auth`,
 					secret: Resource.BetterAuthSecret.value,
 					onAPIError: {
 						throw: true,
@@ -139,15 +138,14 @@ export namespace Auth {
 					plugins: [
 						multiSession(),
 						organizationPlugin({
-							sendInvitationEmail: ({ email: invitedEmail, id, inviter, organization }) =>
+							sendInvitationEmail: (params) =>
 								runAuthEffect(
 									sendInvitationEmail({
-										acceptUrl: `https://${Resource.Dns.APP_DOMAIN}/accept-invitation/${id}`,
-										email: invitedEmail,
-										inviterName: inviter.user.name,
-										organizationName: organization.name,
-										send: (params) => email.send(params),
-									}).pipe(
+										acceptUrl: `https://${Resource.Dns.AppDomain}/accept-invitation/${params.id}`,
+										email: params.email,
+										inviterName: params.inviter.user.name,
+										organizationName: params.organization.name,
+										send: (params) => email.send(params), }).pipe(
 										Effect.catchCause((cause) =>
 											Effect.gen(function* () {
 												yield* Effect.annotateCurrentSpan({
@@ -336,7 +334,7 @@ export namespace Auth {
 						}),
 						crossSubDomainCookies: {
 							enabled: true,
-							domain: Resource.Dns.APP_DOMAIN,
+							domain: Resource.Dns.AppDomain,
 						},
 						database: {
 							generateId: ({ model }) => {
@@ -466,7 +464,7 @@ export namespace Auth {
 				);
 			});
 
-			return Service.of({ client: auth, handle, getSession, getOrganization, getDeviceSessions });
+			return Service.of({ handle, getSession, getOrganization, getDeviceSessions });
 		}),
 	);
 

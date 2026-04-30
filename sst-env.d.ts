@@ -38,8 +38,8 @@ declare module "sst" {
     }
     "Database": import("@cloudflare/workers-types").Hyperdrive
     "Dns": {
-      "APP_DOMAIN": string
-      "SYNC_DOMAIN": string
+      "AppDomain": string
+      "SyncDomain": string
       "type": "sst.sst.Linkable"
     }
     "GitHubClientId": {

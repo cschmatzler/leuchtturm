@@ -81,7 +81,7 @@ namespace Api {
 						return (
 							url.hostname === "localhost" ||
 							url.hostname === "127.0.0.1" ||
-							origin === `https://${Resource.Dns.APP_DOMAIN}`
+							origin === `https://${Resource.Dns.AppDomain}`
 						);
 					},
 					credentials: true,

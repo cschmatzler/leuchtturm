@@ -4,8 +4,8 @@ export const syncDomain = $app.stage === "prod" ? `sync.${root}` : `sync.${$app.
 
 export const dns = new sst.Linkable("Dns", {
 	properties: {
-		APP_DOMAIN: appDomain,
-		SYNC_DOMAIN: syncDomain,
+		AppDomain: appDomain,
+		SyncDomain: syncDomain,
 	},
 });
 
