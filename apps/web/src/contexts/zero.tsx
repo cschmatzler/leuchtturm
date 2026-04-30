@@ -1,8 +1,10 @@
 import { ZeroProvider as ZeroProviderPrimitive } from "@rocicorp/zero/react";
 import { useRouter } from "@tanstack/react-router";
-import type { Session, User } from "better-auth";
+import type { Session, User as BetterAuthUser } from "better-auth";
+import { Schema } from "effect";
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 
+import { User } from "@leuchtturm/core/auth/schema";
 import { Loading } from "@leuchtturm/web/components/app/loading";
 import { mutators } from "@leuchtturm/zero/mutators";
 import { queries } from "@leuchtturm/zero/queries";
@@ -10,7 +12,7 @@ import { schema, type Zero } from "@leuchtturm/zero/schema";
 
 export type SessionData = {
 	session: Session;
-	user: User;
+	user: BetterAuthUser;
 };
 
 export function ZeroProvider({
@@ -26,7 +28,10 @@ export function ZeroProvider({
 	const [ready, setReady] = useState(false);
 	const hasInvalidatedRef = useRef(false);
 
-	const userId = session.user.id;
+	const userId = useMemo(
+		() => Schema.decodeUnknownSync(User.fields.id)(session.user.id),
+		[session.user.id],
+	);
 	const context = useMemo(() => ({ userId }), [userId]);
 
 	const init = useCallback(

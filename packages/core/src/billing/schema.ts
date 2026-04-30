@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 
-import { OrganizationId } from "@leuchtturm/core/auth/schema";
+import { Organization } from "@leuchtturm/core/auth/schema";
 import { Email } from "@leuchtturm/core/schema";
 
 const BillingSubscriptionStatus = Schema.Literals([
@@ -31,7 +31,7 @@ const BillingOrderBillingReason = Schema.Literals([
 ]);
 
 export const BillingCustomerSnapshot = Schema.Struct({
-	organizationId: OrganizationId,
+	organizationId: Organization.fields.id,
 	polarCustomerId: Schema.String,
 	email: Schema.NullOr(Email),
 	name: Schema.NullOr(Schema.String),
@@ -46,7 +46,7 @@ export const BillingCustomerSnapshot = Schema.Struct({
 
 export const BillingSubscriptionSnapshot = Schema.Struct({
 	id: Schema.String,
-	organizationId: OrganizationId,
+	organizationId: Organization.fields.id,
 	polarCustomerId: Schema.String,
 	productId: Schema.String,
 	status: BillingSubscriptionStatus,
@@ -70,7 +70,7 @@ export const BillingSubscriptionSnapshot = Schema.Struct({
 
 export const BillingOrderSnapshot = Schema.Struct({
 	id: Schema.String,
-	organizationId: Schema.NullOr(OrganizationId),
+	organizationId: Schema.NullOr(Organization.fields.id),
 	polarCustomerId: Schema.String,
 	productId: Schema.NullOr(Schema.String),
 	subscriptionId: Schema.NullOr(Schema.String),

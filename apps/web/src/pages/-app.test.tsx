@@ -2,7 +2,7 @@ import { QueryClient } from "@tanstack/react-query";
 import { Schema } from "effect";
 import { describe, expect, it } from "vite-plus/test";
 
-import { OrganizationId } from "@leuchtturm/core/auth/schema";
+import { Organization } from "@leuchtturm/core/auth/schema";
 import { Route } from "@leuchtturm/web/pages/app";
 import { organizationsQuery } from "@leuchtturm/web/queries/organizations";
 import { sessionQuery } from "@leuchtturm/web/queries/session";
@@ -22,7 +22,9 @@ describe("app route auth caching", () => {
 			session: { token: "session-token" },
 			user: { id: "user-1" },
 		};
-		const organizationId = Schema.decodeSync(OrganizationId)("org_01ARZ3NDEKTSV4RRFFQ69G5FAV");
+		const organizationId = Schema.decodeSync(Organization.fields.id)(
+			"org_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+		);
 		queryClient.setQueryData(["session"], session);
 		queryClient.setQueryData(organizationsQuery().queryKey, [
 			{ id: organizationId, name: "Acme", slug: "acme", createdAt: new Date() },

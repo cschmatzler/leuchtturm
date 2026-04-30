@@ -29,7 +29,9 @@ function MembersSettings(props: { readonly team: string }) {
 	const { t } = useTranslation();
 	const [team] = useZeroQuery(queries.team({ organizationId, team: props.team }));
 	const [organizationMembers] = useZeroQuery(queries.organizationMembers({ organizationId }));
-	const [teamMembers] = useZeroQuery(queries.teamMembers({ teamId: team?.id ?? "" }));
+	const [teamMembers] = useZeroQuery(
+		queries.teamMembersByTeam({ organizationId, team: props.team }),
+	);
 	const teamMemberUserIds = new Set(teamMembers.map((member) => member.userId));
 	const availableMembers = organizationMembers.filter(
 		(member) => !teamMemberUserIds.has(member.userId),

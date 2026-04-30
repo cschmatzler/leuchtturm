@@ -2,8 +2,10 @@ import { BuildingIcon, GearIcon, StackIcon, SignOutIcon, PlusIcon } from "@phosp
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Outlet, redirect, useNavigate } from "@tanstack/react-router";
+import { Schema } from "effect";
 import { useTranslation } from "react-i18next";
 
+import { Organization } from "@leuchtturm/core/auth/schema";
 import { ZeroProvider } from "@leuchtturm/web/contexts/zero";
 import { useAuth } from "@leuchtturm/web/hooks/use-auth";
 import { useCommandBar } from "@leuchtturm/web/hooks/use-command-bar";
@@ -35,7 +37,10 @@ export const Route = createFileRoute("/$organization")({
 			throw redirect({ to: "/create-organization" });
 		}
 
-		return { session, organizationId: targetOrganization.id };
+		return {
+			session,
+			organizationId: Schema.decodeUnknownSync(Organization.fields.id)(targetOrganization.id),
+		};
 	},
 	component: Layout,
 });

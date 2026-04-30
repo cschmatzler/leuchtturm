@@ -8,11 +8,19 @@ import {
 	type Zero,
 } from "@rocicorp/zero";
 
+import {
+	Invitation,
+	Member,
+	Organization,
+	Team,
+	TeamMember,
+	User,
+} from "@leuchtturm/core/auth/schema";
 import { SupportedLanguage } from "@leuchtturm/core/i18n";
 
 const user = table("user")
 	.columns({
-		id: string(),
+		id: string<typeof User.fields.id.Type>(),
 		name: string(),
 		email: string(),
 		language: string<typeof SupportedLanguage.Type>().optional(),
@@ -23,7 +31,7 @@ const user = table("user")
 
 const organization = table("organization")
 	.columns({
-		id: string(),
+		id: string<typeof Organization.fields.id.Type>(),
 		name: string(),
 		slug: string(),
 		createdAt: number().from("created_at"),
@@ -32,9 +40,9 @@ const organization = table("organization")
 
 const member = table("member")
 	.columns({
-		id: string(),
-		organizationId: string().from("organization_id"),
-		userId: string().from("user_id"),
+		id: string<typeof Member.fields.id.Type>(),
+		organizationId: string<typeof Organization.fields.id.Type>().from("organization_id"),
+		userId: string<typeof User.fields.id.Type>().from("user_id"),
 		role: string(),
 		createdAt: number().from("created_at"),
 	})
@@ -42,24 +50,24 @@ const member = table("member")
 
 const invitation = table("invitation")
 	.columns({
-		id: string(),
+		id: string<typeof Invitation.fields.id.Type>(),
 		email: string(),
 		role: string().optional(),
 		status: string(),
 		expiresAt: number().from("expires_at"),
-		organizationId: string().from("organization_id"),
-		teamId: string().from("team_id").optional(),
-		inviterId: string().from("inviter_id"),
+		organizationId: string<typeof Organization.fields.id.Type>().from("organization_id"),
+		teamId: string<typeof Team.fields.id.Type>().from("team_id").optional(),
+		inviterId: string<typeof User.fields.id.Type>().from("inviter_id"),
 		createdAt: number().from("created_at"),
 	})
 	.primaryKey("id");
 
 const team = table("team")
 	.columns({
-		id: string(),
+		id: string<typeof Team.fields.id.Type>(),
 		name: string(),
 		slug: string(),
-		organizationId: string().from("organization_id"),
+		organizationId: string<typeof Organization.fields.id.Type>().from("organization_id"),
 		createdAt: number().from("created_at"),
 		updatedAt: number().from("updated_at").optional(),
 	})
@@ -67,9 +75,9 @@ const team = table("team")
 
 const teamMember = table("team_member")
 	.columns({
-		id: string(),
-		teamId: string().from("team_id"),
-		userId: string().from("user_id"),
+		id: string<typeof TeamMember.fields.id.Type>(),
+		teamId: string<typeof Team.fields.id.Type>().from("team_id"),
+		userId: string<typeof User.fields.id.Type>().from("user_id"),
 		createdAt: number().from("created_at"),
 	})
 	.primaryKey("id");
@@ -168,7 +176,7 @@ export const zql = createBuilder(schema);
 
 export type Schema = typeof schema;
 
-export type Context = { userId: string };
+export type Context = { userId: typeof User.fields.id.Type };
 
 declare module "@rocicorp/zero" {
 	interface DefaultTypes {

@@ -32,19 +32,17 @@ import {
 	AuthSessionLookupError,
 } from "@leuchtturm/core/auth/errors";
 import {
-	AccountId,
+	Account,
 	DeviceSessions,
-	InvitationId,
-	MemberId,
-	OrganizationId,
+	Invitation,
+	Member,
 	Organization,
+	Session,
 	SessionData,
-	SessionId,
 	Team,
-	TeamId,
-	TeamMemberId,
-	UserId,
-	VerificationId,
+	TeamMember,
+	User,
+	Verification,
 } from "@leuchtturm/core/auth/schema";
 import { Billing } from "@leuchtturm/core/billing";
 import { Database } from "@leuchtturm/core/drizzle";
@@ -344,23 +342,23 @@ export namespace Auth {
 							generateId: ({ model }) => {
 								switch (model) {
 									case "account":
-										return Schema.decodeSync(AccountId)(`acc_${ulid()}`);
+										return Schema.decodeSync(Account.fields.id)(`acc_${ulid()}`);
 									case "user":
-										return Schema.decodeSync(UserId)(`usr_${ulid()}`);
+										return Schema.decodeSync(User.fields.id)(`usr_${ulid()}`);
 									case "session":
-										return Schema.decodeSync(SessionId)(`ses_${ulid()}`);
+										return Schema.decodeSync(Session.fields.id)(`ses_${ulid()}`);
 									case "verification":
-										return Schema.decodeSync(VerificationId)(`ver_${ulid()}`);
+										return Schema.decodeSync(Verification.fields.id)(`ver_${ulid()}`);
 									case "organization":
-										return Schema.decodeSync(OrganizationId)(`org_${ulid()}`);
+										return Schema.decodeSync(Organization.fields.id)(`org_${ulid()}`);
 									case "member":
-										return Schema.decodeSync(MemberId)(`mem_${ulid()}`);
+										return Schema.decodeSync(Member.fields.id)(`mem_${ulid()}`);
 									case "invitation":
-										return Schema.decodeSync(InvitationId)(`inv_${ulid()}`);
+										return Schema.decodeSync(Invitation.fields.id)(`inv_${ulid()}`);
 									case "team":
-										return Schema.decodeSync(TeamId)(`tea_${ulid()}`);
+										return Schema.decodeSync(Team.fields.id)(`tea_${ulid()}`);
 									case "teamMember":
-										return Schema.decodeSync(TeamMemberId)(`tmb_${ulid()}`);
+										return Schema.decodeSync(TeamMember.fields.id)(`tmb_${ulid()}`);
 									default:
 										throw new Error(`Unknown auth model: ${model}`);
 								}
