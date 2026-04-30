@@ -25,15 +25,18 @@ def main [--json] {
 			{ locale: $locale, path: $translation_path, translations: $translations }
 		}
     let locale_names = $locales | get locale
-    let defined_keys = if ($locales | is-empty) { [] } else {
+    let all_defined_keys = if ($locales | is-empty) { [] } else {
+        $locales | each { |loc| $loc.translations | columns } | flatten | uniq | sort
+    }
+    let common_defined_keys = if ($locales | is-empty) { [] } else {
         let all_key_sets = $locales | each { |loc| $loc.translations | columns }
         $all_key_sets | reduce { |keys, acc|
             let current = $keys
             $acc | where { |key| $key in $current }
         } | sort
     }
-    let missing_keys = $used_keys | where { |key| $key not-in $defined_keys }
-    let unused_keys = $defined_keys | where { |key| $key not-in $used_keys }
+    let missing_keys = $used_keys | where { |key| $key not-in $common_defined_keys }
+    let unused_keys = $all_defined_keys | where { |key| $key not-in $used_keys }
     let empty_translations = $locales | each { |loc|
 		let empty_keys = $loc.translations | columns | where { |key|
 			($loc.translations | get $key | str trim) == ""
@@ -49,7 +52,7 @@ def main [--json] {
         let output = {
             summary: {
                 totalUsedKeys: ($used_keys | length)
-                totalDefinedKeys: ($defined_keys | length)
+                totalDefinedKeys: ($all_defined_keys | length)
                 missingKeysCount: ($missing_keys | length)
                 unusedKeysCount: ($unused_keys | length)
                 locales: $locale_names
@@ -58,7 +61,7 @@ def main [--json] {
             unusedKeys: $unused_keys
             emptyTranslations: $empty_record
             usedKeys: $used_keys
-            definedKeys: $defined_keys
+            definedKeys: $all_defined_keys
         }
         $output | to json
     } else {
@@ -68,7 +71,7 @@ def main [--json] {
         }
         for loc in $locales {
             let after_remove = $unused_keys | reduce --fold $loc.translations { |key, acc|
-				$acc | reject $key
+				if $key in ($acc | columns) { $acc | reject $key } else { $acc }
 			}
             let after_add = $missing_keys | reduce --fold $after_remove { |key, acc|
 				if $key in ($acc | columns) {
