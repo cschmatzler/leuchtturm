@@ -8,7 +8,7 @@ export const Password = Schema.String.check(Schema.isMinLength(13)).annotate({
 
 export const Role = Schema.Literals(["admin", "owner", "member"]);
 
-export const Slug = Schema.String.pipe(
+const Slug = Schema.String.pipe(
 	Schema.decodeTo(
 		Schema.String.check(Schema.isPattern(/^[a-z0-9]+(?:-[a-z0-9]+)*$/))
 			.annotate({ message: "Slug must contain only lowercase letters, numbers, and dashes" })

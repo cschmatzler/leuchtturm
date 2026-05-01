@@ -6,7 +6,6 @@
 	packages = [
 		pkgs.bash
 		pkgs.nufmt
-		pkgs.nushell
 		pkgs.readline
 		pkgs.treefmt
 		pkgs.wrangler

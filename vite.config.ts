@@ -27,6 +27,7 @@ export default defineConfig({
 			"./packages/oxlint-plugins/src/no-live-suffix.ts",
 			"./packages/oxlint-plugins/src/no-local-effect-callback-wrapper.ts",
 			"./packages/oxlint-plugins/src/no-local-web-schema.ts",
+			"./packages/oxlint-plugins/src/no-namespace-imports.ts",
 			"./packages/oxlint-plugins/src/no-non-exact-package-json-versions.ts",
 			"./packages/oxlint-plugins/src/no-relative-imports.ts",
 			"./packages/oxlint-plugins/src/no-row-suffix.ts",
@@ -68,6 +69,12 @@ export default defineConfig({
 				files: ["apps/web/**/*.{ts,tsx}"],
 				rules: {
 					"no-direct-fetch/no-direct-fetch": "error",
+				},
+			},
+			{
+				files: ["apps/web/src/components/**/*.{ts,tsx}"],
+				rules: {
+					"no-namespace-imports/no-namespace-imports": "error",
 				},
 			},
 		],

@@ -101,7 +101,7 @@ export function FilterSelector<TData>() {
 	);
 }
 
-export function FilterableColumn<TData, TType extends ColumnDataType, TVal>({
+function FilterableColumn<TData, TType extends ColumnDataType, TVal>({
 	column,
 	setProperty,
 }: {
@@ -135,7 +135,7 @@ export function FilterableColumn<TData, TType extends ColumnDataType, TVal>({
 	);
 }
 
-export const QuickSearchFilters = memo(QuickSearchFiltersComponent);
+const QuickSearchFilters = memo(QuickSearchFiltersComponent);
 
 function QuickSearchFiltersComponent<TData>({ search }: { search?: string }) {
 	const { filters, filterColumns, actions } = useDataTableFilterContext<TData>();

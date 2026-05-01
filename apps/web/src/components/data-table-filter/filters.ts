@@ -22,7 +22,7 @@ export type OptionColumnType<TType extends ColumnDataType> = TType extends "opti
 	? TType
 	: never;
 
-export class FilterBuilder<
+class FilterBuilder<
 	TData,
 	TType extends ColumnDataType = any,
 	TVal = unknown,

@@ -1,10 +1,12 @@
 import type { ColumnDef, ColumnFiltersState, Row } from "@tanstack/react-table";
 
 import {
+	dateFilterFn as dateFilterValueFn,
 	multiOptionFilterFn,
+	numberFilterFn as numberFilterValueFn,
 	optionFilterFn,
+	textFilterFn as textFilterValueFn,
 } from "@leuchtturm/web/components/data-table-filter/filter-fns";
-import * as f from "@leuchtturm/web/components/data-table-filter/filter-fns";
 import {
 	isColumnOption,
 	isColumnOptionArray,
@@ -28,7 +30,7 @@ function dateFilterFn<TData>(
 ): boolean {
 	const value = row.getValue<Date>(columnId);
 
-	return f.dateFilterFn(value, filterValue);
+	return dateFilterValueFn(value, filterValue);
 }
 
 function textFilterFn<TData>(
@@ -38,7 +40,7 @@ function textFilterFn<TData>(
 ): boolean {
 	const value = row.getValue<string>(columnId) ?? "";
 
-	return f.textFilterFn(value, filterValue);
+	return textFilterValueFn(value, filterValue);
 }
 
 function numberFilterFn<TData>(
@@ -48,7 +50,7 @@ function numberFilterFn<TData>(
 ): boolean {
 	const value = row.getValue<number>(columnId);
 
-	return f.numberFilterFn(value, filterValue);
+	return numberFilterValueFn(value, filterValue);
 }
 
 export function createTanStackColumns<TData>({

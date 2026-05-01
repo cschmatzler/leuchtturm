@@ -1,5 +1,6 @@
+import { Line, LineChart } from "recharts";
+
 import { ChartContainer, type ChartConfig } from "@leuchtturm/web/components/ui/chart";
-import { RechartsBoundary, useRechartsModule } from "@leuchtturm/web/components/ui/recharts";
 import { cn } from "@leuchtturm/web/lib/cn";
 
 export type SparklineProps = {
@@ -12,15 +13,7 @@ export type SparklineProps = {
 	className?: string;
 };
 
-export function Sparkline(props: SparklineProps) {
-	return (
-		<RechartsBoundary fallback={null}>
-			<SparklineContent {...props} />
-		</RechartsBoundary>
-	);
-}
-
-function SparklineContent({
+export function Sparkline({
 	data,
 	label,
 	color = "var(--color-chart-1)",
@@ -29,7 +22,6 @@ function SparklineContent({
 	showDots,
 	className,
 }: SparklineProps) {
-	const { Line, LineChart } = useRechartsModule();
 	const lastValue = data.findLast((d) => d.value !== null)?.value;
 	const shouldShowDots = showDots ?? data.length <= 10;
 

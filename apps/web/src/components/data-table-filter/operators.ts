@@ -33,7 +33,7 @@ export const DEFAULT_OPERATORS: Record<
 	},
 };
 
-export const optionFilterOperators = {
+const optionFilterOperators = {
 	is: {
 		key: "is",
 		value: "is",
@@ -72,7 +72,7 @@ export const optionFilterOperators = {
 	},
 } as const satisfies FilterDetails<"option">;
 
-export const multiOptionFilterOperators = {
+const multiOptionFilterOperators = {
 	include: {
 		key: "include",
 		value: "include",
@@ -204,7 +204,7 @@ export const dateFilterOperators = {
 	},
 } as const satisfies FilterDetails<"date">;
 
-export const textFilterOperators = {
+const textFilterOperators = {
 	contains: {
 		key: "contains",
 		value: "contains",

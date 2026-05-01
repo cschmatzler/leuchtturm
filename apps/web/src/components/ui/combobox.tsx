@@ -1,8 +1,6 @@
-"use client";
-
 import { Combobox as ComboboxPrimitive } from "@base-ui/react";
 import { CaretDownIcon, XIcon, CheckIcon } from "@phosphor-icons/react";
-import * as React from "react";
+import { useRef, type ComponentPropsWithRef } from "react";
 
 import { Button } from "@leuchtturm/web/components/ui/button";
 import {
@@ -195,7 +193,7 @@ function ComboboxSeparator({ className, ...props }: ComboboxPrimitive.Separator.
 function ComboboxChips({
 	className,
 	...props
-}: React.ComponentPropsWithRef<typeof ComboboxPrimitive.Chips> & ComboboxPrimitive.Chips.Props) {
+}: ComponentPropsWithRef<typeof ComboboxPrimitive.Chips> & ComboboxPrimitive.Chips.Props) {
 	return (
 		<ComboboxPrimitive.Chips
 			data-slot="combobox-chips"
@@ -250,7 +248,7 @@ function ComboboxChipsInput({ className, ...props }: ComboboxPrimitive.Input.Pro
 }
 
 function useComboboxAnchor() {
-	return React.useRef<HTMLDivElement | null>(null);
+	return useRef<HTMLDivElement | null>(null);
 }
 
 export {

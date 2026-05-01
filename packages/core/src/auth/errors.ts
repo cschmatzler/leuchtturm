@@ -117,7 +117,7 @@ export class AuthDuplicateTeamNameError extends Schema.TaggedErrorClass<AuthDupl
 	}
 }
 
-export const AuthErrors = [
+export const AuthError = Schema.Union([
 	AuthHandlerError,
 	AuthSessionLookupError,
 	AuthDeviceSessionsListError,
@@ -131,6 +131,4 @@ export const AuthErrors = [
 	AuthDuplicateOrganizationNameError,
 	AuthTeamLookupError,
 	AuthDuplicateTeamNameError,
-] as const;
-
-export const AuthError = Schema.Union(AuthErrors);
+]);

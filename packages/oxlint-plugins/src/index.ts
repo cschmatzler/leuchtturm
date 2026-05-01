@@ -7,6 +7,7 @@ import noHttpStatusInCore from "@leuchtturm/oxlint-plugins/no-http-status-in-cor
 import noLiveSuffix from "@leuchtturm/oxlint-plugins/no-live-suffix";
 import noLocalEffectCallbackWrapper from "@leuchtturm/oxlint-plugins/no-local-effect-callback-wrapper";
 import noLocalWebSchema from "@leuchtturm/oxlint-plugins/no-local-web-schema";
+import noNamespaceImports from "@leuchtturm/oxlint-plugins/no-namespace-imports";
 import noNonExactPackageJsonVersions from "@leuchtturm/oxlint-plugins/no-non-exact-package-json-versions";
 import noProcessEnv from "@leuchtturm/oxlint-plugins/no-process-env";
 import noRelativeImports from "@leuchtturm/oxlint-plugins/no-relative-imports";
@@ -29,6 +30,7 @@ const plugin = {
 		...noLiveSuffix.rules,
 		...noLocalEffectCallbackWrapper.rules,
 		...noLocalWebSchema.rules,
+		...noNamespaceImports.rules,
 		...noNonExactPackageJsonVersions.rules,
 		...noProcessEnv.rules,
 		...noRelativeImports.rules,

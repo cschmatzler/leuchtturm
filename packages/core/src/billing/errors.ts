@@ -152,7 +152,7 @@ export class BillingSubscriptionReferenceMismatchError extends Schema.TaggedErro
 	}
 }
 
-export const BillingErrors = [
+export const BillingError = Schema.Union([
 	BillingPolarRequestError,
 	BillingPersistenceError,
 	BillingInvalidSnapshotError,
@@ -162,9 +162,7 @@ export const BillingErrors = [
 	BillingSubscriptionOwnershipMismatchError,
 	BillingMissingSubscriptionSnapshotError,
 	BillingSubscriptionReferenceMismatchError,
-] as const;
-
-export const BillingError = Schema.Union(BillingErrors);
+]);
 
 export type BillingErrorType =
 	| BillingPolarRequestError

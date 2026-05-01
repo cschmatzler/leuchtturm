@@ -1,8 +1,6 @@
-"use client";
-
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 import { XIcon } from "@phosphor-icons/react";
-import * as React from "react";
+import { type ComponentProps } from "react";
 
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { cn } from "@leuchtturm/web/lib/utils";
@@ -70,7 +68,7 @@ function DialogContent({
 	);
 }
 
-function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
+function DialogHeader({ className, ...props }: ComponentProps<"div">) {
 	return (
 		<div data-slot="dialog-header" className={cn("flex flex-col gap-1", className)} {...props} />
 	);
@@ -81,7 +79,7 @@ function DialogFooter({
 	showCloseButton = false,
 	children,
 	...props
-}: React.ComponentProps<"div"> & {
+}: ComponentProps<"div"> & {
 	showCloseButton?: boolean;
 }) {
 	return (
