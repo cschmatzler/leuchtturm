@@ -29,7 +29,7 @@ export const zero = new render.services.WebService("ZeroService", {
 	ownerId: secrets.renderOwnerId.value,
 	type: "web_service",
 	image: {
-		imagePath: "rocicorp/zero:1.3.0",
+		imagePath: "rocicorp/zero:1.4.0",
 		ownerId: secrets.renderOwnerId.value,
 	},
 	serviceDetails: {

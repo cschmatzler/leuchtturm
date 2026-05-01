@@ -19,11 +19,11 @@ const drizzleTypes: CustomTypesConfig = {
 };
 
 export namespace Database {
-	export type RawDatabase = NodePgDatabase<Record<string, never>, typeof relations> & {
+	export type RawDatabase = NodePgDatabase<typeof relations> & {
 		$client: NodePgClient;
 	};
 
-	export type Database = EffectPgDatabase<Record<string, never>, typeof relations> & {
+	export type Database = EffectPgDatabase<typeof relations> & {
 		$client: PgClient.PgClient;
 	};
 

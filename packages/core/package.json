@@ -16,14 +16,14 @@
 		"@polar-sh/better-auth": "1.8.3",
 		"@polar-sh/sdk": "0.47.1",
 		"better-auth": "1.6.9",
-		"drizzle-kit": "1.0.0-beta.22",
-		"drizzle-orm": "1.0.0-beta.22",
+		"drizzle-kit": "1.0.0-rc.1",
+		"drizzle-orm": "1.0.0-rc.1",
 		"effect": "4.0.0-beta.59",
 		"pg": "8.20.0",
 		"ulid": "3.0.2"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "4.20260429.1",
+		"@cloudflare/workers-types": "4.20260430.1",
 		"@types/pg": "8.20.0",
 		"typescript": "6.0.3"
 	}
