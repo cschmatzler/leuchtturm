@@ -4,8 +4,6 @@
 	...
 }: {
 	packages = [
-		pkgs.bash
-		pkgs.nufmt
 		pkgs.readline
 		pkgs.treefmt
 		pkgs.wrangler
