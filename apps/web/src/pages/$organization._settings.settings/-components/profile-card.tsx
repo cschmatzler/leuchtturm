@@ -4,7 +4,7 @@ import { Schema } from "effect";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
-import { User } from "@leuchtturm/core/auth/schema";
+import { UserInsert } from "@leuchtturm/core/auth/schema";
 import { authClient } from "@leuchtturm/web/clients/auth";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { FieldDescription, FieldError, FieldLabel } from "@leuchtturm/web/components/ui/field";
@@ -24,7 +24,7 @@ export function ProfileCard() {
 		onSubmit: async ({ value }) => {
 			if (!currentUser) return;
 			const { error } = await authClient.updateUser({
-				name: Schema.decodeSync(User.fields.name)(value.name),
+				name: Schema.decodeSync(UserInsert.fields.name)(value.name),
 			});
 			if (error) throw error;
 			toast.success(t("Profile updated"));
@@ -44,7 +44,7 @@ export function ProfileCard() {
 				<form.Field
 					name="name"
 					validators={{
-						onBlur: Schema.toStandardSchemaV1(User.fields.name),
+						onBlur: Schema.toStandardSchemaV1(UserInsert.fields.name),
 					}}
 				>
 					{(field) => (

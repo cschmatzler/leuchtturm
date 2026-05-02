@@ -7,7 +7,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
-import { Password, User } from "@leuchtturm/core/auth/schema";
+import { Password, UserInsert } from "@leuchtturm/core/auth/schema";
 import { authClient } from "@leuchtturm/web/clients/auth";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@leuchtturm/web/components/ui/field";
@@ -24,7 +24,12 @@ export function SignupForm() {
 		defaultValues: { name: "", email: "", password: "" },
 		onSubmit: async ({ value }) => {
 			setSubmitError(undefined);
-			const user = Schema.decodeSync(User.mapFields(({ name, email }) => ({ name, email })))(value);
+			const user = Schema.decodeSync(
+				Schema.Struct({
+					name: UserInsert.fields.name,
+					email: UserInsert.fields.email,
+				}),
+			)(value);
 			await authClient.signUp.email(
 				{
 					...user,
@@ -81,7 +86,7 @@ export function SignupForm() {
 				<form.Field
 					name="name"
 					validators={{
-						onBlur: Schema.toStandardSchemaV1(User.fields.name),
+						onBlur: Schema.toStandardSchemaV1(UserInsert.fields.name),
 					}}
 				>
 					{(field) => (
@@ -105,7 +110,7 @@ export function SignupForm() {
 				<form.Field
 					name="email"
 					validators={{
-						onBlur: Schema.toStandardSchemaV1(User.fields.email),
+						onBlur: Schema.toStandardSchemaV1(UserInsert.fields.email),
 					}}
 				>
 					{(field) => (

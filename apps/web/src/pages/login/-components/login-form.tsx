@@ -7,7 +7,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
-import { Password, User } from "@leuchtturm/core/auth/schema";
+import { Password, UserInsert } from "@leuchtturm/core/auth/schema";
 import { authClient } from "@leuchtturm/web/clients/auth";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@leuchtturm/web/components/ui/field";
@@ -30,7 +30,7 @@ export function LoginForm() {
 			setSubmitError(undefined);
 			await authClient.signIn.email(
 				{
-					email: Schema.decodeSync(User.fields.email)(value.email),
+					email: Schema.decodeSync(UserInsert.fields.email)(value.email),
 					password: Schema.decodeSync(Password)(value.password),
 					callbackURL: redirect ?? "/app",
 				},
@@ -68,7 +68,7 @@ export function LoginForm() {
 				<form.Field
 					name="email"
 					validators={{
-						onBlur: Schema.toStandardSchemaV1(User.fields.email),
+						onBlur: Schema.toStandardSchemaV1(UserInsert.fields.email),
 					}}
 				>
 					{(field) => (

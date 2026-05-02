@@ -32,17 +32,19 @@ import {
 	AuthSessionLookupError,
 } from "@leuchtturm/core/auth/errors";
 import {
-	Account,
+	AccountSelect,
 	DeviceSessions,
-	Invitation,
-	Member,
-	Organization,
-	Session,
+	InvitationSelect,
+	MemberSelect,
+	OrganizationInsert,
+	OrganizationSelect,
+	SessionSelect,
 	SessionData,
-	Team,
-	TeamMember,
-	User,
-	Verification,
+	TeamInsert,
+	TeamMemberSelect,
+	TeamSelect,
+	UserSelect,
+	VerificationSelect,
 } from "@leuchtturm/core/auth/schema";
 import { Billing } from "@leuchtturm/core/billing";
 import { Database } from "@leuchtturm/core/drizzle";
@@ -60,7 +62,7 @@ export namespace Auth {
 			headers: Headers,
 			organizationId: string,
 		) => Effect.Effect<
-			Pick<typeof Organization.Type, "id" | "name" | "slug"> | null,
+			Pick<typeof OrganizationSelect.Type, "id" | "name" | "slug"> | null,
 			typeof AuthError.Type
 		>;
 		readonly getDeviceSessions: (
@@ -177,9 +179,9 @@ export namespace Auth {
 								beforeCreateOrganization: ({ organization }) =>
 									runAuthEffect(
 										Effect.gen(function* () {
-											const organizationName = yield* Schema.decodeEffect(Organization.fields.name)(
-												organization.name ?? "",
-											);
+											const organizationName = yield* Schema.decodeEffect(
+												OrganizationInsert.fields.name,
+											)(organization.name ?? "");
 											const existingOrganization = yield* database
 												.select({ id: organizationTable.id })
 												.from(organizationTable)
@@ -238,7 +240,9 @@ export namespace Auth {
 								beforeCreateTeam: ({ team, organization }) =>
 									runAuthEffect(
 										Effect.gen(function* () {
-											const teamName = yield* Schema.decodeEffect(Team.fields.name)(team.name);
+											const teamName = yield* Schema.decodeEffect(TeamInsert.fields.name)(
+												team.name,
+											);
 											const existingTeam = yield* database
 												.select({ id: teamTable.id })
 												.from(teamTable)
@@ -279,7 +283,9 @@ export namespace Auth {
 												return { data: updates };
 											}
 
-											const teamName = yield* Schema.decodeEffect(Team.fields.name)(updates.name);
+											const teamName = yield* Schema.decodeEffect(TeamInsert.fields.name)(
+												updates.name,
+											);
 											const existingTeam = yield* database
 												.select({ id: teamTable.id })
 												.from(teamTable)
@@ -341,23 +347,23 @@ export namespace Auth {
 							generateId: ({ model }) => {
 								switch (model) {
 									case "account":
-										return Schema.decodeSync(Account.fields.id)(`acc_${ulid()}`);
+										return Schema.decodeSync(AccountSelect.fields.id)(`acc_${ulid()}`);
 									case "user":
-										return Schema.decodeSync(User.fields.id)(`usr_${ulid()}`);
+										return Schema.decodeSync(UserSelect.fields.id)(`usr_${ulid()}`);
 									case "session":
-										return Schema.decodeSync(Session.fields.id)(`ses_${ulid()}`);
+										return Schema.decodeSync(SessionSelect.fields.id)(`ses_${ulid()}`);
 									case "verification":
-										return Schema.decodeSync(Verification.fields.id)(`ver_${ulid()}`);
+										return Schema.decodeSync(VerificationSelect.fields.id)(`ver_${ulid()}`);
 									case "organization":
-										return Schema.decodeSync(Organization.fields.id)(`org_${ulid()}`);
+										return Schema.decodeSync(OrganizationSelect.fields.id)(`org_${ulid()}`);
 									case "member":
-										return Schema.decodeSync(Member.fields.id)(`mem_${ulid()}`);
+										return Schema.decodeSync(MemberSelect.fields.id)(`mem_${ulid()}`);
 									case "invitation":
-										return Schema.decodeSync(Invitation.fields.id)(`inv_${ulid()}`);
+										return Schema.decodeSync(InvitationSelect.fields.id)(`inv_${ulid()}`);
 									case "team":
-										return Schema.decodeSync(Team.fields.id)(`tea_${ulid()}`);
+										return Schema.decodeSync(TeamSelect.fields.id)(`tea_${ulid()}`);
 									case "teamMember":
-										return Schema.decodeSync(TeamMember.fields.id)(`tmb_${ulid()}`);
+										return Schema.decodeSync(TeamMemberSelect.fields.id)(`tmb_${ulid()}`);
 									default:
 										throw new Error(`Unknown auth model: ${model}`);
 								}
@@ -424,7 +430,7 @@ export namespace Auth {
 						}),
 					),
 					Effect.flatMap((organization) =>
-						Schema.decodeUnknownEffect(Organization)(organization).pipe(
+						Schema.decodeUnknownEffect(OrganizationSelect)(organization).pipe(
 							Effect.catchCause((cause) =>
 								Effect.gen(function* () {
 									yield* Effect.annotateCurrentSpan({

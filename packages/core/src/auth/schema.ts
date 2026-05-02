@@ -1,5 +1,21 @@
-import { Effect, Schema, SchemaGetter } from "effect";
+import {
+	createInsertSchema,
+	createSelectSchema,
+	createUpdateSchema,
+} from "drizzle-orm/effect-schema";
+import { Schema, SchemaGetter } from "effect";
 
+import {
+	accountTable,
+	invitationTable,
+	memberTable,
+	organizationTable,
+	sessionTable,
+	teamMemberTable,
+	teamTable,
+	userTable,
+	verificationTable,
+} from "@leuchtturm/core/auth/auth.sql";
 import { Email, TrimmedNonEmptyString, Ulid } from "@leuchtturm/core/schema";
 
 export const Password = Schema.String.check(Schema.isMinLength(13)).annotate({
@@ -7,6 +23,16 @@ export const Password = Schema.String.check(Schema.isMinLength(13)).annotate({
 });
 
 export const Role = Schema.Literals(["admin", "owner", "member"]);
+
+const UserId = Schema.TemplateLiteral(["usr_", Ulid]).pipe(Schema.brand("UserId"));
+const OrganizationId = Schema.TemplateLiteral(["org_", Ulid]).pipe(Schema.brand("OrganizationId"));
+const TeamId = Schema.TemplateLiteral(["tea_", Ulid]).pipe(Schema.brand("TeamId"));
+const MemberId = Schema.TemplateLiteral(["mem_", Ulid]).pipe(Schema.brand("MemberId"));
+const TeamMemberId = Schema.TemplateLiteral(["tmb_", Ulid]).pipe(Schema.brand("TeamMemberId"));
+const InvitationId = Schema.TemplateLiteral(["inv_", Ulid]).pipe(Schema.brand("InvitationId"));
+const SessionId = Schema.TemplateLiteral(["ses_", Ulid]).pipe(Schema.brand("SessionId"));
+const AccountId = Schema.TemplateLiteral(["acc_", Ulid]).pipe(Schema.brand("AccountId"));
+const VerificationId = Schema.TemplateLiteral(["ver_", Ulid]).pipe(Schema.brand("VerificationId"));
 
 const Slug = Schema.String.pipe(
 	Schema.decodeTo(
@@ -21,120 +47,138 @@ const Slug = Schema.String.pipe(
 	),
 );
 
-export const User = Schema.Struct({
-	id: Schema.TemplateLiteral(["usr_", Ulid]).pipe(Schema.brand("UserId")),
-	name: TrimmedNonEmptyString.annotate({ message: "Name is required" }),
-	email: Email,
-	image: Schema.optional(Schema.NullOr(Schema.String)),
-	language: Schema.optional(Schema.NullOr(Schema.String)),
-	emailVerified: Schema.Boolean.pipe(
-		Schema.optional,
-		Schema.withDecodingDefault(Effect.succeed(false)),
+const OrganizationName = Schema.String.pipe(
+	Schema.decodeTo(
+		Schema.String.check(Schema.isPattern(/^[A-Za-z0-9-]+$/))
+			.annotate({
+				message: "Organization name must contain only ASCII letters, numbers, and dashes",
+			})
+			.check(Schema.isMinLength(4))
+			.annotate({ message: "Organization name must be more than 3 characters" }),
+		{
+			decode: SchemaGetter.transform((value: string) => value.trim()),
+			encode: SchemaGetter.transform((value: string) => value),
+		},
 	),
-	createdAt: Schema.Date,
-	updatedAt: Schema.Date,
-});
+);
 
-export const Organization = Schema.Struct({
-	id: Schema.TemplateLiteral(["org_", Ulid]).pipe(Schema.brand("OrganizationId")),
-	name: Schema.String.pipe(
-		Schema.decodeTo(
-			Schema.String.check(Schema.isPattern(/^[A-Za-z0-9-]+$/))
-				.annotate({
-					message: "Organization name must contain only ASCII letters, numbers, and dashes",
-				})
-				.check(Schema.isMinLength(4))
-				.annotate({ message: "Organization name must be more than 3 characters" }),
-			{
-				decode: SchemaGetter.transform((value: string) => value.trim()),
-				encode: SchemaGetter.transform((value: string) => value),
-			},
-		),
+const TeamName = Schema.String.pipe(
+	Schema.decodeTo(
+		Schema.String.check(Schema.isPattern(/^[A-Za-z0-9_-]+$/)).annotate({
+			message: "Team name must contain only ASCII letters, numbers, dashes, and underscores",
+		}),
+		{
+			decode: SchemaGetter.transform((value: string) => value.trim()),
+			encode: SchemaGetter.transform((value: string) => value),
+		},
 	),
-	slug: Slug,
-	logo: Schema.optional(Schema.NullOr(Schema.String)),
-	metadata: Schema.optional(Schema.NullOr(Schema.String)),
-	createdAt: Schema.Date,
+);
+
+const TeamSlug = Schema.String.check(Schema.isPattern(/^[a-z0-9_-]+$/)).annotate({
+	message: "Team slug must contain only lowercase ASCII letters, numbers, dashes, and underscores",
 });
 
-export const Team = Schema.Struct({
-	id: Schema.TemplateLiteral(["tea_", Ulid]).pipe(Schema.brand("TeamId")),
-	name: Schema.String.pipe(
-		Schema.decodeTo(
-			Schema.String.check(Schema.isPattern(/^[A-Za-z0-9_-]+$/)).annotate({
-				message: "Team name must contain only ASCII letters, numbers, dashes, and underscores",
-			}),
-			{
-				decode: SchemaGetter.transform((value: string) => value.trim()),
-				encode: SchemaGetter.transform((value: string) => value),
-			},
-		),
-	),
-	slug: Schema.String.check(Schema.isPattern(/^[a-z0-9_-]+$/)).annotate({
-		message:
-			"Team slug must contain only lowercase ASCII letters, numbers, dashes, and underscores",
-	}),
-	organizationId: Organization.fields.id,
-	createdAt: Schema.Date,
-	updatedAt: Schema.Date,
-});
+const userRefinements = {
+	id: () => UserId,
+	name: () => TrimmedNonEmptyString.annotate({ message: "Name is required" }),
+	email: () => Email,
+};
 
-export const Member = Schema.Struct({
-	id: Schema.TemplateLiteral(["mem_", Ulid]).pipe(Schema.brand("MemberId")),
-	organizationId: Organization.fields.id,
-	userId: User.fields.id,
-	role: Role,
-	createdAt: Schema.Date,
-});
+export const UserInsert = createInsertSchema(userTable, userRefinements);
+export const UserUpdate = createUpdateSchema(userTable, userRefinements);
+export const UserSelect = createSelectSchema(userTable, userRefinements);
 
-export const TeamMember = Schema.Struct({
-	id: Schema.TemplateLiteral(["tmb_", Ulid]).pipe(Schema.brand("TeamMemberId")),
-	teamId: Team.fields.id,
-	userId: User.fields.id,
-	createdAt: Schema.Date,
-});
+const organizationRefinements = {
+	id: () => OrganizationId,
+	name: () => OrganizationName,
+	slug: () => Slug,
+};
 
-export const Invitation = Schema.Struct({
-	id: Schema.TemplateLiteral(["inv_", Ulid]).pipe(Schema.brand("InvitationId")),
-	email: Email,
-	role: Schema.optional(Role),
-	status: Schema.String,
-	expiresAt: Schema.Date,
-	organizationId: Organization.fields.id,
-	teamId: Schema.optional(Schema.NullOr(Team.fields.id)),
-	inviterId: User.fields.id,
-	createdAt: Schema.Date,
-});
+export const OrganizationInsert = createInsertSchema(organizationTable, organizationRefinements);
+export const OrganizationUpdate = createUpdateSchema(organizationTable, organizationRefinements);
+export const OrganizationSelect = createSelectSchema(organizationTable, organizationRefinements);
 
-export const Session = Schema.Struct({
-	id: Schema.TemplateLiteral(["ses_", Ulid]).pipe(Schema.brand("SessionId")),
-	token: Schema.String,
-	ipAddress: Schema.optional(Schema.NullOr(Schema.String)),
-	userAgent: Schema.optional(Schema.NullOr(Schema.String)),
-	expiresAt: Schema.Date,
-	userId: User.fields.id,
-	activeOrganizationId: Schema.optional(Schema.NullOr(Organization.fields.id)),
-	activeTeamId: Schema.optional(Schema.NullOr(Team.fields.id)),
-	createdAt: Schema.Date,
-	updatedAt: Schema.Date,
-});
+const teamRefinements = {
+	id: () => TeamId,
+	name: () => TeamName,
+	slug: () => TeamSlug,
+	organizationId: () => OrganizationId,
+};
 
-export const Account = Schema.Struct({
-	id: Schema.TemplateLiteral(["acc_", Ulid]).pipe(Schema.brand("AccountId")),
-});
+export const TeamInsert = createInsertSchema(teamTable, teamRefinements);
+export const TeamUpdate = createUpdateSchema(teamTable, teamRefinements);
+export const TeamSelect = createSelectSchema(teamTable, teamRefinements);
 
-export const Verification = Schema.Struct({
-	id: Schema.TemplateLiteral(["ver_", Ulid]).pipe(Schema.brand("VerificationId")),
-});
+const memberRefinements = {
+	id: () => MemberId,
+	organizationId: () => OrganizationId,
+	userId: () => UserId,
+	role: () => Role,
+};
+
+export const MemberInsert = createInsertSchema(memberTable, memberRefinements);
+export const MemberUpdate = createUpdateSchema(memberTable, memberRefinements);
+export const MemberSelect = createSelectSchema(memberTable, memberRefinements);
+
+const teamMemberRefinements = {
+	id: () => TeamMemberId,
+	teamId: () => TeamId,
+	userId: () => UserId,
+};
+
+export const TeamMemberInsert = createInsertSchema(teamMemberTable, teamMemberRefinements);
+export const TeamMemberUpdate = createUpdateSchema(teamMemberTable, teamMemberRefinements);
+export const TeamMemberSelect = createSelectSchema(teamMemberTable, teamMemberRefinements);
+
+const invitationRefinements = {
+	id: () => InvitationId,
+	email: () => Email,
+	role: () => Role,
+	organizationId: () => OrganizationId,
+	teamId: () => TeamId,
+	inviterId: () => UserId,
+};
+
+export const InvitationInsert = createInsertSchema(invitationTable, invitationRefinements);
+export const InvitationUpdate = createUpdateSchema(invitationTable, invitationRefinements);
+export const InvitationSelect = createSelectSchema(invitationTable, invitationRefinements);
+
+const sessionRefinements = {
+	id: () => SessionId,
+	userId: () => UserId,
+	activeOrganizationId: () => OrganizationId,
+	activeTeamId: () => TeamId,
+};
+
+export const SessionInsert = createInsertSchema(sessionTable, sessionRefinements);
+export const SessionUpdate = createUpdateSchema(sessionTable, sessionRefinements);
+export const SessionSelect = createSelectSchema(sessionTable, sessionRefinements);
+
+const accountRefinements = {
+	id: () => AccountId,
+	userId: () => UserId,
+};
+
+export const AccountInsert = createInsertSchema(accountTable, accountRefinements);
+export const AccountUpdate = createUpdateSchema(accountTable, accountRefinements);
+export const AccountSelect = createSelectSchema(accountTable, accountRefinements);
+
+const verificationRefinements = {
+	id: () => VerificationId,
+};
+
+export const VerificationInsert = createInsertSchema(verificationTable, verificationRefinements);
+export const VerificationUpdate = createUpdateSchema(verificationTable, verificationRefinements);
+export const VerificationSelect = createSelectSchema(verificationTable, verificationRefinements);
 
 export const DeviceSessions = Schema.Array(
 	Schema.Struct({
-		session: Session,
-		user: User,
+		session: SessionSelect,
+		user: UserSelect,
 	}),
 );
 
 export const SessionData = Schema.Struct({
-	user: User,
-	session: Session,
+	user: UserSelect,
+	session: SessionSelect,
 });

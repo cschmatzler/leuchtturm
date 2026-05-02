@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { Schema } from "effect";
 
-import { Organization } from "@leuchtturm/core/auth/schema";
+import { OrganizationSelect } from "@leuchtturm/core/auth/schema";
 import { ZeroProvider } from "@leuchtturm/web/contexts/zero";
 import { OrganizationCommands } from "@leuchtturm/web/pages/$organization/-components/organization-commands";
 import { organizationsQuery } from "@leuchtturm/web/queries/organizations";
@@ -33,7 +33,7 @@ export const Route = createFileRoute("/$organization")({
 
 		return {
 			session,
-			organizationId: Schema.decodeUnknownSync(Organization.fields.id)(targetOrganization.id),
+			organizationId: Schema.decodeUnknownSync(OrganizationSelect.fields.id)(targetOrganization.id),
 		};
 	},
 	component: Layout,

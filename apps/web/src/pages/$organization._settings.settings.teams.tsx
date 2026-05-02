@@ -5,7 +5,7 @@ import { Effect, Schema } from "effect";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
-import { Team } from "@leuchtturm/core/auth/schema";
+import { TeamInsert } from "@leuchtturm/core/auth/schema";
 import { authClient } from "@leuchtturm/web/clients/auth";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import {
@@ -117,7 +117,7 @@ function Page() {
 						<form.Field
 							name="name"
 							validators={{
-								onBlur: Schema.toStandardSchemaV1(Team.fields.name),
+								onBlur: Schema.toStandardSchemaV1(TeamInsert.fields.name),
 							}}
 						>
 							{(field) => (

@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
-import { User } from "@leuchtturm/core/auth/schema";
+import { UserInsert } from "@leuchtturm/core/auth/schema";
 import { authClient } from "@leuchtturm/web/clients/auth";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@leuchtturm/web/components/ui/field";
@@ -20,7 +20,7 @@ export function ForgotPasswordForm() {
 		onSubmit: async ({ value }) => {
 			setSubmitError(undefined);
 			const { error } = await authClient.requestPasswordReset({
-				email: Schema.decodeSync(User.fields.email)(value.email),
+				email: Schema.decodeSync(UserInsert.fields.email)(value.email),
 				redirectTo: `${window.location.origin}/reset-password`,
 			});
 
@@ -48,7 +48,7 @@ export function ForgotPasswordForm() {
 				<form.Field
 					name="email"
 					validators={{
-						onBlur: Schema.toStandardSchemaV1(User.fields.email),
+						onBlur: Schema.toStandardSchemaV1(UserInsert.fields.email),
 					}}
 				>
 					{(field) => (

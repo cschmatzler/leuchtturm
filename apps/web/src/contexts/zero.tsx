@@ -4,7 +4,7 @@ import type { Session, User as BetterAuthUser } from "better-auth";
 import { Schema } from "effect";
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 
-import { User } from "@leuchtturm/core/auth/schema";
+import { UserSelect } from "@leuchtturm/core/auth/schema";
 import { Loading } from "@leuchtturm/web/components/app/loading";
 import { mutators } from "@leuchtturm/zero/mutators";
 import { queries } from "@leuchtturm/zero/queries";
@@ -29,7 +29,7 @@ export function ZeroProvider({
 	const hasInvalidatedRef = useRef(false);
 
 	const userId = useMemo(
-		() => Schema.decodeUnknownSync(User.fields.id)(session.user.id),
+		() => Schema.decodeUnknownSync(UserSelect.fields.id)(session.user.id),
 		[session.user.id],
 	);
 	const context = useMemo(() => ({ userId }), [userId]);

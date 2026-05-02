@@ -1,7 +1,7 @@
 import { defineQueriesWithType, defineQueryWithType } from "@rocicorp/zero";
 import { Schema } from "effect";
 
-import { Organization, Team } from "@leuchtturm/core/auth/schema";
+import { OrganizationSelect, TeamSelect } from "@leuchtturm/core/auth/schema";
 import { assertOrganizationMember } from "@leuchtturm/zero/authorization";
 import { schema, zql } from "@leuchtturm/zero/schema";
 import type { Context } from "@leuchtturm/zero/schema";
@@ -10,26 +10,26 @@ const defineQuery = defineQueryWithType<typeof schema, Context>();
 const defineQueries = defineQueriesWithType<typeof schema>();
 const organizationArgs = Schema.toStandardSchemaV1(
 	Schema.Struct({
-		organization: Organization.fields.slug,
+		organization: OrganizationSelect.fields.slug,
 	}),
 );
 
 const organizationIdArgs = Schema.toStandardSchemaV1(
 	Schema.Struct({
-		organizationId: Organization.fields.id,
+		organizationId: OrganizationSelect.fields.id,
 	}),
 );
 
 const teamArgs = Schema.toStandardSchemaV1(
 	Schema.Struct({
-		organizationId: Organization.fields.id,
-		team: Team.fields.slug,
+		organizationId: OrganizationSelect.fields.id,
+		team: TeamSelect.fields.slug,
 	}),
 );
 
 const teamIdArgs = Schema.toStandardSchemaV1(
 	Schema.Struct({
-		teamId: Team.fields.id,
+		teamId: TeamSelect.fields.id,
 	}),
 );
 
@@ -83,8 +83,8 @@ export const queries = defineQueries({
 	teamMembersByTeam: defineQuery(
 		Schema.toStandardSchemaV1(
 			Schema.Struct({
-				organizationId: Organization.fields.id,
-				team: Team.fields.slug,
+				organizationId: OrganizationSelect.fields.id,
+				team: TeamSelect.fields.slug,
 			}),
 		),
 		({ ctx, args }) =>

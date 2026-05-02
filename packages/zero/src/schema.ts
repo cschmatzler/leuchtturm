@@ -9,18 +9,18 @@ import {
 } from "@rocicorp/zero";
 
 import {
-	Invitation,
-	Member,
-	Organization,
-	Team,
-	TeamMember,
-	User,
+	InvitationSelect,
+	MemberSelect,
+	OrganizationSelect,
+	TeamMemberSelect,
+	TeamSelect,
+	UserSelect,
 } from "@leuchtturm/core/auth/schema";
 import { SupportedLanguage } from "@leuchtturm/core/i18n";
 
 const user = table("user")
 	.columns({
-		id: string<typeof User.fields.id.Type>(),
+		id: string<typeof UserSelect.fields.id.Type>(),
 		name: string(),
 		email: string(),
 		language: string<typeof SupportedLanguage.Type>().optional(),
@@ -31,7 +31,7 @@ const user = table("user")
 
 const organization = table("organization")
 	.columns({
-		id: string<typeof Organization.fields.id.Type>(),
+		id: string<typeof OrganizationSelect.fields.id.Type>(),
 		name: string(),
 		slug: string(),
 		createdAt: number().from("created_at"),
@@ -40,9 +40,9 @@ const organization = table("organization")
 
 const member = table("member")
 	.columns({
-		id: string<typeof Member.fields.id.Type>(),
-		organizationId: string<typeof Organization.fields.id.Type>().from("organization_id"),
-		userId: string<typeof User.fields.id.Type>().from("user_id"),
+		id: string<typeof MemberSelect.fields.id.Type>(),
+		organizationId: string<typeof OrganizationSelect.fields.id.Type>().from("organization_id"),
+		userId: string<typeof UserSelect.fields.id.Type>().from("user_id"),
 		role: string(),
 		createdAt: number().from("created_at"),
 	})
@@ -50,24 +50,24 @@ const member = table("member")
 
 const invitation = table("invitation")
 	.columns({
-		id: string<typeof Invitation.fields.id.Type>(),
+		id: string<typeof InvitationSelect.fields.id.Type>(),
 		email: string(),
 		role: string().optional(),
 		status: string(),
 		expiresAt: number().from("expires_at"),
-		organizationId: string<typeof Organization.fields.id.Type>().from("organization_id"),
-		teamId: string<typeof Team.fields.id.Type>().from("team_id").optional(),
-		inviterId: string<typeof User.fields.id.Type>().from("inviter_id"),
+		organizationId: string<typeof OrganizationSelect.fields.id.Type>().from("organization_id"),
+		teamId: string<typeof TeamSelect.fields.id.Type>().from("team_id").optional(),
+		inviterId: string<typeof UserSelect.fields.id.Type>().from("inviter_id"),
 		createdAt: number().from("created_at"),
 	})
 	.primaryKey("id");
 
 const team = table("team")
 	.columns({
-		id: string<typeof Team.fields.id.Type>(),
+		id: string<typeof TeamSelect.fields.id.Type>(),
 		name: string(),
 		slug: string(),
-		organizationId: string<typeof Organization.fields.id.Type>().from("organization_id"),
+		organizationId: string<typeof OrganizationSelect.fields.id.Type>().from("organization_id"),
 		createdAt: number().from("created_at"),
 		updatedAt: number().from("updated_at").optional(),
 	})
@@ -75,9 +75,9 @@ const team = table("team")
 
 const teamMember = table("team_member")
 	.columns({
-		id: string<typeof TeamMember.fields.id.Type>(),
-		teamId: string<typeof Team.fields.id.Type>().from("team_id"),
-		userId: string<typeof User.fields.id.Type>().from("user_id"),
+		id: string<typeof TeamMemberSelect.fields.id.Type>(),
+		teamId: string<typeof TeamSelect.fields.id.Type>().from("team_id"),
+		userId: string<typeof UserSelect.fields.id.Type>().from("user_id"),
 		createdAt: number().from("created_at"),
 	})
 	.primaryKey("id");
@@ -176,7 +176,7 @@ export const zql = createBuilder(schema);
 
 export type Schema = typeof schema;
 
-export type Context = { userId: typeof User.fields.id.Type };
+export type Context = { userId: typeof UserSelect.fields.id.Type };
 
 declare module "@rocicorp/zero" {
 	interface DefaultTypes {

@@ -6,7 +6,7 @@ import { Schema } from "effect";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { Organization } from "@leuchtturm/core/auth/schema";
+import { OrganizationInsert } from "@leuchtturm/core/auth/schema";
 import { authClient } from "@leuchtturm/web/clients/auth";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@leuchtturm/web/components/ui/field";
@@ -26,9 +26,12 @@ export function CreateOrganizationForm() {
 		},
 		onSubmit: async ({ value }) => {
 			setSubmitError(undefined);
-			const name = Schema.decodeSync(Organization.fields.name)(value.name);
+			const name = Schema.decodeSync(OrganizationInsert.fields.name)(value.name);
 			const organization = Schema.decodeSync(
-				Organization.mapFields(({ name, slug }) => ({ name, slug })),
+				Schema.Struct({
+					name: OrganizationInsert.fields.name,
+					slug: OrganizationInsert.fields.slug,
+				}),
 			)({ name, slug: name.toLowerCase() });
 			const { data, error } = await authClient.organization.create(organization);
 
@@ -89,7 +92,7 @@ export function CreateOrganizationForm() {
 				<form.Field
 					name="name"
 					validators={{
-						onBlur: Schema.toStandardSchemaV1(Organization.fields.name),
+						onBlur: Schema.toStandardSchemaV1(OrganizationInsert.fields.name),
 					}}
 				>
 					{(field) => (
