@@ -3,7 +3,7 @@ import {
 	createSelectSchema,
 	createUpdateSchema,
 } from "drizzle-orm/effect-schema";
-import { Schema, SchemaGetter } from "effect";
+import { Effect, Schema, SchemaGetter } from "effect";
 
 import {
 	accountTable,
@@ -82,6 +82,12 @@ const userRefinements = {
 	id: () => UserId,
 	name: () => TrimmedNonEmptyString.annotate({ message: "Name is required" }),
 	email: () => Email,
+	image: Schema.optional(Schema.NullOr(Schema.String)),
+	language: Schema.optional(Schema.NullOr(Schema.String)),
+	emailVerified: Schema.Boolean.pipe(
+		Schema.optional,
+		Schema.withDecodingDefault(Effect.succeed(false)),
+	),
 };
 
 export const UserInsert = createInsertSchema(userTable, userRefinements);
@@ -92,6 +98,8 @@ const organizationRefinements = {
 	id: () => OrganizationId,
 	name: () => OrganizationName,
 	slug: () => Slug,
+	logo: Schema.optional(Schema.NullOr(Schema.String)),
+	metadata: Schema.optional(Schema.NullOr(Schema.String)),
 };
 
 export const OrganizationInsert = createInsertSchema(organizationTable, organizationRefinements);
@@ -133,9 +141,9 @@ export const TeamMemberSelect = createSelectSchema(teamMemberTable, teamMemberRe
 const invitationRefinements = {
 	id: () => InvitationId,
 	email: () => Email,
-	role: () => Role,
+	role: Schema.optional(Role),
 	organizationId: () => OrganizationId,
-	teamId: () => TeamId,
+	teamId: Schema.optional(Schema.NullOr(TeamId)),
 	inviterId: () => UserId,
 };
 
@@ -145,9 +153,11 @@ export const InvitationSelect = createSelectSchema(invitationTable, invitationRe
 
 const sessionRefinements = {
 	id: () => SessionId,
+	ipAddress: Schema.optional(Schema.NullOr(Schema.String)),
+	userAgent: Schema.optional(Schema.NullOr(Schema.String)),
 	userId: () => UserId,
-	activeOrganizationId: () => OrganizationId,
-	activeTeamId: () => TeamId,
+	activeOrganizationId: Schema.optional(Schema.NullOr(OrganizationId)),
+	activeTeamId: Schema.optional(Schema.NullOr(TeamId)),
 };
 
 export const SessionInsert = createInsertSchema(sessionTable, sessionRefinements);

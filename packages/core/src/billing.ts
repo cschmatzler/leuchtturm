@@ -31,11 +31,7 @@ import {
 	type BillingErrorType,
 } from "@leuchtturm/core/billing/errors";
 import { POLAR_PRO_PRODUCT_ID } from "@leuchtturm/core/billing/products";
-import {
-	BillingCustomerSnapshot,
-	BillingOrderSnapshot,
-	BillingSubscriptionSnapshot,
-} from "@leuchtturm/core/billing/schema";
+import { CustomerSelect, OrderSelect, SubscriptionSelect } from "@leuchtturm/core/billing/schema";
 import { Database } from "@leuchtturm/core/drizzle";
 
 type TransactionEffect<A> = Effect.Effect<
@@ -93,7 +89,7 @@ export namespace Billing {
 			const buildSubscriptionSnapshot = Effect.fn("Billing.buildSubscriptionSnapshot")(function* (
 				values: Record<string, unknown>,
 			) {
-				return yield* Schema.decodeUnknownEffect(BillingSubscriptionSnapshot)({
+				return yield* Schema.decodeUnknownEffect(SubscriptionSelect)({
 					...values,
 					syncedAt: new Date(),
 				}).pipe(
@@ -115,7 +111,7 @@ export namespace Billing {
 				values: { organizationId: string; state: CustomerState },
 			): TransactionEffect<void> =>
 				Effect.gen(function* () {
-					yield* Schema.decodeUnknownEffect(BillingCustomerSnapshot)({
+					yield* Schema.decodeUnknownEffect(CustomerSelect)({
 						organizationId: values.organizationId,
 						polarCustomerId: values.state.id,
 						email: values.state.email ?? null,
@@ -575,7 +571,7 @@ export namespace Billing {
 									}
 								}
 
-								yield* Schema.decodeUnknownEffect(BillingOrderSnapshot)({
+								yield* Schema.decodeUnknownEffect(OrderSelect)({
 									id: order.id,
 									organizationId,
 									polarCustomerId: order.customerId,
