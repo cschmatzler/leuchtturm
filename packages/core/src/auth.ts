@@ -28,7 +28,6 @@ import {
 	AuthInvalidSessionPayloadError,
 	AuthInvalidOrganizationPayloadError,
 	AuthOrganizationLookupError,
-	AuthPasswordResetEmailError,
 	AuthSessionLookupError,
 } from "@leuchtturm/core/auth/errors";
 import {
@@ -50,7 +49,6 @@ import { Billing } from "@leuchtturm/core/billing";
 import { Database } from "@leuchtturm/core/drizzle";
 import { Email } from "@leuchtturm/email/service";
 import { sendInvitationEmail } from "@leuchtturm/email/templates/invitation";
-import { sendPasswordResetEmail } from "@leuchtturm/email/templates/password-reset";
 
 export namespace Auth {
 	export interface Interface {
@@ -100,28 +98,6 @@ export namespace Auth {
 							teamMember: teamMemberTable,
 						},
 					}),
-					emailAndPassword: {
-						enabled: true,
-						minPasswordLength: 13,
-						sendResetPassword: ({ user, url }, _request) =>
-							runAuthEffect(
-								sendPasswordResetEmail({
-									email: user.email,
-									resetUrl: url,
-									userName: user.name,
-									send: (params) => email.send(params),
-								}).pipe(
-									Effect.catchCause((cause) =>
-										Effect.gen(function* () {
-											yield* Effect.annotateCurrentSpan({
-												"error.original_cause": Cause.pretty(cause),
-											});
-											return yield* Effect.fail(new AuthPasswordResetEmailError());
-										}),
-									),
-								),
-							),
-					},
 					user: {
 						additionalFields: {
 							language: {
@@ -132,9 +108,9 @@ export namespace Auth {
 						},
 					},
 					socialProviders: {
-						github: {
-							clientId: Resource.GitHubClientId.value,
-							clientSecret: Resource.GitHubClientSecret.value,
+						google: {
+							clientId: Resource.GoogleClientId.value,
+							clientSecret: Resource.GoogleClientSecret.value,
 						},
 					},
 					plugins: [

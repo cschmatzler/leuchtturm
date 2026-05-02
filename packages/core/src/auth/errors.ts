@@ -27,15 +27,6 @@ export class AuthDeviceSessionsListError extends Schema.TaggedErrorClass<AuthDev
 	}
 }
 
-export class AuthPasswordResetEmailError extends Schema.TaggedErrorClass<AuthPasswordResetEmailError>()(
-	"AuthPasswordResetEmailError",
-	{ message: Schema.String },
-) {
-	constructor() {
-		super({ message: "Failed to send password reset email" });
-	}
-}
-
 export class AuthInvitationEmailError extends Schema.TaggedErrorClass<AuthInvitationEmailError>()(
 	"AuthInvitationEmailError",
 	{ message: Schema.String },
@@ -121,7 +112,6 @@ export const AuthError = Schema.Union([
 	AuthHandlerError,
 	AuthSessionLookupError,
 	AuthDeviceSessionsListError,
-	AuthPasswordResetEmailError,
 	AuthInvitationEmailError,
 	AuthInvalidSessionPayloadError,
 	AuthInvalidDeviceSessionsPayloadError,

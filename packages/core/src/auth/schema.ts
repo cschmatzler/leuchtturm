@@ -18,10 +18,6 @@ import {
 } from "@leuchtturm/core/auth/auth.sql";
 import { Email, TrimmedNonEmptyString, Ulid } from "@leuchtturm/core/schema";
 
-export const Password = Schema.String.check(Schema.isMinLength(13)).annotate({
-	message: "Password must be more than 12 characters",
-});
-
 export const Role = Schema.Literals(["admin", "owner", "member"]);
 
 const UserId = Schema.TemplateLiteral(["usr_", Ulid]).pipe(Schema.brand("UserId"));

@@ -11,10 +11,8 @@
 import { Route as rootRouteImport } from './pages/__root'
 import { Route as TermsOfServiceRouteImport } from './pages/terms-of-service'
 import { Route as SignupRouteImport } from './pages/signup'
-import { Route as ResetPasswordRouteImport } from './pages/reset-password'
 import { Route as PrivacyPolicyRouteImport } from './pages/privacy-policy'
 import { Route as LoginRouteImport } from './pages/login'
-import { Route as ForgotPasswordRouteImport } from './pages/forgot-password'
 import { Route as CreateOrganizationRouteImport } from './pages/create-organization'
 import { Route as AppRouteImport } from './pages/app'
 import { Route as OrganizationRouteImport } from './pages/$organization'
@@ -47,11 +45,6 @@ const SignupRoute = SignupRouteImport.update({
   path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
   id: '/privacy-policy',
   path: '/privacy-policy',
@@ -60,11 +53,6 @@ const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
-  id: '/forgot-password',
-  path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CreateOrganizationRoute = CreateOrganizationRouteImport.update({
@@ -190,10 +178,8 @@ export interface FileRoutesByFullPath {
   '/$organization': typeof OrganizationSettingsRouteWithChildren
   '/app': typeof AppRoute
   '/create-organization': typeof CreateOrganizationRoute
-  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
-  '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/terms-of-service': typeof TermsOfServiceRoute
   '/accept-invitation/$id': typeof AcceptInvitationIdRoute
@@ -216,10 +202,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app': typeof AppRoute
   '/create-organization': typeof CreateOrganizationRoute
-  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
-  '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/terms-of-service': typeof TermsOfServiceRoute
   '/$organization': typeof OrganizationIndexRoute
@@ -241,10 +225,8 @@ export interface FileRoutesById {
   '/$organization': typeof OrganizationRouteWithChildren
   '/app': typeof AppRoute
   '/create-organization': typeof CreateOrganizationRoute
-  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
-  '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/terms-of-service': typeof TermsOfServiceRoute
   '/$organization/_settings': typeof OrganizationSettingsRouteWithChildren
@@ -272,10 +254,8 @@ export interface FileRouteTypes {
     | '/$organization'
     | '/app'
     | '/create-organization'
-    | '/forgot-password'
     | '/login'
     | '/privacy-policy'
-    | '/reset-password'
     | '/signup'
     | '/terms-of-service'
     | '/accept-invitation/$id'
@@ -298,10 +278,8 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/create-organization'
-    | '/forgot-password'
     | '/login'
     | '/privacy-policy'
-    | '/reset-password'
     | '/signup'
     | '/terms-of-service'
     | '/$organization'
@@ -322,10 +300,8 @@ export interface FileRouteTypes {
     | '/$organization'
     | '/app'
     | '/create-organization'
-    | '/forgot-password'
     | '/login'
     | '/privacy-policy'
-    | '/reset-password'
     | '/signup'
     | '/terms-of-service'
     | '/$organization/_settings'
@@ -352,10 +328,8 @@ export interface RootRouteChildren {
   OrganizationRoute: typeof OrganizationRouteWithChildren
   AppRoute: typeof AppRoute
   CreateOrganizationRoute: typeof CreateOrganizationRoute
-  ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
-  ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
   TermsOfServiceRoute: typeof TermsOfServiceRoute
   AcceptInvitationIdRoute: typeof AcceptInvitationIdRoute
@@ -377,13 +351,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/privacy-policy': {
       id: '/privacy-policy'
       path: '/privacy-policy'
@@ -396,13 +363,6 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/forgot-password': {
-      id: '/forgot-password'
-      path: '/forgot-password'
-      fullPath: '/forgot-password'
-      preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/create-organization': {
@@ -670,10 +630,8 @@ const rootRouteChildren: RootRouteChildren = {
   OrganizationRoute: OrganizationRouteWithChildren,
   AppRoute: AppRoute,
   CreateOrganizationRoute: CreateOrganizationRoute,
-  ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,
-  ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
   TermsOfServiceRoute: TermsOfServiceRoute,
   AcceptInvitationIdRoute: AcceptInvitationIdRoute,
