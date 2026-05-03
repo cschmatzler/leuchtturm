@@ -1,6 +1,10 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { multiSession, organization as organizationPlugin } from "better-auth/plugins";
+import {
+	admin as adminPlugin,
+	multiSession,
+	organization as organizationPlugin,
+} from "better-auth/plugins";
 import { and, eq, ne } from "drizzle-orm";
 import { Cause, Effect, Layer, Schema, Context } from "effect";
 import { AsyncLocalStorage } from "node:async_hooks";
@@ -114,6 +118,7 @@ export namespace Auth {
 						},
 					},
 					plugins: [
+						adminPlugin(),
 						multiSession(),
 						organizationPlugin({
 							sendInvitationEmail: (params) =>

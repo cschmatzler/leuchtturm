@@ -6,6 +6,10 @@ export const userTable = pgTable("user", {
 	email: text("email").notNull().unique(),
 	image: text("image"),
 	language: text("language"),
+	role: text("role").default("user"),
+	banned: boolean("banned").default(false),
+	banReason: text("ban_reason"),
+	banExpires: timestamp("ban_expires"),
 	emailVerified: boolean("email_verified").default(false).notNull(),
 	createdAt: timestamp("created_at").notNull(),
 	updatedAt: timestamp("updated_at")
@@ -29,6 +33,9 @@ export const sessionTable = pgTable(
 			{ onDelete: "set null" },
 		),
 		activeTeamId: char("active_team_id", { length: 30 }).references(() => teamTable.id, {
+			onDelete: "set null",
+		}),
+		impersonatedBy: char("impersonated_by", { length: 30 }).references(() => userTable.id, {
 			onDelete: "set null",
 		}),
 		createdAt: timestamp("created_at").notNull(),

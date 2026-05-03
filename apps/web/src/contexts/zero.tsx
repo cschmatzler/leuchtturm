@@ -8,7 +8,7 @@ import { UserSelect } from "@leuchtturm/core/auth/schema";
 import { Loading } from "@leuchtturm/web/components/app/loading";
 import { mutators } from "@leuchtturm/zero/mutators";
 import { queries } from "@leuchtturm/zero/queries";
-import { schema, type Zero } from "@leuchtturm/zero/schema";
+import { schema, type Context, type Zero } from "@leuchtturm/zero/schema";
 
 export type SessionData = {
 	session: Session;
@@ -18,10 +18,12 @@ export type SessionData = {
 export function ZeroProvider({
 	session,
 	organization,
+	storageKey = organization,
 	children,
 }: {
 	session: SessionData;
-	organization: string;
+	organization?: string;
+	storageKey?: string;
 	children: ReactNode;
 }) {
 	const router = useRouter();
@@ -32,7 +34,7 @@ export function ZeroProvider({
 		() => Schema.decodeUnknownSync(UserSelect.fields.id)(session.user.id),
 		[session.user.id],
 	);
-	const context = useMemo(() => ({ userId }), [userId]);
+	const context = useMemo<Context>(() => ({ userId }), [userId]);
 
 	const init = useCallback(
 		async (zero: Zero) => {
@@ -50,7 +52,9 @@ export function ZeroProvider({
 			}
 
 			await zero.preload(queries.currentUser()).complete;
-			await zero.preload(queries.organization({ organization })).complete;
+			if (organization) {
+				await zero.preload(queries.organization({ organization })).complete;
+			}
 			setReady(true);
 		},
 		[router, organization],
@@ -63,7 +67,7 @@ export function ZeroProvider({
 			userID={userId}
 			context={context}
 			mutators={mutators}
-			storageKey={organization}
+			storageKey={storageKey}
 			init={init}
 		>
 			{ready ? children : <Loading />}

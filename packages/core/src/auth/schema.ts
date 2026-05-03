@@ -19,6 +19,7 @@ import {
 import { Email, TrimmedNonEmptyString, Ulid } from "@leuchtturm/core/schema";
 
 export const Role = Schema.Literals(["admin", "owner", "member"]);
+export const UserRole = Schema.Literals(["admin", "user"]);
 
 const UserId = Schema.TemplateLiteral(["usr_", Ulid]).pipe(Schema.brand("UserId"));
 const OrganizationId = Schema.TemplateLiteral(["org_", Ulid]).pipe(Schema.brand("OrganizationId"));
@@ -80,6 +81,10 @@ const userRefinements = {
 	email: () => Email,
 	image: Schema.optional(Schema.NullOr(Schema.String)),
 	language: Schema.optional(Schema.NullOr(Schema.String)),
+	role: Schema.optional(Schema.NullOr(UserRole)),
+	banned: Schema.optional(Schema.NullOr(Schema.Boolean)),
+	banReason: Schema.optional(Schema.NullOr(Schema.String)),
+	banExpires: Schema.optional(Schema.NullOr(Schema.Date)),
 	emailVerified: Schema.Boolean.pipe(
 		Schema.optional,
 		Schema.withDecodingDefault(Effect.succeed(false)),
@@ -154,6 +159,7 @@ const sessionRefinements = {
 	userId: () => UserId,
 	activeOrganizationId: Schema.optional(Schema.NullOr(OrganizationId)),
 	activeTeamId: Schema.optional(Schema.NullOr(TeamId)),
+	impersonatedBy: Schema.optional(Schema.NullOr(UserId)),
 };
 
 export const SessionInsert = createInsertSchema(sessionTable, sessionRefinements);

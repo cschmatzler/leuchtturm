@@ -3,7 +3,12 @@ packages:
   - apps/*
   - packages/*
 
-minimumReleaseAge: 720
+allowBuilds:
+  '@rocicorp/zero-sqlite3': true
+  core-js: false
+  esbuild: false
+  msgpackr-extract: false
+  msw: false
+  protobufjs: false
 
-onlyBuiltDependencies:
-  - "@rocicorp/zero-sqlite3"
+minimumReleaseAge: 720

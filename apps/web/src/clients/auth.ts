@@ -1,5 +1,6 @@
 import {
 	inferAdditionalFields,
+	adminClient,
 	multiSessionClient,
 	organizationClient,
 } from "better-auth/client/plugins";
@@ -11,6 +12,7 @@ export const authClient = createAuthClient({
 		credentials: "include",
 	},
 	plugins: [
+		adminClient(),
 		multiSessionClient(),
 		inferAdditionalFields({
 			user: {
