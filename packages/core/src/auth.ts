@@ -80,13 +80,13 @@ export namespace Auth {
 			const billing = yield* Billing.Service;
 			const email = yield* Email.Service;
 			const authContext = new AsyncLocalStorage<Context.Context<never>>();
-			const isProduction = Resource.ApiConfig.IS_PRODUCTION === "true";
 
 			const makeAuth = (runAuthEffect: <A, E>(effect: Effect.Effect<A, E>) => Promise<A>) =>
 				betterAuth({
 					baseURL: `https://${Resource.Dns.AppDomain}/api/auth`,
 					secret: Resource.BetterAuthSecret.value,
-					trustedOrigins: isProduction ? [] : ["http://localhost:5173", "http://127.0.0.1:5173"],
+					trustedOrigins:
+						Resource.App.stage === "prod" ? [] : ["http://localhost:5173", "http://127.0.0.1:5173"],
 					onAPIError: {
 						throw: true,
 					},
@@ -314,7 +314,7 @@ export namespace Auth {
 						},
 					},
 					advanced: {
-						...(!isProduction && {
+						...(Resource.App.stage !== "prod" && {
 							defaultCookieAttributes: {
 								sameSite: "none" as const,
 								secure: true,
