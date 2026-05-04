@@ -85,6 +85,8 @@ export namespace Auth {
 				betterAuth({
 					baseURL: `https://${Resource.Dns.AppDomain}/api/auth`,
 					secret: Resource.BetterAuthSecret.value,
+					trustedOrigins:
+						Resource.App.stage === "prod" ? [] : ["http://localhost:5173", "http://127.0.0.1:5173"],
 					onAPIError: {
 						throw: true,
 					},
