@@ -20,7 +20,7 @@ export function LoginForm() {
 		toast.loading(t("Signing in..."));
 		const { error } = await authClient.signIn.social({
 			provider: "google",
-			callbackURL: redirect ?? "/app",
+			callbackURL: new URL(redirect ?? "/app", window.location.origin).toString(),
 		});
 		toast.dismiss();
 		setIsSubmitting(false);

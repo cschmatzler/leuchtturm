@@ -19,7 +19,7 @@ export function SignupForm() {
 		toast.loading(t("Creating account..."));
 		const { error } = await authClient.signIn.social({
 			provider: "google",
-			callbackURL: "/app",
+			callbackURL: new URL("/app", window.location.origin).toString(),
 		});
 		toast.dismiss();
 		setIsSubmitting(false);
