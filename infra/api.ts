@@ -6,6 +6,7 @@ import { storage } from "@leuchtturm/infra/storage";
 const config = new sst.Linkable("ApiConfig", {
 	properties: {
 		BASE_URL: $interpolate`https://${appDomain}`,
+		IS_PRODUCTION: $app.stage === "prod" ? "true" : "false",
 		POLAR_SERVER: "sandbox",
 	},
 });
