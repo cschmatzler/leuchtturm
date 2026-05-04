@@ -17,6 +17,9 @@ importers:
       '@types/node':
         specifier: 25.6.0
         version: 25.6.0
+      happy-dom:
+        specifier: 20.9.0
+        version: 20.9.0
       sst:
         specifier: 4.12.11
         version: 4.12.11
@@ -25,7 +28,7 @@ importers:
         version: 6.0.3
       vite-plus:
         specifier: 0.1.20
-        version: 0.1.20(@opentelemetry/api@1.9.1)(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(typescript@6.0.3)(vite@8.0.0(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))(yaml@2.8.3)
+        version: 0.1.20(@opentelemetry/api@1.9.1)(@types/node@25.6.0)(esbuild@0.27.7)(happy-dom@20.9.0)(jiti@2.6.1)(tsx@4.21.0)(typescript@6.0.3)(vite@8.0.0(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))(yaml@2.8.3)
 
   apps/api:
     dependencies:
@@ -4007,6 +4010,9 @@ packages:
   '@types/validate-npm-package-name@4.0.2':
     resolution: {integrity: sha512-lrpDziQipxCEeK5kWxvljWYhUvOiB2A9izZd9B2AFarYAkqZshb4lPbRs7zKEic6eGtH8V/2qJW+dPp9OtF6bw==}
 
+  '@types/whatwg-mimetype@3.0.2':
+    resolution: {integrity: sha512-c2AKvDT8ToxLIOUlN51gTiHXflsfIFisS4pO7pDPoKouJCESkhZnEy623gwP9laCy5lnLDAw1vAzu2vM2YLOrA==}
+
   '@types/ws@8.18.1':
     resolution: {integrity: sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==}
 
@@ -4889,6 +4895,10 @@ packages:
     resolution: {integrity: sha512-V0hjH4dGPh9Ao5p0MoRY6BVqtwCjhz6vI5LT8AJ55H+4g9/4vbHx1I54fS0XuclLhDHArPQCiMjDxjaL8fPxhw==}
     engines: {node: '>=0.12'}
 
+  entities@7.0.1:
+    resolution: {integrity: sha512-TWrgLOFUQTH994YUyl1yT4uyavY5nNB5muff+RtWaqNVCAK408b5ZnnbNAUEWLTCpum9w6arT70i1XdQ4UeOPA==}
+    engines: {node: '>=0.12'}
+
   env-paths@2.2.1:
     resolution: {integrity: sha512-+h1lkLKhZMTYjog1VEpJNG7NZJWcuc2DDk/qsqSTRRCOXiLjeQ1d1/udrUGhqMxUgAlwKNZ0cf2uqan5GLuS2A==}
     engines: {node: '>=6'}
@@ -5191,6 +5201,10 @@ packages:
   graphql@16.13.2:
     resolution: {integrity: sha512-5bJ+nf/UCpAjHM8i06fl7eLyVC9iuNAjm9qzkiu2ZGhM0VscSvS6WDPfAwkdkBuoXGM9FJSbKl6wylMwP9Ktig==}
     engines: {node: ^12.22.0 || ^14.16.0 || ^16.0.0 || >=17.0.0}
+
+  happy-dom@20.9.0:
+    resolution: {integrity: sha512-GZZ9mKe8r646NUAf/zemnGbjYh4Bt8/MqASJY+pSm5ZDtc3YQox+4gsLI7yi1hba6o+eCsGxpHn5+iEVn31/FQ==}
+    engines: {node: '>=20.0.0'}
 
   has-flag@4.0.0:
     resolution: {integrity: sha512-EykJT/Q1KjTWctppgIAgfSO0tKVuZUjhgMr17kqTumMl6Afv3EISleU7qZUzoXDFTAHTDC4NOoG/ZxU3EvlMPQ==}
@@ -6936,6 +6950,10 @@ packages:
 
   webpack-virtual-modules@0.6.2:
     resolution: {integrity: sha512-66/V2i5hQanC51vBQKPH4aI8NMAcBW59FVBs+rC7eGHupMyfn34q7rZIE+ETlJ+XTevqfUhVVBgSUNSW2flEUQ==}
+
+  whatwg-mimetype@3.0.0:
+    resolution: {integrity: sha512-nt+N2dzIutVRxARx1nghPKGv1xHikU7HKdfafKkLNLindmPU/ch3U31NOCGGA/dmPcmb1VlofO0vnKAcsm0o/Q==}
+    engines: {node: '>=12'}
 
   whatwg-url@5.0.0:
     resolution: {integrity: sha512-saE57nupxk6v3HY35+jzBwYa0rKSy0XR8JSxZPwgLr7ys0IBzhGviA1/TUGJLmSVqs8pb9AnvICXEuOHLprYTw==}
@@ -10019,7 +10037,7 @@ snapshots:
     dependencies:
       react: 19.2.5
 
-  '@reduxjs/toolkit@2.11.2(react-redux@9.2.0(@types/react@19.2.14)(react@19.2.5))(react@19.2.5)':
+  '@reduxjs/toolkit@2.11.2(react-redux@9.2.0(@types/react@19.2.14)(react@19.2.5)(redux@5.0.1))(react@19.2.5)':
     dependencies:
       '@standard-schema/spec': 1.1.0
       '@standard-schema/utils': 0.3.0
@@ -11035,6 +11053,8 @@ snapshots:
 
   '@types/validate-npm-package-name@4.0.2': {}
 
+  '@types/whatwg-mimetype@3.0.2': {}
+
   '@types/ws@8.18.1':
     dependencies:
       '@types/node': 25.6.0
@@ -11077,7 +11097,7 @@ snapshots:
   '@voidzero-dev/vite-plus-linux-x64-musl@0.1.20':
     optional: true
 
-  '@voidzero-dev/vite-plus-test@0.1.20(@opentelemetry/api@1.9.1)(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(typescript@6.0.3)(vite@8.0.0(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))(yaml@2.8.3)':
+  '@voidzero-dev/vite-plus-test@0.1.20(@opentelemetry/api@1.9.1)(@types/node@25.6.0)(esbuild@0.27.7)(happy-dom@20.9.0)(jiti@2.6.1)(tsx@4.21.0)(typescript@6.0.3)(vite@8.0.0(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))(yaml@2.8.3)':
     dependencies:
       '@standard-schema/spec': 1.1.0
       '@types/chai': 5.2.3
@@ -11096,6 +11116,7 @@ snapshots:
     optionalDependencies:
       '@opentelemetry/api': 1.9.1
       '@types/node': 25.6.0
+      happy-dom: 20.9.0
     transitivePeerDependencies:
       - '@arethetypeswrong/core'
       - '@tsdown/css'
@@ -11679,6 +11700,8 @@ snapshots:
 
   entities@4.5.0: {}
 
+  entities@7.0.1: {}
+
   env-paths@2.2.1: {}
 
   error-ex@1.3.4:
@@ -12071,6 +12094,18 @@ snapshots:
   graceful-fs@4.2.11: {}
 
   graphql@16.13.2: {}
+
+  happy-dom@20.9.0:
+    dependencies:
+      '@types/node': 25.6.0
+      '@types/whatwg-mimetype': 3.0.2
+      '@types/ws': 8.18.1
+      entities: 7.0.1
+      whatwg-mimetype: 3.0.0
+      ws: 8.20.0
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
 
   has-flag@4.0.0: {}
 
@@ -13136,7 +13171,7 @@ snapshots:
 
   recharts@3.8.1(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react-is@19.2.4)(react@19.2.5)(redux@5.0.1):
     dependencies:
-      '@reduxjs/toolkit': 2.11.2(react-redux@9.2.0(@types/react@19.2.14)(react@19.2.5))(react@19.2.5)
+      '@reduxjs/toolkit': 2.11.2(react-redux@9.2.0(@types/react@19.2.14)(react@19.2.5)(redux@5.0.1))(react@19.2.5)
       clsx: 2.1.1
       decimal.js-light: 2.5.1
       es-toolkit: 1.46.1
@@ -13738,11 +13773,11 @@ snapshots:
       d3-time: 3.1.0
       d3-timer: 3.0.1
 
-  vite-plus@0.1.20(@opentelemetry/api@1.9.1)(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(typescript@6.0.3)(vite@8.0.0(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))(yaml@2.8.3):
+  vite-plus@0.1.20(@opentelemetry/api@1.9.1)(@types/node@25.6.0)(esbuild@0.27.7)(happy-dom@20.9.0)(jiti@2.6.1)(tsx@4.21.0)(typescript@6.0.3)(vite@8.0.0(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))(yaml@2.8.3):
     dependencies:
       '@oxc-project/types': 0.127.0
       '@voidzero-dev/vite-plus-core': 0.1.20(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(typescript@6.0.3)(yaml@2.8.3)
-      '@voidzero-dev/vite-plus-test': 0.1.20(@opentelemetry/api@1.9.1)(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(typescript@6.0.3)(vite@8.0.0(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))(yaml@2.8.3)
+      '@voidzero-dev/vite-plus-test': 0.1.20(@opentelemetry/api@1.9.1)(@types/node@25.6.0)(esbuild@0.27.7)(happy-dom@20.9.0)(jiti@2.6.1)(tsx@4.21.0)(typescript@6.0.3)(vite@8.0.0(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))(yaml@2.8.3)
       oxfmt: 0.46.0
       oxlint: 1.61.0(oxlint-tsgolint@0.22.0)
       oxlint-tsgolint: 0.22.0
@@ -13813,6 +13848,8 @@ snapshots:
   webidl-conversions@3.0.1: {}
 
   webpack-virtual-modules@0.6.2: {}
+
+  whatwg-mimetype@3.0.0: {}
 
   whatwg-url@5.0.0:
     dependencies:

@@ -4,7 +4,7 @@ packages:
   - packages/*
 
 allowBuilds:
-  '@rocicorp/zero-sqlite3': true
+  "@rocicorp/zero-sqlite3": true
   core-js: false
   esbuild: false
   msgpackr-extract: false
