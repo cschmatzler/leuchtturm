@@ -314,6 +314,12 @@ export namespace Auth {
 						},
 					},
 					advanced: {
+						...(Resource.App.stage !== "prod" && {
+							defaultCookieAttributes: {
+								sameSite: "none" as const,
+								secure: true,
+							},
+						}),
 						crossSubDomainCookies: {
 							enabled: true,
 							domain: Resource.Dns.AppDomain,
