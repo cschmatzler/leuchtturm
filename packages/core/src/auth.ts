@@ -80,13 +80,15 @@ export namespace Auth {
 			const billing = yield* Billing.Service;
 			const email = yield* Email.Service;
 			const authContext = new AsyncLocalStorage<Context.Context<never>>();
+			const isProductionDomain = Resource.Dns.AppDomain === "leuchtturm.dev";
 
 			const makeAuth = (runAuthEffect: <A, E>(effect: Effect.Effect<A, E>) => Promise<A>) =>
 				betterAuth({
 					baseURL: `https://${Resource.Dns.AppDomain}/api/auth`,
 					secret: Resource.BetterAuthSecret.value,
-					trustedOrigins:
-						Resource.App.stage === "prod" ? [] : ["http://localhost:5173", "http://127.0.0.1:5173"],
+					trustedOrigins: isProductionDomain
+						? []
+						: ["http://localhost:5173", "http://127.0.0.1:5173"],
 					onAPIError: {
 						throw: true,
 					},
@@ -314,7 +316,7 @@ export namespace Auth {
 						},
 					},
 					advanced: {
-						...(Resource.App.stage !== "prod" && {
+						...(!isProductionDomain && {
 							defaultCookieAttributes: {
 								sameSite: "none" as const,
 								secure: true,
