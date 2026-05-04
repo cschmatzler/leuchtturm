@@ -16,7 +16,7 @@ export function NotFound({ backTo, backLabel }: { backTo: LinkOptions; backLabel
 			<p className="text-sm text-muted-foreground">
 				{t("The page you're looking for doesn't exist.")}
 			</p>
-			<Button variant="outline" render={<Link {...backTo} />}>
+			<Button variant="outline" nativeButton={false} render={<Link {...backTo} role={undefined} />}>
 				{backLabel}
 			</Button>
 		</div>

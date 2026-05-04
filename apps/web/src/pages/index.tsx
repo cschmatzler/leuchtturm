@@ -56,7 +56,8 @@ function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
 						<Button
 							size="sm"
 							className="bg-background text-foreground hover:bg-background/90"
-							render={<Link to="/app" />}
+							nativeButton={false}
+							render={<Link to="/app" role={undefined} />}
 						>
 							{t("Dashboard")}
 						</Button>
@@ -66,14 +67,16 @@ function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
 								variant="ghost"
 								size="sm"
 								className="text-background/70 hover:bg-background/10 hover:text-background"
-								render={<Link to="/login" />}
+								nativeButton={false}
+								render={<Link to="/login" role={undefined} />}
 							>
 								{t("Login")}
 							</Button>
 							<Button
 								size="sm"
 								className="bg-background text-foreground hover:bg-background/90"
-								render={<Link to="/signup" />}
+								nativeButton={false}
+								render={<Link to="/signup" role={undefined} />}
 							>
 								{t("Sign Up")}
 							</Button>
@@ -110,7 +113,8 @@ function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
 							<Button
 								size="lg"
 								className="bg-background text-foreground hover:bg-background/90"
-								render={<Link to="/app" />}
+								nativeButton={false}
+								render={<Link to="/app" role={undefined} />}
 							>
 								{t("Go to Dashboard")}
 								<ArrowRightIcon data-icon="inline-end" />
@@ -120,7 +124,8 @@ function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
 								<Button
 									size="lg"
 									className="bg-background text-foreground hover:bg-background/90"
-									render={<Link to="/signup" />}
+									nativeButton={false}
+									render={<Link to="/signup" role={undefined} />}
 								>
 									{t("Get Started")}
 									<ArrowRightIcon data-icon="inline-end" />
@@ -129,7 +134,8 @@ function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
 									variant="outline"
 									size="lg"
 									className="border-background/20 text-background hover:bg-background/10 hover:text-background"
-									render={<Link to="/login" />}
+									nativeButton={false}
+									render={<Link to="/login" role={undefined} />}
 								>
 									{t("Login")}
 								</Button>
@@ -231,7 +237,8 @@ function CallToActionSection({ isAuthenticated }: { isAuthenticated: boolean }) 
 							<Button
 								size="lg"
 								className="bg-background text-foreground hover:bg-background/90"
-								render={<Link to="/app" />}
+								nativeButton={false}
+								render={<Link to="/app" role={undefined} />}
 							>
 								{t("Go to Dashboard")}
 								<ArrowRightIcon data-icon="inline-end" />
@@ -241,7 +248,8 @@ function CallToActionSection({ isAuthenticated }: { isAuthenticated: boolean }) 
 								<Button
 									size="lg"
 									className="bg-background text-foreground hover:bg-background/90"
-									render={<Link to="/signup" />}
+									nativeButton={false}
+									render={<Link to="/signup" role={undefined} />}
 								>
 									{t("Sign Up")}
 									<ArrowRightIcon data-icon="inline-end" />
@@ -250,7 +258,8 @@ function CallToActionSection({ isAuthenticated }: { isAuthenticated: boolean }) 
 									variant="outline"
 									size="lg"
 									className="border-background/20 text-background hover:bg-background/10 hover:text-background"
-									render={<Link to="/login" />}
+									nativeButton={false}
+									render={<Link to="/login" role={undefined} />}
 								>
 									{t("Login")}
 								</Button>

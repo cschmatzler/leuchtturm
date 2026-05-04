@@ -47,15 +47,24 @@ export function MarketingHeader({ variant = "default" }: MarketingHeaderProps) {
 				{!isLoading && (
 					<div className="flex items-center gap-2">
 						{session ? (
-							<Button size="sm" render={<Link to="/app" />}>
+							<Button size="sm" nativeButton={false} render={<Link to="/app" role={undefined} />}>
 								{t("Dashboard")}
 							</Button>
 						) : (
 							<>
-								<Button variant="ghost" size="sm" render={<Link to="/login" />}>
+								<Button
+									variant="ghost"
+									size="sm"
+									nativeButton={false}
+									render={<Link to="/login" role={undefined} />}
+								>
 									{t("Login")}
 								</Button>
-								<Button size="sm" render={<Link to="/signup" />}>
+								<Button
+									size="sm"
+									nativeButton={false}
+									render={<Link to="/signup" role={undefined} />}
+								>
 									{t("Sign Up")}
 								</Button>
 							</>
