@@ -1,0 +1,26 @@
+diff --git a/effect-schema/column.cjs b/effect-schema/column.cjs
+index dd79804d1b883598bde5b036fbec05607d75d659..1b0f08034cee9236095142186d67c8caa5bffb99 100644
+--- a/effect-schema/column.cjs
++++ b/effect-schema/column.cjs
+@@ -18,7 +18,7 @@ const jsonSchema = effect.Schema.Union([
+ 	effect.Schema.Record(effect.Schema.String, effect.Schema.Any),
+ 	effect.Schema.Array(effect.Schema.Any)
+ ]);
+-const bufferSchema = effect.Schema.instanceOf(Buffer);
++const bufferSchema = typeof Buffer === "undefined" ? effect.Schema.instanceOf(Uint8Array) : effect.Schema.instanceOf(Buffer);
+ function columnToSchema(column) {
+ 	let schema;
+ 	const dimensions = column.dimensions;
+diff --git a/effect-schema/column.js b/effect-schema/column.js
+index 6a76fc4fa5488f5d045a08e1065217f5b6cafb81..52d6e705f659bb06304531b497e049ee7046944e 100644
+--- a/effect-schema/column.js
++++ b/effect-schema/column.js
+@@ -16,7 +16,7 @@ const jsonSchema = Schema.Union([
+ 	Schema.Record(Schema.String, Schema.Any),
+ 	Schema.Array(Schema.Any)
+ ]);
+-const bufferSchema = Schema.instanceOf(Buffer);
++const bufferSchema = typeof Buffer === "undefined" ? Schema.instanceOf(Uint8Array) : Schema.instanceOf(Buffer);
+ function columnToSchema(column) {
+ 	let schema;
+ 	const dimensions = column.dimensions;

@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  drizzle-orm@1.0.0-rc.1: 5a7394d69f23eb6a0728848ef9ffce9e7f21cb3cb7fcd125e4f1b1a75afedde1
+
 importers:
 
   .:
@@ -134,7 +137,7 @@ importers:
         version: 8.21.3(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       better-auth:
         specifier: 1.6.9
-        version: 1.6.9(@cloudflare/workers-types@4.20260503.1)(@opentelemetry/api@1.9.1)(drizzle-kit@1.0.0-rc.1)(drizzle-orm@1.0.0-rc.1(@cloudflare/workers-types@4.20260503.1)(@effect/sql-pg@4.0.0-beta.59(effect@4.0.0-beta.59))(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(effect@4.0.0-beta.59)(pg@8.20.0)(postgres@3.4.7)(zod@4.3.6))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12)
+        version: 1.6.9(@cloudflare/workers-types@4.20260503.1)(@opentelemetry/api@1.9.1)(drizzle-kit@1.0.0-rc.1)(drizzle-orm@1.0.0-rc.1(patch_hash=5a7394d69f23eb6a0728848ef9ffce9e7f21cb3cb7fcd125e4f1b1a75afedde1)(@cloudflare/workers-types@4.20260503.1)(@effect/sql-pg@4.0.0-beta.59(effect@4.0.0-beta.59))(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(effect@4.0.0-beta.59)(pg@8.20.0)(postgres@3.4.7)(zod@4.3.6))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12)
       class-variance-authority:
         specifier: 0.7.1
         version: 0.7.1
@@ -239,19 +242,19 @@ importers:
         version: link:../email
       '@polar-sh/better-auth':
         specifier: 1.8.3
-        version: 1.8.3(@polar-sh/sdk@0.47.1)(@stripe/react-stripe-js@4.0.2(@stripe/stripe-js@7.9.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(@stripe/stripe-js@7.9.0)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(better-auth@1.6.9(@cloudflare/workers-types@4.20260503.1)(@opentelemetry/api@1.9.1)(drizzle-kit@1.0.0-rc.1)(drizzle-orm@1.0.0-rc.1(@cloudflare/workers-types@4.20260503.1)(@effect/sql-pg@4.0.0-beta.59(effect@4.0.0-beta.59))(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(effect@4.0.0-beta.59)(pg@8.20.0)(postgres@3.4.7)(zod@4.3.6))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12))(react-dom@19.2.5(react@19.2.5))(react-is@19.2.4)(react@19.2.5)(zod@4.3.6)
+        version: 1.8.3(@polar-sh/sdk@0.47.1)(@stripe/react-stripe-js@4.0.2(@stripe/stripe-js@7.9.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(@stripe/stripe-js@7.9.0)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(better-auth@1.6.9(@cloudflare/workers-types@4.20260503.1)(@opentelemetry/api@1.9.1)(drizzle-kit@1.0.0-rc.1)(drizzle-orm@1.0.0-rc.1(patch_hash=5a7394d69f23eb6a0728848ef9ffce9e7f21cb3cb7fcd125e4f1b1a75afedde1)(@cloudflare/workers-types@4.20260503.1)(@effect/sql-pg@4.0.0-beta.59(effect@4.0.0-beta.59))(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(effect@4.0.0-beta.59)(pg@8.20.0)(postgres@3.4.7)(zod@4.3.6))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12))(react-dom@19.2.5(react@19.2.5))(react-is@19.2.4)(react@19.2.5)(zod@4.3.6)
       '@polar-sh/sdk':
         specifier: 0.47.1
         version: 0.47.1
       better-auth:
         specifier: 1.6.9
-        version: 1.6.9(@cloudflare/workers-types@4.20260503.1)(@opentelemetry/api@1.9.1)(drizzle-kit@1.0.0-rc.1)(drizzle-orm@1.0.0-rc.1(@cloudflare/workers-types@4.20260503.1)(@effect/sql-pg@4.0.0-beta.59(effect@4.0.0-beta.59))(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(effect@4.0.0-beta.59)(pg@8.20.0)(postgres@3.4.7)(zod@4.3.6))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12)
+        version: 1.6.9(@cloudflare/workers-types@4.20260503.1)(@opentelemetry/api@1.9.1)(drizzle-kit@1.0.0-rc.1)(drizzle-orm@1.0.0-rc.1(patch_hash=5a7394d69f23eb6a0728848ef9ffce9e7f21cb3cb7fcd125e4f1b1a75afedde1)(@cloudflare/workers-types@4.20260503.1)(@effect/sql-pg@4.0.0-beta.59(effect@4.0.0-beta.59))(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(effect@4.0.0-beta.59)(pg@8.20.0)(postgres@3.4.7)(zod@4.3.6))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12)
       drizzle-kit:
         specifier: 1.0.0-rc.1
         version: 1.0.0-rc.1
       drizzle-orm:
         specifier: 1.0.0-rc.1
-        version: 1.0.0-rc.1(@cloudflare/workers-types@4.20260503.1)(@effect/sql-pg@4.0.0-beta.59(effect@4.0.0-beta.59))(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(effect@4.0.0-beta.59)(pg@8.20.0)(postgres@3.4.7)(zod@4.3.6)
+        version: 1.0.0-rc.1(patch_hash=5a7394d69f23eb6a0728848ef9ffce9e7f21cb3cb7fcd125e4f1b1a75afedde1)(@cloudflare/workers-types@4.20260503.1)(@effect/sql-pg@4.0.0-beta.59(effect@4.0.0-beta.59))(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(effect@4.0.0-beta.59)(pg@8.20.0)(postgres@3.4.7)(zod@4.3.6)
       effect:
         specifier: 4.0.0-beta.59
         version: 4.0.0-beta.59
@@ -7675,12 +7678,12 @@ snapshots:
       '@cloudflare/workers-types': 4.20260503.1
       '@opentelemetry/api': 1.9.1
 
-  '@better-auth/drizzle-adapter@1.6.9(@better-auth/core@1.6.9(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260503.1)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.4.0)(drizzle-orm@1.0.0-rc.1(@cloudflare/workers-types@4.20260503.1)(@effect/sql-pg@4.0.0-beta.59(effect@4.0.0-beta.59))(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(effect@4.0.0-beta.59)(pg@8.20.0)(postgres@3.4.7)(zod@4.3.6))':
+  '@better-auth/drizzle-adapter@1.6.9(@better-auth/core@1.6.9(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260503.1)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.4.0)(drizzle-orm@1.0.0-rc.1(patch_hash=5a7394d69f23eb6a0728848ef9ffce9e7f21cb3cb7fcd125e4f1b1a75afedde1)(@cloudflare/workers-types@4.20260503.1)(@effect/sql-pg@4.0.0-beta.59(effect@4.0.0-beta.59))(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(effect@4.0.0-beta.59)(pg@8.20.0)(postgres@3.4.7)(zod@4.3.6))':
     dependencies:
       '@better-auth/core': 1.6.9(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260503.1)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0)
       '@better-auth/utils': 0.4.0
     optionalDependencies:
-      drizzle-orm: 1.0.0-rc.1(@cloudflare/workers-types@4.20260503.1)(@effect/sql-pg@4.0.0-beta.59(effect@4.0.0-beta.59))(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(effect@4.0.0-beta.59)(pg@8.20.0)(postgres@3.4.7)(zod@4.3.6)
+      drizzle-orm: 1.0.0-rc.1(patch_hash=5a7394d69f23eb6a0728848ef9ffce9e7f21cb3cb7fcd125e4f1b1a75afedde1)(@cloudflare/workers-types@4.20260503.1)(@effect/sql-pg@4.0.0-beta.59(effect@4.0.0-beta.59))(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(effect@4.0.0-beta.59)(pg@8.20.0)(postgres@3.4.7)(zod@4.3.6)
 
   '@better-auth/kysely-adapter@1.6.9(@better-auth/core@1.6.9(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260503.1)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.4.0)(kysely@0.28.16)':
     dependencies:
@@ -9233,11 +9236,11 @@ snapshots:
 
   '@pinojs/redact@0.4.0': {}
 
-  '@polar-sh/better-auth@1.8.3(@polar-sh/sdk@0.47.1)(@stripe/react-stripe-js@4.0.2(@stripe/stripe-js@7.9.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(@stripe/stripe-js@7.9.0)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(better-auth@1.6.9(@cloudflare/workers-types@4.20260503.1)(@opentelemetry/api@1.9.1)(drizzle-kit@1.0.0-rc.1)(drizzle-orm@1.0.0-rc.1(@cloudflare/workers-types@4.20260503.1)(@effect/sql-pg@4.0.0-beta.59(effect@4.0.0-beta.59))(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(effect@4.0.0-beta.59)(pg@8.20.0)(postgres@3.4.7)(zod@4.3.6))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12))(react-dom@19.2.5(react@19.2.5))(react-is@19.2.4)(react@19.2.5)(zod@4.3.6)':
+  '@polar-sh/better-auth@1.8.3(@polar-sh/sdk@0.47.1)(@stripe/react-stripe-js@4.0.2(@stripe/stripe-js@7.9.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(@stripe/stripe-js@7.9.0)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(better-auth@1.6.9(@cloudflare/workers-types@4.20260503.1)(@opentelemetry/api@1.9.1)(drizzle-kit@1.0.0-rc.1)(drizzle-orm@1.0.0-rc.1(patch_hash=5a7394d69f23eb6a0728848ef9ffce9e7f21cb3cb7fcd125e4f1b1a75afedde1)(@cloudflare/workers-types@4.20260503.1)(@effect/sql-pg@4.0.0-beta.59(effect@4.0.0-beta.59))(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(effect@4.0.0-beta.59)(pg@8.20.0)(postgres@3.4.7)(zod@4.3.6))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12))(react-dom@19.2.5(react@19.2.5))(react-is@19.2.4)(react@19.2.5)(zod@4.3.6)':
     dependencies:
       '@polar-sh/checkout': 0.2.0(@stripe/react-stripe-js@4.0.2(@stripe/stripe-js@7.9.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(@stripe/stripe-js@7.9.0)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react-is@19.2.4)(react@19.2.5)
       '@polar-sh/sdk': 0.47.1
-      better-auth: 1.6.9(@cloudflare/workers-types@4.20260503.1)(@opentelemetry/api@1.9.1)(drizzle-kit@1.0.0-rc.1)(drizzle-orm@1.0.0-rc.1(@cloudflare/workers-types@4.20260503.1)(@effect/sql-pg@4.0.0-beta.59(effect@4.0.0-beta.59))(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(effect@4.0.0-beta.59)(pg@8.20.0)(postgres@3.4.7)(zod@4.3.6))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12)
+      better-auth: 1.6.9(@cloudflare/workers-types@4.20260503.1)(@opentelemetry/api@1.9.1)(drizzle-kit@1.0.0-rc.1)(drizzle-orm@1.0.0-rc.1(patch_hash=5a7394d69f23eb6a0728848ef9ffce9e7f21cb3cb7fcd125e4f1b1a75afedde1)(@cloudflare/workers-types@4.20260503.1)(@effect/sql-pg@4.0.0-beta.59(effect@4.0.0-beta.59))(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(effect@4.0.0-beta.59)(pg@8.20.0)(postgres@3.4.7)(zod@4.3.6))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12)
       zod: 4.3.6
     transitivePeerDependencies:
       - '@stripe/react-stripe-js'
@@ -11241,10 +11244,10 @@ snapshots:
     dependencies:
       safe-buffer: 5.1.2
 
-  better-auth@1.6.9(@cloudflare/workers-types@4.20260503.1)(@opentelemetry/api@1.9.1)(drizzle-kit@1.0.0-rc.1)(drizzle-orm@1.0.0-rc.1(@cloudflare/workers-types@4.20260503.1)(@effect/sql-pg@4.0.0-beta.59(effect@4.0.0-beta.59))(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(effect@4.0.0-beta.59)(pg@8.20.0)(postgres@3.4.7)(zod@4.3.6))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12):
+  better-auth@1.6.9(@cloudflare/workers-types@4.20260503.1)(@opentelemetry/api@1.9.1)(drizzle-kit@1.0.0-rc.1)(drizzle-orm@1.0.0-rc.1(patch_hash=5a7394d69f23eb6a0728848ef9ffce9e7f21cb3cb7fcd125e4f1b1a75afedde1)(@cloudflare/workers-types@4.20260503.1)(@effect/sql-pg@4.0.0-beta.59(effect@4.0.0-beta.59))(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(effect@4.0.0-beta.59)(pg@8.20.0)(postgres@3.4.7)(zod@4.3.6))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12):
     dependencies:
       '@better-auth/core': 1.6.9(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260503.1)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0)
-      '@better-auth/drizzle-adapter': 1.6.9(@better-auth/core@1.6.9(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260503.1)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.4.0)(drizzle-orm@1.0.0-rc.1(@cloudflare/workers-types@4.20260503.1)(@effect/sql-pg@4.0.0-beta.59(effect@4.0.0-beta.59))(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(effect@4.0.0-beta.59)(pg@8.20.0)(postgres@3.4.7)(zod@4.3.6))
+      '@better-auth/drizzle-adapter': 1.6.9(@better-auth/core@1.6.9(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260503.1)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.4.0)(drizzle-orm@1.0.0-rc.1(patch_hash=5a7394d69f23eb6a0728848ef9ffce9e7f21cb3cb7fcd125e4f1b1a75afedde1)(@cloudflare/workers-types@4.20260503.1)(@effect/sql-pg@4.0.0-beta.59(effect@4.0.0-beta.59))(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(effect@4.0.0-beta.59)(pg@8.20.0)(postgres@3.4.7)(zod@4.3.6))
       '@better-auth/kysely-adapter': 1.6.9(@better-auth/core@1.6.9(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260503.1)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.4.0)(kysely@0.28.16)
       '@better-auth/memory-adapter': 1.6.9(@better-auth/core@1.6.9(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260503.1)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.4.0)
       '@better-auth/mongo-adapter': 1.6.9(@better-auth/core@1.6.9(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260503.1)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.4.0)
@@ -11262,7 +11265,7 @@ snapshots:
       zod: 4.3.6
     optionalDependencies:
       drizzle-kit: 1.0.0-rc.1
-      drizzle-orm: 1.0.0-rc.1(@cloudflare/workers-types@4.20260503.1)(@effect/sql-pg@4.0.0-beta.59(effect@4.0.0-beta.59))(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(effect@4.0.0-beta.59)(pg@8.20.0)(postgres@3.4.7)(zod@4.3.6)
+      drizzle-orm: 1.0.0-rc.1(patch_hash=5a7394d69f23eb6a0728848ef9ffce9e7f21cb3cb7fcd125e4f1b1a75afedde1)(@cloudflare/workers-types@4.20260503.1)(@effect/sql-pg@4.0.0-beta.59(effect@4.0.0-beta.59))(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(effect@4.0.0-beta.59)(pg@8.20.0)(postgres@3.4.7)(zod@4.3.6)
       pg: 8.20.0
       react: 19.2.5
       react-dom: 19.2.5(react@19.2.5)
@@ -11635,7 +11638,7 @@ snapshots:
       get-tsconfig: 4.14.0
       jiti: 2.6.1
 
-  drizzle-orm@1.0.0-rc.1(@cloudflare/workers-types@4.20260503.1)(@effect/sql-pg@4.0.0-beta.59(effect@4.0.0-beta.59))(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(effect@4.0.0-beta.59)(pg@8.20.0)(postgres@3.4.7)(zod@4.3.6):
+  drizzle-orm@1.0.0-rc.1(patch_hash=5a7394d69f23eb6a0728848ef9ffce9e7f21cb3cb7fcd125e4f1b1a75afedde1)(@cloudflare/workers-types@4.20260503.1)(@effect/sql-pg@4.0.0-beta.59(effect@4.0.0-beta.59))(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(effect@4.0.0-beta.59)(pg@8.20.0)(postgres@3.4.7)(zod@4.3.6):
     optionalDependencies:
       '@cloudflare/workers-types': 4.20260503.1
       '@effect/sql-pg': 4.0.0-beta.59(effect@4.0.0-beta.59)
