@@ -5,6 +5,9 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite-plus";
 
 export default defineConfig({
+	server: {
+		allowedHosts: [".ts.net"],
+	},
 	plugins: [
 		devtools(),
 		tanstackRouter({ autoCodeSplitting: true, routesDirectory: "src/pages" }),
