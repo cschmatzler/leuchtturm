@@ -1,0 +1,8 @@
+{
+	"memory": {
+		"brain": "file:.cog/brain.db"
+	},
+	"code": {
+		"index": ["**/*.nix", "**/*.ts", "**/*.tsx"]
+	}
+}
