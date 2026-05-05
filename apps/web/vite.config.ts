@@ -5,8 +5,16 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite-plus";
 
 export default defineConfig({
+	envPrefix: ["VITE_", "PORTLESS_"],
 	server: {
 		allowedHosts: [".ts.net"],
+		proxy: {
+			"/api": {
+				target: process.env.VITE_API_URL,
+				changeOrigin: true,
+				cookieDomainRewrite: "",
+			},
+		},
 	},
 	plugins: [
 		devtools(),

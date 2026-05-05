@@ -6,8 +6,10 @@ import {
 } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 
+const apiUrl = import.meta.env.PORTLESS_TAILSCALE_URL ?? import.meta.env.VITE_API_URL;
+
 export const authClient = createAuthClient({
-	baseURL: `${import.meta.env.VITE_API_URL}/api/auth`,
+	baseURL: `${apiUrl}/api/auth`,
 	fetchOptions: {
 		credentials: "include",
 	},

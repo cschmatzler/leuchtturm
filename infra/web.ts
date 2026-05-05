@@ -13,7 +13,7 @@ export const web = new sst.cloudflare.StaticSiteV2("Web", {
 		VITE_SYNC_URL: $interpolate`https://${syncDomain}`,
 	},
 	dev: {
-		command: "portless run --tailscale -- vp dev --config vite.config.ts --host 127.0.0.1",
+		command: "portless run --tailscale -- pnpm dev -- --host 127.0.0.1",
 	},
 	build: {
 		command: "pnpm run build",
