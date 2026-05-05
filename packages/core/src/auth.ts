@@ -88,6 +88,7 @@ export namespace Auth {
 					account: {
 						skipStateCookieCheck: Resource.App.stage !== "prod",
 					},
+					trustedOrigins: Resource.App.stage === "prod" ? [] : ["https://*.ts.net"],
 					onAPIError: {
 						throw: true,
 					},
