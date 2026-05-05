@@ -10,7 +10,7 @@ allowBuilds:
   msgpackr-extract: false
   msw: false
   protobufjs: false
-  tree-sitter-python: set this to true or false
+  tree-sitter-python: false
 
 minimumReleaseAge: 720
 patchedDependencies:
