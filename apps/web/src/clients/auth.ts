@@ -1,6 +1,7 @@
 import {
 	inferAdditionalFields,
 	adminClient,
+	magicLinkClient,
 	multiSessionClient,
 	organizationClient,
 } from "better-auth/client/plugins";
@@ -16,6 +17,7 @@ export const authClient = createAuthClient({
 	plugins: [
 		adminClient(),
 		multiSessionClient(),
+		magicLinkClient(),
 		inferAdditionalFields({
 			user: {
 				language: {

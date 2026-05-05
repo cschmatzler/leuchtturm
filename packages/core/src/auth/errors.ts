@@ -36,6 +36,15 @@ export class AuthInvitationEmailError extends Schema.TaggedErrorClass<AuthInvita
 	}
 }
 
+export class AuthMagicLinkEmailError extends Schema.TaggedErrorClass<AuthMagicLinkEmailError>()(
+	"AuthMagicLinkEmailError",
+	{ message: Schema.String },
+) {
+	constructor() {
+		super({ message: "Failed to send magic link email" });
+	}
+}
+
 export class AuthInvalidSessionPayloadError extends Schema.TaggedErrorClass<AuthInvalidSessionPayloadError>()(
 	"AuthInvalidSessionPayloadError",
 	{ message: Schema.String },
@@ -113,6 +122,7 @@ export const AuthError = Schema.Union([
 	AuthSessionLookupError,
 	AuthDeviceSessionsListError,
 	AuthInvitationEmailError,
+	AuthMagicLinkEmailError,
 	AuthInvalidSessionPayloadError,
 	AuthInvalidDeviceSessionsPayloadError,
 	AuthOrganizationLookupError,

@@ -16,6 +16,7 @@ export const Errors = [
 	HttpApiSchema.status(500)(Auth.AuthSessionLookupError),
 	HttpApiSchema.status(500)(Auth.AuthDeviceSessionsListError),
 	HttpApiSchema.status(500)(Auth.AuthInvitationEmailError),
+	HttpApiSchema.status(500)(Auth.AuthMagicLinkEmailError),
 	HttpApiSchema.status(500)(Auth.AuthInvalidSessionPayloadError),
 	HttpApiSchema.status(500)(Auth.AuthInvalidDeviceSessionsPayloadError),
 	HttpApiSchema.status(500)(Auth.AuthOrganizationLookupError),

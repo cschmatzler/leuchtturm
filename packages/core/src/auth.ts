@@ -3,6 +3,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import {
 	admin as adminPlugin,
 	multiSession,
+	magicLink,
 	organization as organizationPlugin,
 } from "better-auth/plugins";
 import { and, eq, ne } from "drizzle-orm";
@@ -31,6 +32,7 @@ import {
 	AuthInvalidDeviceSessionsPayloadError,
 	AuthInvalidSessionPayloadError,
 	AuthInvalidOrganizationPayloadError,
+	AuthMagicLinkEmailError,
 	AuthOrganizationLookupError,
 	AuthSessionLookupError,
 } from "@leuchtturm/core/auth/errors";
@@ -53,6 +55,7 @@ import { Billing } from "@leuchtturm/core/billing";
 import { Database } from "@leuchtturm/core/drizzle";
 import { Email } from "@leuchtturm/email/service";
 import { sendInvitationEmail } from "@leuchtturm/email/templates/invitation";
+import { sendMagicLinkEmail } from "@leuchtturm/email/templates/magic-link";
 
 export namespace Auth {
 	export interface Interface {
@@ -124,6 +127,26 @@ export namespace Auth {
 					plugins: [
 						adminPlugin(),
 						multiSession(),
+						magicLink({
+							storeToken: "hashed",
+							sendMagicLink: ({ email: emailAddress, url }) =>
+								runAuthEffect(
+									sendMagicLinkEmail({
+										email: emailAddress,
+										signInUrl: url,
+										send: (params) => email.send(params),
+									}).pipe(
+										Effect.catchCause((cause) =>
+											Effect.gen(function* () {
+												yield* Effect.annotateCurrentSpan({
+													"error.original_cause": Cause.pretty(cause),
+												});
+												return yield* Effect.fail(new AuthMagicLinkEmailError());
+											}),
+										),
+									),
+								),
+						}),
 						organizationPlugin({
 							sendInvitationEmail: (params) =>
 								runAuthEffect(
