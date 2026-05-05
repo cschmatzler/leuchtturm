@@ -88,8 +88,6 @@ export namespace Auth {
 					account: {
 						skipStateCookieCheck: Resource.App.stage !== "prod",
 					},
-					trustedOrigins:
-						Resource.App.stage === "prod" ? [] : ["http://localhost:5173", "http://127.0.0.1:5173"],
 					onAPIError: {
 						throw: true,
 					},

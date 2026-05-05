@@ -76,13 +76,9 @@ namespace Api {
 				HttpMiddleware.cors({
 					allowedOrigins: (origin) => {
 						if (!origin) return false;
+						if (Resource.App.stage !== "prod") return true;
 
-						const url = new URL(origin);
-						return (
-							url.hostname === "localhost" ||
-							url.hostname === "127.0.0.1" ||
-							origin === `https://${Resource.Dns.AppDomain}`
-						);
+						return origin === `https://${Resource.Dns.AppDomain}`;
 					},
 					credentials: true,
 				})(RequestContext.Middleware(Observability.Middleware(app))),
