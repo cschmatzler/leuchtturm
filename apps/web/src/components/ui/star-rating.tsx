@@ -1,5 +1,6 @@
 import { StarIcon } from "@phosphor-icons/react";
-import { useTranslation } from "react-i18next";
+
+import { useTranslation } from "@leuchtturm/web/clients/i18n";
 
 export function StarRating({ rating, size = "md" }: { rating: number; size?: "sm" | "md" }) {
 	const { t } = useTranslation();

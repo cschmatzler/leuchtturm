@@ -1,7 +1,7 @@
 import { MagnifyingGlassMinusIcon } from "@phosphor-icons/react";
 import { Link, type LinkOptions } from "@tanstack/react-router";
-import { useTranslation } from "react-i18next";
 
+import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { Button } from "@leuchtturm/web/components/ui/button";
 
 export function NotFound({ backTo, backLabel }: { backTo: LinkOptions; backLabel: string }) {

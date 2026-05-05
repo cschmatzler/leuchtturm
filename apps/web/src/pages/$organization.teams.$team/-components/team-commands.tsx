@@ -1,7 +1,7 @@
 import { GearIcon, StackIcon } from "@phosphor-icons/react";
 import { useNavigate, useParams, useRouteContext } from "@tanstack/react-router";
-import { useTranslation } from "react-i18next";
 
+import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { useCommandBar } from "@leuchtturm/web/hooks/use-command-bar";
 import { useCommandProvider } from "@leuchtturm/web/hooks/use-command-provider";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";

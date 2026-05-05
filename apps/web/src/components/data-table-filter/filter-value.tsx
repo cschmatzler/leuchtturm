@@ -3,9 +3,9 @@ import { useDebouncedCallback } from "@tanstack/react-pacer";
 import { addDays, format, isEqual } from "date-fns";
 import { cloneElement, isValidElement, memo, useCallback, useMemo, useState } from "react";
 import type { DateRange } from "react-day-picker";
-import { useTranslation } from "react-i18next";
 import { take } from "remeda";
 
+import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { useDataTableFilterContext } from "@leuchtturm/web/components/data-table-filter/context";
 import {
 	createNumberRange,

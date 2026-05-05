@@ -1,8 +1,8 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { createContext, useState } from "react";
 import type { CSSProperties } from "react";
-import { useTranslation } from "react-i18next";
 
+import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { AppHeader } from "@leuchtturm/web/components/app/app-header";
 import { SettingsSidebar } from "@leuchtturm/web/components/app/settings-sidebar";
 import {

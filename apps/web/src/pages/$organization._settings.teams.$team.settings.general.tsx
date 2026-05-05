@@ -3,11 +3,11 @@ import { useForm } from "@tanstack/react-form";
 import { createFileRoute, stripSearchParams, useNavigate } from "@tanstack/react-router";
 import { Effect, Schema } from "effect";
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { TeamInsert } from "@leuchtturm/core/auth/schema";
 import { authClient } from "@leuchtturm/web/clients/auth";
+import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import {
 	AlertDialog,
 	AlertDialogAction,

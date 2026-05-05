@@ -2,10 +2,10 @@ import { CaretLeftIcon, SpinnerIcon } from "@phosphor-icons/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { authClient } from "@leuchtturm/web/clients/auth";
+import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import {
 	Card,

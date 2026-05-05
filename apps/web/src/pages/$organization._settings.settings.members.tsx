@@ -16,12 +16,12 @@ import {
 } from "@tanstack/react-table";
 import { Effect, Schema } from "effect";
 import { useMemo } from "react";
-import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { Role } from "@leuchtturm/core/auth/schema";
 import { Email } from "@leuchtturm/core/schema";
 import { authClient } from "@leuchtturm/web/clients/auth";
+import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { DataTable } from "@leuchtturm/web/components/data-table";
 import {
 	createTanStackColumns,

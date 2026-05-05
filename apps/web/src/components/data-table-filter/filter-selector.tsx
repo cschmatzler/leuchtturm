@@ -1,7 +1,7 @@
 import { ArrowRightIcon, CaretRightIcon, FunnelIcon } from "@phosphor-icons/react";
 import { Fragment, isValidElement, memo, useCallback, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
 
+import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { useDataTableFilterContext } from "@leuchtturm/web/components/data-table-filter/context";
 import { FilterValueController } from "@leuchtturm/web/components/data-table-filter/filter-value";
 import { getColumn } from "@leuchtturm/web/components/data-table-filter/helpers";

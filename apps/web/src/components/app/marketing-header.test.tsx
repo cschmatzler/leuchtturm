@@ -8,28 +8,12 @@ import {
 	RouterProvider,
 } from "@tanstack/react-router";
 import { cleanup, render, screen } from "@testing-library/react";
-import { createInstance } from "i18next";
-import { I18nextProvider, initReactI18next } from "react-i18next";
 import { afterEach, describe, expect, it } from "vite-plus/test";
 
+import { TranslationProvider } from "@leuchtturm/web/clients/i18n";
 import { MarketingHeader } from "@leuchtturm/web/components/app/marketing-header";
 
-async function createTestI18n() {
-	const i18n = createInstance();
-	await i18n.use(initReactI18next).init({
-		lng: "en",
-		fallbackLng: "en",
-		resources: {},
-		keySeparator: false,
-		interpolation: {
-			escapeValue: false,
-		},
-	});
-	return i18n;
-}
-
 async function renderMarketingHeader(session: unknown) {
-	const i18n = await createTestI18n();
 	const queryClient = new QueryClient({
 		defaultOptions: {
 			queries: {
@@ -43,9 +27,9 @@ async function renderMarketingHeader(session: unknown) {
 	const Empty = () => null;
 	const rootRoute = createRootRoute({
 		component: () => (
-			<I18nextProvider i18n={i18n}>
+			<TranslationProvider>
 				<Outlet />
-			</I18nextProvider>
+			</TranslationProvider>
 		),
 	});
 	const indexRoute = createRoute({

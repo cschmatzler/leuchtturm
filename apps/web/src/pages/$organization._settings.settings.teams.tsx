@@ -2,11 +2,11 @@ import { SpinnerIcon, PlusIcon, GearIcon } from "@phosphor-icons/react";
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, stripSearchParams, useNavigate } from "@tanstack/react-router";
 import { Effect, Schema } from "effect";
-import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { TeamInsert } from "@leuchtturm/core/auth/schema";
 import { authClient } from "@leuchtturm/web/clients/auth";
+import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import {
 	Dialog,

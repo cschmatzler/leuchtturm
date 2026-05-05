@@ -1,11 +1,11 @@
 import { SpinnerIcon } from "@phosphor-icons/react";
 import { useForm } from "@tanstack/react-form";
 import { Schema } from "effect";
-import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { UserInsert } from "@leuchtturm/core/auth/schema";
 import { authClient } from "@leuchtturm/web/clients/auth";
+import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { FieldDescription, FieldError, FieldLabel } from "@leuchtturm/web/components/ui/field";
 import { Input } from "@leuchtturm/web/components/ui/input";

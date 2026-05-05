@@ -1,6 +1,6 @@
 import { memo, useState } from "react";
-import { useTranslation } from "react-i18next";
 
+import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { useDataTableFilterContext } from "@leuchtturm/web/components/data-table-filter/context";
 import { filterTypeOperatorDetails } from "@leuchtturm/web/components/data-table-filter/operators";
 import type {

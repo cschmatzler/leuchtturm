@@ -7,10 +7,10 @@ import {
 	type ColumnDef,
 } from "@tanstack/react-table";
 import { useCallback, useMemo } from "react";
-import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { authClient } from "@leuchtturm/web/clients/auth";
+import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { DataTable } from "@leuchtturm/web/components/data-table";
 import {
 	createTanStackColumns,

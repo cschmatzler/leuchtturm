@@ -1,26 +1,48 @@
-import i18n from "i18next";
-import LanguageDetector from "i18next-browser-languagedetector";
-import Backend from "i18next-http-backend";
-import { initReactI18next } from "react-i18next";
+import { GTProvider, useGT, useLocale, useSetLocale } from "gt-react";
+import { createElement, type ReactNode } from "react";
 
 import { DEFAULT_LANGUAGE, SupportedLanguage } from "@leuchtturm/core/i18n";
 
-i18n
-	.use(LanguageDetector)
-	.use(Backend)
-	.use(initReactI18next)
-	.init({
-		supportedLngs: [...SupportedLanguage.literals],
-		fallbackLng: DEFAULT_LANGUAGE,
-		keySeparator: false,
-		interpolation: {
-			escapeValue: false,
-		},
-		backend: {
-			loadPath: "/locales/{{lng}}/{{ns}}.json",
-			queryStringParams: { v: __BUILD_HASH__ },
-		},
-		partialBundledLanguages: true,
-	});
+type TranslationMap = Record<string, string>;
+type TranslationModule = { default: TranslationMap };
 
-export { i18n };
+const translationLoaders = import.meta.glob<TranslationModule>("../_gt/*.json");
+const interpolationPattern = /\{\{\s*([\w.]+)\s*\}\}/g;
+
+export function TranslationProvider({ children }: { children: ReactNode }) {
+	return createElement(
+		GTProvider,
+		{
+			defaultLocale: DEFAULT_LANGUAGE,
+			locales: SupportedLanguage.literals.filter((locale) => locale !== DEFAULT_LANGUAGE),
+			loadTranslations: async (locale: string) => {
+				const loader = translationLoaders[`../_gt/${locale}.json`];
+				if (!loader) return {};
+				return (await loader()).default;
+			},
+		},
+		children,
+	);
+}
+
+export function useTranslation() {
+	const gt = useGT();
+	const locale = useLocale();
+	const setLocale = useSetLocale();
+
+	return {
+		t(message: string, options: Record<string, unknown> = {}) {
+			return gt(message.replace(interpolationPattern, "{$1}"), { $id: message, ...options });
+		},
+		i18n: {
+			language: locale,
+			resolvedLanguage: locale,
+			async changeLanguage(language: string) {
+				setLocale(language);
+			},
+		},
+	};
+}
+
+export const defaultLocale = DEFAULT_LANGUAGE;
+export const locales = [...SupportedLanguage.literals];

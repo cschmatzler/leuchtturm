@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRouteContext } from "@tanstack/react-router";
-import { useTranslation } from "react-i18next";
 
 import { api } from "@leuchtturm/web/clients/api";
+import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { reportError } from "@leuchtturm/web/lib/report-error";
 import { billingOverviewQuery } from "@leuchtturm/web/queries/billing";

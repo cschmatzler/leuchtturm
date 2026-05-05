@@ -17,9 +17,8 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { useEffect } from "react";
-import { I18nextProvider, useTranslation } from "react-i18next";
 
-import { i18n } from "@leuchtturm/web/clients/i18n";
+import { TranslationProvider, useTranslation } from "@leuchtturm/web/clients/i18n";
 import { CommandBar } from "@leuchtturm/web/components/command-bar";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { Toaster } from "@leuchtturm/web/components/ui/sonner";
@@ -75,7 +74,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 		}, [posthog, session]);
 
 		return (
-			<I18nextProvider i18n={i18n}>
+			<TranslationProvider>
 				<PostHogErrorBoundary
 					fallback={RootBoundaryFallback}
 					additionalProperties={{ source: "root-error-boundary" }}
@@ -100,7 +99,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 						/>
 					</CommandBarProvider>
 				</PostHogErrorBoundary>
-			</I18nextProvider>
+			</TranslationProvider>
 		);
 	},
 	errorComponent: RootErrorComponent,

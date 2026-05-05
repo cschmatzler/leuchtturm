@@ -6,8 +6,8 @@ import {
 } from "@phosphor-icons/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { useTranslation } from "react-i18next";
 
+import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { Card, CardContent } from "@leuchtturm/web/components/ui/card";
 import { useReactQuery } from "@leuchtturm/web/lib/query";

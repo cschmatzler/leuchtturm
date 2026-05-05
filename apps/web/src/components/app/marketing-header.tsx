@@ -1,7 +1,7 @@
 import { SparkleIcon } from "@phosphor-icons/react";
 import { Link } from "@tanstack/react-router";
-import { useTranslation } from "react-i18next";
 
+import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { cn } from "@leuchtturm/web/lib/cn";
 import { useReactQuery } from "@leuchtturm/web/lib/query";

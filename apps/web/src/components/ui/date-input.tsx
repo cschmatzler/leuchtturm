@@ -8,8 +8,8 @@ import {
 	type ChangeEvent,
 	type ComponentProps,
 } from "react";
-import { useTranslation } from "react-i18next";
 
+import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { Calendar } from "@leuchtturm/web/components/ui/calendar";
 import { FieldError } from "@leuchtturm/web/components/ui/field";

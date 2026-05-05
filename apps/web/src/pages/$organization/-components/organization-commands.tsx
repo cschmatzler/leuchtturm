@@ -2,8 +2,8 @@ import { BuildingIcon, GearIcon, StackIcon, SignOutIcon, PlusIcon } from "@phosp
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "@tanstack/react-router";
-import { useTranslation } from "react-i18next";
 
+import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { useAuth } from "@leuchtturm/web/hooks/use-auth";
 import { useCommandBar } from "@leuchtturm/web/hooks/use-command-bar";
 import { useCommandProvider } from "@leuchtturm/web/hooks/use-command-provider";

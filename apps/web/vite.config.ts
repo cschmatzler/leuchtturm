@@ -29,9 +29,6 @@ export default defineConfig({
 			},
 		},
 	},
-	define: {
-		__BUILD_HASH__: JSON.stringify(Date.now().toString(36)),
-	},
 	optimizeDeps: {
 		include: ["@phosphor-icons/react"],
 	},

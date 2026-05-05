@@ -12,9 +12,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useMatchRoute, useNavigate } from "@tanstack/react-router";
 import { Fragment, useEffect } from "react";
 import type { ReactNode } from "react";
-import { useTranslation } from "react-i18next";
 
 import { resolveLanguage } from "@leuchtturm/core/i18n";
+import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import {
 	Breadcrumb,
 	BreadcrumbItem,
