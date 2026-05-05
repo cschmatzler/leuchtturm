@@ -41,6 +41,7 @@ export default defineConfig({
 			"**/*.gen.ts",
 			"**/sst-env.d.ts",
 			".opencode/**",
+			".pi/**",
 			"packages/oxlint-plugins/**",
 		],
 		rules: {
