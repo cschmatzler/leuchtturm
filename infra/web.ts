@@ -12,6 +12,9 @@ export const web = new sst.cloudflare.StaticSiteV2("Web", {
 		VITE_POSTHOG_KEY: secrets.postHogProjectApiKey.value,
 		VITE_SYNC_URL: $interpolate`https://${syncDomain}`,
 	},
+	dev: {
+		command: "portless run --tailscale -- vp dev --config vite.config.ts --host 127.0.0.1",
+	},
 	build: {
 		command: "pnpm run build",
 		output: "dist",
