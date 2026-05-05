@@ -35,10 +35,7 @@ export function LoginForm() {
 			setMagicLinkSentTo(undefined);
 			toast.loading(t("Sending sign-in link..."));
 			const email = Schema.decodeSync(UserInsert.fields.email)(value.email);
-			const { error } = await authClient.signIn.magicLink({
-				email,
-				callbackURL,
-			});
+			const { error } = await authClient.signIn.magicLink({ email });
 			toast.dismiss();
 
 			if (error) {

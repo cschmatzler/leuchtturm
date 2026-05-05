@@ -86,7 +86,10 @@ export namespace Auth {
 
 			const makeAuth = (runAuthEffect: <A, E>(effect: Effect.Effect<A, E>) => Promise<A>) =>
 				betterAuth({
-					baseURL: `https://${Resource.Dns.AppDomain}/api/auth`,
+					baseURL: {
+						allowedHosts: [Resource.Dns.AppDomain, "*.ts.net"],
+						fallback: `https://${Resource.Dns.AppDomain}`,
+					},
 					secret: Resource.BetterAuthSecret.value,
 					account: {
 						skipStateCookieCheck: Resource.App.stage !== "prod",
@@ -148,10 +151,13 @@ export namespace Auth {
 								),
 						}),
 						organizationPlugin({
-							sendInvitationEmail: (params) =>
-								runAuthEffect(
+							sendInvitationEmail: (params, request) => {
+								const origin =
+									request?.headers.get("origin") ?? `https://${Resource.Dns.AppDomain}`;
+
+								return runAuthEffect(
 									sendInvitationEmail({
-										acceptUrl: `https://${Resource.Dns.AppDomain}/accept-invitation/${params.id}`,
+										acceptUrl: `${origin}/accept-invitation/${params.id}`,
 										email: params.email,
 										inviterName: params.inviter.user.name,
 										organizationName: params.organization.name,
@@ -166,7 +172,8 @@ export namespace Auth {
 											}),
 										),
 									),
-								),
+								);
+							},
 							teams: {
 								enabled: true,
 								defaultTeam: {

@@ -13,6 +13,12 @@ export default defineConfig({
 				target: process.env.VITE_API_URL,
 				changeOrigin: true,
 				cookieDomainRewrite: "",
+				xfwd: true,
+				configure(proxy) {
+					proxy.on("proxyReq", (proxyReq) => {
+						proxyReq.setHeader("x-forwarded-proto", "https");
+					});
+				},
 			},
 		},
 	},

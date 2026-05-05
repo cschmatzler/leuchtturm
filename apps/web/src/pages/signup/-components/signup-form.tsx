@@ -36,12 +36,7 @@ export function SignupForm() {
 			toast.loading(t("Sending sign-up link..."));
 			const email = Schema.decodeSync(UserInsert.fields.email)(value.email);
 			const name = Schema.decodeSync(UserInsert.fields.name)(value.name);
-			const { error } = await authClient.signIn.magicLink({
-				email,
-				name,
-				callbackURL,
-				newUserCallbackURL: callbackURL,
-			});
+			const { error } = await authClient.signIn.magicLink({ email, name });
 			toast.dismiss();
 
 			if (error) {
