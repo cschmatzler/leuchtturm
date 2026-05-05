@@ -4,10 +4,6 @@
 	"exports": {
 		"./*": "./src/*"
 	},
-	"scripts": {
-		"build": "vp build --config vite.config.ts",
-		"dev": "vp dev --config vite.config.ts"
-	},
 	"dependencies": {
 		"@base-ui/react": "1.4.1",
 		"@fontsource-variable/geist": "5.2.8",

@@ -1,41 +1,407 @@
 {
-  "version": 2,
-  "processed_subsystems": [
-    {"id": "0dd1f3177e486d67", "files": ["apps/web/src/components/data-table-filter/active-filters.tsx", "apps/web/src/components/data-table-filter/context.tsx", "apps/web/src/components/data-table-filter/filter-actions.tsx", "apps/web/src/components/data-table-filter/filter-fns.test.ts", "apps/web/src/components/data-table-filter/filter-fns.ts", "apps/web/src/components/data-table-filter/filter-operator.tsx", "apps/web/src/components/data-table-filter/filter-selector.tsx", "apps/web/src/components/data-table-filter/filter-subject.tsx"]},
-    {"id": "149c0ec833551945", "files": ["apps/web/src/components/data-table-filter/types.ts"]},
-    {"id": "2026cd458146efc0", "files": ["apps/web/src/components/command-bar.tsx", "apps/web/src/components/data-table-filter.tsx", "apps/web/src/components/data-table.tsx"]},
-    {"id": "26f9c6540157ca1d", "files": ["apps/web/src/pages/$organization._settings.settings/-components/billing-details.tsx", "apps/web/src/pages/$organization._settings.settings/-components/preferences-card.tsx", "apps/web/src/pages/$organization._settings.settings/-components/profile-card.tsx", "apps/web/src/pages/$organization._settings.settings/-components/subscription-settings.tsx", "apps/web/src/pages/$organization.teams.$team/-components/team-commands.tsx", "apps/web/src/pages/$organization/-components/organization-commands.tsx"]},
-    {"id": "32feb271216a8d96", "files": ["apps/web/src/components/ui/accordion.tsx", "apps/web/src/components/ui/alert-dialog.tsx", "apps/web/src/components/ui/avatar.tsx", "apps/web/src/components/ui/badge.tsx", "apps/web/src/components/ui/breadcrumb.tsx", "apps/web/src/components/ui/button.tsx", "apps/web/src/components/ui/calendar.tsx", "apps/web/src/components/ui/card.tsx"]},
-    {"id": "3a87b473c41b6fbe", "files": ["packages/core/src/auth.ts", "packages/core/src/billing.ts", "packages/core/src/drizzle.ts", "packages/core/src/errors.ts", "packages/core/src/i18n.ts", "packages/core/src/schema.ts"]},
-    {"id": "555bc1cdc100becc", "files": ["packages/core/src/auth/auth.sql.ts", "packages/core/src/auth/errors.ts", "packages/core/src/auth/schema.ts"]},
-    {"id": "55a56cf9293429b0", "files": ["packages/zero/src/authorization.ts", "packages/zero/src/mutators.ts", "packages/zero/src/mutators/shared.ts", "packages/zero/src/queries.ts", "packages/zero/src/schema.ts", "packages/zero/sst-env.d.ts"]},
-    {"id": "5af37ecdf6d43a91", "files": ["packages/email/src/templates/email-frame.tsx", "packages/email/src/templates/invitation.test.ts", "packages/email/src/templates/invitation.tsx"]},
-    {"id": "5df9db197106bb73", "files": ["apps/web/src/contexts/command-bar.test.tsx", "apps/web/src/contexts/command-bar.tsx", "apps/web/src/contexts/zero.tsx"]},
-    {"id": "6264588ba18721b1", "files": ["apps/web/src/components/ui/dropdown-menu.tsx", "apps/web/src/components/ui/empty.tsx", "apps/web/src/components/ui/field.tsx", "apps/web/src/components/ui/input-group.tsx", "apps/web/src/components/ui/input.tsx", "apps/web/src/components/ui/kbd.tsx", "apps/web/src/components/ui/label.tsx", "apps/web/src/components/ui/link.tsx"]},
-    {"id": "6339b0e68ce3fc81", "files": ["apps/web/src/lib/array.test.ts", "apps/web/src/lib/array.ts", "apps/web/src/lib/cn.ts", "apps/web/src/lib/memo.test.ts", "apps/web/src/lib/memo.ts", "apps/web/src/lib/query.ts", "apps/web/src/lib/report-error.ts", "apps/web/src/lib/search-params.test.ts", "apps/web/src/lib/search-params.ts", "apps/web/src/lib/utils.ts"]},
-    {"id": "6941085525c290d3", "files": ["apps/web/src/pages/$organization._settings.settings.billing.tsx", "apps/web/src/pages/$organization._settings.settings.index.tsx", "apps/web/src/pages/$organization._settings.settings.members.tsx", "apps/web/src/pages/$organization._settings.settings.preferences.tsx", "apps/web/src/pages/$organization._settings.settings.profile.tsx", "apps/web/src/pages/$organization._settings.settings.teams.tsx", "apps/web/src/pages/$organization._settings.settings.tsx", "apps/web/src/pages/$organization._settings.teams.$team.settings.general.tsx"]},
-    {"id": "6ae2e70a82c639aa", "files": ["devenv.nix", "sst-env.d.ts", "sst.config.ts", "vite.config.ts"]},
-    {"id": "7437e381d6602487", "files": ["packages/oxlint-plugins/sst-env.d.ts"]},
-    {"id": "76ebf240e50a0a85", "files": ["apps/web/src/queries/admin-users.ts", "apps/web/src/queries/billing.ts", "apps/web/src/queries/device-sessions.ts", "apps/web/src/queries/organizations.ts", "apps/web/src/queries/session.ts"]},
-    {"id": "771eb4699b1bd555", "files": ["apps/web/src/pages/$organization.tsx", "apps/web/src/pages/-app.test.tsx", "apps/web/src/pages/-index.test.tsx", "apps/web/src/pages/__root.tsx", "apps/web/src/pages/accept-invitation.$id.tsx", "apps/web/src/pages/admin.users.tsx", "apps/web/src/pages/app.tsx", "apps/web/src/pages/create-organization.tsx"]},
-    {"id": "7e657a7aa4bef4ea", "files": ["apps/web/src/clients/api.ts", "apps/web/src/clients/auth.ts", "apps/web/src/clients/i18n.ts"]},
-    {"id": "8f3e0c3c28d290dc", "files": ["packages/oxlint-plugins/src/consistent-component-hook-groups.ts", "packages/oxlint-plugins/src/index.ts", "packages/oxlint-plugins/src/no-api-response-schema-in-core.ts", "packages/oxlint-plugins/src/no-direct-fetch.ts", "packages/oxlint-plugins/src/no-effect-try-helper.ts", "packages/oxlint-plugins/src/no-generic-domain-error-class.ts", "packages/oxlint-plugins/src/no-http-status-in-core.ts", "packages/oxlint-plugins/src/no-live-suffix.ts", "packages/oxlint-plugins/src/no-local-effect-callback-wrapper.ts", "packages/oxlint-plugins/src/no-local-web-schema.ts", "packages/oxlint-plugins/src/no-namespace-imports.ts", "packages/oxlint-plugins/src/no-non-exact-package-json-versions.ts", "packages/oxlint-plugins/src/no-relative-imports.ts", "packages/oxlint-plugins/src/no-row-suffix.ts", "packages/oxlint-plugins/src/no-schema-type-alias.ts", "packages/oxlint-plugins/src/no-use-params-strict-false.ts", "packages/oxlint-plugins/src/no-vi-mock.ts", "packages/oxlint-plugins/src/types.ts"]},
-    {"id": "93d2f9e41cbf698e", "files": ["apps/web/src/components/ui/popover.tsx", "apps/web/src/components/ui/select.tsx", "apps/web/src/components/ui/separator.tsx", "apps/web/src/components/ui/sheet.tsx", "apps/web/src/components/ui/sidebar.tsx", "apps/web/src/components/ui/skeleton.tsx", "apps/web/src/components/ui/slider.tsx", "apps/web/src/components/ui/sonner.tsx"]},
-    {"id": "9840bd74ad061696", "files": ["apps/api/src/auth-layer.ts", "apps/api/src/auth.ts", "apps/api/src/background.ts", "apps/api/src/config.ts", "apps/api/src/contract.ts", "apps/api/src/errors.ts", "apps/api/src/feature-flags.ts", "apps/api/src/index.ts", "apps/api/src/observability.test.ts", "apps/api/src/observability.ts", "apps/api/src/posthog.ts", "apps/api/src/request-runtime.ts"]},
-    {"id": "a30c34ba1258c2a1", "files": ["apps/web/src/components/app/app-header.tsx", "apps/web/src/components/app/auth-page-layout.tsx", "apps/web/src/components/app/auth-side-panel.tsx", "apps/web/src/components/app/loading.tsx", "apps/web/src/components/app/marketing-header.test.tsx", "apps/web/src/components/app/marketing-header.tsx", "apps/web/src/components/app/not-found.tsx", "apps/web/src/components/app/settings-sidebar.tsx", "apps/web/sst-env.d.ts", "apps/web/vite.config.ts", "apps/zero-cache/sst-env.d.ts"]},
-    {"id": "a85f1c514bb590f3", "files": ["packages/email/src/service.ts", "packages/email/src/shared.ts", "packages/email/src/tailwind.ts", "packages/email/src/worker-bindings.d.ts", "packages/email/sst-env.d.ts"]},
-    {"id": "ba95403498a42a7e", "files": ["apps/web/src/components/ui/chart.tsx", "apps/web/src/components/ui/checkbox.tsx", "apps/web/src/components/ui/collapsible.tsx", "apps/web/src/components/ui/combobox.tsx", "apps/web/src/components/ui/command.tsx", "apps/web/src/components/ui/date-input.tsx", "apps/web/src/components/ui/debounced-input.tsx", "apps/web/src/components/ui/dialog.tsx"]},
-    {"id": "bfa10df17b303e5b", "files": ["apps/api/src/middleware/request-context.test.ts", "apps/api/src/middleware/request-context.ts", "apps/api/src/observability/config.ts", "apps/api/src/observability/http-middleware.ts", "apps/api/src/observability/logging.ts", "apps/api/src/observability/metrics.ts", "apps/api/src/observability/request.ts", "apps/api/src/observability/tracing.ts", "apps/api/sst-env.d.ts"]},
-    {"id": "c75e0965f12510a8", "files": ["apps/web/src/pages/index.tsx", "apps/web/src/pages/login.tsx", "apps/web/src/pages/privacy-policy.tsx", "apps/web/src/pages/signup.tsx", "apps/web/src/pages/terms-of-service.tsx"]},
-    {"id": "c9bfb1d6d7d26f71", "files": ["apps/api/src/handlers/auth.ts", "apps/api/src/handlers/billing.ts", "apps/api/src/handlers/health.ts", "apps/api/src/handlers/session.ts", "apps/api/src/handlers/zero.test.ts", "apps/api/src/handlers/zero.ts"]},
-    {"id": "cafe4a1237205c10", "files": ["apps/web/src/components/data-table-filter/filter-value.tsx", "apps/web/src/components/data-table-filter/filters.test.ts", "apps/web/src/components/data-table-filter/filters.ts", "apps/web/src/components/data-table-filter/helpers.test.ts", "apps/web/src/components/data-table-filter/helpers.ts", "apps/web/src/components/data-table-filter/operators.test.ts", "apps/web/src/components/data-table-filter/operators.ts", "apps/web/src/components/data-table-filter/tanstack.tsx"]},
-    {"id": "dabab49234aa9813", "files": ["apps/web/src/pages/$organization._settings.teams.$team.settings.index.tsx", "apps/web/src/pages/$organization._settings.teams.$team.settings.members.tsx", "apps/web/src/pages/$organization._settings.teams.$team.settings.tsx", "apps/web/src/pages/$organization._settings.teams.$team.tsx", "apps/web/src/pages/$organization._settings.tsx", "apps/web/src/pages/$organization.index.tsx", "apps/web/src/pages/$organization.teams.$team.index.tsx", "apps/web/src/pages/$organization.teams.$team.tsx"]},
-    {"id": "dc7a8c7cecf182a9", "files": ["apps/web/src/main.tsx", "apps/web/src/routeTree.gen.ts", "apps/web/src/router.tsx", "apps/web/src/sst-env.d.ts", "apps/web/src/vite-env.d.ts"]},
-    {"id": "de31b924434de54d", "files": ["apps/web/src/pages/-components/legal-page.tsx", "apps/web/src/pages/create-organization/-components/create-organization-form.tsx", "apps/web/src/pages/create-organization/-components/create-organization-header.tsx", "apps/web/src/pages/login/-components/login-form.tsx", "apps/web/src/pages/signup/-components/signup-form.tsx"]},
-    {"id": "de91de94a2842249", "files": ["apps/web/src/components/ui/sparkline.tsx", "apps/web/src/components/ui/star-rating.tsx", "apps/web/src/components/ui/switch.tsx", "apps/web/src/components/ui/table.tsx", "apps/web/src/components/ui/tabs.tsx", "apps/web/src/components/ui/textarea.tsx", "apps/web/src/components/ui/tooltip.tsx"]},
-    {"id": "e026584e26ffde95", "files": ["packages/core/src/billing/billing.sql.ts", "packages/core/src/billing/errors.ts", "packages/core/src/billing/products.ts", "packages/core/src/billing/schema.ts"]},
-    {"id": "f6c4c1586993b283", "files": ["apps/web/src/hooks/use-auth.ts", "apps/web/src/hooks/use-command-bar.ts", "apps/web/src/hooks/use-command-provider.ts", "apps/web/src/hooks/use-data-table-filters.test.ts", "apps/web/src/hooks/use-data-table-filters.ts", "apps/web/src/hooks/use-local-storage.test.ts", "apps/web/src/hooks/use-local-storage.ts", "apps/web/src/hooks/use-mobile.test.ts", "apps/web/src/hooks/use-mobile.ts", "apps/web/src/hooks/use-search-filters.test.ts", "apps/web/src/hooks/use-search-filters.ts"]},
-    {"id": "fc2861edc9ef1c41", "files": ["infra/api.ts", "infra/database.ts", "infra/dns.ts", "infra/routes.ts", "infra/secrets.ts", "infra/sst-env.d.ts", "infra/storage.ts", "infra/web.ts", "infra/zero.ts"]},
-    {"id": "ffa4a56af282a48c", "files": ["packages/core/drizzle.config.ts", "packages/core/src/drizzle/relations.ts", "packages/core/src/effect/run-service.ts", "packages/core/sst-env.d.ts"]}
-  ]
+	"version": 2,
+	"processed_subsystems": [
+		{
+			"id": "0dd1f3177e486d67",
+			"files": [
+				"apps/web/src/components/data-table-filter/active-filters.tsx",
+				"apps/web/src/components/data-table-filter/context.tsx",
+				"apps/web/src/components/data-table-filter/filter-actions.tsx",
+				"apps/web/src/components/data-table-filter/filter-fns.test.ts",
+				"apps/web/src/components/data-table-filter/filter-fns.ts",
+				"apps/web/src/components/data-table-filter/filter-operator.tsx",
+				"apps/web/src/components/data-table-filter/filter-selector.tsx",
+				"apps/web/src/components/data-table-filter/filter-subject.tsx"
+			]
+		},
+		{ "id": "149c0ec833551945", "files": ["apps/web/src/components/data-table-filter/types.ts"] },
+		{
+			"id": "2026cd458146efc0",
+			"files": [
+				"apps/web/src/components/command-bar.tsx",
+				"apps/web/src/components/data-table-filter.tsx",
+				"apps/web/src/components/data-table.tsx"
+			]
+		},
+		{
+			"id": "26f9c6540157ca1d",
+			"files": [
+				"apps/web/src/pages/$organization._settings.settings/-components/billing-details.tsx",
+				"apps/web/src/pages/$organization._settings.settings/-components/preferences-card.tsx",
+				"apps/web/src/pages/$organization._settings.settings/-components/profile-card.tsx",
+				"apps/web/src/pages/$organization._settings.settings/-components/subscription-settings.tsx",
+				"apps/web/src/pages/$organization.teams.$team/-components/team-commands.tsx",
+				"apps/web/src/pages/$organization/-components/organization-commands.tsx"
+			]
+		},
+		{
+			"id": "32feb271216a8d96",
+			"files": [
+				"apps/web/src/components/ui/accordion.tsx",
+				"apps/web/src/components/ui/alert-dialog.tsx",
+				"apps/web/src/components/ui/avatar.tsx",
+				"apps/web/src/components/ui/badge.tsx",
+				"apps/web/src/components/ui/breadcrumb.tsx",
+				"apps/web/src/components/ui/button.tsx",
+				"apps/web/src/components/ui/calendar.tsx",
+				"apps/web/src/components/ui/card.tsx"
+			]
+		},
+		{
+			"id": "3a87b473c41b6fbe",
+			"files": [
+				"packages/core/src/auth.ts",
+				"packages/core/src/billing.ts",
+				"packages/core/src/drizzle.ts",
+				"packages/core/src/errors.ts",
+				"packages/core/src/i18n.ts",
+				"packages/core/src/schema.ts"
+			]
+		},
+		{
+			"id": "555bc1cdc100becc",
+			"files": [
+				"packages/core/src/auth/auth.sql.ts",
+				"packages/core/src/auth/errors.ts",
+				"packages/core/src/auth/schema.ts"
+			]
+		},
+		{
+			"id": "55a56cf9293429b0",
+			"files": [
+				"packages/zero/src/authorization.ts",
+				"packages/zero/src/mutators.ts",
+				"packages/zero/src/mutators/shared.ts",
+				"packages/zero/src/queries.ts",
+				"packages/zero/src/schema.ts",
+				"packages/zero/sst-env.d.ts"
+			]
+		},
+		{
+			"id": "5af37ecdf6d43a91",
+			"files": [
+				"packages/email/src/templates/email-frame.tsx",
+				"packages/email/src/templates/invitation.test.ts",
+				"packages/email/src/templates/invitation.tsx"
+			]
+		},
+		{
+			"id": "5df9db197106bb73",
+			"files": [
+				"apps/web/src/contexts/command-bar.test.tsx",
+				"apps/web/src/contexts/command-bar.tsx",
+				"apps/web/src/contexts/zero.tsx"
+			]
+		},
+		{
+			"id": "6264588ba18721b1",
+			"files": [
+				"apps/web/src/components/ui/dropdown-menu.tsx",
+				"apps/web/src/components/ui/empty.tsx",
+				"apps/web/src/components/ui/field.tsx",
+				"apps/web/src/components/ui/input-group.tsx",
+				"apps/web/src/components/ui/input.tsx",
+				"apps/web/src/components/ui/kbd.tsx",
+				"apps/web/src/components/ui/label.tsx",
+				"apps/web/src/components/ui/link.tsx"
+			]
+		},
+		{
+			"id": "6339b0e68ce3fc81",
+			"files": [
+				"apps/web/src/lib/array.test.ts",
+				"apps/web/src/lib/array.ts",
+				"apps/web/src/lib/cn.ts",
+				"apps/web/src/lib/memo.test.ts",
+				"apps/web/src/lib/memo.ts",
+				"apps/web/src/lib/query.ts",
+				"apps/web/src/lib/report-error.ts",
+				"apps/web/src/lib/search-params.test.ts",
+				"apps/web/src/lib/search-params.ts",
+				"apps/web/src/lib/utils.ts"
+			]
+		},
+		{
+			"id": "6941085525c290d3",
+			"files": [
+				"apps/web/src/pages/$organization._settings.settings.billing.tsx",
+				"apps/web/src/pages/$organization._settings.settings.index.tsx",
+				"apps/web/src/pages/$organization._settings.settings.members.tsx",
+				"apps/web/src/pages/$organization._settings.settings.preferences.tsx",
+				"apps/web/src/pages/$organization._settings.settings.profile.tsx",
+				"apps/web/src/pages/$organization._settings.settings.teams.tsx",
+				"apps/web/src/pages/$organization._settings.settings.tsx",
+				"apps/web/src/pages/$organization._settings.teams.$team.settings.general.tsx"
+			]
+		},
+		{
+			"id": "6ae2e70a82c639aa",
+			"files": ["devenv.nix", "sst-env.d.ts", "sst.config.ts", "vite.config.ts"]
+		},
+		{ "id": "7437e381d6602487", "files": ["packages/oxlint-plugins/sst-env.d.ts"] },
+		{
+			"id": "76ebf240e50a0a85",
+			"files": [
+				"apps/web/src/queries/admin-users.ts",
+				"apps/web/src/queries/billing.ts",
+				"apps/web/src/queries/device-sessions.ts",
+				"apps/web/src/queries/organizations.ts",
+				"apps/web/src/queries/session.ts"
+			]
+		},
+		{
+			"id": "771eb4699b1bd555",
+			"files": [
+				"apps/web/src/pages/$organization.tsx",
+				"apps/web/src/pages/-app.test.tsx",
+				"apps/web/src/pages/-index.test.tsx",
+				"apps/web/src/pages/__root.tsx",
+				"apps/web/src/pages/accept-invitation.$id.tsx",
+				"apps/web/src/pages/admin.users.tsx",
+				"apps/web/src/pages/app.tsx",
+				"apps/web/src/pages/create-organization.tsx"
+			]
+		},
+		{
+			"id": "7e657a7aa4bef4ea",
+			"files": [
+				"apps/web/src/clients/api.ts",
+				"apps/web/src/clients/auth.ts",
+				"apps/web/src/clients/i18n.ts"
+			]
+		},
+		{
+			"id": "8f3e0c3c28d290dc",
+			"files": [
+				"packages/oxlint-plugins/src/consistent-component-hook-groups.ts",
+				"packages/oxlint-plugins/src/index.ts",
+				"packages/oxlint-plugins/src/no-api-response-schema-in-core.ts",
+				"packages/oxlint-plugins/src/no-direct-fetch.ts",
+				"packages/oxlint-plugins/src/no-effect-try-helper.ts",
+				"packages/oxlint-plugins/src/no-generic-domain-error-class.ts",
+				"packages/oxlint-plugins/src/no-http-status-in-core.ts",
+				"packages/oxlint-plugins/src/no-live-suffix.ts",
+				"packages/oxlint-plugins/src/no-local-effect-callback-wrapper.ts",
+				"packages/oxlint-plugins/src/no-local-web-schema.ts",
+				"packages/oxlint-plugins/src/no-namespace-imports.ts",
+				"packages/oxlint-plugins/src/no-non-exact-package-json-versions.ts",
+				"packages/oxlint-plugins/src/no-relative-imports.ts",
+				"packages/oxlint-plugins/src/no-row-suffix.ts",
+				"packages/oxlint-plugins/src/no-schema-type-alias.ts",
+				"packages/oxlint-plugins/src/no-use-params-strict-false.ts",
+				"packages/oxlint-plugins/src/no-vi-mock.ts",
+				"packages/oxlint-plugins/src/types.ts"
+			]
+		},
+		{
+			"id": "93d2f9e41cbf698e",
+			"files": [
+				"apps/web/src/components/ui/popover.tsx",
+				"apps/web/src/components/ui/select.tsx",
+				"apps/web/src/components/ui/separator.tsx",
+				"apps/web/src/components/ui/sheet.tsx",
+				"apps/web/src/components/ui/sidebar.tsx",
+				"apps/web/src/components/ui/skeleton.tsx",
+				"apps/web/src/components/ui/slider.tsx",
+				"apps/web/src/components/ui/sonner.tsx"
+			]
+		},
+		{
+			"id": "9840bd74ad061696",
+			"files": [
+				"apps/api/src/auth-layer.ts",
+				"apps/api/src/auth.ts",
+				"apps/api/src/background.ts",
+				"apps/api/src/config.ts",
+				"apps/api/src/contract.ts",
+				"apps/api/src/errors.ts",
+				"apps/api/src/feature-flags.ts",
+				"apps/api/src/index.ts",
+				"apps/api/src/observability.test.ts",
+				"apps/api/src/observability.ts",
+				"apps/api/src/posthog.ts",
+				"apps/api/src/request-runtime.ts"
+			]
+		},
+		{
+			"id": "a30c34ba1258c2a1",
+			"files": [
+				"apps/web/src/components/app/app-header.tsx",
+				"apps/web/src/components/app/auth-page-layout.tsx",
+				"apps/web/src/components/app/auth-side-panel.tsx",
+				"apps/web/src/components/app/loading.tsx",
+				"apps/web/src/components/app/marketing-header.test.tsx",
+				"apps/web/src/components/app/marketing-header.tsx",
+				"apps/web/src/components/app/not-found.tsx",
+				"apps/web/src/components/app/settings-sidebar.tsx",
+				"apps/web/sst-env.d.ts",
+				"apps/web/vite.config.ts",
+				"apps/zero-cache/sst-env.d.ts"
+			]
+		},
+		{
+			"id": "a85f1c514bb590f3",
+			"files": [
+				"packages/email/src/service.ts",
+				"packages/email/src/shared.ts",
+				"packages/email/src/tailwind.ts",
+				"packages/email/src/worker-bindings.d.ts",
+				"packages/email/sst-env.d.ts"
+			]
+		},
+		{
+			"id": "ba95403498a42a7e",
+			"files": [
+				"apps/web/src/components/ui/chart.tsx",
+				"apps/web/src/components/ui/checkbox.tsx",
+				"apps/web/src/components/ui/collapsible.tsx",
+				"apps/web/src/components/ui/combobox.tsx",
+				"apps/web/src/components/ui/command.tsx",
+				"apps/web/src/components/ui/date-input.tsx",
+				"apps/web/src/components/ui/debounced-input.tsx",
+				"apps/web/src/components/ui/dialog.tsx"
+			]
+		},
+		{
+			"id": "bfa10df17b303e5b",
+			"files": [
+				"apps/api/src/middleware/request-context.test.ts",
+				"apps/api/src/middleware/request-context.ts",
+				"apps/api/src/observability/config.ts",
+				"apps/api/src/observability/http-middleware.ts",
+				"apps/api/src/observability/logging.ts",
+				"apps/api/src/observability/metrics.ts",
+				"apps/api/src/observability/request.ts",
+				"apps/api/src/observability/tracing.ts",
+				"apps/api/sst-env.d.ts"
+			]
+		},
+		{
+			"id": "c75e0965f12510a8",
+			"files": [
+				"apps/web/src/pages/index.tsx",
+				"apps/web/src/pages/login.tsx",
+				"apps/web/src/pages/privacy-policy.tsx",
+				"apps/web/src/pages/signup.tsx",
+				"apps/web/src/pages/terms-of-service.tsx"
+			]
+		},
+		{
+			"id": "c9bfb1d6d7d26f71",
+			"files": [
+				"apps/api/src/handlers/auth.ts",
+				"apps/api/src/handlers/billing.ts",
+				"apps/api/src/handlers/health.ts",
+				"apps/api/src/handlers/session.ts",
+				"apps/api/src/handlers/zero.test.ts",
+				"apps/api/src/handlers/zero.ts"
+			]
+		},
+		{
+			"id": "cafe4a1237205c10",
+			"files": [
+				"apps/web/src/components/data-table-filter/filter-value.tsx",
+				"apps/web/src/components/data-table-filter/filters.test.ts",
+				"apps/web/src/components/data-table-filter/filters.ts",
+				"apps/web/src/components/data-table-filter/helpers.test.ts",
+				"apps/web/src/components/data-table-filter/helpers.ts",
+				"apps/web/src/components/data-table-filter/operators.test.ts",
+				"apps/web/src/components/data-table-filter/operators.ts",
+				"apps/web/src/components/data-table-filter/tanstack.tsx"
+			]
+		},
+		{
+			"id": "dabab49234aa9813",
+			"files": [
+				"apps/web/src/pages/$organization._settings.teams.$team.settings.index.tsx",
+				"apps/web/src/pages/$organization._settings.teams.$team.settings.members.tsx",
+				"apps/web/src/pages/$organization._settings.teams.$team.settings.tsx",
+				"apps/web/src/pages/$organization._settings.teams.$team.tsx",
+				"apps/web/src/pages/$organization._settings.tsx",
+				"apps/web/src/pages/$organization.index.tsx",
+				"apps/web/src/pages/$organization.teams.$team.index.tsx",
+				"apps/web/src/pages/$organization.teams.$team.tsx"
+			]
+		},
+		{
+			"id": "dc7a8c7cecf182a9",
+			"files": [
+				"apps/web/src/main.tsx",
+				"apps/web/src/routeTree.gen.ts",
+				"apps/web/src/router.tsx",
+				"apps/web/src/sst-env.d.ts",
+				"apps/web/src/vite-env.d.ts"
+			]
+		},
+		{
+			"id": "de31b924434de54d",
+			"files": [
+				"apps/web/src/pages/-components/legal-page.tsx",
+				"apps/web/src/pages/create-organization/-components/create-organization-form.tsx",
+				"apps/web/src/pages/create-organization/-components/create-organization-header.tsx",
+				"apps/web/src/pages/login/-components/login-form.tsx",
+				"apps/web/src/pages/signup/-components/signup-form.tsx"
+			]
+		},
+		{
+			"id": "de91de94a2842249",
+			"files": [
+				"apps/web/src/components/ui/sparkline.tsx",
+				"apps/web/src/components/ui/star-rating.tsx",
+				"apps/web/src/components/ui/switch.tsx",
+				"apps/web/src/components/ui/table.tsx",
+				"apps/web/src/components/ui/tabs.tsx",
+				"apps/web/src/components/ui/textarea.tsx",
+				"apps/web/src/components/ui/tooltip.tsx"
+			]
+		},
+		{
+			"id": "e026584e26ffde95",
+			"files": [
+				"packages/core/src/billing/billing.sql.ts",
+				"packages/core/src/billing/errors.ts",
+				"packages/core/src/billing/products.ts",
+				"packages/core/src/billing/schema.ts"
+			]
+		},
+		{
+			"id": "f6c4c1586993b283",
+			"files": [
+				"apps/web/src/hooks/use-auth.ts",
+				"apps/web/src/hooks/use-command-bar.ts",
+				"apps/web/src/hooks/use-command-provider.ts",
+				"apps/web/src/hooks/use-data-table-filters.test.ts",
+				"apps/web/src/hooks/use-data-table-filters.ts",
+				"apps/web/src/hooks/use-local-storage.test.ts",
+				"apps/web/src/hooks/use-local-storage.ts",
+				"apps/web/src/hooks/use-mobile.test.ts",
+				"apps/web/src/hooks/use-mobile.ts",
+				"apps/web/src/hooks/use-search-filters.test.ts",
+				"apps/web/src/hooks/use-search-filters.ts"
+			]
+		},
+		{
+			"id": "fc2861edc9ef1c41",
+			"files": [
+				"infra/api.ts",
+				"infra/database.ts",
+				"infra/dns.ts",
+				"infra/routes.ts",
+				"infra/secrets.ts",
+				"infra/sst-env.d.ts",
+				"infra/storage.ts",
+				"infra/web.ts",
+				"infra/zero.ts"
+			]
+		},
+		{
+			"id": "ffa4a56af282a48c",
+			"files": [
+				"packages/core/drizzle.config.ts",
+				"packages/core/src/drizzle/relations.ts",
+				"packages/core/src/effect/run-service.ts",
+				"packages/core/sst-env.d.ts"
+			]
+		}
+	]
 }
