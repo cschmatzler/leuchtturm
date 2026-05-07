@@ -342,10 +342,12 @@ export namespace Auth {
 						},
 					},
 					advanced: {
+						disableOriginCheck: true,
 						...(Resource.App.stage !== "prod" && {
 							defaultCookieAttributes: {
 								sameSite: "none" as const,
 								secure: true,
+								partitioned: true,
 							},
 						}),
 						crossSubDomainCookies: {

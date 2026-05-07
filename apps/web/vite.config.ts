@@ -11,6 +11,9 @@ export default defineConfig({
 		tailwindcss(),
 		react(),
 	],
+	server: {
+		allowedHosts: [".ts.net"],
+	},
 	build: {
 		rollupOptions: {
 			output: {
