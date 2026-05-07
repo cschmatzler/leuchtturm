@@ -409,8 +409,10 @@ export namespace Auth {
 							return yield* Effect.fail(new AuthSessionLookupError());
 						}),
 					),
-					Effect.flatMap((session) =>
-						Schema.decodeUnknownEffect(SessionData)(session).pipe(
+					Effect.flatMap((session) => {
+						if (!session) return Effect.succeed(null);
+
+						return Schema.decodeUnknownEffect(SessionData)(session).pipe(
 							Effect.catchCause((cause) =>
 								Effect.gen(function* () {
 									yield* Effect.annotateCurrentSpan({
@@ -419,8 +421,8 @@ export namespace Auth {
 									return yield* Effect.fail(new AuthInvalidSessionPayloadError());
 								}),
 							),
-						),
-					),
+						);
+					}),
 				);
 			});
 

@@ -13,13 +13,11 @@ const run = Effect.fn("AuthMiddleware.run")(function* <E, R>(
 	// Pass headers directly instead of calling toWeb(), which would create a
 	// ReadableStream from the request body and prevent downstream handlers
 	// (e.g. Zero) from reading it.
-	const currentUser = yield* auth
-		.getSession(new Headers(request.headers as Record<string, string>))
-		.pipe(
-			Effect.withSpan("auth.session.lookup", {
-				attributes: { "auth.flow": "http" },
-			}),
-		);
+	const currentUser = yield* auth.getSession(new Headers(request.headers)).pipe(
+		Effect.withSpan("auth.session.lookup", {
+			attributes: { "auth.flow": "http" },
+		}),
+	);
 
 	if (!currentUser) {
 		return yield* Effect.fail(new UnauthorizedError());

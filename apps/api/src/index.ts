@@ -133,12 +133,6 @@ export default wrapCloudflareHandler(
 				env: Api.Env,
 				ctx: { waitUntil: (promise: Promise<unknown>) => void },
 			) {
-				const origin = request.headers.get("origin");
-
-				if (origin) {
-					request = new Request(`${origin}${new URL(request.url).pathname}`, request);
-				}
-
 				return Api.create(env).runPromise((api) => api.handle(request, ctx.waitUntil.bind(ctx)));
 			},
 		},
