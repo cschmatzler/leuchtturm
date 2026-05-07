@@ -1,14 +1,12 @@
-import {
-	ArrowRightIcon,
-	DotsThreeIcon,
-	EnvelopeIcon,
-	ShieldCheckIcon,
-	SpinnerIcon,
-	TrashIcon,
-	UserCircleGearIcon,
-	UsersThreeIcon,
-	XCircleIcon,
-} from "@phosphor-icons/react";
+import { ArrowRightIcon } from "@phosphor-icons/react/ArrowRight";
+import { DotsThreeIcon } from "@phosphor-icons/react/DotsThree";
+import { EnvelopeIcon } from "@phosphor-icons/react/Envelope";
+import { ShieldCheckIcon } from "@phosphor-icons/react/ShieldCheck";
+import { SpinnerIcon } from "@phosphor-icons/react/Spinner";
+import { TrashIcon } from "@phosphor-icons/react/Trash";
+import { UserCircleGearIcon } from "@phosphor-icons/react/UserCircleGear";
+import { UsersThreeIcon } from "@phosphor-icons/react/UsersThree";
+import { XCircleIcon } from "@phosphor-icons/react/XCircle";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import {

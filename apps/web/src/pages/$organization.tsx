@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
-import { Schema } from "effect";
+import * as Schema from "effect/Schema";
 
 import { OrganizationSelect } from "@leuchtturm/core/auth/schema";
 import { ZeroProvider } from "@leuchtturm/web/contexts/zero";

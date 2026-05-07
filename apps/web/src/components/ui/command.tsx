@@ -1,4 +1,5 @@
-import { MagnifyingGlassIcon, CheckIcon } from "@phosphor-icons/react";
+import { CheckIcon } from "@phosphor-icons/react/Check";
+import { MagnifyingGlassIcon } from "@phosphor-icons/react/MagnifyingGlass";
 import { Command as CommandPrimitive } from "cmdk";
 import { type ComponentProps, type ReactNode } from "react";
 

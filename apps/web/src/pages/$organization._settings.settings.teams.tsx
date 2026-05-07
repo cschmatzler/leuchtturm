@@ -1,7 +1,10 @@
-import { SpinnerIcon, PlusIcon, GearIcon } from "@phosphor-icons/react";
+import { GearIcon } from "@phosphor-icons/react/Gear";
+import { PlusIcon } from "@phosphor-icons/react/Plus";
+import { SpinnerIcon } from "@phosphor-icons/react/Spinner";
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, stripSearchParams, useNavigate } from "@tanstack/react-router";
-import { Effect, Schema } from "effect";
+import * as Effect from "effect/Effect";
+import * as Schema from "effect/Schema";
 import { toast } from "sonner";
 
 import { TeamInsert } from "@leuchtturm/core/auth/schema";

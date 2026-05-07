@@ -1,10 +1,8 @@
-import {
-	CaretRightIcon,
-	CreditCardIcon,
-	StackIcon,
-	GearIcon,
-	UserIcon,
-} from "@phosphor-icons/react";
+import { CaretRightIcon } from "@phosphor-icons/react/CaretRight";
+import { CreditCardIcon } from "@phosphor-icons/react/CreditCard";
+import { GearIcon } from "@phosphor-icons/react/Gear";
+import { StackIcon } from "@phosphor-icons/react/Stack";
+import { UserIcon } from "@phosphor-icons/react/User";
 import { useQuery } from "@tanstack/react-query";
 import { getRouteApi } from "@tanstack/react-router";
 

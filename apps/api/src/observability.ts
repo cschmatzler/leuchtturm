@@ -1,4 +1,4 @@
-import { Layer } from "effect";
+import * as Layer from "effect/Layer";
 
 import { Middleware as HttpMiddleware } from "@leuchtturm/api/observability/http-middleware";
 import { Logging } from "@leuchtturm/api/observability/logging";

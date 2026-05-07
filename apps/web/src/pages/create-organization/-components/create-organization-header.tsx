@@ -1,4 +1,5 @@
-import { CaretDownIcon, SparkleIcon } from "@phosphor-icons/react";
+import { CaretDownIcon } from "@phosphor-icons/react/CaretDown";
+import { SparkleIcon } from "@phosphor-icons/react/Sparkle";
 import { Link, useNavigate, useRouteContext } from "@tanstack/react-router";
 import { useState } from "react";
 

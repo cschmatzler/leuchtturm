@@ -1,4 +1,4 @@
-import { SpinnerIcon } from "@phosphor-icons/react";
+import { SpinnerIcon } from "@phosphor-icons/react/Spinner";
 import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
 

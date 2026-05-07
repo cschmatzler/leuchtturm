@@ -1,4 +1,4 @@
-import type { Icon } from "@phosphor-icons/react";
+import type { Icon } from "@phosphor-icons/react/lib";
 
 /*
  * # GENERAL NOTES:

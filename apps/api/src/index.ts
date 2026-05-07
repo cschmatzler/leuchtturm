@@ -1,8 +1,14 @@
 import { instrument } from "@microlabs/otel-cf-workers";
 import { trace } from "@opentelemetry/api";
-import { Cause, Context, Effect, Layer } from "effect";
-import { HttpEffect, HttpMiddleware, HttpRouter, HttpServer } from "effect/unstable/http";
-import { HttpApiBuilder } from "effect/unstable/httpapi";
+import * as Cause from "effect/Cause";
+import * as Context from "effect/Context";
+import * as Effect from "effect/Effect";
+import * as Layer from "effect/Layer";
+import * as HttpEffect from "effect/unstable/http/HttpEffect";
+import * as HttpMiddleware from "effect/unstable/http/HttpMiddleware";
+import * as HttpRouter from "effect/unstable/http/HttpRouter";
+import * as HttpServer from "effect/unstable/http/HttpServer";
+import * as HttpApiBuilder from "effect/unstable/httpapi/HttpApiBuilder";
 import { Resource } from "sst";
 import { wrapCloudflareHandler } from "sst/resource/cloudflare";
 

@@ -1,4 +1,4 @@
-import { StarIcon } from "@phosphor-icons/react";
+import { StarIcon } from "@phosphor-icons/react/Star";
 
 import { useTranslation } from "@leuchtturm/web/clients/i18n";
 

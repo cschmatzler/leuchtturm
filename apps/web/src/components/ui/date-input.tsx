@@ -1,5 +1,8 @@
-import { CalendarIcon, ClockIcon } from "@phosphor-icons/react";
-import { format as formatDate, isValid, parse } from "date-fns";
+import { CalendarIcon } from "@phosphor-icons/react/Calendar";
+import { ClockIcon } from "@phosphor-icons/react/Clock";
+import { format as formatDate } from "date-fns/format";
+import { isValid } from "date-fns/isValid";
+import { parse } from "date-fns/parse";
 import {
 	useCallback,
 	useEffect,

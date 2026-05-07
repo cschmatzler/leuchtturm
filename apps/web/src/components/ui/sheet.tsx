@@ -1,5 +1,5 @@
 import { Dialog as SheetPrimitive } from "@base-ui/react/dialog";
-import { XIcon } from "@phosphor-icons/react";
+import { XIcon } from "@phosphor-icons/react/X";
 import { type ComponentProps } from "react";
 
 import { Button } from "@leuchtturm/web/components/ui/button";

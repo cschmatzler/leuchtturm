@@ -1,4 +1,8 @@
-import { Context, Effect, Logger, Option, References } from "effect";
+import * as Context from "effect/Context";
+import * as Effect from "effect/Effect";
+import * as Logger from "effect/Logger";
+import * as Option from "effect/Option";
+import * as References from "effect/References";
 
 import { RequestContext } from "@leuchtturm/api/middleware/request-context";
 import { serviceName, serviceNamespace, getLogConfig } from "@leuchtturm/api/observability/config";

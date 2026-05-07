@@ -1,13 +1,11 @@
-import {
-	ArrowFatUpIcon,
-	CaretDownIcon,
-	GearIcon,
-	SignOutIcon,
-	OptionIcon,
-	PlusIcon,
-	SparkleIcon,
-	UserIcon,
-} from "@phosphor-icons/react";
+import { ArrowFatUpIcon } from "@phosphor-icons/react/ArrowFatUp";
+import { CaretDownIcon } from "@phosphor-icons/react/CaretDown";
+import { GearIcon } from "@phosphor-icons/react/Gear";
+import { OptionIcon } from "@phosphor-icons/react/Option";
+import { PlusIcon } from "@phosphor-icons/react/Plus";
+import { SignOutIcon } from "@phosphor-icons/react/SignOut";
+import { SparkleIcon } from "@phosphor-icons/react/Sparkle";
+import { UserIcon } from "@phosphor-icons/react/User";
 import { useQuery } from "@tanstack/react-query";
 import { useMatchRoute, useNavigate } from "@tanstack/react-router";
 import { Fragment, useEffect } from "react";

@@ -8,7 +8,11 @@ import type {
 	EffectDrizzleQueryError,
 	EffectTransactionRollbackError,
 } from "drizzle-orm/effect-core/errors";
-import { Cause, Effect, Layer, Schema, Context } from "effect";
+import * as Cause from "effect/Cause";
+import * as Context from "effect/Context";
+import * as Effect from "effect/Effect";
+import * as Layer from "effect/Layer";
+import * as Schema from "effect/Schema";
 import { Resource } from "sst";
 
 import { organizationTable } from "@leuchtturm/core/auth/auth.sql";

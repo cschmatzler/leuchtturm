@@ -1,4 +1,4 @@
-import { Circle } from "@phosphor-icons/react";
+import { Circle } from "@phosphor-icons/react/Circle";
 import { act, renderHook } from "@testing-library/react";
 import type { Dispatch, SetStateAction } from "react";
 import { describe, expect, it } from "vite-plus/test";

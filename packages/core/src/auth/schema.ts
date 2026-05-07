@@ -3,7 +3,8 @@ import {
 	createSelectSchema,
 	createUpdateSchema,
 } from "drizzle-orm/effect-schema";
-import { Schema, SchemaGetter } from "effect";
+import * as Schema from "effect/Schema";
+import * as SchemaGetter from "effect/SchemaGetter";
 
 import {
 	accountTable,

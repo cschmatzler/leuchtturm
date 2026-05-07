@@ -1,4 +1,5 @@
-import { Schema, SchemaGetter } from "effect";
+import * as Schema from "effect/Schema";
+import * as SchemaGetter from "effect/SchemaGetter";
 
 export const Ulid = Schema.String.check(Schema.isPattern(/^[0-9A-Z]{26}$/)).annotate({
 	message: "Invalid ID",

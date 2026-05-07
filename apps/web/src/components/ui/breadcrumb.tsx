@@ -1,6 +1,7 @@
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
-import { CaretRightIcon, DotsThreeIcon } from "@phosphor-icons/react";
+import { CaretRightIcon } from "@phosphor-icons/react/CaretRight";
+import { DotsThreeIcon } from "@phosphor-icons/react/DotsThree";
 import { type ComponentProps } from "react";
 
 import { cn } from "@leuchtturm/web/lib/utils";

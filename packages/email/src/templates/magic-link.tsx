@@ -1,6 +1,6 @@
 import { Button, Heading, Hr, Link, Text } from "@react-email/components";
 import { render } from "@react-email/render";
-import { Effect } from "effect";
+import * as Effect from "effect/Effect";
 
 import { EmailRenderError, type EmailSender } from "@leuchtturm/email/shared";
 import { defaultFrom, EmailFrame } from "@leuchtturm/email/templates/email-frame";

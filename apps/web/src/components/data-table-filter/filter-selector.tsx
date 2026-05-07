@@ -1,4 +1,6 @@
-import { ArrowRightIcon, CaretRightIcon, FunnelIcon } from "@phosphor-icons/react";
+import { ArrowRightIcon } from "@phosphor-icons/react/ArrowRight";
+import { CaretRightIcon } from "@phosphor-icons/react/CaretRight";
+import { FunnelIcon } from "@phosphor-icons/react/Funnel";
 import { Fragment, isValidElement, memo, useCallback, useRef, useState } from "react";
 
 import { useTranslation } from "@leuchtturm/web/clients/i18n";

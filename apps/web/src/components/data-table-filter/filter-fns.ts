@@ -1,4 +1,9 @@
-import { endOfDay, isAfter, isBefore, isSameDay, isWithinInterval, startOfDay } from "date-fns";
+import { endOfDay } from "date-fns/endOfDay";
+import { isAfter } from "date-fns/isAfter";
+import { isBefore } from "date-fns/isBefore";
+import { isSameDay } from "date-fns/isSameDay";
+import { isWithinInterval } from "date-fns/isWithinInterval";
+import { startOfDay } from "date-fns/startOfDay";
 import { intersection } from "remeda";
 
 import { normalizeDateValue } from "@leuchtturm/web/components/data-table-filter/helpers";

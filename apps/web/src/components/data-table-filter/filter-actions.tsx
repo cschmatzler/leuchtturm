@@ -1,4 +1,4 @@
-import { FunnelXIcon } from "@phosphor-icons/react";
+import { FunnelXIcon } from "@phosphor-icons/react/FunnelX";
 import { memo } from "react";
 
 import { useTranslation } from "@leuchtturm/web/clients/i18n";

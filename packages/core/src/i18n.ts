@@ -1,4 +1,4 @@
-import { Schema } from "effect";
+import * as Schema from "effect/Schema";
 
 export const SupportedLanguage = Schema.Literals(["en", "de", "es", "fr", "it", "sq"]);
 

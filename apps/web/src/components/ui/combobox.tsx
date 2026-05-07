@@ -1,5 +1,7 @@
-import { Combobox as ComboboxPrimitive } from "@base-ui/react";
-import { CaretDownIcon, XIcon, CheckIcon } from "@phosphor-icons/react";
+import { Combobox as ComboboxPrimitive } from "@base-ui/react/combobox";
+import { CaretDownIcon } from "@phosphor-icons/react/CaretDown";
+import { CheckIcon } from "@phosphor-icons/react/Check";
+import { XIcon } from "@phosphor-icons/react/X";
 import { useRef, type ComponentPropsWithRef } from "react";
 
 import { Button } from "@leuchtturm/web/components/ui/button";

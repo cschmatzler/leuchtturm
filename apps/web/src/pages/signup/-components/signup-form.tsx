@@ -1,7 +1,7 @@
-import { SpinnerIcon } from "@phosphor-icons/react";
+import { SpinnerIcon } from "@phosphor-icons/react/Spinner";
 import { useForm } from "@tanstack/react-form";
 import { Link } from "@tanstack/react-router";
-import { Schema } from "effect";
+import * as Schema from "effect/Schema";
 import { useState } from "react";
 import { toast } from "sonner";
 

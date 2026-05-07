@@ -1,4 +1,8 @@
-import { EnvelopeIcon, PlusIcon, ShieldIcon, TrashIcon, UserIcon } from "@phosphor-icons/react";
+import { EnvelopeIcon } from "@phosphor-icons/react/Envelope";
+import { PlusIcon } from "@phosphor-icons/react/Plus";
+import { ShieldIcon } from "@phosphor-icons/react/Shield";
+import { TrashIcon } from "@phosphor-icons/react/Trash";
+import { UserIcon } from "@phosphor-icons/react/User";
 import { createFileRoute } from "@tanstack/react-router";
 import {
 	getCoreRowModel,

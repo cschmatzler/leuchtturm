@@ -1,5 +1,5 @@
-import { Context } from "effect";
-import { HttpApiMiddleware } from "effect/unstable/httpapi";
+import * as Context from "effect/Context";
+import * as HttpApiMiddleware from "effect/unstable/httpapi/HttpApiMiddleware";
 
 import { Errors } from "@leuchtturm/api/errors";
 import { SessionSelect, UserSelect } from "@leuchtturm/core/auth/schema";

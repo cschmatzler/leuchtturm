@@ -1,4 +1,4 @@
-import { isBefore } from "date-fns";
+import { isBefore } from "date-fns/isBefore";
 
 import type { Column, ColumnOption } from "@leuchtturm/web/components/data-table-filter/types";
 

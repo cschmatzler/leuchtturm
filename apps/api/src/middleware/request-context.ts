@@ -1,11 +1,11 @@
-import { Context, Effect, Option } from "effect";
-import {
-	Headers,
-	HttpMiddleware,
-	HttpServerError,
-	HttpServerRequest,
-	HttpServerResponse,
-} from "effect/unstable/http";
+import * as Context from "effect/Context";
+import * as Effect from "effect/Effect";
+import * as Option from "effect/Option";
+import * as Headers from "effect/unstable/http/Headers";
+import * as HttpMiddleware from "effect/unstable/http/HttpMiddleware";
+import * as HttpServerError from "effect/unstable/http/HttpServerError";
+import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
+import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 
 export namespace RequestContext {
 	const RequestIdHeader = "x-request-id";

@@ -1,6 +1,8 @@
-import { DotsThreeIcon } from "@phosphor-icons/react";
+import { DotsThreeIcon } from "@phosphor-icons/react/DotsThree";
 import { useDebouncedCallback } from "@tanstack/react-pacer";
-import { addDays, format, isEqual } from "date-fns";
+import { addDays } from "date-fns/addDays";
+import { format } from "date-fns/format";
+import { isEqual } from "date-fns/isEqual";
 import { cloneElement, isValidElement, memo, useCallback, useMemo, useState } from "react";
 import type { DateRange } from "react-day-picker";
 import { take } from "remeda";

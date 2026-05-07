@@ -1,5 +1,7 @@
-import { Effect, Option } from "effect";
-import { HttpServerRequest, HttpServerResponse } from "effect/unstable/http";
+import * as Effect from "effect/Effect";
+import * as Option from "effect/Option";
+import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
+import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 import { describe, expect, it } from "vite-plus/test";
 
 import { RequestContext } from "@leuchtturm/api/middleware/request-context";

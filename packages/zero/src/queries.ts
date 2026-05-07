@@ -1,5 +1,5 @@
 import { defineQueriesWithType, defineQueryWithType } from "@rocicorp/zero";
-import { Schema } from "effect";
+import * as Schema from "effect/Schema";
 
 import { OrganizationSelect, TeamSelect } from "@leuchtturm/core/auth/schema";
 import { assertOrganizationMember } from "@leuchtturm/zero/authorization";

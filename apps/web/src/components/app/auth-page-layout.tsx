@@ -1,4 +1,4 @@
-import { SparkleIcon } from "@phosphor-icons/react";
+import { SparkleIcon } from "@phosphor-icons/react/Sparkle";
 import { Link } from "@tanstack/react-router";
 import { type ReactNode } from "react";
 

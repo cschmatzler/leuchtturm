@@ -1,8 +1,8 @@
-import { SpinnerIcon } from "@phosphor-icons/react";
+import { SpinnerIcon } from "@phosphor-icons/react/Spinner";
 import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useRouter } from "@tanstack/react-router";
-import { Schema } from "effect";
+import * as Schema from "effect/Schema";
 import { useState } from "react";
 
 import { OrganizationInsert } from "@leuchtturm/core/auth/schema";

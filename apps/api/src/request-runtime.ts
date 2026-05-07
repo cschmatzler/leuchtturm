@@ -1,6 +1,9 @@
 import * as OtelTracer from "@effect/opentelemetry/Tracer";
 import type { Span } from "@opentelemetry/api";
-import { Context, Effect, Layer, Tracer } from "effect";
+import * as Context from "effect/Context";
+import * as Effect from "effect/Effect";
+import * as Layer from "effect/Layer";
+import * as Tracer from "effect/Tracer";
 
 export namespace RequestRuntime {
 	export interface Interface {

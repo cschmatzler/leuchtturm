@@ -1,4 +1,5 @@
-import { CaretLeftIcon, SpinnerIcon } from "@phosphor-icons/react";
+import { CaretLeftIcon } from "@phosphor-icons/react/CaretLeft";
+import { SpinnerIcon } from "@phosphor-icons/react/Spinner";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";

@@ -1,5 +1,6 @@
-import { Cause, Effect } from "effect";
-import { HttpApiBuilder } from "effect/unstable/httpapi";
+import * as Cause from "effect/Cause";
+import * as Effect from "effect/Effect";
+import * as HttpApiBuilder from "effect/unstable/httpapi/HttpApiBuilder";
 
 import { LeuchtturmApi } from "@leuchtturm/api/contract";
 import { Database } from "@leuchtturm/core/drizzle";

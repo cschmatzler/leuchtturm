@@ -1,11 +1,9 @@
-import {
-	CalendarIcon,
-	SpinnerIcon,
-	EnvelopeIcon,
-	EnvelopeSimpleIcon,
-	ShieldIcon,
-	UserIcon,
-} from "@phosphor-icons/react";
+import { CalendarIcon } from "@phosphor-icons/react/Calendar";
+import { EnvelopeIcon } from "@phosphor-icons/react/Envelope";
+import { EnvelopeSimpleIcon } from "@phosphor-icons/react/EnvelopeSimple";
+import { ShieldIcon } from "@phosphor-icons/react/Shield";
+import { SpinnerIcon } from "@phosphor-icons/react/Spinner";
+import { UserIcon } from "@phosphor-icons/react/User";
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, stripSearchParams, useNavigate } from "@tanstack/react-router";
 import {
@@ -14,7 +12,8 @@ import {
 	useReactTable,
 	type ColumnDef,
 } from "@tanstack/react-table";
-import { Effect, Schema } from "effect";
+import * as Effect from "effect/Effect";
+import * as Schema from "effect/Schema";
 import { useMemo } from "react";
 import { toast } from "sonner";
 

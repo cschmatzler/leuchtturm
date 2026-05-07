@@ -1,8 +1,12 @@
 import { PgClient } from "@effect/sql-pg";
 import { makeWithDefaults, type EffectPgDatabase } from "drizzle-orm/effect-postgres";
 import { drizzle, type NodePgClient, type NodePgDatabase } from "drizzle-orm/node-postgres";
-import { Cause, Context, Effect, Layer, Redacted } from "effect";
-import { Reactivity } from "effect/unstable/reactivity";
+import * as Cause from "effect/Cause";
+import * as Context from "effect/Context";
+import * as Effect from "effect/Effect";
+import * as Layer from "effect/Layer";
+import * as Redacted from "effect/Redacted";
+import * as Reactivity from "effect/unstable/reactivity/Reactivity";
 import { Client, types, type CustomTypesConfig } from "pg";
 
 import { relations } from "@leuchtturm/core/drizzle/relations";

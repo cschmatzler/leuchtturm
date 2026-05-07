@@ -1,5 +1,5 @@
 import { QueryClient } from "@tanstack/react-query";
-import { Schema } from "effect";
+import * as Schema from "effect/Schema";
 import { describe, expect, it } from "vite-plus/test";
 
 import { OrganizationSelect } from "@leuchtturm/core/auth/schema";

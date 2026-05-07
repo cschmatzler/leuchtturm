@@ -1,9 +1,11 @@
 import { mustGetMutator, mustGetQuery, type ReadonlyJSONValue } from "@rocicorp/zero";
 import { handleMutateRequest, handleQueryRequest } from "@rocicorp/zero/server";
 import { zeroDrizzle } from "@rocicorp/zero/server/adapters/drizzle";
-import { Cause, Effect } from "effect";
-import { HttpServerRequest, HttpServerResponse } from "effect/unstable/http";
-import { HttpApiBuilder } from "effect/unstable/httpapi";
+import * as Cause from "effect/Cause";
+import * as Effect from "effect/Effect";
+import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
+import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
+import * as HttpApiBuilder from "effect/unstable/httpapi/HttpApiBuilder";
 
 import { AuthMiddleware } from "@leuchtturm/api/auth";
 import { LeuchtturmApi } from "@leuchtturm/api/contract";

@@ -3,7 +3,7 @@ import {
 	createSelectSchema,
 	createUpdateSchema,
 } from "drizzle-orm/effect-schema";
-import { Schema } from "effect";
+import * as Schema from "effect/Schema";
 
 import { OrganizationInsert } from "@leuchtturm/core/auth/schema";
 import {

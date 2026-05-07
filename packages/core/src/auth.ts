@@ -7,7 +7,11 @@ import {
 	organization as organizationPlugin,
 } from "better-auth/plugins";
 import { and, eq, ne } from "drizzle-orm";
-import { Cause, Effect, Layer, Schema, Context } from "effect";
+import * as Cause from "effect/Cause";
+import * as Context from "effect/Context";
+import * as Effect from "effect/Effect";
+import * as Layer from "effect/Layer";
+import * as Schema from "effect/Schema";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { Resource } from "sst";
 import { ulid } from "ulid";

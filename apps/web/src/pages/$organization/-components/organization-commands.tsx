@@ -1,4 +1,8 @@
-import { BuildingIcon, GearIcon, StackIcon, SignOutIcon, PlusIcon } from "@phosphor-icons/react";
+import { BuildingIcon } from "@phosphor-icons/react/Building";
+import { GearIcon } from "@phosphor-icons/react/Gear";
+import { PlusIcon } from "@phosphor-icons/react/Plus";
+import { SignOutIcon } from "@phosphor-icons/react/SignOut";
+import { StackIcon } from "@phosphor-icons/react/Stack";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "@tanstack/react-router";

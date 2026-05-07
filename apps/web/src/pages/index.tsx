@@ -1,9 +1,7 @@
-import {
-	ArrowRightIcon,
-	CompassIcon,
-	MagnifyingGlassIcon,
-	SparkleIcon,
-} from "@phosphor-icons/react";
+import { ArrowRightIcon } from "@phosphor-icons/react/ArrowRight";
+import { CompassIcon } from "@phosphor-icons/react/Compass";
+import { MagnifyingGlassIcon } from "@phosphor-icons/react/MagnifyingGlass";
+import { SparkleIcon } from "@phosphor-icons/react/Sparkle";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 

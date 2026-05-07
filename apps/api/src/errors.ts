@@ -1,5 +1,6 @@
-import { Layer } from "effect";
-import { HttpApiMiddleware, HttpApiSchema } from "effect/unstable/httpapi";
+import * as Layer from "effect/Layer";
+import * as HttpApiMiddleware from "effect/unstable/httpapi/HttpApiMiddleware";
+import * as HttpApiSchema from "effect/unstable/httpapi/HttpApiSchema";
 
 import * as Auth from "@leuchtturm/core/auth/errors";
 import * as Billing from "@leuchtturm/core/billing/errors";

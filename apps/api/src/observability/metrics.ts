@@ -1,4 +1,4 @@
-import { Metric } from "effect";
+import * as Metric from "effect/Metric";
 
 import { requestMetricTags, type RequestLike } from "@leuchtturm/api/observability/request";
 

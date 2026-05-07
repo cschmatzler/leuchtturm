@@ -1,4 +1,4 @@
-import { WarningCircleIcon } from "@phosphor-icons/react";
+import { WarningCircleIcon } from "@phosphor-icons/react/WarningCircle";
 import {
 	PostHogErrorBoundary,
 	type PostHogErrorBoundaryFallbackProps,

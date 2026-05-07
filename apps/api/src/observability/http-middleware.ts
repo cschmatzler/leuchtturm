@@ -1,10 +1,11 @@
-import { Cause, Duration, Effect, Metric } from "effect";
-import {
-	HttpMiddleware,
-	HttpServerError,
-	HttpServerRequest,
-	type HttpServerResponse,
-} from "effect/unstable/http";
+import * as Cause from "effect/Cause";
+import * as Duration from "effect/Duration";
+import * as Effect from "effect/Effect";
+import * as Metric from "effect/Metric";
+import * as HttpMiddleware from "effect/unstable/http/HttpMiddleware";
+import * as HttpServerError from "effect/unstable/http/HttpServerError";
+import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
+import type * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 
 import {
 	requestCount,

@@ -1,4 +1,4 @@
-import { ArrowSquareOutIcon } from "@phosphor-icons/react";
+import { ArrowSquareOutIcon } from "@phosphor-icons/react/ArrowSquareOut";
 import { useRouteContext } from "@tanstack/react-router";
 
 import { api } from "@leuchtturm/web/clients/api";

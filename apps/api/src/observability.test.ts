@@ -1,4 +1,6 @@
-import { Effect, Layer, Logger } from "effect";
+import * as Effect from "effect/Effect";
+import * as Layer from "effect/Layer";
+import * as Logger from "effect/Logger";
 import { describe, expect, it } from "vite-plus/test";
 
 import { RequestContext } from "@leuchtturm/api/middleware/request-context";

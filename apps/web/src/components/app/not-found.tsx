@@ -1,4 +1,4 @@
-import { MagnifyingGlassMinusIcon } from "@phosphor-icons/react";
+import { MagnifyingGlassMinusIcon } from "@phosphor-icons/react/MagnifyingGlassMinus";
 import { Link, type LinkOptions } from "@tanstack/react-router";
 
 import { useTranslation } from "@leuchtturm/web/clients/i18n";

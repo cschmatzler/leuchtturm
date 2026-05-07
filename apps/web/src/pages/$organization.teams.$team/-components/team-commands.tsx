@@ -1,4 +1,5 @@
-import { GearIcon, StackIcon } from "@phosphor-icons/react";
+import { GearIcon } from "@phosphor-icons/react/Gear";
+import { StackIcon } from "@phosphor-icons/react/Stack";
 import { useNavigate, useParams, useRouteContext } from "@tanstack/react-router";
 
 import { useTranslation } from "@leuchtturm/web/clients/i18n";
