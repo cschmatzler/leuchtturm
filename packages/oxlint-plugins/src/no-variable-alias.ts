@@ -55,9 +55,22 @@ function propertyName(node) {
 	}
 }
 
+function isSingleLine(node) {
+	return node?.loc?.start?.line !== undefined && node.loc.start.line === node.loc.end?.line;
+}
+
+function isInlineConfigAlias(node) {
+	node = unwrapTypeExpression(node);
+
+	return (
+		isSingleLine(node) && (node?.type === "TemplateLiteral" || node?.type === "ArrayExpression")
+	);
+}
+
 function isRedundantVariableAlias(left, right) {
 	const leftName = identifierName(left);
 	const rightName = identifierName(right);
+	right = unwrapTypeExpression(right);
 
 	if (leftName && rightName) {
 		return leftName === rightName;
@@ -65,10 +78,54 @@ function isRedundantVariableAlias(left, right) {
 
 	const envName = propertyName(right);
 	return (
-		!!leftName &&
-		isImportMetaEnv(unwrapTypeExpression(right)) &&
-		normalizeEnvName(leftName) === normalizeEnvName(envName)
+		!!leftName && isImportMetaEnv(right) && normalizeEnvName(leftName) === normalizeEnvName(envName)
 	);
+}
+
+function isDeclarationIdentifier(node) {
+	return node.parent?.type === "VariableDeclarator" && node.parent.id === node;
+}
+
+function nearestScope(node) {
+	let current = node?.parent;
+
+	while (current) {
+		if (
+			current.type === "Program" ||
+			current.type === "FunctionDeclaration" ||
+			current.type === "FunctionExpression" ||
+			current.type === "ArrowFunctionExpression"
+		) {
+			return current;
+		}
+
+		current = current.parent;
+	}
+}
+
+function isInsideObjectPropertyValue(node) {
+	let current = node;
+
+	while (current?.parent) {
+		const parent = current.parent;
+
+		if (parent.type === "Property") {
+			return parent.value === current || parent.shorthand === true;
+		}
+
+		if (
+			parent.type === "VariableDeclarator" ||
+			parent.type === "FunctionDeclaration" ||
+			parent.type === "FunctionExpression" ||
+			parent.type === "ArrowFunctionExpression"
+		) {
+			return false;
+		}
+
+		current = parent;
+	}
+
+	return false;
 }
 
 const rule = {
@@ -84,8 +141,16 @@ const rule = {
 		},
 	},
 	create(context) {
+		const inlineConfigAliases = new Map();
+		const reportedInlineConfigAliases = new Set();
+
 		return {
 			VariableDeclarator(node) {
+				const name = identifierName(node.id);
+				if (name && !node.id?.typeAnnotation && isInlineConfigAlias(node.init)) {
+					inlineConfigAliases.set(name, { node, scope: nearestScope(node) });
+				}
+
 				if (!isRedundantVariableAlias(node.id, node.init)) {
 					return;
 				}
@@ -102,6 +167,24 @@ const rule = {
 
 				context.report({
 					node,
+					messageId: "banned",
+				});
+			},
+			Identifier(node) {
+				const declaration = inlineConfigAliases.get(node.name);
+				if (
+					!declaration ||
+					reportedInlineConfigAliases.has(node.name) ||
+					declaration.scope !== nearestScope(node) ||
+					isDeclarationIdentifier(node) ||
+					!isInsideObjectPropertyValue(node)
+				) {
+					return;
+				}
+
+				reportedInlineConfigAliases.add(node.name);
+				context.report({
+					node: declaration.node,
 					messageId: "banned",
 				});
 			},

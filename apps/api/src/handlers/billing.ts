@@ -1,6 +1,7 @@
 import { Effect } from "effect";
 import { HttpServerRequest } from "effect/unstable/http";
 import { HttpApiBuilder } from "effect/unstable/httpapi";
+import { Resource } from "sst";
 
 import { LeuchtturmApi } from "@leuchtturm/api/contract";
 import { Auth } from "@leuchtturm/core/auth";
@@ -21,11 +22,6 @@ export namespace BillingHandler {
 		}
 
 		return organization;
-	});
-
-	const currentOrigin = Effect.fn("billing.currentOrigin")(function* () {
-		const request = yield* HttpServerRequest.HttpServerRequest;
-		return new URL((request.source as Request).url).origin;
 	});
 
 	const overview = Effect.fn("billing.overview")(function* ({
@@ -52,13 +48,11 @@ export namespace BillingHandler {
 		query: { organizationId: string };
 	}) {
 		const organization = yield* getOrganization(query.organizationId);
-		const origin = yield* currentOrigin();
 		const billing = yield* Billing.Service;
-		const billingUrl = `${origin}/${organization.slug}/settings/billing`;
 		const url = yield* billing.createCheckoutUrl({
 			organizationId: organization.id,
-			successUrl: billingUrl,
-			returnUrl: billingUrl,
+			successUrl: `${Resource.ApiConfig.BASE_URL}/${organization.slug}/settings/billing`,
+			returnUrl: `${Resource.ApiConfig.BASE_URL}/${organization.slug}/settings/billing`,
 		});
 
 		return { url };
@@ -70,11 +64,10 @@ export namespace BillingHandler {
 		query: { organizationId: string };
 	}) {
 		const organization = yield* getOrganization(query.organizationId);
-		const origin = yield* currentOrigin();
 		const billing = yield* Billing.Service;
 		const url = yield* billing.createPortalUrl({
 			organizationId: organization.id,
-			returnUrl: `${origin}/${organization.slug}/settings/billing`,
+			returnUrl: `${Resource.ApiConfig.BASE_URL}/${organization.slug}/settings/billing`,
 		});
 
 		return { url };

@@ -87,6 +87,10 @@ export namespace Auth {
 			const makeAuth = (runAuthEffect: <A, E>(effect: Effect.Effect<A, E>) => Promise<A>) =>
 				betterAuth({
 					baseURL: `https://${Resource.Dns.AppDomain}/api/auth`,
+					trustedOrigins: [
+						`https://${Resource.Dns.AppDomain}`,
+						...(Resource.App.stage === "prod" ? [] : ["http://localhost:*", "http://127.0.0.1:*"]),
+					],
 					secret: Resource.BetterAuthSecret.value,
 					account: {
 						skipStateCookieCheck: Resource.App.stage !== "prod",
@@ -382,10 +386,10 @@ export namespace Auth {
 			);
 
 			const handle = Effect.fn("Auth.handle")(function* (request: Request) {
-				const context = yield* Effect.context<never>();
+				const currentContext = yield* Effect.context<never>();
 
 				return yield* Effect.tryPromise({
-					try: () => context.run(context, () => auth.handler(request)),
+					try: () => context.run(currentContext, () => auth.handler(request)),
 					catch: (cause) => cause,
 				});
 			});
