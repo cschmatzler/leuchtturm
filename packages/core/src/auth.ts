@@ -82,7 +82,7 @@ export namespace Auth {
 			const { database, rawDatabase } = yield* Database.Service;
 			const billing = yield* Billing.Service;
 			const email = yield* Email.Service;
-			const authContext = new AsyncLocalStorage<Context.Context<never>>();
+			const context = new AsyncLocalStorage<Context.Context<never>>();
 
 			const makeAuth = (runAuthEffect: <A, E>(effect: Effect.Effect<A, E>) => Promise<A>) =>
 				betterAuth({
@@ -378,14 +378,14 @@ export namespace Auth {
 				});
 
 			const auth = makeAuth((effect) =>
-				Effect.runPromiseWith(authContext.getStore() ?? Context.empty())(effect),
+				Effect.runPromiseWith(context.getStore() ?? Context.empty())(effect),
 			);
 
 			const handle = Effect.fn("Auth.handle")(function* (request: Request) {
 				const context = yield* Effect.context<never>();
 
 				return yield* Effect.tryPromise({
-					try: () => authContext.run(context, () => auth.handler(request)),
+					try: () => context.run(context, () => auth.handler(request)),
 					catch: (cause) => cause,
 				});
 			});

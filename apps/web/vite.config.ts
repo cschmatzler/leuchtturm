@@ -5,9 +5,6 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite-plus";
 
 export default defineConfig({
-	server: {
-		allowedHosts: [".ts.net"],
-	},
 	plugins: [
 		devtools(),
 		tanstackRouter({ autoCodeSplitting: true, routesDirectory: "src/pages" }),
@@ -15,8 +12,6 @@ export default defineConfig({
 		react(),
 	],
 	build: {
-		sourcemap: true,
-		chunkSizeWarningLimit: 650,
 		rollupOptions: {
 			output: {
 				manualChunks(id) {
