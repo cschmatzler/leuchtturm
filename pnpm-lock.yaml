@@ -23,9 +23,6 @@ importers:
       happy-dom:
         specifier: 20.9.0
         version: 20.9.0
-      portless:
-        specifier: 0.12.0
-        version: 0.12.0
       sst:
         specifier: 4.12.11
         version: 4.12.11
@@ -6389,12 +6386,6 @@ packages:
   pngjs@7.0.0:
     resolution: {integrity: sha512-LKWqWJRhstyYo9pGvgor/ivk2w94eSjE3RGVuzLGlr3NmD8bf7RcYGze1mNdEHRP6TRP6rMuDHk5t44hnTRyow==}
     engines: {node: '>=14.19.0'}
-
-  portless@0.12.0:
-    resolution: {integrity: sha512-zE8EYJ5xIEtKEBu1wnD+FavOE90/GNxRixF4Mu2hxMvDuVx1ftUbA6VbjbxI9sP9LUt0L26l6OiENGo4EFtLfw==}
-    engines: {node: '>=20'}
-    os: [darwin, linux, win32]
-    hasBin: true
 
   possible-typed-array-names@1.1.0:
     resolution: {integrity: sha512-/+5VFTchJDoVj3bhoqi6UeymcD00DAwb1nJwamzPvHEszJ4FpF6SNNbUbOS8yI56qHzdV8eK0qEfOSiodkTdxg==}
@@ -13936,8 +13927,6 @@ snapshots:
   pkce-challenge@5.0.1: {}
 
   pngjs@7.0.0: {}
-
-  portless@0.12.0: {}
 
   possible-typed-array-names@1.1.0: {}
 

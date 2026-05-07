@@ -7,6 +7,7 @@
 		pkgs.readline
 		pkgs.treefmt
 		pkgs.wrangler
+		pkgs.cloudflared
 	];
 
 	# Languages

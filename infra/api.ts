@@ -1,5 +1,5 @@
 import { hyperdrive } from "@leuchtturm/infra/database";
-import { appDomain, dns } from "@leuchtturm/infra/dns";
+import { apiDomain, appDomain, dns } from "@leuchtturm/infra/dns";
 import { apiSecrets } from "@leuchtturm/infra/secrets";
 import { storage } from "@leuchtturm/infra/storage";
 
@@ -13,7 +13,7 @@ const config = new sst.Linkable("ApiConfig", {
 export const api = new sst.cloudflare.Worker("ApiWorker", {
 	handler: "apps/api/src/index.ts",
 	placement: { mode: "smart" },
-	domain: appDomain,
+	domain: apiDomain,
 	compatibility: {
 		date: "2026-04-21",
 	},

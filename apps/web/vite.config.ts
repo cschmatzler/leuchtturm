@@ -12,7 +12,7 @@ export default defineConfig({
 		react(),
 	],
 	server: {
-		allowedHosts: [".ts.net"],
+		allowedHosts: [".leuchtturm.dev", ".ts.net"],
 	},
 	build: {
 		rollupOptions: {

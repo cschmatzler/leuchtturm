@@ -9,6 +9,7 @@ export const secrets = {
 	axiomTracesDataset: new sst.Secret("AxiomTracesDataset"),
 	axiomMetricsDataset: new sst.Secret("AxiomMetricsDataset"),
 	betterAuthSecret: new sst.Secret("BetterAuthSecret"),
+	cloudflareAccountId: new sst.Secret("CloudflareAccountId"),
 	googleClientId: new sst.Secret("GoogleClientId"),
 	googleClientSecret: new sst.Secret("GoogleClientSecret"),
 	polarAccessToken: new sst.Secret("PolarAccessToken"),

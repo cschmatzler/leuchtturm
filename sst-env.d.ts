@@ -36,8 +36,13 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
+    "CloudflareAccountId": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
     "Database": import("@cloudflare/workers-types").Hyperdrive
     "Dns": {
+      "ApiDomain": string
       "AppDomain": string
       "SyncDomain": string
       "type": "sst.sst.Linkable"

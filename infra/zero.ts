@@ -1,4 +1,4 @@
-import { appDomain, syncDomain, zone } from "@leuchtturm/infra/dns";
+import { apiDomain, syncDomain, zone } from "@leuchtturm/infra/dns";
 import { secrets } from "@leuchtturm/infra/secrets";
 
 const zeroEnvVars = [
@@ -14,9 +14,9 @@ const zeroEnvVars = [
 		value: $interpolate`postgres://${secrets.zeroDatabaseUsername.value}:${secrets.zeroDatabasePassword.value}@eu-central-1.pg.psdb.cloud:5432/postgres?sslmode=verify-full`,
 	},
 	{ key: "ZERO_MUTATE_FORWARD_COOKIES", value: "true" },
-	{ key: "ZERO_MUTATE_URL", value: $interpolate`https://${appDomain}/api/mutate` },
+	{ key: "ZERO_MUTATE_URL", value: $interpolate`https://${apiDomain}/api/mutate` },
 	{ key: "ZERO_QUERY_FORWARD_COOKIES", value: "true" },
-	{ key: "ZERO_QUERY_URL", value: $interpolate`https://${appDomain}/api/query` },
+	{ key: "ZERO_QUERY_URL", value: $interpolate`https://${apiDomain}/api/query` },
 	{ key: "ZERO_REPLICA_FILE", value: "/var/data/zero.db" },
 	{
 		key: "ZERO_UPSTREAM_DB",
