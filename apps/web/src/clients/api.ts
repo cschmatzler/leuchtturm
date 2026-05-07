@@ -16,10 +16,8 @@ type PromiseApi<T> = {
 			: T[K];
 };
 
-const apiUrl = import.meta.env.PORTLESS_TAILSCALE_URL ?? import.meta.env.VITE_API_URL;
-
 const effectApi = HttpApiClient.make(LeuchtturmApi, {
-	baseUrl: apiUrl,
+	baseUrl: import.meta.env.VITE_API_URL,
 }).pipe(
 	Effect.scoped,
 	Effect.provide(

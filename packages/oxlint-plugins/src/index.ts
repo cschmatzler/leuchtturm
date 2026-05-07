@@ -14,6 +14,7 @@ import noRelativeImports from "@leuchtturm/oxlint-plugins/no-relative-imports";
 import noRowSuffix from "@leuchtturm/oxlint-plugins/no-row-suffix";
 import noSchemaTypeAlias from "@leuchtturm/oxlint-plugins/no-schema-type-alias";
 import noUseParamsStrictFalse from "@leuchtturm/oxlint-plugins/no-use-params-strict-false";
+import noVariableAlias from "@leuchtturm/oxlint-plugins/no-variable-alias";
 import noViMock from "@leuchtturm/oxlint-plugins/no-vi-mock";
 
 const plugin = {
@@ -27,6 +28,7 @@ const plugin = {
 		...noEffectTryHelper.rules,
 		...noGenericDomainErrorClass.rules,
 		...noHttpStatusInCore.rules,
+		...noVariableAlias.rules,
 		...noLiveSuffix.rules,
 		...noLocalEffectCallbackWrapper.rules,
 		...noLocalWebSchema.rules,
