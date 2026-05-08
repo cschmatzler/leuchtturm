@@ -51,8 +51,8 @@ export namespace BillingHandler {
 		const billing = yield* Billing.Service;
 		const url = yield* billing.createCheckoutUrl({
 			organizationId: organization.id,
-			successUrl: `${Resource.ApiConfig.BASE_URL}/${organization.slug}/settings/billing`,
-			returnUrl: `${Resource.ApiConfig.BASE_URL}/${organization.slug}/settings/billing`,
+			successUrl: `https://${Resource.Dns.AppDomain}/${organization.slug}/settings/billing`,
+			returnUrl: `https://${Resource.Dns.AppDomain}/${organization.slug}/settings/billing`,
 		});
 
 		return { url };
@@ -67,7 +67,7 @@ export namespace BillingHandler {
 		const billing = yield* Billing.Service;
 		const url = yield* billing.createPortalUrl({
 			organizationId: organization.id,
-			returnUrl: `${Resource.ApiConfig.BASE_URL}/${organization.slug}/settings/billing`,
+			returnUrl: `https://${Resource.Dns.AppDomain}/${organization.slug}/settings/billing`,
 		});
 
 		return { url };

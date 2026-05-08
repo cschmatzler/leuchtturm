@@ -23,13 +23,13 @@ export const web = new sst.cloudflare.StaticSiteV2("Web", {
 });
 
 if ($dev) {
-	const tunnel = new cloudflare.ZeroTrustTunnelCloudflared("WebDevTunnel", {
+	const tunnel = new cloudflare.ZeroTrustTunnelCloudflared("WebTunnel", {
 		accountId: secrets.cloudflareAccountId.value,
 		configSrc: "cloudflare",
 		name: `${$app.name}-${$app.stage}-web-dev`,
 	});
 
-	new cloudflare.DnsRecord("WebDevTunnelRecord", {
+	new cloudflare.DnsRecord("WebTunnelRecord", {
 		zoneId: zone.zoneId,
 		name: appDomain,
 		type: "CNAME",
@@ -38,7 +38,7 @@ if ($dev) {
 		ttl: 1,
 	});
 
-	new cloudflare.ZeroTrustTunnelCloudflaredConfig("WebDevTunnelConfig", {
+	new cloudflare.ZeroTrustTunnelCloudflaredConfig("WebTunnelConfig", {
 		accountId: secrets.cloudflareAccountId.value,
 		tunnelId: tunnel.id,
 		config: {
@@ -54,7 +54,7 @@ if ($dev) {
 		},
 	});
 
-	new sst.x.DevCommand("WebDevTunnelCommand", {
+	new sst.x.DevCommand("WebTunnelCommand", {
 		dev: {
 			title: "Web tunnel",
 			command: cloudflare
