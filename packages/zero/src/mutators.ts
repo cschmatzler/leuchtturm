@@ -1,8 +1,8 @@
-import { defineMutator } from "@rocicorp/zero";
+import { defineMutator, defineMutatorsWithType } from "@rocicorp/zero";
 
-import { defineMutators } from "@leuchtturm/zero/mutators/shared";
+import { type Schema } from "@leuchtturm/zero/schema";
 
-export const mutators = defineMutators({
+export const mutators = defineMutatorsWithType<Schema>()({
 	noop: defineMutator(async () => {}),
 });
 

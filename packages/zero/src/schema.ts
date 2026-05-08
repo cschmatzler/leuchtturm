@@ -8,6 +8,13 @@ import {
 	type Zero,
 } from "@rocicorp/zero";
 
+declare module "@rocicorp/zero" {
+	interface DefaultTypes {
+		schema: Schema;
+		context: Context;
+	}
+}
+
 import {
 	InvitationSelect,
 	MemberSelect,
@@ -177,12 +184,5 @@ export const zql = createBuilder(schema);
 export type Schema = typeof schema;
 
 export type Context = { userId: typeof UserSelect.fields.id.Type };
-
-declare module "@rocicorp/zero" {
-	interface DefaultTypes {
-		schema: Schema;
-		context: Context;
-	}
-}
 
 export type { Zero };
