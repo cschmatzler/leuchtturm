@@ -91,14 +91,8 @@ export namespace Auth {
 			const makeAuth = (runAuthEffect: <A, E>(effect: Effect.Effect<A, E>) => Promise<A>) =>
 				betterAuth({
 					baseURL: `https://${Resource.Dns.ApiDomain}/api/auth`,
-					trustedOrigins: [
-						`https://${Resource.Dns.AppDomain}`,
-						...(Resource.App.stage === "prod" ? [] : ["http://localhost:*", "http://127.0.0.1:*"]),
-					],
+					trustedOrigins: [`https://${Resource.Dns.AppDomain}`],
 					secret: Resource.BetterAuthSecret.value,
-					account: {
-						skipStateCookieCheck: Resource.App.stage !== "prod",
-					},
 					onAPIError: {
 						throw: true,
 					},
@@ -347,13 +341,6 @@ export namespace Auth {
 					},
 					advanced: {
 						disableOriginCheck: true,
-						...(Resource.App.stage !== "prod" && {
-							defaultCookieAttributes: {
-								sameSite: "none" as const,
-								secure: true,
-								partitioned: true,
-							},
-						}),
 						crossSubDomainCookies: {
 							enabled: true,
 							domain: Resource.Dns.AppDomain,
