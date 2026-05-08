@@ -15,11 +15,11 @@
 		"@opentelemetry/semantic-conventions": "1.40.0",
 		"@rocicorp/zero": "1.4.0",
 		"effect": "4.0.0-beta.59",
-		"posthog-node": "5.33.2",
-		"sst": "4.12.11"
+		"posthog-node": "5.33.4",
+		"sst": "4.13.1"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "4.20260504.1",
+		"@cloudflare/workers-types": "4.20260508.1",
 		"typescript": "6.0.3"
 	}
 }
