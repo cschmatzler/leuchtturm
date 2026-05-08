@@ -9,7 +9,6 @@ export const secrets = {
 	axiomTracesDataset: new sst.Secret("AxiomTracesDataset"),
 	axiomMetricsDataset: new sst.Secret("AxiomMetricsDataset"),
 	betterAuthSecret: new sst.Secret("BetterAuthSecret"),
-	cloudflareAccessEmail: new sst.Secret("CloudflareAccessEmail"),
 	cloudflareAccessGitHubClientId: new sst.Secret("CloudflareAccessGitHubClientId"),
 	cloudflareAccessGitHubClientSecret: new sst.Secret("CloudflareAccessGitHubClientSecret"),
 	cloudflareAccountId: new sst.Secret("CloudflareAccountId"),

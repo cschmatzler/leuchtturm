@@ -36,7 +36,11 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "CloudflareAccessEmail": {
+    "CloudflareAccessGitHubClientId": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "CloudflareAccessGitHubClientSecret": {
       "type": "sst.sst.Secret"
       "value": string
     }

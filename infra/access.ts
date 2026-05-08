@@ -14,6 +14,23 @@ if ($dev) {
 			},
 		},
 	);
+	const githubOrganizationPolicy = new cloudflare.ZeroTrustAccessPolicy(
+		"DevGitHubOrganizationPolicy",
+		{
+			accountId: secrets.cloudflareAccountId.value,
+			name: `${$app.name}-${$app.stage}-leuchtturm-dev-github`,
+			decision: "allow",
+			includes: [
+				{
+					githubOrganization: {
+						identityProviderId: githubIdentityProvider.id,
+						name: "leuchtturm-dev",
+					},
+				},
+			],
+			sessionDuration: "24h",
+		},
+	);
 
 	new cloudflare.ZeroTrustAccessApplication("DevAccessApplication", {
 		accountId: secrets.cloudflareAccountId.value,
@@ -36,13 +53,6 @@ if ($dev) {
 		httpOnlyCookieAttribute: true,
 		sameSiteCookieAttribute: "none",
 		sessionDuration: "24h",
-		policies: [
-			{
-				name: "Allow dev user",
-				decision: "allow",
-				precedence: 1,
-				includes: [{ email: { email: secrets.cloudflareAccessEmail.value } }],
-			},
-		],
+		policies: [{ id: githubOrganizationPolicy.id }],
 	});
 }
