@@ -14,4 +14,4 @@ allowBuilds:
 
 minimumReleaseAge: 720
 patchedDependencies:
-  drizzle-orm@1.0.0-rc.1: patches/drizzle-orm@1.0.0-rc.1.patch
+  drizzle-orm@1.0.0-rc.2: patches/drizzle-orm@1.0.0-rc.2.patch
