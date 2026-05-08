@@ -24,9 +24,9 @@ export const web = new sst.cloudflare.StaticSiteV2("Web", {
 
 if ($dev) {
 	const tunnel = new cloudflare.ZeroTrustTunnelCloudflared("WebTunnel", {
+		name: `${$app.name}-${$app.stage}-web`,
 		accountId: secrets.cloudflareAccountId.value,
 		configSrc: "cloudflare",
-		name: `${$app.name}-${$app.stage}-web-dev`,
 	});
 
 	new cloudflare.DnsRecord("WebTunnelRecord", {

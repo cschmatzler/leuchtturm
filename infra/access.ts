@@ -29,10 +29,11 @@ if ($dev) {
 
 	new cloudflare.ZeroTrustAccessApplication("Access", {
 		accountId: secrets.cloudflareAccountId.value,
-		name: `${$app.name}-${$app.stage}-dev`,
+		name: `${$app.name}-${$app.stage}`,
 		type: "self_hosted",
 		domain: appDomain,
 		allowedIdps: [githubProvider.id],
+		policies: [{ id: policy.id }],
 		autoRedirectToIdentity: true,
 		destinations: [
 			{ type: "public", uri: appDomain },
@@ -48,6 +49,5 @@ if ($dev) {
 		httpOnlyCookieAttribute: true,
 		sameSiteCookieAttribute: "none",
 		sessionDuration: "24h",
-		policies: [{ id: policy.id }],
 	});
 }
