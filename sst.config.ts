@@ -18,6 +18,7 @@ export default $config({
 		await import("@leuchtturm/infra/database");
 		await import("@leuchtturm/infra/api");
 		await import("@leuchtturm/infra/web");
+		await import("@leuchtturm/infra/access");
 		await import("@leuchtturm/infra/zero");
 	},
 });
