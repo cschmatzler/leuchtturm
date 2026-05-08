@@ -20,16 +20,6 @@
 		"node": ">=25.0.0"
 	},
 	"packageManager": "pnpm@11.0.4",
-	"pnpm": {
-		"overrides": {
-			"effect": "4.0.0-beta.59"
-		},
-		"peerDependencyRules": {
-			"allowedVersions": {
-				"@effect/sql-pg": "4.0.0-beta.59"
-			}
-		}
-	},
 	"trustedDependencies": [
 		"@rocicorp/zero-sqlite3"
 	]
