@@ -17,11 +17,11 @@ export namespace AuthMiddleware {
 	}
 
 	export class CurrentUser extends Context.Service<CurrentUser, CurrentUserShape>()(
-		"@leuchtturm/AuthMiddleware/CurrentUser",
+		"@leuchtturm/api/AuthMiddleware/CurrentUser",
 	) {}
 
 	export class Service extends HttpApiMiddleware.Service<Service, { provides: CurrentUser }>()(
-		"@leuchtturm/AuthMiddleware",
+		"@leuchtturm/api/AuthMiddleware",
 		{ error: Errors },
 	) {}
 
