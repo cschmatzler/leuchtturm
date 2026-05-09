@@ -23,7 +23,10 @@ import { HealthHandler } from "@leuchtturm/api/handlers/health";
 import { SessionHandler } from "@leuchtturm/api/handlers/session";
 import { ZeroHandler } from "@leuchtturm/api/handlers/zero";
 import { RequestContext } from "@leuchtturm/api/middleware/request-context";
-import { Observability } from "@leuchtturm/api/observability";
+import { traceExporterConfig, traceServiceConfig } from "@leuchtturm/api/observability/config";
+import { Middleware as ObservabilityMiddleware } from "@leuchtturm/api/observability/http-middleware";
+import { Logging } from "@leuchtturm/api/observability/logging";
+import { layer as tracingLayer } from "@leuchtturm/api/observability/tracing";
 import { ProductAnalytics } from "@leuchtturm/api/posthog";
 import { RequestRuntime } from "@leuchtturm/api/request-runtime";
 import { Auth } from "@leuchtturm/core/auth";
@@ -75,7 +78,8 @@ namespace Api {
 			RequestRuntime.layer,
 			BackgroundTasks.layer,
 			ProductAnalytics.layer,
-			Observability.layer,
+			tracingLayer,
+			Logging.layer,
 		);
 		const handler = HttpEffect.toWebHandlerLayer(api, runtime, {
 			middleware: (app) =>
@@ -87,7 +91,7 @@ namespace Api {
 						return origin === `https://${Resource.Dns.AppDomain}`;
 					},
 					credentials: true,
-				})(RequestContext.Middleware(Observability.Middleware(app))),
+				})(RequestContext.Middleware(ObservabilityMiddleware(app))),
 		});
 
 		return Layer.succeed(
@@ -143,7 +147,7 @@ export default wrapCloudflareHandler(
 			},
 		},
 		() => {
-			const { domain, token, tracesDataset } = Observability.traceExporterConfig();
+			const { domain, token, tracesDataset } = traceExporterConfig();
 
 			return {
 				exporter: {
@@ -153,7 +157,7 @@ export default wrapCloudflareHandler(
 					},
 					url: `https://${domain}/v1/traces`,
 				},
-				service: Observability.traceServiceConfig,
+				service: traceServiceConfig,
 			};
 		},
 	),

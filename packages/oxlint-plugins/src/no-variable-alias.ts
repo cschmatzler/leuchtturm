@@ -67,13 +67,23 @@ function isInlineConfigAlias(node) {
 	);
 }
 
-function isRedundantVariableAlias(left, right) {
+function importSpecifierName(node) {
+	if (node?.type === "Identifier") {
+		return node.name;
+	}
+
+	if (node?.type === "Literal" && typeof node.value === "string") {
+		return node.value;
+	}
+}
+
+function isRedundantVariableAlias(left, right, importAliases) {
 	const leftName = identifierName(left);
 	const rightName = identifierName(right);
 	right = unwrapTypeExpression(right);
 
 	if (leftName && rightName) {
-		return leftName === rightName;
+		return leftName === rightName || importAliases.get(rightName) === leftName;
 	}
 
 	const envName = propertyName(right);
@@ -147,14 +157,24 @@ const rule = {
 		const inlineConfigAliases = new Map();
 		const reportedInlineConfigAliases = new Set();
 
+		const importAliases = new Map();
+
 		return {
+			ImportSpecifier(node) {
+				const importedName = importSpecifierName(node.imported);
+				const localName = identifierName(node.local);
+
+				if (importedName && localName && importedName !== localName) {
+					importAliases.set(localName, importedName);
+				}
+			},
 			VariableDeclarator(node) {
 				const name = identifierName(node.id);
 				if (name && !node.id?.typeAnnotation && isInlineConfigAlias(node.init)) {
 					inlineConfigAliases.set(name, { node, scope: nearestScope(node) });
 				}
 
-				if (!isRedundantVariableAlias(node.id, node.init)) {
+				if (!isRedundantVariableAlias(node.id, node.init, importAliases)) {
 					return;
 				}
 
@@ -164,7 +184,10 @@ const rule = {
 				});
 			},
 			AssignmentExpression(node) {
-				if (node.left?.type !== "Identifier" || !isRedundantVariableAlias(node.left, node.right)) {
+				if (
+					node.left?.type !== "Identifier" ||
+					!isRedundantVariableAlias(node.left, node.right, importAliases)
+				) {
 					return;
 				}
 
