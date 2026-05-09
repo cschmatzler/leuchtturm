@@ -1,11 +1,10 @@
 import * as grafana from "@pulumiverse/grafana";
 
-const grafanaStage = "prod";
 const cloudProvider = new grafana.Provider("GrafanaCloudProvider");
 
 export let grafanaOtlpUrl: sst.Linkable<{ value: string }>;
 
-if ($app.stage === grafanaStage) {
+if ($app.stage === "prod") {
 	const stack = new grafana.cloud.Stack(
 		"GrafanaStack",
 		{
@@ -15,9 +14,9 @@ if ($app.stage === grafanaStage) {
 				app: $app.name,
 				stage: $app.stage,
 			},
-			name: `${$app.name}-${$app.stage}`,
+			name: $app.name,
 			regionSlug: "eu",
-			slug: `${$app.name}${grafanaStage}`,
+			slug: $app.name,
 		},
 		{ provider: cloudProvider },
 	);
@@ -123,7 +122,7 @@ if ($app.stage === grafanaStage) {
 		{ provider: stackProvider },
 	);
 
-	const dashboard = new grafana.oss.Dashboard(
+	new grafana.oss.Dashboard(
 		"GrafanaApiDashboard",
 		{
 			configJson: JSON.stringify({
@@ -255,7 +254,7 @@ if ($app.stage === grafanaStage) {
 } else {
 	const stack = grafana.cloud.getStackOutput(
 		{
-			slug: `${$app.name}${grafanaStage}`,
+			slug: $app.name,
 		},
 		{ provider: cloudProvider },
 	);
