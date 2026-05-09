@@ -1,11 +1,11 @@
-import type { Input } from "@pulumi/pulumi";
 import * as grafana from "@pulumiverse/grafana";
 
-let grafanaOtlpUrlValue: Input<string>;
+const grafanaStage = "prod";
+const cloudProvider = new grafana.Provider("GrafanaCloudProvider");
 
-if ($app.stage === "prod") {
-	const cloudProvider = new grafana.Provider("GrafanaCloudProvider");
+export let grafanaOtlpUrl: sst.Linkable<{ value: string }>;
 
+if ($app.stage === grafanaStage) {
 	const stack = new grafana.cloud.Stack(
 		"GrafanaStack",
 		{
@@ -17,7 +17,7 @@ if ($app.stage === "prod") {
 			},
 			name: `${$app.name}-${$app.stage}`,
 			regionSlug: "eu",
-			slug: `${$app.name}${$app.stage}`,
+			slug: `${$app.name}${grafanaStage}`,
 		},
 		{ provider: cloudProvider },
 	);
@@ -247,14 +247,21 @@ if ($app.stage === "prod") {
 		{ dependsOn: [prometheus], provider: stackProvider },
 	);
 
-	grafanaOtlpUrlValue = stack.otlpUrl;
+	grafanaOtlpUrl = new sst.Linkable("GrafanaOtlpUrl", {
+		properties: {
+			value: stack.otlpUrl,
+		},
+	});
 } else {
-	const prodGrafanaOtlpUrl = new sst.Secret("ProdGrafanaOtlpUrl");
-	grafanaOtlpUrlValue = prodGrafanaOtlpUrl.value;
+	const stack = grafana.cloud.getStackOutput(
+		{
+			slug: `${$app.name}${grafanaStage}`,
+		},
+		{ provider: cloudProvider },
+	);
+	grafanaOtlpUrl = new sst.Linkable("GrafanaOtlpUrl", {
+		properties: {
+			value: stack.apply((stack) => stack.otlpUrl),
+		},
+	});
 }
-
-export const grafanaOtlpUrl = new sst.Linkable("GrafanaOtlpUrl", {
-	properties: {
-		value: grafanaOtlpUrlValue,
-	},
-});
