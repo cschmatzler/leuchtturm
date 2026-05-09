@@ -137,6 +137,7 @@ namespace Api {
 }
 
 const grafanaOtlp = JSON.parse(Resource.GrafanaOtlpUrl.value);
+let apiRuntime: ReturnType<typeof Api.create> | undefined;
 
 export default wrapCloudflareHandler(
 	instrument(
@@ -146,7 +147,8 @@ export default wrapCloudflareHandler(
 				env: Api.Env,
 				ctx: { waitUntil: (promise: Promise<unknown>) => void },
 			) {
-				return Api.create(env).runPromise((api) => api.handle(request, ctx.waitUntil.bind(ctx)));
+				apiRuntime ??= Api.create(env);
+				return apiRuntime.runPromise((api) => api.handle(request, ctx.waitUntil.bind(ctx)));
 			},
 		},
 		() => ({
