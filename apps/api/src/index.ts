@@ -136,6 +136,8 @@ namespace Api {
 	export const create = (env: Env) => makeRuntime(Service, layer(env));
 }
 
+const grafanaOtlp = JSON.parse(Resource.GrafanaOtlpUrl.value);
+
 export default wrapCloudflareHandler(
 	instrument(
 		{
@@ -150,9 +152,9 @@ export default wrapCloudflareHandler(
 		() => ({
 			exporter: {
 				headers: {
-					Authorization: `Basic ${btoa(`${(Resource.GrafanaOtlpUrl as unknown as { token: string; username: string }).username}:${(Resource.GrafanaOtlpUrl as unknown as { token: string; username: string }).token}`)}`,
+					Authorization: grafanaOtlp.authorization,
 				},
-				url: `${Resource.GrafanaOtlpUrl.value}/v1/traces`,
+				url: `${grafanaOtlp.url}/v1/traces`,
 			},
 			service: {
 				name: "leuchtturm-api",

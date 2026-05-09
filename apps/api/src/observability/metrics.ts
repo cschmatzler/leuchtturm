@@ -7,17 +7,18 @@ import * as Metric from "effect/Metric";
 import { Resource } from "sst";
 
 export namespace Metrics {
+	const grafanaOtlp = JSON.parse(Resource.GrafanaOtlpUrl.value);
 	const metricReader = new PeriodicExportingMetricReader({
 		exportIntervalMillis: 30_000,
 		exporter: new OTLPMetricExporter({
 			headers: {
-				Authorization: `Basic ${btoa(`${(Resource.GrafanaOtlpUrl as unknown as { token: string; username: string }).username}:${(Resource.GrafanaOtlpUrl as unknown as { token: string; username: string }).token}`)}`,
+				Authorization: grafanaOtlp.authorization,
 			},
-			url: `${Resource.GrafanaOtlpUrl.value}/v1/metrics`,
+			url: `${grafanaOtlp.url}/v1/metrics`,
 		}),
 	});
 
-	export const flush = () => metricReader.forceFlush();
+	export const flush = () => metricReader.forceFlush().catch(() => undefined);
 
 	export const requestCount = Metric.counter("api_requests_total", {
 		description: "Total number of API requests handled by the worker.",

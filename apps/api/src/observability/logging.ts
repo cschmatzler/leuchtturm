@@ -6,6 +6,8 @@ import * as Layer from "effect/Layer";
 import { Resource } from "sst";
 
 export namespace Logging {
+	const grafanaOtlp = JSON.parse(Resource.GrafanaOtlpUrl.value);
+
 	export const layer = Layer.suspend(() =>
 		OtelLogger.layer({ mergeWithExisting: true }).pipe(
 			Layer.provide(
@@ -13,9 +15,9 @@ export namespace Logging {
 					new SimpleLogRecordProcessor(
 						new OTLPLogExporter({
 							headers: {
-								Authorization: `Basic ${btoa(`${(Resource.GrafanaOtlpUrl as unknown as { token: string; username: string }).username}:${(Resource.GrafanaOtlpUrl as unknown as { token: string; username: string }).token}`)}`,
+								Authorization: grafanaOtlp.authorization,
 							},
-							url: `${Resource.GrafanaOtlpUrl.value}/v1/logs`,
+							url: `${grafanaOtlp.url}/v1/logs`,
 						}),
 					),
 				),

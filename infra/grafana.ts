@@ -1,3 +1,4 @@
+import { all } from "@pulumi/pulumi";
 import * as grafana from "@pulumiverse/grafana";
 
 const cloudProvider = new grafana.Provider("GrafanaCloudProvider");
@@ -234,8 +235,12 @@ const telemetryAccessPolicyToken = new grafana.cloud.AccessPolicyToken(
 
 export const grafanaOtlpUrl = new sst.Linkable("GrafanaOtlpUrl", {
 	properties: {
-		token: telemetryAccessPolicyToken.token,
-		username: grafanaStack.id,
-		value: grafanaStack.otlpUrl,
+		value: all([grafanaStack.id, telemetryAccessPolicyToken.token, grafanaStack.otlpUrl]).apply(
+			([username, token, url]) =>
+				JSON.stringify({
+					authorization: `Basic ${Buffer.from(`${username}:${token}`).toString("base64")}`,
+					url,
+				}),
+		),
 	},
 });
