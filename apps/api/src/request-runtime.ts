@@ -3,6 +3,8 @@ import type { Span } from "@opentelemetry/api";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import * as Metric from "effect/Metric";
+import * as References from "effect/References";
 import * as Tracer from "effect/Tracer";
 
 export namespace RequestRuntime {
@@ -14,6 +16,8 @@ export namespace RequestRuntime {
 		"@leuchtturm/RequestRuntime",
 	) {}
 
+	export const metricRegistry = new Map<string, Metric.Metric.Metadata<any, any>>();
+
 	export const layer = Layer.succeed(Service, Service.of({}));
 
 	export const makeContext = (options: {
@@ -22,7 +26,11 @@ export namespace RequestRuntime {
 	}) => {
 		const activeSpan = options.activeSpan ?? undefined;
 		const requestContext = Context.add(
-			Context.empty(),
+			Context.add(
+				Context.add(Context.empty(), Metric.MetricRegistry, metricRegistry),
+				References.TracerEnabled,
+				false,
+			),
 			Service,
 			Service.of({ waitUntil: options.waitUntil }),
 		);

@@ -7,6 +7,8 @@ import * as Layer from "effect/Layer";
 import * as Metric from "effect/Metric";
 import { Resource } from "sst";
 
+import { RequestRuntime } from "@leuchtturm/api/request-runtime";
+
 export namespace Metrics {
 	const grafanaOtlp = JSON.parse(Resource.GrafanaOtlpUrl.value);
 	export interface FlusherInterface {
@@ -29,36 +31,39 @@ export namespace Metrics {
 		description: "End-to-end duration of API request handling in milliseconds.",
 	});
 
-	export const layer = Layer.suspend(() => {
-		const metricReader = new PeriodicExportingMetricReader({
-			exportIntervalMillis: 30_000,
-			exporter: new OTLPMetricExporter({
-				headers: {
-					Authorization: grafanaOtlp.authorization,
-				},
-				url: `${grafanaOtlp.url}/v1/metrics`,
-			}),
-		});
+	export const layer = Layer.fresh(
+		Layer.suspend(() => {
+			const metricReader = new PeriodicExportingMetricReader({
+				exportIntervalMillis: 30_000,
+				exporter: new OTLPMetricExporter({
+					headers: {
+						Authorization: grafanaOtlp.authorization,
+					},
+					url: `${grafanaOtlp.url}/v1/metrics`,
+				}),
+			});
 
-		return Layer.mergeAll(
-			OtelMetrics.layer(() => metricReader, { temporality: "cumulative" }).pipe(
-				Layer.provide(
-					OtelResource.layer({
-						serviceName: "leuchtturm-api",
-						attributes: {
-							"service.namespace": "leuchtturm",
-							app: "leuchtturm",
-							stage: Resource.App.stage,
-						},
+			return Layer.mergeAll(
+				OtelMetrics.layer(() => metricReader, { temporality: "cumulative" }).pipe(
+					Layer.provide(Layer.succeed(Metric.MetricRegistry, RequestRuntime.metricRegistry)),
+					Layer.provide(
+						OtelResource.layer({
+							serviceName: "leuchtturm-api",
+							attributes: {
+								"service.namespace": "leuchtturm",
+								app: "leuchtturm",
+								stage: Resource.App.stage,
+							},
+						}),
+					),
+				),
+				Layer.succeed(
+					Flusher,
+					Flusher.of({
+						flush: () => metricReader.forceFlush().catch(() => undefined),
 					}),
 				),
-			),
-			Layer.succeed(
-				Flusher,
-				Flusher.of({
-					flush: () => metricReader.forceFlush().catch(() => undefined),
-				}),
-			),
-		);
-	});
+			);
+		}),
+	);
 }
