@@ -7,16 +7,25 @@
 declare module "sst" {
   export interface Resource {
     "ApiWorker": import("@cloudflare/workers-types").Service
-    "GrafanaCloudApiToken": {
+    "AxiomDomain": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "GrafanaObservability": {
-      "ApiToken": string
-      "OtlpUrl": string
-      "StackUrl": string
-      "Stage": string
-      "type": "sst.sst.Linkable"
+    "AxiomLogsDataset": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "AxiomMetricsDataset": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "AxiomToken": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "AxiomTracesDataset": {
+      "type": "sst.sst.Secret"
+      "value": string
     }
     "BetterAuthSecret": {
       "type": "sst.sst.Secret"
