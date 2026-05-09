@@ -1,5 +1,7 @@
 import * as Cause from "effect/Cause";
+import * as Duration from "effect/Duration";
 import * as Effect from "effect/Effect";
+import * as Metric from "effect/Metric";
 import * as HttpMiddleware from "effect/unstable/http/HttpMiddleware";
 import * as HttpServerError from "effect/unstable/http/HttpServerError";
 import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
@@ -42,19 +44,23 @@ export namespace ObservabilityMiddleware {
 				method: request.method,
 				route: path,
 			};
-			Metrics.recordRequest(
-				{
+			yield* Metric.update(
+				Metric.withAttributes(Metrics.requestDuration, requestMetricAttributes),
+				Duration.millis(durationMs),
+			);
+			yield* Metric.update(
+				Metric.withAttributes(Metrics.requestCount, {
 					...requestMetricAttributes,
 					status_group: responseStatusGroup,
-				},
-				durationMs,
+				}),
+				1,
 			);
 			yield* Effect.annotateCurrentSpan({
 				"http.response.status_code": response.status,
 				"http.response.status_group": responseStatusGroup,
 				"request.duration_ms": durationMs,
 			});
-			yield* RequestRuntime.register(Metrics.flush());
+			yield* RequestRuntime.register((yield* Metrics.Flusher).flush());
 
 			const logAnnotations = {
 				duration_ms: durationMs,
@@ -66,11 +72,14 @@ export namespace ObservabilityMiddleware {
 			};
 
 			if (response.status >= 500) {
-				Metrics.recordRequestError({
-					...requestMetricAttributes,
-					error_type: "response",
-					status_group: responseStatusGroup,
-				});
+				yield* Metric.update(
+					Metric.withAttributes(Metrics.requestErrorCount, {
+						...requestMetricAttributes,
+						error_type: "response",
+						status_group: responseStatusGroup,
+					}),
+					1,
+				);
 				yield* Effect.logError("API request failed").pipe(Effect.annotateLogs(logAnnotations));
 			} else if (response.status >= 400) {
 				yield* Effect.logWarning("API request rejected").pipe(Effect.annotateLogs(logAnnotations));

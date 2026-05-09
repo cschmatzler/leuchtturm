@@ -1,51 +1,64 @@
+import * as OtelMetrics from "@effect/opentelemetry/Metrics";
+import * as OtelResource from "@effect/opentelemetry/Resource";
 import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-proto";
-import { resourceFromAttributes } from "@opentelemetry/resources";
-import { MeterProvider, PeriodicExportingMetricReader } from "@opentelemetry/sdk-metrics";
+import { PeriodicExportingMetricReader } from "@opentelemetry/sdk-metrics";
+import * as Context from "effect/Context";
 import * as Layer from "effect/Layer";
+import * as Metric from "effect/Metric";
 import { Resource } from "sst";
 
 export namespace Metrics {
 	const grafanaOtlp = JSON.parse(Resource.GrafanaOtlpUrl.value);
-	const metricReader = new PeriodicExportingMetricReader({
-		exportIntervalMillis: 30_000,
-		exporter: new OTLPMetricExporter({
-			headers: {
-				Authorization: grafanaOtlp.authorization,
-			},
-			url: `${grafanaOtlp.url}/v1/metrics`,
-		}),
-	});
-	const meterProvider = new MeterProvider({
-		readers: [metricReader],
-		resource: resourceFromAttributes({
-			"service.name": "leuchtturm-api",
-			"service.namespace": "leuchtturm",
-			app: "leuchtturm",
-			stage: Resource.App.stage,
-		}),
-	});
-	const meter = meterProvider.getMeter("leuchtturm-api");
-	const requestCount = meter.createCounter("api_requests_total", {
+	export interface FlusherInterface {
+		readonly flush: () => Promise<void | undefined>;
+	}
+
+	export class Flusher extends Context.Service<Flusher, FlusherInterface>()(
+		"@leuchtturm/api/Metrics/Flusher",
+	) {}
+
+	export const requestCount = Metric.counter("api_requests_total", {
 		description: "Total number of API requests handled by the worker.",
 	});
-	const requestErrorCount = meter.createCounter("api_request_errors_total", {
+
+	export const requestErrorCount = Metric.counter("api_request_errors_total", {
 		description: "Total number of API requests that failed or returned a 5xx response.",
 	});
-	const requestDuration = meter.createHistogram("api_request_duration_ms", {
+
+	export const requestDuration = Metric.timer("api_request_duration", {
 		description: "End-to-end duration of API request handling in milliseconds.",
-		unit: "ms",
 	});
 
-	export const recordRequest = (attributes: Record<string, string>, durationMs: number) => {
-		requestDuration.record(durationMs, attributes);
-		requestCount.add(1, attributes);
-	};
+	export const layer = Layer.suspend(() => {
+		const metricReader = new PeriodicExportingMetricReader({
+			exportIntervalMillis: 30_000,
+			exporter: new OTLPMetricExporter({
+				headers: {
+					Authorization: grafanaOtlp.authorization,
+				},
+				url: `${grafanaOtlp.url}/v1/metrics`,
+			}),
+		});
 
-	export const recordRequestError = (attributes: Record<string, string>) => {
-		requestErrorCount.add(1, attributes);
-	};
-
-	export const flush = () => meterProvider.forceFlush().catch(() => undefined);
-
-	export const layer = Layer.empty;
+		return Layer.mergeAll(
+			OtelMetrics.layer(() => metricReader, { temporality: "cumulative" }).pipe(
+				Layer.provide(
+					OtelResource.layer({
+						serviceName: "leuchtturm-api",
+						attributes: {
+							"service.namespace": "leuchtturm",
+							app: "leuchtturm",
+							stage: Resource.App.stage,
+						},
+					}),
+				),
+			),
+			Layer.succeed(
+				Flusher,
+				Flusher.of({
+					flush: () => metricReader.forceFlush().catch(() => undefined),
+				}),
+			),
+		);
+	});
 }
