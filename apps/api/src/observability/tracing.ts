@@ -3,12 +3,32 @@ import * as OtelTracer from "@effect/opentelemetry/Tracer";
 import * as Layer from "effect/Layer";
 import * as HttpMiddleware from "effect/unstable/http/HttpMiddleware";
 
-import { makeResourceConfig } from "@leuchtturm/api/observability/config";
 import { requestSpanName } from "@leuchtturm/api/observability/request";
 
-export const layer = Layer.suspend(() =>
-	Layer.mergeAll(
-		OtelTracer.layerGlobal.pipe(Layer.provide(OtelResource.layer(makeResourceConfig()))),
+export namespace Tracing {
+	export interface ServiceConfig {
+		readonly name: string;
+		readonly namespace: string;
+	}
+
+	export const service: ServiceConfig = {
+		name: "leuchtturm-api",
+		namespace: "leuchtturm",
+	};
+
+	export const layer = Layer.mergeAll(
+		OtelTracer.layerGlobal.pipe(
+			Layer.provide(
+				OtelResource.layer({
+					serviceName: service.name,
+					attributes: {
+						"cloud.platform": "cloudflare_workers",
+						"cloud.provider": "cloudflare",
+						"service.namespace": service.namespace,
+					},
+				}),
+			),
+		),
 		Layer.succeed(HttpMiddleware.SpanNameGenerator, requestSpanName),
-	),
-);
+	);
+}

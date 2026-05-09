@@ -3,6 +3,9 @@ import * as grafana from "@pulumiverse/grafana";
 import { secrets } from "@leuchtturm/infra/secrets";
 
 const cloudProvider = new grafana.Provider("GrafanaCloudProvider", {
+	// The provider also supports GRAFANA_CLOUD_ACCESS_POLICY_TOKEN. SST deployments use
+	// GrafanaCloudApiToken so the token is configured through the same secret workflow as
+	// the rest of the app.
 	cloudAccessPolicyToken: secrets.grafanaCloudApiToken.value,
 });
 
@@ -255,5 +258,3 @@ export const grafanaObservability = new sst.Linkable("GrafanaObservability", {
 		StackUrl: stack.url,
 	},
 });
-
-export const grafanaDashboardUrl = dashboard.url;

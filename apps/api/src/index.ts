@@ -23,11 +23,10 @@ import { HealthHandler } from "@leuchtturm/api/handlers/health";
 import { SessionHandler } from "@leuchtturm/api/handlers/session";
 import { ZeroHandler } from "@leuchtturm/api/handlers/zero";
 import { RequestContext } from "@leuchtturm/api/middleware/request-context";
-import { traceExporterConfig, traceServiceConfig } from "@leuchtturm/api/observability/config";
 import { Middleware as ObservabilityMiddleware } from "@leuchtturm/api/observability/http-middleware";
 import { Logging } from "@leuchtturm/api/observability/logging";
-import { layer as metricsLayer } from "@leuchtturm/api/observability/metrics";
-import { layer as tracingLayer } from "@leuchtturm/api/observability/tracing";
+import { Metrics } from "@leuchtturm/api/observability/metrics";
+import { Tracing } from "@leuchtturm/api/observability/tracing";
 import { ProductAnalytics } from "@leuchtturm/api/posthog";
 import { RequestRuntime } from "@leuchtturm/api/request-runtime";
 import { Auth } from "@leuchtturm/core/auth";
@@ -79,8 +78,8 @@ namespace Api {
 			RequestRuntime.layer,
 			BackgroundTasks.layer,
 			ProductAnalytics.layer,
-			tracingLayer,
-			metricsLayer,
+			Tracing.layer,
+			Metrics.layer,
 			Logging.layer,
 		);
 		const handler = HttpEffect.toWebHandlerLayer(api, runtime, {
@@ -149,8 +148,13 @@ export default wrapCloudflareHandler(
 			},
 		},
 		() => ({
-			exporter: traceExporterConfig(),
-			service: traceServiceConfig,
+			exporter: {
+				headers: {
+					Authorization: `Bearer ${Resource.GrafanaObservability.ApiToken}`,
+				},
+				url: `${Resource.GrafanaObservability.OtlpUrl}/v1/traces`,
+			},
+			service: Tracing.service,
 		}),
 	),
 );

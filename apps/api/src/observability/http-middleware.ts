@@ -7,12 +7,7 @@ import * as HttpServerError from "effect/unstable/http/HttpServerError";
 import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import type * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 
-import {
-	requestCount,
-	requestDuration,
-	requestErrorCount,
-	tagRequestMetric,
-} from "@leuchtturm/api/observability/metrics";
+import { Metrics } from "@leuchtturm/api/observability/metrics";
 import {
 	requestLogAnnotations,
 	requestSpanAttributes,
@@ -42,9 +37,12 @@ const recordRequestResponse = (
 			status_group: statusGroup(response.status),
 		});
 
-		yield* Metric.update(tagRequestMetric(requestDuration, request), Duration.millis(durationMs));
 		yield* Metric.update(
-			tagRequestMetric(requestCount, request, {
+			Metrics.tagRequestMetric(Metrics.requestDuration, request),
+			Duration.millis(durationMs),
+		);
+		yield* Metric.update(
+			Metrics.tagRequestMetric(Metrics.requestCount, request, {
 				status_group: statusGroup(response.status),
 			}),
 			1,
@@ -53,7 +51,7 @@ const recordRequestResponse = (
 
 		if (response.status >= 500) {
 			yield* Metric.update(
-				tagRequestMetric(requestErrorCount, request, {
+				Metrics.tagRequestMetric(Metrics.requestErrorCount, request, {
 					error_type: "response",
 					status_group: statusGroup(response.status),
 				}),

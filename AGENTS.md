@@ -6,6 +6,7 @@
 - Never try to generate migrations yourself. Tell the user to.
 - Do not stop at "yeah, you're right" or similar acknowledgement when the user is clearly pointing out a mistake that should be corrected. Fix it in the same turn.
 - If there is unrelated changes, DO NOT REVERT THEM. You are coworking with me. I might change things. They are ALWAYS intended.
+- Never squash. Create a new commit.
 
 # Style
 

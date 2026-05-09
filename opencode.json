@@ -7,6 +7,12 @@
 			"type": "remote",
 			"url": "https://mcp.cloudflare.com/mcp"
 		},
+		"grafana": {
+			"enabled": true,
+			"oauth": {},
+			"type": "remote",
+			"url": "https://mcp.grafana.com/mcp"
+		},
 		"planetscale": {
 			"enabled": true,
 			"oauth": {},

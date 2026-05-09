@@ -4,8 +4,7 @@ import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Schema from "effect/Schema";
 import { PostHog } from "posthog-node/edge";
-
-import { ApiConfig } from "@leuchtturm/api/config";
+import { Resource } from "sst";
 
 export namespace FeatureFlags {
 	export class FeatureFlagProviderRequestError extends Schema.TaggedErrorClass<FeatureFlagProviderRequestError>()(
@@ -66,9 +65,8 @@ export namespace FeatureFlags {
 
 	export const layer = Layer.effect(Service)(
 		Effect.sync(() => {
-			const config = ApiConfig.posthog();
-			const client = new PostHog(config.apiKey, {
-				host: config.host,
+			const client = new PostHog(Resource.PostHogProjectApiKey.value, {
+				host: Resource.PostHogHost.value,
 			});
 			return Service.of({
 				isEnabled: (key, userId) =>
