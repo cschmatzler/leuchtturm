@@ -84,7 +84,7 @@ namespace Api {
 						return origin === `https://${Resource.Dns.AppDomain}`;
 					},
 					credentials: true,
-				})(RequestContext.Middleware(Observability.Middleware(app))),
+				})(RequestContext.middleware(Observability.middleware(app))),
 		});
 
 		return Layer.succeed(

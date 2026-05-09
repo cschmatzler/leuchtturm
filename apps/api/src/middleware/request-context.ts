@@ -18,35 +18,37 @@ export namespace RequestContext {
 	}
 
 	export class Service extends Context.Service<Service, RequestContextShape>()(
-		"@leuchtturm/RequestContext",
+		"@leuchtturm/api/RequestContext",
 	) {}
 
-	export const Middleware = HttpMiddleware.make((app) =>
-		Effect.gen(function* () {
-			const request = yield* HttpServerRequest.HttpServerRequest;
-			const id = Headers.get(request.headers, "x-request-id").pipe(
-				Option.map((value) => value.trim()),
-				Option.flatMap(Schema.decodeUnknownOption(RequestId)),
-				Option.getOrElse(() => crypto.randomUUID()),
-			);
+	const run = Effect.fn("RequestContext.run")(function* <E, R>(
+		app: Effect.Effect<HttpServerResponse.HttpServerResponse, E, R>,
+	) {
+		const request = yield* HttpServerRequest.HttpServerRequest;
+		const id = Headers.get(request.headers, "x-request-id").pipe(
+			Option.map((value) => value.trim()),
+			Option.flatMap(Schema.decodeUnknownOption(RequestId)),
+			Option.getOrElse(() => crypto.randomUUID()),
+		);
 
-			const context = Service.of({
-				method: request.method,
-				path: request.url,
-				requestId: id,
-			});
+		const context = Service.of({
+			method: request.method,
+			path: request.url,
+			requestId: id,
+		});
 
-			return yield* app.pipe(
-				Effect.annotateLogs({ requestId: id }),
-				Effect.annotateSpans({ "http.request.id": id }),
-				Effect.provideService(Service, context),
-				Effect.map((response) => HttpServerResponse.setHeader(response, "x-request-id", id)),
-				Effect.catchCause((cause) =>
-					HttpServerError.causeResponse(cause).pipe(
-						Effect.map(([response]) => HttpServerResponse.setHeader(response, "x-request-id", id)),
-					),
+		return yield* app.pipe(
+			Effect.annotateLogs({ requestId: id }),
+			Effect.annotateSpans({ "http.request.id": id }),
+			Effect.provideService(Service, context),
+			Effect.map((response) => HttpServerResponse.setHeader(response, "x-request-id", id)),
+			Effect.catchCause((cause) =>
+				HttpServerError.causeResponse(cause).pipe(
+					Effect.map(([response]) => HttpServerResponse.setHeader(response, "x-request-id", id)),
 				),
-			);
-		}),
-	);
+			),
+		);
+	});
+
+	export const middleware = HttpMiddleware.make(run);
 }
