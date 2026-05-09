@@ -109,7 +109,7 @@ if ($app.stage === "cschmatzler") {
 			),
 			type: "prometheus",
 			uid: "grafanacloud-prometheus",
-			url: stack.prometheusRemoteEndpoint,
+			url: stack.prometheusUrl.apply((url) => `${url}/api/prom`),
 		},
 		{ provider: stackProvider },
 	);
