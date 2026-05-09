@@ -4,10 +4,10 @@ import { useContext, useLayoutEffect } from "react";
 import { SettingsTeamContext } from "@leuchtturm/web/pages/$organization._settings";
 
 export const Route = createFileRoute("/$organization/_settings/teams/$team")({
-	component: TeamSettingsLayout,
+	component: Layout,
 });
 
-function TeamSettingsLayout() {
+function Layout() {
 	const { team } = Route.useParams();
 	const setTeam = useContext(SettingsTeamContext);
 

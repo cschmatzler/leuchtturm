@@ -14,10 +14,10 @@ import {
 export const SettingsTeamContext = createContext<(team: string | undefined) => void>(() => {});
 
 export const Route = createFileRoute("/$organization/_settings")({
-	component: SettingsLayout,
+	component: Layout,
 });
 
-function SettingsLayout() {
+function Layout() {
 	const { organization } = Route.useParams();
 	const t = useGT();
 	const [team, setTeam] = useState<string>();
