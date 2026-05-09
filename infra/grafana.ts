@@ -1,5 +1,7 @@
 import * as grafana from "@pulumiverse/grafana";
 
+import { secrets } from "@leuchtturm/infra/secrets";
+
 const cloudProvider = new grafana.Provider("GrafanaCloudProvider");
 
 export let grafanaOtlpUrl: sst.Linkable<{ value: string }>;
@@ -46,7 +48,7 @@ if ($app.stage === "cschmatzler") {
 		{
 			auth: serviceAccountToken.key,
 			stackId: stack.id.apply((id) => Number(id)),
-			url: stack.url,
+			url: stack.slug.apply((slug) => `https://${slug}.grafana.net`),
 		},
 		{ dependsOn: [serviceAccountToken] },
 	);
@@ -64,9 +66,8 @@ if ($app.stage === "cschmatzler") {
 		"GrafanaPrometheusDataSource",
 		{
 			accessMode: "proxy",
-			httpHeaders: {
-				Authorization: serviceAccountToken.key.apply((token) => `Bearer ${token}`),
-			},
+			basicAuthEnabled: true,
+			basicAuthUsername: stack.prometheusUserId.apply(String),
 			jsonDataEncoded: JSON.stringify({
 				httpMethod: "POST",
 				manageAlerts: true,
@@ -74,9 +75,12 @@ if ($app.stage === "cschmatzler") {
 				prometheusVersion: "2.9.1",
 			}),
 			name: "Grafana Cloud Prometheus",
+			secureJsonDataEncoded: secrets.grafanaApiToken.value.apply((token) =>
+				JSON.stringify({ basicAuthPassword: token }),
+			),
 			type: "prometheus",
 			uid: "grafanacloud-prometheus",
-			url: stack.prometheusRemoteEndpoint,
+			url: stack.prometheusUrl,
 		},
 		{ provider: stackProvider },
 	);
@@ -85,11 +89,13 @@ if ($app.stage === "cschmatzler") {
 		"GrafanaLokiDataSource",
 		{
 			accessMode: "proxy",
-			httpHeaders: {
-				Authorization: serviceAccountToken.key.apply((token) => `Bearer ${token}`),
-			},
+			basicAuthEnabled: true,
+			basicAuthUsername: stack.logsUserId.apply(String),
 			jsonDataEncoded: JSON.stringify({ derivedFields: [] }),
 			name: "Grafana Cloud Loki",
+			secureJsonDataEncoded: secrets.grafanaApiToken.value.apply((token) =>
+				JSON.stringify({ basicAuthPassword: token }),
+			),
 			type: "loki",
 			uid: "grafanacloud-loki",
 			url: stack.logsUrl,
@@ -101,9 +107,8 @@ if ($app.stage === "cschmatzler") {
 		"GrafanaTempoDataSource",
 		{
 			accessMode: "proxy",
-			httpHeaders: {
-				Authorization: serviceAccountToken.key.apply((token) => `Bearer ${token}`),
-			},
+			basicAuthEnabled: true,
+			basicAuthUsername: stack.tracesUserId.apply(String),
 			jsonDataEncoded: JSON.stringify({
 				httpMethod: "GET",
 				serviceMap: { datasourceUid: "grafanacloud-prometheus" },
@@ -115,6 +120,9 @@ if ($app.stage === "cschmatzler") {
 				},
 			}),
 			name: "Grafana Cloud Tempo",
+			secureJsonDataEncoded: secrets.grafanaApiToken.value.apply((token) =>
+				JSON.stringify({ basicAuthPassword: token }),
+			),
 			type: "tempo",
 			uid: "grafanacloud-tempo",
 			url: stack.tracesUrl.apply((url) => `${url}/tempo`),
@@ -248,6 +256,7 @@ if ($app.stage === "cschmatzler") {
 
 	grafanaOtlpUrl = new sst.Linkable("GrafanaOtlpUrl", {
 		properties: {
+			username: stack.id,
 			value: stack.otlpUrl,
 		},
 	});
@@ -260,6 +269,7 @@ if ($app.stage === "cschmatzler") {
 	);
 	grafanaOtlpUrl = new sst.Linkable("GrafanaOtlpUrl", {
 		properties: {
+			username: stack.apply((stack) => stack.id),
 			value: stack.apply((stack) => stack.otlpUrl),
 		},
 	});

@@ -13,7 +13,7 @@ export namespace Logging {
 					new BatchLogRecordProcessor(
 						new OTLPLogExporter({
 							headers: {
-								Authorization: `Bearer ${Resource.GrafanaApiToken.value}`,
+								Authorization: `Basic ${btoa(`${(Resource.GrafanaOtlpUrl as unknown as { username: string }).username}:${Resource.GrafanaApiToken.value}`)}`,
 							},
 							url: `${Resource.GrafanaOtlpUrl.value}/v1/logs`,
 						}),
