@@ -19,27 +19,14 @@ import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { GTProvider, T } from "gt-react";
 import { useEffect } from "react";
 
-import { DEFAULT_LANGUAGE, SupportedLanguage } from "@leuchtturm/core/i18n";
+import { DEFAULT_LANGUAGE } from "@leuchtturm/core/i18n";
 import { CommandBar } from "@leuchtturm/web/components/command-bar";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { Toaster } from "@leuchtturm/web/components/ui/sonner";
 import { CommandBarProvider } from "@leuchtturm/web/contexts/command-bar";
+import { loadTranslations, translatedLocales } from "@leuchtturm/web/lib/translations";
 import { sessionQuery } from "@leuchtturm/web/queries/session";
 import type { RouterContext } from "@leuchtturm/web/router";
-
-type TranslationMap = Record<string, string>;
-type TranslationModule = { default: TranslationMap };
-
-const translationLoaders = import.meta.glob<TranslationModule>("../_gt/*.json");
-const translatedLocales = SupportedLanguage.literals.filter(
-	(locale) => locale !== DEFAULT_LANGUAGE,
-);
-
-async function loadTranslations(locale: string) {
-	const loader = translationLoaders[`../_gt/${locale}.json`];
-	if (!loader) return {};
-	return (await loader()).default;
-}
 
 function RootErrorView() {
 	const router = useRouter();
@@ -84,7 +71,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 		const { data: session } = useQuery(sessionQuery());
 
 		useEffect(() => {
-			if (!session) {
+			if (!session || !session.user) {
 				posthog.reset();
 				return;
 			}
