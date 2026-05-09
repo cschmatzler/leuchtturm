@@ -7,6 +7,18 @@ import * as Metric from "effect/Metric";
 import { Resource } from "sst";
 
 export namespace Metrics {
+	const metricReader = new PeriodicExportingMetricReader({
+		exportIntervalMillis: 30_000,
+		exporter: new OTLPMetricExporter({
+			headers: {
+				Authorization: `Basic ${btoa(`${(Resource.GrafanaOtlpUrl as unknown as { token: string; username: string }).username}:${(Resource.GrafanaOtlpUrl as unknown as { token: string; username: string }).token}`)}`,
+			},
+			url: `${Resource.GrafanaOtlpUrl.value}/v1/metrics`,
+		}),
+	});
+
+	export const flush = () => metricReader.forceFlush();
+
 	export const requestCount = Metric.counter("api_requests_total", {
 		description: "Total number of API requests handled by the worker.",
 	});
@@ -20,19 +32,7 @@ export namespace Metrics {
 	});
 
 	export const layer = Layer.suspend(() =>
-		OtelMetrics.layer(
-			() =>
-				new PeriodicExportingMetricReader({
-					exportIntervalMillis: 30_000,
-					exporter: new OTLPMetricExporter({
-						headers: {
-							Authorization: `Basic ${btoa(`${(Resource.GrafanaOtlpUrl as unknown as { token: string; username: string }).username}:${(Resource.GrafanaOtlpUrl as unknown as { token: string; username: string }).token}`)}`,
-						},
-						url: `${Resource.GrafanaOtlpUrl.value}/v1/metrics`,
-					}),
-				}),
-			{ temporality: "cumulative" },
-		).pipe(
+		OtelMetrics.layer(() => metricReader, { temporality: "cumulative" }).pipe(
 			Layer.provide(
 				OtelResource.layer({
 					serviceName: "leuchtturm-api",

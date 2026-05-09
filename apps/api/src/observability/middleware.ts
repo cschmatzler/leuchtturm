@@ -13,6 +13,7 @@ import {
 	requestSpanAttributes,
 	statusGroup,
 } from "@leuchtturm/api/observability/request";
+import { RequestRuntime } from "@leuchtturm/api/request-runtime";
 
 export namespace ObservabilityMiddleware {
 	export const layer = HttpMiddleware.make((app) =>
@@ -59,6 +60,7 @@ export namespace ObservabilityMiddleware {
 				"http.response.status_group": responseStatusGroup,
 				"request.duration_ms": durationMs,
 			});
+			yield* RequestRuntime.register(Metrics.flush());
 
 			const logAnnotations = {
 				duration_ms: durationMs,
