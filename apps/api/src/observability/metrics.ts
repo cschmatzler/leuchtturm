@@ -26,7 +26,7 @@ export namespace Metrics {
 					exportIntervalMillis: 30_000,
 					exporter: new OTLPMetricExporter({
 						headers: {
-							Authorization: `Basic ${btoa(`${(Resource.GrafanaOtlpUrl as unknown as { username: string }).username}:${Resource.GrafanaApiToken.value}`)}`,
+							Authorization: `Basic ${btoa(`${(Resource.GrafanaOtlpUrl as unknown as { token: string; username: string }).username}:${(Resource.GrafanaOtlpUrl as unknown as { token: string; username: string }).token}`)}`,
 						},
 						url: `${Resource.GrafanaOtlpUrl.value}/v1/metrics`,
 					}),

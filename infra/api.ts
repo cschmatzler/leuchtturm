@@ -11,7 +11,7 @@ export const api = new sst.cloudflare.Worker("ApiWorker", {
 	compatibility: {
 		date: "2026-04-21",
 	},
-	link: [dns, storage, hyperdrive, grafanaOtlpUrl, secrets.grafanaApiToken, ...apiSecrets],
+	link: [dns, storage, hyperdrive, grafanaOtlpUrl, ...apiSecrets],
 	transform: {
 		worker: (args: WorkerScriptArgs) => {
 			args.bindings = $resolve(args.bindings!).apply((bindings) => [

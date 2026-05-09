@@ -1,8 +1,7 @@
 import * as grafana from "@pulumiverse/grafana";
 
-import { secrets } from "@leuchtturm/infra/secrets";
-
 const cloudProvider = new grafana.Provider("GrafanaCloudProvider");
+const grafanaCloudRegion = "prod-eu-west-0";
 
 export let grafanaOtlpUrl: sst.Linkable<{ value: string }>;
 
@@ -53,6 +52,36 @@ if ($app.stage === "cschmatzler") {
 		{ dependsOn: [serviceAccountToken] },
 	);
 
+	const telemetryAccessPolicy = new grafana.cloud.AccessPolicy(
+		"GrafanaTelemetryAccessPolicy",
+		{
+			displayName: "Leuchtturm telemetry",
+			name: `${$app.name}-${$app.stage}-telemetry`,
+			realms: [{ identifier: stack.id, type: "stack" }],
+			region: grafanaCloudRegion,
+			scopes: [
+				"logs:read",
+				"logs:write",
+				"metrics:read",
+				"metrics:write",
+				"traces:read",
+				"traces:write",
+			],
+		},
+		{ provider: cloudProvider },
+	);
+
+	const telemetryAccessPolicyToken = new grafana.cloud.AccessPolicyToken(
+		"GrafanaTelemetryAccessPolicyToken",
+		{
+			accessPolicyId: telemetryAccessPolicy.policyId,
+			displayName: "Leuchtturm telemetry token",
+			name: `${$app.name}-${$app.stage}-telemetry-token`,
+			region: grafanaCloudRegion,
+		},
+		{ provider: cloudProvider },
+	);
+
 	const folder = new grafana.oss.Folder(
 		"GrafanaFolder",
 		{
@@ -75,12 +104,12 @@ if ($app.stage === "cschmatzler") {
 				prometheusVersion: "2.9.1",
 			}),
 			name: "Grafana Cloud Prometheus",
-			secureJsonDataEncoded: secrets.grafanaApiToken.value.apply((token) =>
+			secureJsonDataEncoded: telemetryAccessPolicyToken.token.apply((token) =>
 				JSON.stringify({ basicAuthPassword: token }),
 			),
 			type: "prometheus",
 			uid: "grafanacloud-prometheus",
-			url: stack.prometheusUrl,
+			url: stack.prometheusRemoteEndpoint,
 		},
 		{ provider: stackProvider },
 	);
@@ -93,7 +122,7 @@ if ($app.stage === "cschmatzler") {
 			basicAuthUsername: stack.logsUserId.apply(String),
 			jsonDataEncoded: JSON.stringify({ derivedFields: [] }),
 			name: "Grafana Cloud Loki",
-			secureJsonDataEncoded: secrets.grafanaApiToken.value.apply((token) =>
+			secureJsonDataEncoded: telemetryAccessPolicyToken.token.apply((token) =>
 				JSON.stringify({ basicAuthPassword: token }),
 			),
 			type: "loki",
@@ -120,7 +149,7 @@ if ($app.stage === "cschmatzler") {
 				},
 			}),
 			name: "Grafana Cloud Tempo",
-			secureJsonDataEncoded: secrets.grafanaApiToken.value.apply((token) =>
+			secureJsonDataEncoded: telemetryAccessPolicyToken.token.apply((token) =>
 				JSON.stringify({ basicAuthPassword: token }),
 			),
 			type: "tempo",
@@ -256,6 +285,7 @@ if ($app.stage === "cschmatzler") {
 
 	grafanaOtlpUrl = new sst.Linkable("GrafanaOtlpUrl", {
 		properties: {
+			token: telemetryAccessPolicyToken.token,
 			username: stack.id,
 			value: stack.otlpUrl,
 		},
@@ -267,8 +297,32 @@ if ($app.stage === "cschmatzler") {
 		},
 		{ provider: cloudProvider },
 	);
+	const telemetryAccessPolicy = new grafana.cloud.AccessPolicy(
+		"GrafanaTelemetryAccessPolicy",
+		{
+			displayName: "Leuchtturm telemetry",
+			name: `${$app.name}-${$app.stage}-telemetry`,
+			realms: [{ identifier: stack.apply((stack) => stack.id), type: "stack" }],
+			region: grafanaCloudRegion,
+			scopes: ["logs:write", "metrics:write", "traces:write"],
+		},
+		{ provider: cloudProvider },
+	);
+
+	const telemetryAccessPolicyToken = new grafana.cloud.AccessPolicyToken(
+		"GrafanaTelemetryAccessPolicyToken",
+		{
+			accessPolicyId: telemetryAccessPolicy.policyId,
+			displayName: "Leuchtturm telemetry token",
+			name: `${$app.name}-${$app.stage}-telemetry-token`,
+			region: grafanaCloudRegion,
+		},
+		{ provider: cloudProvider },
+	);
+
 	grafanaOtlpUrl = new sst.Linkable("GrafanaOtlpUrl", {
 		properties: {
+			token: telemetryAccessPolicyToken.token,
 			username: stack.apply((stack) => stack.id),
 			value: stack.apply((stack) => stack.otlpUrl),
 		},
