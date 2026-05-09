@@ -1,3 +1,5 @@
+import { isLocalNameDeclared } from "./scope.ts";
+
 function getIdentifierName(node) {
 	return node?.type === "Identifier" ? node.name : undefined;
 }
@@ -17,9 +19,28 @@ const rule = {
 	},
 	create(context) {
 		const namespaceImportNames = new Set<string>();
-		const isForbiddenNamespaceName = (name) => name === "React" || namespaceImportNames.has(name);
+		const reactImportNames = new Set<string>();
+		const isForbiddenNamespaceName = (node) => {
+			const name = getIdentifierName(node);
+			return (
+				!!name &&
+				!isLocalNameDeclared(node, name) &&
+				(namespaceImportNames.has(name) || reactImportNames.has(name))
+			);
+		};
 
 		return {
+			ImportDeclaration(node) {
+				if (node.source?.value !== "react") {
+					return;
+				}
+
+				for (const specifier of node.specifiers) {
+					if (specifier.type === "ImportDefaultSpecifier") {
+						reactImportNames.add(getIdentifierName(specifier.local));
+					}
+				}
+			},
 			ImportNamespaceSpecifier(node) {
 				const localName = getIdentifierName(node.local);
 				if (localName) {
@@ -32,7 +53,7 @@ const rule = {
 				});
 			},
 			MemberExpression(node) {
-				if (!isForbiddenNamespaceName(getIdentifierName(node.object))) {
+				if (!isForbiddenNamespaceName(node.object)) {
 					return;
 				}
 
@@ -42,7 +63,7 @@ const rule = {
 				});
 			},
 			TSQualifiedName(node) {
-				if (!isForbiddenNamespaceName(getIdentifierName(node.left))) {
+				if (!isForbiddenNamespaceName(node.left)) {
 					return;
 				}
 

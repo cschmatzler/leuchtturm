@@ -78,7 +78,10 @@ function isRedundantVariableAlias(left, right) {
 
 	const envName = propertyName(right);
 	return (
-		!!leftName && isImportMetaEnv(right) && normalizeEnvName(leftName) === normalizeEnvName(envName)
+		!!leftName &&
+		typeof envName === "string" &&
+		isImportMetaEnv(right) &&
+		normalizeEnvName(leftName) === normalizeEnvName(envName)
 	);
 }
 

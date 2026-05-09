@@ -6,6 +6,14 @@ function isCoreFile(filename) {
 	return filename.includes("/packages/core/") || filename.startsWith("packages/core/");
 }
 
+function getPropertyName(node) {
+	if (node?.type === "Identifier") {
+		return node.name;
+	}
+
+	return node?.type === "Literal" && typeof node.value === "string" ? node.value : undefined;
+}
+
 const rule = {
 	meta: {
 		type: "problem",
@@ -24,7 +32,7 @@ const rule = {
 
 		return {
 			Property(node) {
-				if (node.key?.type !== "Identifier" || node.key.name !== "httpApiStatus") {
+				if (getPropertyName(node.key) !== "httpApiStatus") {
 					return;
 				}
 

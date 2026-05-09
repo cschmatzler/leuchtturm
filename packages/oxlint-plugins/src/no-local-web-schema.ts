@@ -15,6 +15,10 @@ function isMemberCallExpression(node, propertyName) {
 	);
 }
 
+function isCapitalized(name) {
+	return typeof name === "string" && /^[A-Z]/u.test(name);
+}
+
 function isSchemaStructCall(node) {
 	return (
 		isMemberCallExpression(node, "Struct") &&
@@ -24,7 +28,27 @@ function isSchemaStructCall(node) {
 }
 
 function isSchemaProjectionCall(node) {
-	return isMemberCallExpression(node, "mapFields");
+	if (!isMemberCallExpression(node, "mapFields")) {
+		return false;
+	}
+
+	return isSchemaProjectionTarget(node.callee.object);
+}
+
+function isSchemaProjectionTarget(node) {
+	if (node?.type === "Identifier") {
+		return isCapitalized(node.name);
+	}
+
+	if (node?.type === "CallExpression") {
+		return isSchemaProjectionTarget(node.callee);
+	}
+
+	return (
+		node?.type === "MemberExpression" &&
+		((node.object?.type === "Identifier" && node.object.name === "Schema") ||
+			isSchemaProjectionTarget(node.object))
+	);
 }
 
 const rule = {

@@ -1,3 +1,5 @@
+import { isRuntimeNameDeclared } from "./scope.ts";
+
 function isIdentifier(node, name) {
 	return node?.type === "Identifier" && node.name === name;
 }
@@ -57,7 +59,7 @@ function isOurApiUrl(node) {
 }
 
 function isDirectFetch(node) {
-	if (isIdentifier(node, "fetch")) {
+	if (isIdentifier(node, "fetch") && !isRuntimeNameDeclared(node, "fetch")) {
 		return true;
 	}
 
@@ -65,9 +67,9 @@ function isDirectFetch(node) {
 		node?.type === "MemberExpression" &&
 		node.property?.type === "Identifier" &&
 		node.property.name === "fetch" &&
-		(node.object?.type === "ThisExpression" ||
-			isIdentifier(node.object, "window") ||
-			isIdentifier(node.object, "globalThis"))
+		((isIdentifier(node.object, "window") && !isRuntimeNameDeclared(node.object, "window")) ||
+			(isIdentifier(node.object, "globalThis") &&
+				!isRuntimeNameDeclared(node.object, "globalThis")))
 	);
 }
 

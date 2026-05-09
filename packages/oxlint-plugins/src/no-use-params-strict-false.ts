@@ -1,5 +1,7 @@
-function isUseParams(node) {
-	return node?.type === "Identifier" && node.name === "useParams";
+import { isLocalNameDeclared } from "./scope.ts";
+
+function getIdentifierName(node) {
+	return node?.type === "Identifier" ? node.name : undefined;
 }
 
 function isStrictFalseOption(node) {
@@ -24,9 +26,31 @@ const rule = {
 		},
 	},
 	create(context) {
+		const useParamsNames = new Set();
+
 		return {
+			ImportDeclaration(node) {
+				if (node.source?.value !== "@tanstack/react-router") {
+					return;
+				}
+
+				for (const specifier of node.specifiers) {
+					const localName = getIdentifierName(specifier.local);
+					if (
+						specifier.type === "ImportSpecifier" &&
+						getIdentifierName(specifier.imported) === "useParams" &&
+						localName
+					) {
+						useParamsNames.add(localName);
+					}
+				}
+			},
 			CallExpression(node) {
-				if (!isUseParams(node.callee)) {
+				if (
+					node.callee?.type !== "Identifier" ||
+					!useParamsNames.has(node.callee.name) ||
+					isLocalNameDeclared(node.callee, node.callee.name)
+				) {
 					return;
 				}
 

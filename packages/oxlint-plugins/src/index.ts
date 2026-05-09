@@ -9,7 +9,7 @@ import noLocalEffectCallbackWrapper from "@leuchtturm/oxlint-plugins/no-local-ef
 import noLocalWebSchema from "@leuchtturm/oxlint-plugins/no-local-web-schema";
 import noNamespaceImports from "@leuchtturm/oxlint-plugins/no-namespace-imports";
 import noNonExactPackageJsonVersions from "@leuchtturm/oxlint-plugins/no-non-exact-package-json-versions";
-import noProcessEnv from "@leuchtturm/oxlint-plugins/no-process-env";
+import noPhosphorTopLevelImport from "@leuchtturm/oxlint-plugins/no-phosphor-top-level-import";
 import noRelativeImports from "@leuchtturm/oxlint-plugins/no-relative-imports";
 import noRowSuffix from "@leuchtturm/oxlint-plugins/no-row-suffix";
 import noSchemaTypeAlias from "@leuchtturm/oxlint-plugins/no-schema-type-alias";
@@ -34,7 +34,7 @@ const plugin = {
 		...noLocalWebSchema.rules,
 		...noNamespaceImports.rules,
 		...noNonExactPackageJsonVersions.rules,
-		...noProcessEnv.rules,
+		...noPhosphorTopLevelImport.rules,
 		...noRelativeImports.rules,
 		...noRowSuffix.rules,
 		...noSchemaTypeAlias.rules,

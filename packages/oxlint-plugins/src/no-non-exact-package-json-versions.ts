@@ -11,7 +11,16 @@ const dependencySections = [
 const ignoredDirectories = new Set([".devenv", ".git", ".jj", ".sst", "dist", "node_modules"]);
 
 let scanned = false;
+let reported = false;
 let violations: Array<string> = [];
+
+function isNonExactPackageVersion(version: string) {
+	if (version.startsWith("workspace:")) {
+		return false;
+	}
+
+	return !/^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/u.test(version);
+}
 
 function scanPackageJsonFiles(directory: string, root: string) {
 	for (const entry of readdirSync(directory, { withFileTypes: true })) {
@@ -36,7 +45,7 @@ function scanPackageJsonFiles(directory: string, root: string) {
 			}
 
 			for (const [dependencyName, version] of Object.entries(dependencies)) {
-				if (typeof version === "string" && version.startsWith("^")) {
+				if (typeof version === "string" && isNonExactPackageVersion(version)) {
 					violations.push(
 						`${relative(root, packageJsonPath)} ${section}.${dependencyName} uses ${version}`,
 					);
@@ -62,16 +71,21 @@ const rule = {
 	meta: {
 		type: "problem",
 		docs: {
-			description: "Disallow caret dependency versions in package.json files.",
+			description: "Disallow non-exact dependency versions in package.json files.",
 		},
 	},
 	create(context) {
 		return {
 			Program(node) {
+				if (reported) {
+					return;
+				}
+
+				reported = true;
 				for (const violation of getViolations()) {
 					context.report({
 						node,
-						message: `Use an exact package version instead of a caret range: ${violation}`,
+						message: `Use an exact package version instead of a range or tag: ${violation}`,
 					});
 				}
 			},

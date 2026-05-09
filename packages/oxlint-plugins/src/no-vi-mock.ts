@@ -1,3 +1,5 @@
+import { isLocalNameDeclared } from "./scope.ts";
+
 const rule = {
 	meta: {
 		type: "problem",
@@ -11,12 +13,31 @@ const rule = {
 	},
 	create(context) {
 		const banned = new Set(["mock", "stubGlobal", "spyOn"]);
+		const viNames = new Set();
+
 		return {
+			ImportDeclaration(node) {
+				if (node.source?.value !== "vite-plus/test" && node.source?.value !== "vitest") {
+					return;
+				}
+
+				for (const specifier of node.specifiers) {
+					if (
+						specifier.type === "ImportSpecifier" &&
+						specifier.imported?.type === "Identifier" &&
+						specifier.imported.name === "vi" &&
+						specifier.local?.type === "Identifier"
+					) {
+						viNames.add(specifier.local.name);
+					}
+				}
+			},
 			CallExpression(node) {
 				if (
 					node.callee.type === "MemberExpression" &&
 					node.callee.object.type === "Identifier" &&
-					node.callee.object.name === "vi" &&
+					viNames.has(node.callee.object.name) &&
+					!isLocalNameDeclared(node.callee.object, node.callee.object.name) &&
 					node.callee.property.type === "Identifier" &&
 					banned.has(node.callee.property.name)
 				) {
