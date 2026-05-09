@@ -7,8 +7,8 @@ import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 import * as HttpApiBuilder from "effect/unstable/httpapi/HttpApiBuilder";
 
-import { AuthMiddleware } from "@leuchtturm/api/auth";
 import { LeuchtturmApi } from "@leuchtturm/api/contract";
+import { AuthMiddleware } from "@leuchtturm/api/middleware/auth";
 import { Database } from "@leuchtturm/core/drizzle";
 import { DatabaseError } from "@leuchtturm/core/errors";
 import { mutators } from "@leuchtturm/zero/mutators";

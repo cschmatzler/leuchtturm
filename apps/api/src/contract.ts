@@ -3,8 +3,8 @@ import * as HttpApi from "effect/unstable/httpapi/HttpApi";
 import * as HttpApiEndpoint from "effect/unstable/httpapi/HttpApiEndpoint";
 import * as HttpApiGroup from "effect/unstable/httpapi/HttpApiGroup";
 
-import { AuthMiddleware } from "@leuchtturm/api/auth";
 import { ErrorCatalog } from "@leuchtturm/api/errors";
+import { AuthMiddleware } from "@leuchtturm/api/middleware/auth";
 import { DeviceSessions } from "@leuchtturm/core/auth/schema";
 
 const HealthCheckSuccessResponse = Schema.Struct({

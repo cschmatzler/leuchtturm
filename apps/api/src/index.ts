@@ -10,7 +10,6 @@ import * as HttpApiBuilder from "effect/unstable/httpapi/HttpApiBuilder";
 import { Resource } from "sst";
 import { wrapCloudflareHandler } from "sst/resource/cloudflare";
 
-import { AuthMiddlewareLayer } from "@leuchtturm/api/auth-layer";
 import { BackgroundTasks } from "@leuchtturm/api/background";
 import { LeuchtturmApi } from "@leuchtturm/api/contract";
 import { ErrorCatalog } from "@leuchtturm/api/errors";
@@ -20,6 +19,7 @@ import { BillingHandler } from "@leuchtturm/api/handlers/billing";
 import { HealthHandler } from "@leuchtturm/api/handlers/health";
 import { SessionHandler } from "@leuchtturm/api/handlers/session";
 import { ZeroHandler } from "@leuchtturm/api/handlers/zero";
+import { AuthMiddleware } from "@leuchtturm/api/middleware/auth";
 import { Observability } from "@leuchtturm/api/middleware/observability";
 import { RequestContext } from "@leuchtturm/api/middleware/request-context";
 import { ProductAnalytics } from "@leuchtturm/api/posthog";
@@ -57,7 +57,7 @@ namespace Api {
 		const api = HttpRouter.toHttpEffect(
 			HttpApiBuilder.layer(LeuchtturmApi).pipe(
 				Layer.provide(handlers),
-				Layer.provide(AuthMiddlewareLayer.layer),
+				Layer.provide(AuthMiddleware.layer),
 				Layer.provide(ErrorCatalog.layer),
 			),
 		).pipe(Effect.flatten);
