@@ -4,19 +4,19 @@ const cloudProvider = new grafana.Provider("GrafanaCloudProvider");
 
 export let grafanaOtlpUrl: sst.Linkable<{ value: string }>;
 
-if ($app.stage === "prod") {
+// TODO: change this to `prod` when deploying
+if ($app.stage === "cschmatzler") {
 	const stack = new grafana.cloud.Stack(
 		"GrafanaStack",
 		{
-			deleteProtection: $app.stage === "prod",
-			description: `Leuchtturm ${$app.stage} observability`,
+			name: $app.name,
+			slug: "leuchtturmdev",
+			description: `Leuchtturm observability`,
+			deleteProtection: true,
 			labels: {
 				app: $app.name,
-				stage: $app.stage,
 			},
-			name: $app.name,
 			regionSlug: "eu",
-			slug: $app.name,
 		},
 		{ provider: cloudProvider },
 	);
