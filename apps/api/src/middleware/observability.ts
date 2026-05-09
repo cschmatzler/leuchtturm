@@ -17,8 +17,8 @@ import {
 } from "@leuchtturm/api/observability/request";
 import { Telemetry } from "@leuchtturm/api/observability/telemetry";
 
-export namespace ObservabilityMiddleware {
-	export const layer = HttpMiddleware.make((app) =>
+export namespace Observability {
+	export const Middleware = HttpMiddleware.make((app) =>
 		Effect.gen(function* () {
 			const request = yield* HttpServerRequest.HttpServerRequest;
 			const startedAt = Date.now();

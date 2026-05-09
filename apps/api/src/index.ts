@@ -20,7 +20,7 @@ import { BillingHandler } from "@leuchtturm/api/handlers/billing";
 import { HealthHandler } from "@leuchtturm/api/handlers/health";
 import { SessionHandler } from "@leuchtturm/api/handlers/session";
 import { ZeroHandler } from "@leuchtturm/api/handlers/zero";
-import { ObservabilityMiddleware } from "@leuchtturm/api/middleware/observability";
+import { Observability } from "@leuchtturm/api/middleware/observability";
 import { RequestContext } from "@leuchtturm/api/middleware/request-context";
 import { ProductAnalytics } from "@leuchtturm/api/posthog";
 import { RequestRuntime } from "@leuchtturm/api/request-runtime";
@@ -84,7 +84,7 @@ namespace Api {
 						return origin === `https://${Resource.Dns.AppDomain}`;
 					},
 					credentials: true,
-				})(RequestContext.Middleware(ObservabilityMiddleware.layer(app))),
+				})(RequestContext.Middleware(Observability.Middleware(app))),
 		});
 
 		return Layer.succeed(
