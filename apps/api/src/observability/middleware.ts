@@ -1,7 +1,10 @@
 import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
+import * as Exit from "effect/Exit";
+import * as Layer from "effect/Layer";
 import * as Metric from "effect/Metric";
 import * as Option from "effect/Option";
+import * as Scope from "effect/Scope";
 import * as HttpMiddleware from "effect/unstable/http/HttpMiddleware";
 import * as HttpServerError from "effect/unstable/http/HttpServerError";
 import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
@@ -16,6 +19,7 @@ import {
 	statusGroup,
 } from "@leuchtturm/api/observability/request";
 import { Telemetry } from "@leuchtturm/api/observability/telemetry";
+import { RequestRuntime } from "@leuchtturm/api/request-runtime";
 
 export namespace ObservabilityMiddleware {
 	export const layer = HttpMiddleware.make((app) =>
@@ -84,20 +88,32 @@ export namespace ObservabilityMiddleware {
 				);
 			};
 
-			return yield* app.pipe(
-				Effect.tap(observe),
-				Effect.catchCause((cause) =>
-					HttpServerError.causeResponse(cause).pipe(
-						Effect.tap(([response]) => observe(response, cause)),
-						Effect.andThen(Effect.failCause(cause)),
+			return yield* Effect.acquireUseRelease(
+				Scope.make(),
+				(telemetryScope) =>
+					Layer.buildWithScope(Telemetry.layer, telemetryScope).pipe(
+						Effect.flatMap((telemetryContext) =>
+							app.pipe(
+								Effect.tap(observe),
+								Effect.catchCause((cause) =>
+									HttpServerError.causeResponse(cause).pipe(
+										Effect.tap(([response]) => observe(response, cause)),
+										Effect.andThen(Effect.failCause(cause)),
+									),
+								),
+								Effect.withSpan(requestSpanName(request), {
+									attributes: requestSpanAttributes(request),
+									kind: "server",
+									parent: Option.getOrUndefined(HttpTraceContext.fromHeaders(request.headers)),
+								}),
+								Effect.provideContext(telemetryContext),
+							),
+						),
 					),
-				),
-				Effect.withSpan(requestSpanName(request), {
-					attributes: requestSpanAttributes(request),
-					kind: "server",
-					parent: Option.getOrUndefined(HttpTraceContext.fromHeaders(request.headers)),
-				}),
-				Effect.provide(Telemetry.layer),
+				(telemetryScope) =>
+					RequestRuntime.runAfterRegistered(() =>
+						Effect.runPromise(Scope.close(telemetryScope, Exit.void)),
+					),
 			);
 		}),
 	);
