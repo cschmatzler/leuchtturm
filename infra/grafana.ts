@@ -190,7 +190,7 @@ const grafanaStack = (() => {
 
 		return {
 			id: stack.id,
-			otlpUrl: stack.otlpUrl,
+			otlpUrl: stack.otlpUrl.apply((url) => (url.endsWith("/otlp") ? url : `${url}/otlp`)),
 		};
 	}
 
@@ -203,7 +203,9 @@ const grafanaStack = (() => {
 
 	return {
 		id: stack.apply((stack) => stack.id),
-		otlpUrl: stack.apply((stack) => stack.otlpUrl),
+		otlpUrl: stack.apply((stack) =>
+			stack.otlpUrl.endsWith("/otlp") ? stack.otlpUrl : `${stack.otlpUrl}/otlp`,
+		),
 	};
 })();
 
@@ -214,7 +216,7 @@ const telemetryAccessPolicy = new grafana.cloud.AccessPolicy(
 		name: `${$app.name}-${$app.stage}-telemetry`,
 		realms: [{ identifier: grafanaStack.id, type: "stack" }],
 		region: grafanaCloudRegion,
-		scopes: ["logs:write", "metrics:write", "traces:write"],
+		scopes: ["stacks:read", "logs:write", "metrics:write", "traces:write"],
 	},
 	{ provider: cloudProvider },
 );
