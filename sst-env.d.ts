@@ -7,26 +7,6 @@
 declare module "sst" {
   export interface Resource {
     "ApiWorker": import("@cloudflare/workers-types").Service
-    "AxiomDomain": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
-    "AxiomLogsDataset": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
-    "AxiomMetricsDataset": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
-    "AxiomToken": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
-    "AxiomTracesDataset": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
     "BetterAuthSecret": {
       "type": "sst.sst.Secret"
       "value": string
@@ -60,6 +40,10 @@ declare module "sst" {
     }
     "GrafanaApiToken": {
       "type": "sst.sst.Secret"
+      "value": string
+    }
+    "GrafanaOtlpUrl": {
+      "type": "sst.sst.Linkable"
       "value": string
     }
     "PlanetScaleDatabaseId": {
