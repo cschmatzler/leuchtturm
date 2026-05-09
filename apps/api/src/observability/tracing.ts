@@ -66,12 +66,7 @@ export namespace Tracing {
 				Layer.succeed(
 					Flusher,
 					Flusher.of({
-						flush: () =>
-							new Promise<void>((resolve) => {
-								setTimeout(() => setTimeout(resolve, 0), 0);
-							})
-								.then(() => processor.forceFlush())
-								.catch(() => undefined),
+						flush: () => processor.forceFlush().catch(() => undefined),
 					}),
 				),
 			);

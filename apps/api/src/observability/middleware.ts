@@ -1,17 +1,20 @@
 import * as Cause from "effect/Cause";
-import * as Duration from "effect/Duration";
 import * as Effect from "effect/Effect";
 import * as Metric from "effect/Metric";
+import * as Option from "effect/Option";
 import * as HttpMiddleware from "effect/unstable/http/HttpMiddleware";
 import * as HttpServerError from "effect/unstable/http/HttpServerError";
 import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import type * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
+import * as HttpTraceContext from "effect/unstable/http/HttpTraceContext";
+import { Resource } from "sst";
 
 import { Logging } from "@leuchtturm/api/observability/logging";
 import { Metrics } from "@leuchtturm/api/observability/metrics";
 import {
 	requestPath,
 	requestSpanAttributes,
+	requestSpanName,
 	statusGroup,
 } from "@leuchtturm/api/observability/request";
 import { Tracing } from "@leuchtturm/api/observability/tracing";
@@ -22,6 +25,15 @@ export namespace ObservabilityMiddleware {
 		Effect.gen(function* () {
 			const request = yield* HttpServerRequest.HttpServerRequest;
 			const startedAt = Date.now();
+			const flushTelemetry = Effect.gen(function* () {
+				const metrics = yield* Metrics.Flusher;
+				const logging = yield* Logging.Flusher;
+				const tracing = yield* Tracing.Flusher;
+
+				yield* RequestRuntime.register(
+					Promise.all([metrics.flush(), logging.flush(), tracing.flush()]).then(() => undefined),
+				);
+			});
 			const observe = (
 				response: HttpServerResponse.HttpServerResponse,
 				cause?: Cause.Cause<unknown>,
@@ -30,8 +42,10 @@ export namespace ObservabilityMiddleware {
 				const path = requestPath(request);
 				const responseStatusGroup = statusGroup(response.status);
 				const requestMetricAttributes = {
+					app: "leuchtturm",
 					method: request.method,
 					route: path,
+					stage: Resource.App.stage,
 				};
 				const logAnnotations = {
 					duration_ms: durationMs,
@@ -53,7 +67,7 @@ export namespace ObservabilityMiddleware {
 				return Effect.all([
 					Metric.update(
 						Metric.withAttributes(Metrics.requestDuration, requestMetricAttributes),
-						Duration.millis(durationMs),
+						durationMs,
 					),
 					Metric.update(
 						Metric.withAttributes(Metrics.requestCount, {
@@ -80,35 +94,24 @@ export namespace ObservabilityMiddleware {
 					Effect.andThen(
 						Effect.logWithLevel(logLevel)(logMessage).pipe(Effect.annotateLogs(logAnnotations)),
 					),
-					Effect.andThen(
-						Effect.gen(function* () {
-							const metrics = yield* Metrics.Flusher;
-							const logging = yield* Logging.Flusher;
-							const tracing = yield* Tracing.Flusher;
-
-							yield* RequestRuntime.register(
-								Promise.all([metrics.flush(), logging.flush(), tracing.flush()]).then(
-									() => undefined,
-								),
-							);
-						}),
-					),
 					Effect.as(response),
 				);
 			};
 
-			return yield* Effect.annotateCurrentSpan(requestSpanAttributes(request)).pipe(
-				Effect.andThen(
-					app.pipe(
-						Effect.tap(observe),
-						Effect.catchCause((cause) =>
-							HttpServerError.causeResponse(cause).pipe(
-								Effect.tap(([response]) => observe(response, cause)),
-								Effect.andThen(Effect.failCause(cause)),
-							),
-						),
+			return yield* app.pipe(
+				Effect.tap(observe),
+				Effect.catchCause((cause) =>
+					HttpServerError.causeResponse(cause).pipe(
+						Effect.tap(([response]) => observe(response, cause)),
+						Effect.andThen(Effect.failCause(cause)),
 					),
 				),
+				Effect.withSpan(requestSpanName(request), {
+					attributes: requestSpanAttributes(request),
+					kind: "server",
+					parent: Option.getOrUndefined(HttpTraceContext.fromHeaders(request.headers)),
+				}),
+				Effect.ensuring(flushTelemetry),
 			);
 		}),
 	);
