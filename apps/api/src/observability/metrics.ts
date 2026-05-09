@@ -43,7 +43,7 @@ export namespace Metrics {
 						headers: {
 							Authorization: `Bearer ${Resource.GrafanaApiToken.value}`,
 						},
-						url: `${Resource.GrafanaOtlpUrl.Value}/v1/metrics`,
+						url: `${Resource.GrafanaOtlpUrl.value}/v1/metrics`,
 					}),
 				}),
 			{ temporality: "cumulative" },

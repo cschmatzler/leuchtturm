@@ -12,8 +12,8 @@ declare module "sst" {
       "value": string
     }
     "GrafanaOtlpUrl": {
-      "Value": string
       "type": "sst.sst.Linkable"
+      "value": string
     }
     "BetterAuthSecret": {
       "type": "sst.sst.Secret"

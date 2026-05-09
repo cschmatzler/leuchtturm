@@ -249,6 +249,6 @@ new grafana.alerting.RuleGroup(
 
 export const grafanaOtlpUrl = new sst.Linkable("GrafanaOtlpUrl", {
 	properties: {
-		Value: stack.otlpUrl,
+		value: stack.otlpUrl,
 	},
 });

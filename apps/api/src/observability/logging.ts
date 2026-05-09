@@ -15,7 +15,7 @@ export namespace Logging {
 							headers: {
 								Authorization: `Bearer ${Resource.GrafanaApiToken.value}`,
 							},
-							url: `${Resource.GrafanaOtlpUrl.Value}/v1/logs`,
+							url: `${Resource.GrafanaOtlpUrl.value}/v1/logs`,
 						}),
 					),
 				),
