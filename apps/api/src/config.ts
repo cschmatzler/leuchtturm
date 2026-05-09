@@ -1,11 +1,10 @@
 import { Resource } from "sst";
 
 export namespace ApiConfig {
-	export interface Axiom {
-		readonly domain: string;
-		readonly logsDataset: string;
-		readonly token: string;
-		readonly tracesDataset: string;
+	export interface GrafanaObservability {
+		readonly apiToken: string;
+		readonly otlpUrl: string;
+		readonly stage: string;
 	}
 
 	export interface PostHog {
@@ -13,11 +12,10 @@ export namespace ApiConfig {
 		readonly host: string;
 	}
 
-	export const axiom = (): Axiom => ({
-		domain: Resource.AxiomDomain.value,
-		logsDataset: Resource.AxiomLogsDataset.value,
-		token: Resource.AxiomToken.value,
-		tracesDataset: Resource.AxiomTracesDataset.value,
+	export const grafanaObservability = (): GrafanaObservability => ({
+		apiToken: Resource.GrafanaObservability.ApiToken,
+		otlpUrl: Resource.GrafanaObservability.OtlpUrl,
+		stage: Resource.GrafanaObservability.Stage,
 	});
 
 	export const posthog = (): PostHog => ({

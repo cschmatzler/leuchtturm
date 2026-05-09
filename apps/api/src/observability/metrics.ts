@@ -1,5 +1,11 @@
+import * as OtelMetrics from "@effect/opentelemetry/Metrics";
+import * as OtelResource from "@effect/opentelemetry/Resource";
+import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-http";
+import { PeriodicExportingMetricReader } from "@opentelemetry/sdk-metrics";
+import * as Layer from "effect/Layer";
 import * as Metric from "effect/Metric";
 
+import { getMetricConfig, makeResourceConfig } from "@leuchtturm/api/observability/config";
 import { requestMetricTags, type RequestLike } from "@leuchtturm/api/observability/request";
 
 export const requestCount = Metric.counter("api_requests_total", {
@@ -12,6 +18,24 @@ export const requestErrorCount = Metric.counter("api_request_errors_total", {
 
 export const requestDuration = Metric.timer("api_request_duration", {
 	description: "End-to-end duration of API request handling in milliseconds.",
+});
+
+export const layer = Layer.suspend(() => {
+	const config = getMetricConfig();
+
+	return OtelMetrics.layer(
+		() =>
+			new PeriodicExportingMetricReader({
+				exportIntervalMillis: 30_000,
+				exporter: new OTLPMetricExporter({
+					headers: {
+						Authorization: `Bearer ${config.token}`,
+					},
+					url: config.url,
+				}),
+			}),
+		{ temporality: "cumulative" },
+	).pipe(Layer.provide(OtelResource.layer(makeResourceConfig())));
 });
 
 export const tagMetric = <Input, State>(

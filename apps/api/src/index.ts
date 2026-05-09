@@ -26,6 +26,7 @@ import { RequestContext } from "@leuchtturm/api/middleware/request-context";
 import { traceExporterConfig, traceServiceConfig } from "@leuchtturm/api/observability/config";
 import { Middleware as ObservabilityMiddleware } from "@leuchtturm/api/observability/http-middleware";
 import { Logging } from "@leuchtturm/api/observability/logging";
+import { layer as metricsLayer } from "@leuchtturm/api/observability/metrics";
 import { layer as tracingLayer } from "@leuchtturm/api/observability/tracing";
 import { ProductAnalytics } from "@leuchtturm/api/posthog";
 import { RequestRuntime } from "@leuchtturm/api/request-runtime";
@@ -79,6 +80,7 @@ namespace Api {
 			BackgroundTasks.layer,
 			ProductAnalytics.layer,
 			tracingLayer,
+			metricsLayer,
 			Logging.layer,
 		);
 		const handler = HttpEffect.toWebHandlerLayer(api, runtime, {
@@ -146,19 +148,9 @@ export default wrapCloudflareHandler(
 				return Api.create(env).runPromise((api) => api.handle(request, ctx.waitUntil.bind(ctx)));
 			},
 		},
-		() => {
-			const { domain, token, tracesDataset } = traceExporterConfig();
-
-			return {
-				exporter: {
-					headers: {
-						Authorization: `Bearer ${token}`,
-						"X-Axiom-Dataset": tracesDataset,
-					},
-					url: `https://${domain}/v1/traces`,
-				},
-				service: traceServiceConfig,
-			};
-		},
+		() => ({
+			exporter: traceExporterConfig(),
+			service: traceServiceConfig,
+		}),
 	),
 );

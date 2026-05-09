@@ -7,12 +7,6 @@
 			"type": "remote",
 			"url": "https://mcp.cloudflare.com/mcp"
 		},
-		"axiom": {
-			"enabled": true,
-			"oauth": {},
-			"type": "remote",
-			"url": "https://mcp.axiom.co/mcp"
-		},
 		"planetscale": {
 			"enabled": true,
 			"oauth": {},

@@ -18,21 +18,32 @@ export const traceServiceConfig = {
 };
 
 export const traceExporterConfig = () => {
-	const config = ApiConfig.axiom();
+	const config = ApiConfig.grafanaObservability();
 
 	return {
-		domain: config.domain,
-		token: config.token,
-		tracesDataset: config.tracesDataset,
+		headers: {
+			Authorization: `Bearer ${config.apiToken}`,
+		},
+		url: `${config.otlpUrl}/v1/traces`,
 	};
 };
 
 export const getLogConfig = () => {
-	const config = ApiConfig.axiom();
+	const config = ApiConfig.grafanaObservability();
 
 	return {
-		dataset: config.logsDataset,
-		domain: config.domain,
-		token: config.token,
+		stage: config.stage,
+		token: config.apiToken,
+		url: `${config.otlpUrl}/v1/logs`,
+	};
+};
+
+export const getMetricConfig = () => {
+	const config = ApiConfig.grafanaObservability();
+
+	return {
+		stage: config.stage,
+		token: config.apiToken,
+		url: `${config.otlpUrl}/v1/metrics`,
 	};
 };
