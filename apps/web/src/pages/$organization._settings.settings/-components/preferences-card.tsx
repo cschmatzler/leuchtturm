@@ -1,6 +1,7 @@
 import { SpinnerIcon } from "@phosphor-icons/react/Spinner";
 import { useForm } from "@tanstack/react-form";
-import { T, useGT, useSetLocale } from "gt-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { T, useGT } from "gt-react";
 import { toast } from "sonner";
 
 import { DEFAULT_LANGUAGE, resolveLanguage, SupportedLanguage } from "@leuchtturm/core/i18n";
@@ -16,6 +17,7 @@ import {
 	SelectValue,
 } from "@leuchtturm/web/components/ui/select";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
+import { sessionQuery } from "@leuchtturm/web/queries/session";
 import { queries } from "@leuchtturm/zero/queries";
 
 const LANGUAGE_LABELS = {
@@ -34,9 +36,9 @@ const LANGUAGE_ITEMS = SupportedLanguage.literals.map((value) => ({
 
 export function PreferencesCard() {
 	const [currentUser] = useZeroQuery(queries.currentUser());
+	const queryClient = useQueryClient();
 
 	const t = useGT();
-	const setLocale = useSetLocale();
 
 	const currentLanguage = resolveLanguage(currentUser?.language, DEFAULT_LANGUAGE);
 
@@ -46,9 +48,11 @@ export function PreferencesCard() {
 		},
 		onSubmit: async ({ value }) => {
 			if (!currentUser) return;
-			if (value.language !== currentLanguage) setLocale(value.language);
 			const { error } = await authClient.updateUser({ language: value.language });
 			if (error) throw error;
+			if (value.language !== currentLanguage) {
+				await queryClient.invalidateQueries({ queryKey: sessionQuery().queryKey });
+			}
 			toast.success(t("Preferences updated"));
 		},
 	});

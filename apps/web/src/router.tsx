@@ -9,7 +9,7 @@ import type { Zero } from "@leuchtturm/zero/schema";
 
 export interface RouterContext {
 	queryClient: QueryClient;
-	zero: Zero;
+	zero: Zero | undefined;
 	session:
 		| {
 				session: Session;

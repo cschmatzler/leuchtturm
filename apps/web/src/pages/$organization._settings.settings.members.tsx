@@ -58,8 +58,8 @@ export const Route = createFileRoute("/$organization/_settings/settings/members"
 		middlewares: [stripSearchParams(searchDefaults)],
 	},
 	loader: ({ context: { organizationId, zero } }) => {
-		zero.preload(queries.organizationMembers({ organizationId }));
-		zero.preload(queries.organizationInvitations({ organizationId }));
+		zero?.preload(queries.organizationMembers({ organizationId }));
+		zero?.preload(queries.organizationInvitations({ organizationId }));
 	},
 	component: Page,
 });

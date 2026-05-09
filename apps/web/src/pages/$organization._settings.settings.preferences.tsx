@@ -5,7 +5,7 @@ import { queries } from "@leuchtturm/zero/queries";
 
 export const Route = createFileRoute("/$organization/_settings/settings/preferences")({
 	loader: ({ context: { zero } }) => {
-		zero.preload(queries.currentUser());
+		zero?.preload(queries.currentUser());
 	},
 	component: Page,
 });

@@ -7,7 +7,7 @@ import { queries } from "@leuchtturm/zero/queries";
 
 export const Route = createFileRoute("/$organization/teams/$team")({
 	loader: ({ context: { organizationId, zero }, params: { team } }) => {
-		zero.preload(queries.team({ organizationId, team }));
+		zero?.preload(queries.team({ organizationId, team }));
 	},
 	component: Layout,
 });

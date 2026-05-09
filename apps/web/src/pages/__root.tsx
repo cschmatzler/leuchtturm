@@ -19,7 +19,7 @@ import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { GTProvider, T } from "gt-react";
 import { useEffect } from "react";
 
-import { DEFAULT_LANGUAGE } from "@leuchtturm/core/i18n";
+import { DEFAULT_LANGUAGE, resolveLanguage } from "@leuchtturm/core/i18n";
 import { CommandBar } from "@leuchtturm/web/components/command-bar";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { Toaster } from "@leuchtturm/web/components/ui/sonner";
@@ -69,6 +69,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 	component: function Root() {
 		const posthog = usePostHog();
 		const { data: session } = useQuery(sessionQuery());
+		const locale = session?.user ? resolveLanguage(session.user.language) : undefined;
 
 		useEffect(() => {
 			if (!session || !session.user) {
@@ -86,6 +87,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 			<GTProvider
 				defaultLocale={DEFAULT_LANGUAGE}
 				locales={translatedLocales}
+				locale={locale}
 				loadTranslations={loadTranslations}
 			>
 				<PostHogErrorBoundary

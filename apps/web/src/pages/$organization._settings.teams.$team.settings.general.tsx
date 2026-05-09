@@ -42,7 +42,7 @@ export const Route = createFileRoute("/$organization/_settings/teams/$team/setti
 		middlewares: [stripSearchParams(searchDefaults)],
 	},
 	loader: ({ context: { organizationId, zero }, params: { team } }) => {
-		zero.preload(queries.team({ organizationId, team }));
+		zero?.preload(queries.team({ organizationId, team }));
 	},
 	component: Page,
 });

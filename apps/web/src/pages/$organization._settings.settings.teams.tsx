@@ -38,7 +38,7 @@ export const Route = createFileRoute("/$organization/_settings/settings/teams")(
 		middlewares: [stripSearchParams({ create: false })],
 	},
 	loader: ({ context: { organizationId, zero } }) => {
-		zero.preload(queries.organizationTeams({ organizationId }));
+		zero?.preload(queries.organizationTeams({ organizationId }));
 	},
 	component: Page,
 });
