@@ -490,18 +490,26 @@ function SidebarMenuButton({
 	size = "default",
 	tooltip,
 	className,
+	onClick,
 	...props
 }: useRender.ComponentProps<"button"> &
 	ComponentProps<"button"> & {
 		isActive?: boolean;
 		tooltip?: string | ComponentProps<typeof TooltipContent>;
 	} & VariantProps<typeof sidebarMenuButtonVariants>) {
-	const { isMobile, state } = useSidebar();
+	const { isMobile, state, toggleSidebar } = useSidebar();
 	const comp = useRender({
 		defaultTagName: "button",
 		props: mergeProps<"button">(
 			{
 				className: cn(sidebarMenuButtonVariants({ variant, size }), className),
+				onClick: (event) => {
+					onClick?.(event);
+
+					if (isMobile) {
+						toggleSidebar();
+					}
+				},
 			},
 			props,
 		),
