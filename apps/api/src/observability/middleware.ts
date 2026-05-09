@@ -60,7 +60,7 @@ export namespace ObservabilityMiddleware {
 				"http.response.status_group": responseStatusGroup,
 				"request.duration_ms": durationMs,
 			});
-			yield* RequestRuntime.register(Metrics.flush());
+			yield* RequestRuntime.register((yield* Metrics.Flusher).flush());
 
 			const logAnnotations = {
 				duration_ms: durationMs,
