@@ -1,7 +1,7 @@
 import * as grafana from "@pulumiverse/grafana";
 
 const cloudProvider = new grafana.Provider("GrafanaCloudProvider");
-const grafanaCloudRegion = "prod-eu-west-0";
+const grafanaCloudRegion = "eu";
 
 export let grafanaOtlpUrl: sst.Linkable<{ value: string }>;
 
@@ -52,35 +52,7 @@ if ($app.stage === "cschmatzler") {
 		{ dependsOn: [serviceAccountToken] },
 	);
 
-	const telemetryAccessPolicy = new grafana.cloud.AccessPolicy(
-		"GrafanaTelemetryAccessPolicy",
-		{
-			displayName: "Leuchtturm telemetry",
-			name: `${$app.name}-${$app.stage}-telemetry`,
-			realms: [{ identifier: stack.id, type: "stack" }],
-			region: grafanaCloudRegion,
-			scopes: [
-				"logs:read",
-				"logs:write",
-				"metrics:read",
-				"metrics:write",
-				"traces:read",
-				"traces:write",
-			],
-		},
-		{ provider: cloudProvider },
-	);
-
-	const telemetryAccessPolicyToken = new grafana.cloud.AccessPolicyToken(
-		"GrafanaTelemetryAccessPolicyToken",
-		{
-			accessPolicyId: telemetryAccessPolicy.policyId,
-			displayName: "Leuchtturm telemetry token",
-			name: `${$app.name}-${$app.stage}-telemetry-token`,
-			region: grafanaCloudRegion,
-		},
-		{ provider: cloudProvider },
-	);
+	const prometheusUid = stack.slug.apply((slug) => `grafanacloud-${slug}-prom`);
 
 	const folder = new grafana.oss.Folder(
 		"GrafanaFolder",
@@ -91,165 +63,99 @@ if ($app.stage === "cschmatzler") {
 		{ provider: stackProvider },
 	);
 
-	const prometheus = new grafana.oss.DataSource(
-		"GrafanaPrometheusDataSource",
-		{
-			accessMode: "proxy",
-			basicAuthEnabled: true,
-			basicAuthUsername: stack.prometheusUserId.apply(String),
-			jsonDataEncoded: JSON.stringify({
-				httpMethod: "POST",
-				manageAlerts: true,
-				prometheusType: "Mimir",
-				prometheusVersion: "2.9.1",
-			}),
-			name: "Grafana Cloud Prometheus",
-			secureJsonDataEncoded: telemetryAccessPolicyToken.token.apply((token) =>
-				JSON.stringify({ basicAuthPassword: token }),
-			),
-			type: "prometheus",
-			uid: "grafanacloud-prometheus",
-			url: stack.prometheusUrl.apply((url) => `${url}/api/prom`),
-		},
-		{ provider: stackProvider },
-	);
-
-	const loki = new grafana.oss.DataSource(
-		"GrafanaLokiDataSource",
-		{
-			accessMode: "proxy",
-			basicAuthEnabled: true,
-			basicAuthUsername: stack.logsUserId.apply(String),
-			jsonDataEncoded: JSON.stringify({ derivedFields: [] }),
-			name: "Grafana Cloud Loki",
-			secureJsonDataEncoded: telemetryAccessPolicyToken.token.apply((token) =>
-				JSON.stringify({ basicAuthPassword: token }),
-			),
-			type: "loki",
-			uid: "grafanacloud-loki",
-			url: stack.logsUrl,
-		},
-		{ provider: stackProvider },
-	);
-
-	const tempo = new grafana.oss.DataSource(
-		"GrafanaTempoDataSource",
-		{
-			accessMode: "proxy",
-			basicAuthEnabled: true,
-			basicAuthUsername: stack.tracesUserId.apply(String),
-			jsonDataEncoded: JSON.stringify({
-				httpMethod: "GET",
-				serviceMap: { datasourceUid: "grafanacloud-prometheus" },
-				tracesToLogsV2: {
-					datasourceUid: "grafanacloud-loki",
-					filterByTraceID: true,
-					spanStartTimeShift: "-1h",
-					spanEndTimeShift: "1h",
-				},
-			}),
-			name: "Grafana Cloud Tempo",
-			secureJsonDataEncoded: telemetryAccessPolicyToken.token.apply((token) =>
-				JSON.stringify({ basicAuthPassword: token }),
-			),
-			type: "tempo",
-			uid: "grafanacloud-tempo",
-			url: stack.tracesUrl.apply((url) => `${url}/tempo`),
-		},
-		{ provider: stackProvider },
-	);
-
 	new grafana.oss.Dashboard(
 		"GrafanaApiDashboard",
 		{
-			configJson: JSON.stringify({
-				annotations: { list: [] },
-				editable: true,
-				fiscalYearStartMonth: 0,
-				graphTooltip: 1,
-				panels: [
-					{
-						datasource: { type: "prometheus", uid: "grafanacloud-prometheus" },
-						fieldConfig: { defaults: { unit: "reqps" }, overrides: [] },
-						gridPos: { h: 8, w: 12, x: 0, y: 0 },
-						id: 1,
-						targets: [
-							{
-								expr: 'sum by (route, method) (rate(api_requests_total{stage=~"$stage"}[5m]))',
-								legendFormat: "{{method}} {{route}}",
-								refId: "A",
-							},
-						],
-						title: "API request rate",
-						type: "timeseries",
-					},
-					{
-						datasource: { type: "prometheus", uid: "grafanacloud-prometheus" },
-						fieldConfig: { defaults: { unit: "ms" }, overrides: [] },
-						gridPos: { h: 8, w: 12, x: 12, y: 0 },
-						id: 2,
-						targets: [
-							{
-								expr: 'sum by (route, method) (rate(api_request_duration_ms_sum{stage=~"$stage"}[5m])) / sum by (route, method) (rate(api_request_duration_ms_count{stage=~"$stage"}[5m]))',
-								legendFormat: "{{method}} {{route}}",
-								refId: "A",
-							},
-						],
-						title: "Average API duration",
-						type: "timeseries",
-					},
-					{
-						datasource: { type: "loki", uid: "grafanacloud-loki" },
-						gridPos: { h: 10, w: 12, x: 0, y: 8 },
-						id: 3,
-						targets: [
-							{
-								expr: '{app="leuchtturm", stage=~"$stage", service_name="leuchtturm-api"} | json',
-								refId: "A",
-							},
-						],
-						title: "API logs",
-						type: "logs",
-					},
-					{
-						datasource: { type: "tempo", uid: "grafanacloud-tempo" },
-						gridPos: { h: 10, w: 12, x: 12, y: 8 },
-						id: 4,
-						targets: [{ query: "leuchtturm-api", queryType: "serviceMap", refId: "A" }],
-						title: "API traces",
-						type: "nodeGraph",
-					},
-				],
-				refresh: "30s",
-				schemaVersion: 39,
-				tags: ["leuchtturm", "api"],
-				templating: {
-					list: [
+			configJson: stack.slug.apply((slug) =>
+				JSON.stringify({
+					annotations: { list: [] },
+					editable: true,
+					fiscalYearStartMonth: 0,
+					graphTooltip: 1,
+					panels: [
 						{
-							current: { selected: true, text: $app.stage, value: $app.stage },
-							datasource: { type: "prometheus", uid: "grafanacloud-prometheus" },
-							definition: "label_values(api_requests_total, stage)",
-							label: "Stage",
-							name: "stage",
-							query: {
-								query: "label_values(api_requests_total, stage)",
-								refId: "StandardVariableQuery",
-							},
-							refresh: 1,
-							type: "query",
+							datasource: { type: "prometheus", uid: `grafanacloud-${slug}-prom` },
+							fieldConfig: { defaults: { unit: "reqps" }, overrides: [] },
+							gridPos: { h: 8, w: 12, x: 0, y: 0 },
+							id: 1,
+							targets: [
+								{
+									expr: 'sum by (route, method) (rate(api_requests_total{stage=~"$stage"}[5m]))',
+									legendFormat: "{{method}} {{route}}",
+									refId: "A",
+								},
+							],
+							title: "API request rate",
+							type: "timeseries",
+						},
+						{
+							datasource: { type: "prometheus", uid: `grafanacloud-${slug}-prom` },
+							fieldConfig: { defaults: { unit: "ms" }, overrides: [] },
+							gridPos: { h: 8, w: 12, x: 12, y: 0 },
+							id: 2,
+							targets: [
+								{
+									expr: 'sum by (route, method) (rate(api_request_duration_ms_sum{stage=~"$stage"}[5m])) / sum by (route, method) (rate(api_request_duration_ms_count{stage=~"$stage"}[5m]))',
+									legendFormat: "{{method}} {{route}}",
+									refId: "A",
+								},
+							],
+							title: "Average API duration",
+							type: "timeseries",
+						},
+						{
+							datasource: { type: "loki", uid: `grafanacloud-${slug}-logs` },
+							gridPos: { h: 10, w: 12, x: 0, y: 8 },
+							id: 3,
+							targets: [
+								{
+									expr: '{app="leuchtturm", stage=~"$stage", service_name="leuchtturm-api"} | json',
+									refId: "A",
+								},
+							],
+							title: "API logs",
+							type: "logs",
+						},
+						{
+							datasource: { type: "tempo", uid: `grafanacloud-${slug}-traces` },
+							gridPos: { h: 10, w: 12, x: 12, y: 8 },
+							id: 4,
+							targets: [{ query: "leuchtturm-api", queryType: "serviceMap", refId: "A" }],
+							title: "API traces",
+							type: "nodeGraph",
 						},
 					],
-				},
-				time: { from: "now-6h", to: "now" },
-				timezone: "browser",
-				title: "Leuchtturm API",
-				uid: "leuchtturm-api",
-				version: 1,
-			}),
+					refresh: "30s",
+					schemaVersion: 39,
+					tags: ["leuchtturm", "api"],
+					templating: {
+						list: [
+							{
+								current: { selected: true, text: $app.stage, value: $app.stage },
+								datasource: { type: "prometheus", uid: `grafanacloud-${slug}-prom` },
+								definition: "label_values(api_requests_total, stage)",
+								label: "Stage",
+								name: "stage",
+								query: {
+									query: "label_values(api_requests_total, stage)",
+									refId: "StandardVariableQuery",
+								},
+								refresh: 1,
+								type: "query",
+							},
+						],
+					},
+					time: { from: "now-6h", to: "now" },
+					timezone: "browser",
+					title: "Leuchtturm API",
+					uid: "leuchtturm-api",
+					version: 1,
+				}),
+			),
 			folder: folder.uid,
 			overwrite: true,
 		},
-		{ dependsOn: [prometheus, loki, tempo], provider: stackProvider },
+		{ provider: stackProvider },
 	);
 
 	new grafana.alerting.RuleGroup(
@@ -263,7 +169,7 @@ if ($app.stage === "cschmatzler") {
 					condition: "A",
 					datas: [
 						{
-							datasourceUid: "grafanacloud-prometheus",
+							datasourceUid: prometheusUid,
 							model: JSON.stringify({
 								expr: 'sum(rate(api_request_errors_total{stage=~".*"}[5m])) > 0',
 								instant: true,
@@ -280,7 +186,30 @@ if ($app.stage === "cschmatzler") {
 				},
 			],
 		},
-		{ dependsOn: [prometheus], provider: stackProvider },
+		{ provider: stackProvider },
+	);
+
+	const telemetryAccessPolicy = new grafana.cloud.AccessPolicy(
+		"GrafanaTelemetryAccessPolicy",
+		{
+			displayName: "Leuchtturm telemetry",
+			name: `${$app.name}-${$app.stage}-telemetry`,
+			realms: [{ identifier: stack.id, type: "stack" }],
+			region: grafanaCloudRegion,
+			scopes: ["logs:write", "metrics:write", "traces:write"],
+		},
+		{ provider: cloudProvider },
+	);
+
+	const telemetryAccessPolicyToken = new grafana.cloud.AccessPolicyToken(
+		"GrafanaTelemetryAccessPolicyToken",
+		{
+			accessPolicyId: telemetryAccessPolicy.policyId,
+			displayName: "Leuchtturm telemetry token",
+			name: `${$app.name}-${$app.stage}-telemetry-token`,
+			region: grafanaCloudRegion,
+		},
+		{ provider: cloudProvider },
 	);
 
 	grafanaOtlpUrl = new sst.Linkable("GrafanaOtlpUrl", {

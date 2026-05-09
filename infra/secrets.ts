@@ -1,5 +1,4 @@
 export const secrets = {
-	grafanaApiToken: new sst.Secret("GrafanaApiToken"),
 	planetScaleDatabaseId: new sst.Secret("PlanetScaleDatabaseId"),
 	planetScaleOrganization: new sst.Secret("PlanetScaleOrganization"),
 	postHogHost: new sst.Secret("PostHogHost"),
