@@ -6,25 +6,13 @@ import * as HttpMiddleware from "effect/unstable/http/HttpMiddleware";
 import { requestSpanName } from "@leuchtturm/api/observability/request";
 
 export namespace Tracing {
-	export interface ServiceConfig {
-		readonly name: string;
-		readonly namespace: string;
-	}
-
-	export const service: ServiceConfig = {
-		name: "leuchtturm-api",
-		namespace: "leuchtturm",
-	};
-
 	export const layer = Layer.mergeAll(
 		OtelTracer.layerGlobal.pipe(
 			Layer.provide(
 				OtelResource.layer({
-					serviceName: service.name,
+					serviceName: "leuchtturm-api",
 					attributes: {
-						"cloud.platform": "cloudflare_workers",
-						"cloud.provider": "cloudflare",
-						"service.namespace": service.namespace,
+						"service.namespace": "leuchtturm",
 					},
 				}),
 			),

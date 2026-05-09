@@ -6,11 +6,6 @@ import * as Layer from "effect/Layer";
 import { Resource } from "sst";
 
 export namespace Logging {
-	export interface ExporterConfig {
-		readonly token: string;
-		readonly url: string;
-	}
-
 	export const layer = Layer.suspend(() =>
 		OtelLogger.layer({ mergeWithExisting: true }).pipe(
 			Layer.provide(
@@ -18,9 +13,9 @@ export namespace Logging {
 					new BatchLogRecordProcessor(
 						new OTLPLogExporter({
 							headers: {
-								Authorization: `Bearer ${Resource.GrafanaObservability.ApiToken}`,
+								Authorization: `Bearer ${Resource.GrafanaApiToken.value}`,
 							},
-							url: `${Resource.GrafanaObservability.OtlpUrl}/v1/logs`,
+							url: `${Resource.GrafanaOtlpUrl.Value}/v1/logs`,
 						}),
 					),
 				),
@@ -29,8 +24,6 @@ export namespace Logging {
 				OtelResource.layer({
 					serviceName: "leuchtturm-api",
 					attributes: {
-						"cloud.platform": "cloudflare_workers",
-						"cloud.provider": "cloudflare",
 						"service.namespace": "leuchtturm",
 					},
 				}),

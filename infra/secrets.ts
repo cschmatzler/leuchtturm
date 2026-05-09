@@ -3,7 +3,7 @@ export const secrets = {
 	planetScaleOrganization: new sst.Secret("PlanetScaleOrganization"),
 	postHogHost: new sst.Secret("PostHogHost"),
 	postHogProjectApiKey: new sst.Secret("PostHogProjectApiKey"),
-	grafanaCloudApiToken: new sst.Secret("GrafanaCloudApiToken"),
+	grafanaApiToken: new sst.Secret("GrafanaApiToken"),
 	betterAuthSecret: new sst.Secret("BetterAuthSecret"),
 	cloudflareAccessGitHubClientId: new sst.Secret("CloudflareAccessGitHubClientId"),
 	cloudflareAccessGitHubClientSecret: new sst.Secret("CloudflareAccessGitHubClientSecret"),

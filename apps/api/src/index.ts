@@ -23,7 +23,6 @@ import { HealthHandler } from "@leuchtturm/api/handlers/health";
 import { SessionHandler } from "@leuchtturm/api/handlers/session";
 import { ZeroHandler } from "@leuchtturm/api/handlers/zero";
 import { RequestContext } from "@leuchtturm/api/middleware/request-context";
-import { Middleware as ObservabilityMiddleware } from "@leuchtturm/api/observability/http-middleware";
 import { Logging } from "@leuchtturm/api/observability/logging";
 import { Metrics } from "@leuchtturm/api/observability/metrics";
 import { Tracing } from "@leuchtturm/api/observability/tracing";
@@ -92,7 +91,7 @@ namespace Api {
 						return origin === `https://${Resource.Dns.AppDomain}`;
 					},
 					credentials: true,
-				})(RequestContext.Middleware(ObservabilityMiddleware(app))),
+				})(RequestContext.Middleware(Metrics.Middleware(app))),
 		});
 
 		return Layer.succeed(
@@ -150,11 +149,14 @@ export default wrapCloudflareHandler(
 		() => ({
 			exporter: {
 				headers: {
-					Authorization: `Bearer ${Resource.GrafanaObservability.ApiToken}`,
+					Authorization: `Bearer ${Resource.GrafanaApiToken.value}`,
 				},
-				url: `${Resource.GrafanaObservability.OtlpUrl}/v1/traces`,
+				url: `${Resource.GrafanaOtlpUrl.Value}/v1/traces`,
 			},
-			service: Tracing.service,
+			service: {
+				name: "leuchtturm-api",
+				namespace: "leuchtturm",
+			},
 		}),
 	),
 );

@@ -7,15 +7,12 @@
 declare module "sst" {
   export interface Resource {
     "ApiWorker": import("@cloudflare/workers-types").Service
-    "GrafanaCloudApiToken": {
+    "GrafanaApiToken": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "GrafanaObservability": {
-      "ApiToken": string
-      "OtlpUrl": string
-      "StackUrl": string
-      "Stage": string
+    "GrafanaOtlpUrl": {
+      "Value": string
       "type": "sst.sst.Linkable"
     }
     "BetterAuthSecret": {

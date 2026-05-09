@@ -3,10 +3,7 @@ import * as grafana from "@pulumiverse/grafana";
 import { secrets } from "@leuchtturm/infra/secrets";
 
 const cloudProvider = new grafana.Provider("GrafanaCloudProvider", {
-	// The provider also supports GRAFANA_CLOUD_ACCESS_POLICY_TOKEN. SST deployments use
-	// GrafanaCloudApiToken so the token is configured through the same secret workflow as
-	// the rest of the app.
-	cloudAccessPolicyToken: secrets.grafanaCloudApiToken.value,
+	cloudAccessPolicyToken: secrets.grafanaApiToken.value,
 });
 
 const stack = new grafana.cloud.Stack(
@@ -250,11 +247,8 @@ new grafana.alerting.RuleGroup(
 	{ dependsOn: [prometheus], provider: stackProvider },
 );
 
-export const grafanaObservability = new sst.Linkable("GrafanaObservability", {
+export const grafanaOtlpUrl = new sst.Linkable("GrafanaOtlpUrl", {
 	properties: {
-		ApiToken: secrets.grafanaCloudApiToken.value,
-		OtlpUrl: stack.otlpUrl,
-		Stage: $app.stage,
-		StackUrl: stack.url,
+		Value: stack.otlpUrl,
 	},
 });
