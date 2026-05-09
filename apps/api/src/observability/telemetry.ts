@@ -1,13 +1,12 @@
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
 import * as Layer from "effect/Layer";
-import * as Metric from "effect/Metric";
 import * as Scope from "effect/Scope";
 import * as FetchHttpClient from "effect/unstable/http/FetchHttpClient";
 import * as Otlp from "effect/unstable/observability/Otlp";
 import { Resource } from "sst";
 
-import { RequestRuntime } from "@leuchtturm/api/request-runtime";
+import { RequestContext } from "@leuchtturm/api/middleware/request-context";
 
 export namespace Telemetry {
 	const grafanaOtlp = JSON.parse(Resource.GrafanaOtlpUrl.value);
@@ -29,10 +28,7 @@ export namespace Telemetry {
 					},
 				},
 				shutdownTimeout: "3 seconds",
-			}).pipe(
-				Layer.provide(FetchHttpClient.layer),
-				Layer.provide(Layer.succeed(Metric.MetricRegistry, RequestRuntime.metricRegistry)),
-			),
+			}).pipe(Layer.provide(FetchHttpClient.layer)),
 		),
 	);
 
@@ -45,6 +41,9 @@ export namespace Telemetry {
 						effect.pipe(Effect.provideContext(telemetryContext)),
 					),
 				),
-			(telemetryScope) => RequestRuntime.runAfterWaitUntil(Scope.close(telemetryScope, Exit.void)),
+			(telemetryScope) =>
+				RequestContext.Service.useSync((context) => {
+					context.waitUntil(Effect.runPromise(Scope.close(telemetryScope, Exit.void)));
+				}),
 		);
 }

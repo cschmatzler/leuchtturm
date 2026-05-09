@@ -4,10 +4,10 @@ import * as Layer from "effect/Layer";
 import { PostHog } from "posthog-node/edge";
 import { Resource } from "sst";
 
-import { RequestRuntime } from "@leuchtturm/api/request-runtime";
+import { RequestContext } from "@leuchtturm/api/middleware/request-context";
 
 export namespace ProductAnalytics {
-	const createClient = (waitUntil?: (promise: Promise<unknown>) => void) =>
+	const createClient = (waitUntil: RequestContext.RequestContextShape["waitUntil"]) =>
 		new PostHog(Resource.PostHogProjectApiKey.value, {
 			host: Resource.PostHogHost.value,
 			waitUntil,
@@ -18,7 +18,7 @@ export namespace ProductAnalytics {
 			distinctId: string,
 			event: string,
 			properties?: Record<string, unknown>,
-		) => Effect.Effect<void, never, RequestRuntime.Service>;
+		) => Effect.Effect<void, never, RequestContext.Service>;
 	}
 
 	export class Service extends Context.Service<Service, Interface>()(
@@ -30,8 +30,8 @@ export namespace ProductAnalytics {
 		Service.of({
 			capture: (distinctId, event, properties = {}) =>
 				Effect.gen(function* () {
-					const runtime = yield* RequestRuntime.Service;
-					const client = createClient(runtime.waitUntil);
+					const context = yield* RequestContext.Service;
+					const client = createClient(context.waitUntil);
 
 					yield* Effect.sync(() => {
 						client.capture({

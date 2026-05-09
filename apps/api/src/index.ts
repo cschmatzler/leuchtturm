@@ -23,7 +23,6 @@ import { AuthMiddleware } from "@leuchtturm/api/middleware/auth";
 import { Observability } from "@leuchtturm/api/middleware/observability";
 import { RequestContext } from "@leuchtturm/api/middleware/request-context";
 import { ProductAnalytics } from "@leuchtturm/api/posthog";
-import { RequestRuntime } from "@leuchtturm/api/request-runtime";
 import { Auth } from "@leuchtturm/core/auth";
 import { Billing } from "@leuchtturm/core/billing";
 import { Database } from "@leuchtturm/core/drizzle";
@@ -40,7 +39,7 @@ namespace Api {
 	export interface Interface {
 		readonly handle: (
 			request: Request,
-			waitUntil?: (promise: Promise<unknown>) => void,
+			executionContext: Pick<ExecutionContext, "waitUntil">,
 		) => Effect.Effect<Response, InternalServerError>;
 	}
 
@@ -70,7 +69,6 @@ namespace Api {
 		const runtime = Layer.mergeAll(
 			core,
 			HttpServer.layerServices,
-			RequestRuntime.layer,
 			BackgroundTasks.layer,
 			ProductAnalytics.layer,
 		);
@@ -91,17 +89,15 @@ namespace Api {
 			Service,
 			Service.of({
 				handle: Effect.fn("Api.handle")(
-					(request: Request, waitUntil?: (promise: Promise<unknown>) => void) => {
-						const requestContext = RequestRuntime.makeContext({
-							waitUntil,
-						});
+					(request: Request, executionContext: Pick<ExecutionContext, "waitUntil">) => {
+						const requestContext = RequestContext.makeContext(request, executionContext);
 
 						return Effect.tryPromise({
 							try: () =>
 								(
 									handler.handler as (
 										request: Request,
-										context: ReturnType<typeof RequestRuntime.makeContext>,
+										context: ReturnType<typeof RequestContext.makeContext>,
 									) => Promise<Response>
 								)(request, requestContext),
 							catch: (cause) => cause,
@@ -128,7 +124,7 @@ namespace Api {
 }
 
 export default wrapCloudflareHandler({
-	fetch(request: Request, env: Api.Env, ctx: { waitUntil: (promise: Promise<unknown>) => void }) {
-		return Api.create(env).runPromise((api) => api.handle(request, ctx.waitUntil.bind(ctx)));
+	fetch(request: Request, env: Api.Env, ctx: ExecutionContext) {
+		return Api.create(env).runPromise((api) => api.handle(request, ctx));
 	},
 });
