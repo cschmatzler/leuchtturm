@@ -1,6 +1,6 @@
+import { useGT } from "gt-react";
 import { memo, useState } from "react";
 
-import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { useDataTableFilterContext } from "@leuchtturm/web/components/data-table-filter/context";
 import { filterTypeOperatorDetails } from "@leuchtturm/web/components/data-table-filter/operators";
 import type {
@@ -29,7 +29,31 @@ export function FilterOperator<TData, TType extends ColumnDataType>({
 	column,
 	filter,
 }: FilterOperatorProps<TData, TType>) {
-	const { t } = useTranslation();
+	const t = useGT();
+	const operatorLabels: Record<string, string> = {
+		is: t("is"),
+		"is not": t("is not"),
+		"is any of": t("is any of"),
+		"is none of": t("is none of"),
+		include: t("include"),
+		exclude: t("exclude"),
+		"include any of": t("include any of"),
+		"exclude if all": t("exclude if all"),
+		"include all of": t("include all of"),
+		"exclude if any of": t("exclude if any of"),
+		"is before": t("is before"),
+		"is on or after": t("is on or after"),
+		"is after": t("is after"),
+		"is on or before": t("is on or before"),
+		"is between": t("is between"),
+		"is not between": t("is not between"),
+		contains: t("contains"),
+		"does not contain": t("does not contain"),
+		"is greater than": t("is greater than"),
+		"is greater than or equal to": t("is greater than or equal to"),
+		"is less than": t("is less than"),
+		"is less than or equal to": t("is less than or equal to"),
+	};
 
 	const [open, setOpen] = useState<boolean>(false);
 
@@ -45,7 +69,11 @@ export function FilterOperator<TData, TType extends ColumnDataType>({
 					/>
 				}
 			>
-				<FilterOperatorDisplay filter={filter} columnType={column.type} />
+				<FilterOperatorDisplay
+					filter={filter}
+					columnType={column.type}
+					operatorLabels={operatorLabels}
+				/>
 			</PopoverTrigger>
 			<PopoverContent
 				align="start"
@@ -55,7 +83,12 @@ export function FilterOperator<TData, TType extends ColumnDataType>({
 					<CommandInput placeholder={t("Search")} />
 					<CommandEmpty>{t("No results")}</CommandEmpty>
 					<CommandList className="max-h-fit">
-						<FilterOperatorController filter={filter} column={column} closeController={close} />
+						<FilterOperatorController
+							filter={filter}
+							column={column}
+							closeController={close}
+							operatorLabels={operatorLabels}
+						/>
 					</CommandList>
 				</Command>
 			</PopoverContent>
@@ -66,16 +99,16 @@ export function FilterOperator<TData, TType extends ColumnDataType>({
 interface FilterOperatorDisplayProps<TType extends ColumnDataType> {
 	filter: FilterModel<TType>;
 	columnType: TType;
+	operatorLabels: Record<string, string>;
 }
 
 const FilterOperatorDisplayImpl = function FilterOperatorDisplay<TType extends ColumnDataType>({
 	filter,
 	columnType,
+	operatorLabels,
 }: FilterOperatorDisplayProps<TType>) {
-	const { t } = useTranslation();
-
 	const operator = filterTypeOperatorDetails[columnType][filter.operator];
-	const label = t(operator.key);
+	const label = operatorLabels[operator.key] ?? operator.key;
 
 	return <span>{label}</span>;
 };
@@ -86,14 +119,16 @@ interface FilterOperatorControllerProps<TData, TType extends ColumnDataType> {
 	filter: FilterModel<TType>;
 	column: Column<TData, TType>;
 	closeController: () => void;
+	operatorLabels: Record<string, string>;
 }
 
 function FilterOperatorController<TData, TType extends ColumnDataType>({
 	filter,
 	column,
 	closeController,
+	operatorLabels,
 }: FilterOperatorControllerProps<TData, TType>) {
-	const { t } = useTranslation();
+	const t = useGT();
 	const { actions } = useDataTableFilterContext();
 
 	const operators = filterTypeOperatorDetails[column.type];
@@ -112,7 +147,7 @@ function FilterOperatorController<TData, TType extends ColumnDataType>({
 		<CommandGroup heading={t("Operators")}>
 			{relatedFilters.map((r) => (
 				<CommandItem onSelect={changeOperator} value={r.value} key={r.value}>
-					{t(r.key)}
+					{operatorLabels[r.key] ?? r.key}
 				</CommandItem>
 			))}
 		</CommandGroup>

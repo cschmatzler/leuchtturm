@@ -5,11 +5,11 @@ import { useForm } from "@tanstack/react-form";
 import { createFileRoute, stripSearchParams, useNavigate } from "@tanstack/react-router";
 import * as Effect from "effect/Effect";
 import * as Schema from "effect/Schema";
+import { useGT } from "gt-react";
 import { toast } from "sonner";
 
 import { TeamInsert } from "@leuchtturm/core/auth/schema";
 import { authClient } from "@leuchtturm/web/clients/auth";
-import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import {
 	Dialog,
@@ -48,7 +48,7 @@ function Page() {
 	const search = Route.useSearch();
 	const { organizationId, session } = Route.useRouteContext();
 	const navigate = useNavigate({ from: "/$organization/settings/teams" });
-	const { t } = useTranslation();
+	const t = useGT();
 	const [teams] = useZeroQuery(queries.organizationTeams({ organizationId }));
 
 	const setCreateDialogOpen = (value: boolean) => {

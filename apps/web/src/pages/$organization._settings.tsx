@@ -1,8 +1,8 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { useGT } from "gt-react";
 import { createContext, useState } from "react";
 import type { CSSProperties } from "react";
 
-import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { AppHeader } from "@leuchtturm/web/components/app/app-header";
 import { SettingsSidebar } from "@leuchtturm/web/components/app/settings-sidebar";
 import {
@@ -19,7 +19,7 @@ export const Route = createFileRoute("/$organization/_settings")({
 
 function SettingsLayout() {
 	const { organization } = Route.useParams();
-	const { t } = useTranslation();
+	const t = useGT();
 	const [team, setTeam] = useState<string>();
 
 	return (

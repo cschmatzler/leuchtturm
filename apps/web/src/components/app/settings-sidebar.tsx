@@ -5,8 +5,8 @@ import { StackIcon } from "@phosphor-icons/react/Stack";
 import { UserIcon } from "@phosphor-icons/react/User";
 import { useQuery } from "@tanstack/react-query";
 import { getRouteApi } from "@tanstack/react-router";
+import { useGT } from "gt-react";
 
-import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import {
 	Collapsible,
 	CollapsibleContent,
@@ -39,7 +39,7 @@ export function SettingsSidebar({ organization }: { readonly organization: strin
 	const [teams] = useZeroQuery(queries.organizationTeams({ organizationId }));
 	const { data: organizations } = useQuery(organizationsQuery());
 
-	const { t } = useTranslation();
+	const t = useGT();
 
 	const currentOrganization = organizations?.find((item) => item.slug === organization);
 

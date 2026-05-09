@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useGT } from "gt-react";
 
-import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { queries } from "@leuchtturm/zero/queries";
 
@@ -16,7 +16,7 @@ function Page() {
 
 function TeamPage(props: { readonly team: string }) {
 	const { organizationId } = Route.useRouteContext();
-	const { t } = useTranslation();
+	const t = useGT();
 	const [team] = useZeroQuery(queries.team({ organizationId, team: props.team }));
 
 	return (

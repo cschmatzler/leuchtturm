@@ -3,6 +3,7 @@
 	"defaultLocale": "en",
 	"locales": ["de", "es", "fr", "it", "sq"],
 	"framework": "vite",
+	"skipVersionCheck": true,
 	"src": ["src/**/*.{ts,tsx}"],
 	"files": {
 		"gt": {

@@ -1,8 +1,8 @@
 import { GearIcon } from "@phosphor-icons/react/Gear";
 import { StackIcon } from "@phosphor-icons/react/Stack";
 import { useNavigate, useParams, useRouteContext } from "@tanstack/react-router";
+import { useGT } from "gt-react";
 
-import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { useCommandBar } from "@leuchtturm/web/hooks/use-command-bar";
 import { useCommandProvider } from "@leuchtturm/web/hooks/use-command-provider";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
@@ -13,7 +13,7 @@ export function TeamCommands() {
 	const params = useParams({ from: "/$organization/teams/$team" });
 	const { organizationId } = useRouteContext({ from: "/$organization/teams/$team" });
 	const [teams] = useZeroQuery(queries.organizationTeams({ organizationId }));
-	const { t } = useTranslation();
+	const t = useGT();
 	const commandBar = useCommandBar();
 
 	useCommandProvider(
@@ -37,7 +37,7 @@ export function TeamCommands() {
 		"select-team",
 		async () =>
 			teams.map((team) => ({
-				title: t("Go to {{team}}", { team: team.name }),
+				title: t("Go to {team}", { team: team.name }),
 				value: team.id,
 				category: t("Team"),
 				icon: StackIcon,

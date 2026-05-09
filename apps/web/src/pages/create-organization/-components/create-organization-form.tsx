@@ -3,11 +3,11 @@ import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useRouter } from "@tanstack/react-router";
 import * as Schema from "effect/Schema";
+import { useGT } from "gt-react";
 import { useState } from "react";
 
 import { OrganizationInsert } from "@leuchtturm/core/auth/schema";
 import { authClient } from "@leuchtturm/web/clients/auth";
-import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@leuchtturm/web/components/ui/field";
 import { Input } from "@leuchtturm/web/components/ui/input";
@@ -17,7 +17,7 @@ export function CreateOrganizationForm() {
 	const navigate = useNavigate();
 	const router = useRouter();
 	const queryClient = useQueryClient();
-	const { t } = useTranslation();
+	const t = useGT();
 	const [submitError, setSubmitError] = useState<string>();
 
 	const form = useForm({

@@ -1,16 +1,15 @@
 import { StarIcon } from "@phosphor-icons/react/Star";
-
-import { useTranslation } from "@leuchtturm/web/clients/i18n";
+import { useGT } from "gt-react";
 
 export function StarRating({ rating, size = "md" }: { rating: number; size?: "sm" | "md" }) {
-	const { t } = useTranslation();
+	const t = useGT();
 	const sizeClass = size === "sm" ? "h-4 w-4" : "h-5 w-5";
 
 	return (
 		<div
 			className="flex gap-0.5"
 			role="img"
-			aria-label={t("Rating: {{rating}} out of 10", { rating })}
+			aria-label={t("Rating: {rating} out of 10", { rating })}
 		>
 			{[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((star) => (
 				<StarIcon
@@ -30,7 +29,7 @@ export function StarRatingInput({
 	value: number | undefined;
 	onChange: (rating: number | undefined) => void;
 }) {
-	const { t } = useTranslation();
+	const t = useGT();
 
 	return (
 		<div className="flex items-center gap-1">
@@ -38,7 +37,7 @@ export function StarRatingInput({
 				<button
 					key={star}
 					type="button"
-					aria-label={t("Rate {{star}} out of 10", { star })}
+					aria-label={t("Rate {star} out of 10", { star })}
 					aria-pressed={value !== undefined && star <= value}
 					onClick={() => onChange(value === star ? undefined : star)}
 					className="rounded p-0.5 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"

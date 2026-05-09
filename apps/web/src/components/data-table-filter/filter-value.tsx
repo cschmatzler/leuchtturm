@@ -3,11 +3,11 @@ import { useDebouncedCallback } from "@tanstack/react-pacer";
 import { addDays } from "date-fns/addDays";
 import { format } from "date-fns/format";
 import { isEqual } from "date-fns/isEqual";
+import { useGT } from "gt-react";
 import { cloneElement, isValidElement, memo, useCallback, useMemo, useState } from "react";
 import type { DateRange } from "react-day-picker";
 import { take } from "remeda";
 
-import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { useDataTableFilterContext } from "@leuchtturm/web/components/data-table-filter/context";
 import {
 	createNumberRange,
@@ -224,7 +224,7 @@ function FilterValueTextDisplay<TData>({ filter }: FilterValueDisplayProps<TData
 }
 
 function FilterValueNumberDisplay<TData>({ filter }: FilterValueDisplayProps<TData, "number">) {
-	const { t } = useTranslation();
+	const t = useGT();
 
 	if (!filter || !filter.values || filter.values.length === 0) return null;
 
@@ -338,7 +338,7 @@ function FilterValueOptionController<TData>({
 	filter: FilterModel<OptionType>;
 	column: Column<TData, OptionType>;
 }) {
-	const { t } = useTranslation();
+	const t = useGT();
 	const { actions } = useDataTableFilterContext();
 
 	const facetedCounts = column.getFacetedUniqueValues();
@@ -388,7 +388,7 @@ function FilterValueDateController<TData>({
 	filter,
 	column,
 }: FilterValueControllerProps<TData, "date">) {
-	const { t } = useTranslation();
+	const t = useGT();
 	const { actions } = useDataTableFilterContext();
 	type DateTabValue = "single" | "range";
 	type DateOperator = keyof typeof dateFilterOperators;
@@ -536,7 +536,7 @@ function FilterValueTextController<TData>({
 	filter,
 	column,
 }: FilterValueControllerProps<TData, "text">) {
-	const { t } = useTranslation();
+	const t = useGT();
 	const { actions } = useDataTableFilterContext();
 
 	const changeText = (value: string | number) => {
@@ -565,7 +565,7 @@ function FilterValueNumberController<TData>({
 	filter,
 	column,
 }: FilterValueControllerProps<TData, "number">) {
-	const { t } = useTranslation();
+	const t = useGT();
 	const { actions } = useDataTableFilterContext();
 
 	const minMax = column.getFacetedMinMaxValues();

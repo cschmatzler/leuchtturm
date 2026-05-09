@@ -8,11 +8,11 @@ import { SparkleIcon } from "@phosphor-icons/react/Sparkle";
 import { UserIcon } from "@phosphor-icons/react/User";
 import { useQuery } from "@tanstack/react-query";
 import { useMatchRoute, useNavigate } from "@tanstack/react-router";
+import { useGT, useSetLocale } from "gt-react";
 import { Fragment, useEffect } from "react";
 import type { ReactNode } from "react";
 
 import { resolveLanguage } from "@leuchtturm/core/i18n";
-import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import {
 	Breadcrumb,
 	BreadcrumbItem,
@@ -54,7 +54,8 @@ export function AppHeader({
 	const [currentOrganization] = useZeroQuery(queries.organization({ organization }));
 	const { data: organizations } = useQuery(organizationsQuery());
 
-	const { t, i18n } = useTranslation();
+	const t = useGT();
+	const setLocale = useSetLocale();
 	const { session, deviceSessions, signOutCurrent, signOutAll, setActiveSession } = useAuth();
 	const teams = currentOrganization?.teams ?? [];
 	const activeTeam = team ? teams.find((item) => item.slug === team) : undefined;
@@ -66,8 +67,8 @@ export function AppHeader({
 	useEffect(() => {
 		if (!currentUser) return;
 
-		void i18n.changeLanguage(resolveLanguage(currentUser.language));
-	}, [currentUser, i18n]);
+		setLocale(resolveLanguage(currentUser.language));
+	}, [currentUser, setLocale]);
 
 	return (
 		<header className="bg-background/80 sticky top-0 z-20 flex h-12 items-center gap-2 border-b border-border px-3 backdrop-blur-md">

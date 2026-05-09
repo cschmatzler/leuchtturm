@@ -14,13 +14,13 @@ import {
 } from "@tanstack/react-table";
 import * as Effect from "effect/Effect";
 import * as Schema from "effect/Schema";
+import { useGT } from "gt-react";
 import { useMemo } from "react";
 import { toast } from "sonner";
 
 import { Role } from "@leuchtturm/core/auth/schema";
 import { Email } from "@leuchtturm/core/schema";
 import { authClient } from "@leuchtturm/web/clients/auth";
-import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { DataTable } from "@leuchtturm/web/components/data-table";
 import {
 	createTanStackColumns,
@@ -69,7 +69,7 @@ function Page() {
 	const { invite } = Route.useSearch();
 	const { organizationId } = Route.useRouteContext();
 	const navigate = useNavigate();
-	const { t } = useTranslation();
+	const t = useGT();
 	const [members] = useZeroQuery(queries.organizationMembers({ organizationId }));
 	const [invitations] = useZeroQuery(queries.organizationInvitations({ organizationId }));
 	const activeInvitations = useMemo(

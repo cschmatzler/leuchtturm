@@ -3,6 +3,7 @@ import { ClockIcon } from "@phosphor-icons/react/Clock";
 import { format as formatDate } from "date-fns/format";
 import { isValid } from "date-fns/isValid";
 import { parse } from "date-fns/parse";
+import { useGT } from "gt-react";
 import {
 	useCallback,
 	useEffect,
@@ -12,7 +13,6 @@ import {
 	type ComponentProps,
 } from "react";
 
-import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { Calendar } from "@leuchtturm/web/components/ui/calendar";
 import { FieldError } from "@leuchtturm/web/components/ui/field";
@@ -46,7 +46,7 @@ export function DateInput({
 	modal = false,
 	...props
 }: DateInputProps) {
-	const { t } = useTranslation();
+	const t = useGT();
 	const inputId = useId();
 
 	const format = formatProp ?? (includeTime ? "yyyy-MM-dd HH:mm" : "yyyy-MM-dd");
@@ -210,7 +210,7 @@ export function DateInput({
 			</Popover>
 			{isInvalid && (
 				<FieldError className="mt-2">
-					{t("Invalid date format. Please use {{format}} format.", { format })}
+					{t("Invalid date format. Please use {format} format.", { format })}
 				</FieldError>
 			)}
 		</div>

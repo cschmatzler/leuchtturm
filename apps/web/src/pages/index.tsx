@@ -3,9 +3,9 @@ import { CompassIcon } from "@phosphor-icons/react/Compass";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react/MagnifyingGlass";
 import { SparkleIcon } from "@phosphor-icons/react/Sparkle";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useGT } from "gt-react";
 import type { ReactNode } from "react";
 
-import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { Card, CardContent } from "@leuchtturm/web/components/ui/card";
 import { useReactQuery } from "@leuchtturm/web/lib/query";
@@ -31,7 +31,7 @@ function Page() {
 }
 
 function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
-	const { t } = useTranslation();
+	const t = useGT();
 
 	return (
 		<div className="relative overflow-hidden bg-foreground text-background">
@@ -147,7 +147,7 @@ function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
 }
 
 function FeaturesSection() {
-	const { t } = useTranslation();
+	const t = useGT();
 
 	return (
 		<section className="mx-auto max-w-7xl px-6 py-28 md:py-36">
@@ -213,7 +213,7 @@ function FeatureCard({
 }
 
 function CallToActionSection({ isAuthenticated }: { isAuthenticated: boolean }) {
-	const { t } = useTranslation();
+	const t = useGT();
 
 	return (
 		<section className="mx-auto max-w-7xl px-6 pb-28 md:pb-36">
@@ -271,7 +271,7 @@ function CallToActionSection({ isAuthenticated }: { isAuthenticated: boolean }) 
 }
 
 function MarketingFooter({ isAuthenticated }: { isAuthenticated: boolean }) {
-	const { t } = useTranslation();
+	const t = useGT();
 
 	return (
 		<footer className="border-t border-border px-6 py-16">

@@ -1,14 +1,14 @@
 import { ArrowSquareOutIcon } from "@phosphor-icons/react/ArrowSquareOut";
 import { useRouteContext } from "@tanstack/react-router";
+import { useGT } from "gt-react";
 
 import { api } from "@leuchtturm/web/clients/api";
-import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { reportError } from "@leuchtturm/web/lib/report-error";
 
 export function BillingDetails() {
 	const { organizationId } = useRouteContext({ from: "/$organization/_settings/settings/billing" });
-	const { t } = useTranslation();
+	const t = useGT();
 
 	const openPortal = async () => {
 		try {

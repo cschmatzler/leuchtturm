@@ -6,8 +6,8 @@ import { StackIcon } from "@phosphor-icons/react/Stack";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "@tanstack/react-router";
+import { useGT } from "gt-react";
 
-import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { useAuth } from "@leuchtturm/web/hooks/use-auth";
 import { useCommandBar } from "@leuchtturm/web/hooks/use-command-bar";
 import { useCommandProvider } from "@leuchtturm/web/hooks/use-command-provider";
@@ -17,7 +17,7 @@ export function OrganizationCommands() {
 	const { organization } = useParams({ from: "/$organization" });
 	const navigate = useNavigate();
 	const { data: organizations } = useQuery(organizationsQuery());
-	const { t } = useTranslation();
+	const t = useGT();
 	const { deviceSessions, signOutCurrent, signOutAll } = useAuth();
 	const commandBar = useCommandBar();
 
@@ -94,7 +94,7 @@ export function OrganizationCommands() {
 			if (!selectableOrganizations) return [];
 
 			return selectableOrganizations.map((organization) => ({
-				title: t("Go to {{organization}}", { organization: organization.name }),
+				title: t("Go to {organization}", { organization: organization.name }),
 				value: organization.slug,
 				category: t("Organization"),
 				icon: BuildingIcon,

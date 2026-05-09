@@ -2,11 +2,11 @@ import { CaretLeftIcon } from "@phosphor-icons/react/CaretLeft";
 import { SpinnerIcon } from "@phosphor-icons/react/Spinner";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { useGT } from "gt-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { authClient } from "@leuchtturm/web/clients/auth";
-import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import {
 	Card,
@@ -87,7 +87,7 @@ function Page() {
 	const { invitation } = Route.useLoaderData();
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
-	const { t } = useTranslation();
+	const t = useGT();
 	const { invalidateDeviceSessions } = useAuth();
 
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -142,7 +142,7 @@ function Page() {
 					</CardHeader>
 					<CardContent>
 						<p className="mb-4 text-sm text-muted-foreground">
-							{t("Invitation for {{email}}", { email: invitation.data?.email })}
+							{t("Invitation for {email}", { email: invitation.data?.email })}
 						</p>
 						<div className="flex gap-2">
 							<Button

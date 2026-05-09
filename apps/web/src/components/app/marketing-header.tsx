@@ -1,7 +1,7 @@
 import { SparkleIcon } from "@phosphor-icons/react/Sparkle";
 import { Link } from "@tanstack/react-router";
+import { useGT } from "gt-react";
 
-import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { cn } from "@leuchtturm/web/lib/cn";
 import { useReactQuery } from "@leuchtturm/web/lib/query";
@@ -12,7 +12,7 @@ export type MarketingHeaderProps = {
 };
 
 export function MarketingHeader({ variant = "default" }: MarketingHeaderProps) {
-	const { t } = useTranslation();
+	const t = useGT();
 	const { data: session, isLoading } = useReactQuery(sessionQuery());
 
 	return (

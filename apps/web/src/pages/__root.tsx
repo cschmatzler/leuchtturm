@@ -16,9 +16,10 @@ import {
 	useRouter,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
+import { GTProvider, useGT } from "gt-react";
 import { useEffect } from "react";
 
-import { TranslationProvider, useTranslation } from "@leuchtturm/web/clients/i18n";
+import { DEFAULT_LANGUAGE, SupportedLanguage } from "@leuchtturm/core/i18n";
 import { CommandBar } from "@leuchtturm/web/components/command-bar";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { Toaster } from "@leuchtturm/web/components/ui/sonner";
@@ -26,8 +27,22 @@ import { CommandBarProvider } from "@leuchtturm/web/contexts/command-bar";
 import { sessionQuery } from "@leuchtturm/web/queries/session";
 import type { RouterContext } from "@leuchtturm/web/router";
 
+type TranslationMap = Record<string, string>;
+type TranslationModule = { default: TranslationMap };
+
+const translationLoaders = import.meta.glob<TranslationModule>("../_gt/*.json");
+const translatedLocales = SupportedLanguage.literals.filter(
+	(locale) => locale !== DEFAULT_LANGUAGE,
+);
+
+async function loadTranslations(locale: string) {
+	const loader = translationLoaders[`../_gt/${locale}.json`];
+	if (!loader) return {};
+	return (await loader()).default;
+}
+
 function RootErrorView() {
-	const { t } = useTranslation();
+	const t = useGT();
 	const router = useRouter();
 
 	return (
@@ -45,7 +60,15 @@ function RootErrorView() {
 }
 
 function RootErrorComponent(_props: ErrorComponentProps) {
-	return <RootErrorView />;
+	return (
+		<GTProvider
+			defaultLocale={DEFAULT_LANGUAGE}
+			locales={translatedLocales}
+			loadTranslations={loadTranslations}
+		>
+			<RootErrorView />
+		</GTProvider>
+	);
 }
 
 function RootBoundaryFallback(_props: PostHogErrorBoundaryFallbackProps) {
@@ -58,10 +81,6 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 		const { data: session } = useQuery(sessionQuery());
 
 		useEffect(() => {
-			if (session === undefined) {
-				return;
-			}
-
 			if (!session) {
 				posthog.reset();
 				return;
@@ -74,7 +93,11 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 		}, [posthog, session]);
 
 		return (
-			<TranslationProvider>
+			<GTProvider
+				defaultLocale={DEFAULT_LANGUAGE}
+				locales={translatedLocales}
+				loadTranslations={loadTranslations}
+			>
 				<PostHogErrorBoundary
 					fallback={RootBoundaryFallback}
 					additionalProperties={{ source: "root-error-boundary" }}
@@ -99,7 +122,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 						/>
 					</CommandBarProvider>
 				</PostHogErrorBoundary>
-			</TranslationProvider>
+			</GTProvider>
 		);
 	},
 	errorComponent: RootErrorComponent,

@@ -1,22 +1,22 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRouteContext } from "@tanstack/react-router";
+import { useGT } from "gt-react";
 
 import { api } from "@leuchtturm/web/clients/api";
-import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { reportError } from "@leuchtturm/web/lib/report-error";
 import { billingOverviewQuery } from "@leuchtturm/web/queries/billing";
 
 export function SubscriptionSettings() {
 	const { organizationId } = useRouteContext({ from: "/$organization/_settings/settings/billing" });
-	const { t } = useTranslation();
+	const t = useGT();
 	const { data: billingOverview } = useQuery(billingOverviewQuery(organizationId));
 	const activeSubscription = billingOverview?.activeSubscription ?? null;
 	const renewalDate = activeSubscription?.currentPeriodEnd.toLocaleDateString();
 	const accessMessage = activeSubscription
 		? activeSubscription.cancelAtPeriodEnd
-			? t("Your subscription remains active until {{date}}.", { date: renewalDate })
-			: t("Your subscription is active through {{date}}.", { date: renewalDate })
+			? t("Your subscription remains active until {date}.", { date: renewalDate })
+			: t("Your subscription is active through {date}.", { date: renewalDate })
 		: t("You do not have an active subscription yet.");
 
 	const openPortal = async () => {

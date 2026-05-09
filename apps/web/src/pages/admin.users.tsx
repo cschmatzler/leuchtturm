@@ -15,11 +15,11 @@ import {
 	useReactTable,
 	type ColumnDef,
 } from "@tanstack/react-table";
+import { useGT } from "gt-react";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { authClient } from "@leuchtturm/web/clients/auth";
-import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { DataTable } from "@leuchtturm/web/components/data-table";
 import {
 	createTanStackColumns,
@@ -88,7 +88,7 @@ function AdminUsersPage() {
 	const queryClient = useQueryClient();
 	const { data: session } = useQuery(sessionQuery());
 	const { data: users = [] } = useQuery(adminUsersQuery());
-	const { t } = useTranslation();
+	const t = useGT();
 	const [pendingAction, setPendingAction] = useState<string | null>(null);
 	const [deleteUser, setDeleteUser] = useState<AdminUser | null>(null);
 
@@ -327,7 +327,7 @@ function AdminUsersPage() {
 							</AlertDialogMedia>
 							<AlertDialogTitle>{t("Delete user?")}</AlertDialogTitle>
 							<AlertDialogDescription>
-								{t("This permanently removes {{user}} and their sessions.", {
+								{t("This permanently removes {user} and their sessions.", {
 									user: deleteUserName,
 								})}
 							</AlertDialogDescription>
@@ -375,7 +375,7 @@ function UserActions({
 		success: string,
 	) => Promise<void>;
 }) {
-	const { t } = useTranslation();
+	const t = useGT();
 	const role = user.role ?? "user";
 	const isBanned = Boolean(user.banned);
 	const isPending = pendingAction?.endsWith(`:${user.id}`) ?? false;
@@ -402,7 +402,7 @@ function UserActions({
 									userId: user.id,
 									role: role === "admin" ? "user" : "admin",
 								}),
-							t(role === "admin" ? "Admin role removed" : "Admin role granted"),
+							role === "admin" ? t("Admin role removed") : t("Admin role granted"),
 						)
 					}
 				>
@@ -421,7 +421,7 @@ function UserActions({
 											userId: user.id,
 											banReason: "Disabled by admin",
 										}),
-							t(isBanned ? "User unbanned" : "User banned"),
+							isBanned ? t("User unbanned") : t("User banned"),
 						)
 					}
 				>

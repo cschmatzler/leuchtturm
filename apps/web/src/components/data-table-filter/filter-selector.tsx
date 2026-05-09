@@ -1,9 +1,9 @@
 import { ArrowRightIcon } from "@phosphor-icons/react/ArrowRight";
 import { CaretRightIcon } from "@phosphor-icons/react/CaretRight";
 import { FunnelIcon } from "@phosphor-icons/react/Funnel";
+import { useGT } from "gt-react";
 import { Fragment, isValidElement, memo, useCallback, useRef, useState } from "react";
 
-import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { useDataTableFilterContext } from "@leuchtturm/web/components/data-table-filter/context";
 import { FilterValueController } from "@leuchtturm/web/components/data-table-filter/filter-value";
 import { getColumn } from "@leuchtturm/web/components/data-table-filter/helpers";
@@ -23,7 +23,7 @@ import { isAnyOf } from "@leuchtturm/web/lib/array";
 import { cn } from "@leuchtturm/web/lib/cn";
 
 export function FilterSelector<TData>() {
-	const { t } = useTranslation();
+	const t = useGT();
 	const { filters, filterColumns } = useDataTableFilterContext<TData>();
 
 	const [open, setOpen] = useState(false);

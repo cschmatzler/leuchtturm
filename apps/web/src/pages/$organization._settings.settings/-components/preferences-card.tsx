@@ -1,10 +1,10 @@
 import { SpinnerIcon } from "@phosphor-icons/react/Spinner";
 import { useForm } from "@tanstack/react-form";
+import { useGT, useSetLocale } from "gt-react";
 import { toast } from "sonner";
 
 import { DEFAULT_LANGUAGE, resolveLanguage, SupportedLanguage } from "@leuchtturm/core/i18n";
 import { authClient } from "@leuchtturm/web/clients/auth";
-import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { FieldDescription, FieldLabel } from "@leuchtturm/web/components/ui/field";
 import {
@@ -35,7 +35,8 @@ const LANGUAGE_ITEMS = SupportedLanguage.literals.map((value) => ({
 export function PreferencesCard() {
 	const [currentUser] = useZeroQuery(queries.currentUser());
 
-	const { i18n, t } = useTranslation();
+	const t = useGT();
+	const setLocale = useSetLocale();
 
 	const currentLanguage = resolveLanguage(currentUser?.language, DEFAULT_LANGUAGE);
 
@@ -45,9 +46,7 @@ export function PreferencesCard() {
 		},
 		onSubmit: async ({ value }) => {
 			if (!currentUser) return;
-			if (value.language !== currentLanguage) {
-				await i18n.changeLanguage(value.language);
-			}
+			if (value.language !== currentLanguage) setLocale(value.language);
 			const { error } = await authClient.updateUser({ language: value.language });
 			if (error) throw error;
 			toast.success(t("Preferences updated"));

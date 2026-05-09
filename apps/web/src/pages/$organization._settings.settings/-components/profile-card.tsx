@@ -1,11 +1,11 @@
 import { SpinnerIcon } from "@phosphor-icons/react/Spinner";
 import { useForm } from "@tanstack/react-form";
 import * as Schema from "effect/Schema";
+import { useGT } from "gt-react";
 import { toast } from "sonner";
 
 import { UserInsert } from "@leuchtturm/core/auth/schema";
 import { authClient } from "@leuchtturm/web/clients/auth";
-import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { FieldDescription, FieldError, FieldLabel } from "@leuchtturm/web/components/ui/field";
 import { Input } from "@leuchtturm/web/components/ui/input";
@@ -15,7 +15,7 @@ import { queries } from "@leuchtturm/zero/queries";
 export function ProfileCard() {
 	const [currentUser] = useZeroQuery(queries.currentUser());
 
-	const { t } = useTranslation();
+	const t = useGT();
 
 	const form = useForm({
 		defaultValues: {

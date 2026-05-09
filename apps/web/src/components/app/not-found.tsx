@@ -1,11 +1,11 @@
 import { MagnifyingGlassMinusIcon } from "@phosphor-icons/react/MagnifyingGlassMinus";
 import { Link, type LinkOptions } from "@tanstack/react-router";
+import { useGT } from "gt-react";
 
-import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { Button } from "@leuchtturm/web/components/ui/button";
 
 export function NotFound({ backTo, backLabel }: { backTo: LinkOptions; backLabel: string }) {
-	const { t } = useTranslation();
+	const t = useGT();
 
 	return (
 		<div className="flex size-full flex-col items-center justify-center gap-4 px-6">

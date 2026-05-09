@@ -2,12 +2,12 @@ import { SpinnerIcon } from "@phosphor-icons/react/Spinner";
 import { useForm } from "@tanstack/react-form";
 import { Link, useSearch } from "@tanstack/react-router";
 import * as Schema from "effect/Schema";
+import { useGT } from "gt-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { UserInsert } from "@leuchtturm/core/auth/schema";
 import { authClient } from "@leuchtturm/web/clients/auth";
-import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import {
 	Field,
@@ -20,7 +20,7 @@ import {
 import { Input } from "@leuchtturm/web/components/ui/input";
 
 export function LoginForm() {
-	const { t } = useTranslation();
+	const t = useGT();
 	const { redirect } = useSearch({ from: "/login" });
 	const [submitError, setSubmitError] = useState<string>();
 	const [magicLinkSentTo, setMagicLinkSentTo] = useState<string>();
@@ -77,7 +77,7 @@ export function LoginForm() {
 				{submitError ? <FieldError>{submitError}</FieldError> : null}
 				{magicLinkSentTo ? (
 					<FieldDescription className="text-center">
-						{t("Check your inbox for a sign-in link sent to {{email}}.", {
+						{t("Check your inbox for a sign-in link sent to {email}.", {
 							email: magicLinkSentTo,
 						})}
 					</FieldDescription>

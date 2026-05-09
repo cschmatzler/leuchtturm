@@ -8,9 +8,9 @@ import {
 	RouterProvider,
 } from "@tanstack/react-router";
 import { cleanup, render, screen } from "@testing-library/react";
+import { GTProvider } from "gt-react";
 import { afterEach, describe, expect, it } from "vite-plus/test";
 
-import { TranslationProvider } from "@leuchtturm/web/clients/i18n";
 import { MarketingHeader } from "@leuchtturm/web/components/app/marketing-header";
 
 async function renderMarketingHeader(session: unknown) {
@@ -27,9 +27,9 @@ async function renderMarketingHeader(session: unknown) {
 	const Empty = () => null;
 	const rootRoute = createRootRoute({
 		component: () => (
-			<TranslationProvider>
+			<GTProvider>
 				<Outlet />
-			</TranslationProvider>
+			</GTProvider>
 		),
 	});
 	const indexRoute = createRoute({

@@ -8,10 +8,10 @@ import {
 	RouterProvider,
 } from "@tanstack/react-router";
 import { cleanup, render, screen } from "@testing-library/react";
+import { GTProvider } from "gt-react";
 import type { ReactElement } from "react";
 import { afterEach, describe, expect, it } from "vite-plus/test";
 
-import { TranslationProvider } from "@leuchtturm/web/clients/i18n";
 import { Route } from "@leuchtturm/web/pages/index";
 
 async function renderHomePage(session: unknown) {
@@ -29,9 +29,9 @@ async function renderHomePage(session: unknown) {
 	const Page = Route.options.component as () => ReactElement;
 	const rootRoute = createRootRoute({
 		component: () => (
-			<TranslationProvider>
+			<GTProvider>
 				<Outlet />
-			</TranslationProvider>
+			</GTProvider>
 		),
 	});
 	const indexRoute = createRoute({

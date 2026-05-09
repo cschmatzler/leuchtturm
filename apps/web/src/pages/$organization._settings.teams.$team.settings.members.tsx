@@ -10,11 +10,11 @@ import {
 	useReactTable,
 	type ColumnDef,
 } from "@tanstack/react-table";
+import { useGT } from "gt-react";
 import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
 
 import { authClient } from "@leuchtturm/web/clients/auth";
-import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import { DataTable } from "@leuchtturm/web/components/data-table";
 import {
 	createTanStackColumns,
@@ -45,7 +45,7 @@ function Page() {
 
 function MembersSettings(props: { readonly team: string }) {
 	const { organizationId, session } = Route.useRouteContext();
-	const { t } = useTranslation();
+	const t = useGT();
 	const [team] = useZeroQuery(queries.team({ organizationId, team: props.team }));
 	const [organizationMembers] = useZeroQuery(queries.organizationMembers({ organizationId }));
 	const [teamMembers] = useZeroQuery(

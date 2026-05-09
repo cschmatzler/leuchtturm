@@ -4,12 +4,12 @@ import { useForm } from "@tanstack/react-form";
 import { createFileRoute, stripSearchParams, useNavigate } from "@tanstack/react-router";
 import * as Effect from "effect/Effect";
 import * as Schema from "effect/Schema";
+import { useGT } from "gt-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { TeamInsert } from "@leuchtturm/core/auth/schema";
 import { authClient } from "@leuchtturm/web/clients/auth";
-import { useTranslation } from "@leuchtturm/web/clients/i18n";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -56,7 +56,7 @@ function Page() {
 function GeneralSettings(props: { readonly organization: string; readonly team: string }) {
 	const { organizationId } = Route.useRouteContext();
 	const navigate = useNavigate();
-	const { t } = useTranslation();
+	const t = useGT();
 	const { delete: isDeleteDialogOpen } = Route.useSearch();
 	const [team] = useZeroQuery(queries.team({ organizationId, team: props.team }));
 	const [deleteTeamConfirmation, setDeleteTeamConfirmation] = useState("");
@@ -214,7 +214,7 @@ function GeneralSettings(props: { readonly organization: string; readonly team: 
 						</AlertDialogHeader>
 						<div className="space-y-2">
 							<FieldLabel htmlFor="delete-team-confirmation">
-								{t("Type {{team}} to confirm deletion.", { team: team?.name })}
+								{t("Type {team} to confirm deletion.", { team: team?.name })}
 							</FieldLabel>
 							<Input
 								id="delete-team-confirmation"

@@ -1,4 +1,5 @@
-import { useTranslation } from "@leuchtturm/web/clients/i18n";
+import { useGT } from "gt-react";
+
 import {
 	Command,
 	CommandDialog,
@@ -12,7 +13,7 @@ import {
 import { useCommandBar } from "@leuchtturm/web/hooks/use-command-bar";
 
 function CommandBar() {
-	const { t } = useTranslation();
+	const t = useGT();
 	const commandBar = useCommandBar();
 
 	return (
