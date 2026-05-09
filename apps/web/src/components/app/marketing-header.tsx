@@ -1,6 +1,6 @@
 import { SparkleIcon } from "@phosphor-icons/react/Sparkle";
 import { Link } from "@tanstack/react-router";
-import { useGT } from "gt-react";
+import { T } from "gt-react";
 
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { cn } from "@leuchtturm/web/lib/cn";
@@ -12,7 +12,6 @@ export type MarketingHeaderProps = {
 };
 
 export function MarketingHeader({ variant = "default" }: MarketingHeaderProps) {
-	const t = useGT();
 	const { data: session, isLoading } = useReactQuery(sessionQuery());
 
 	return (
@@ -48,7 +47,7 @@ export function MarketingHeader({ variant = "default" }: MarketingHeaderProps) {
 					<div className="flex items-center gap-2">
 						{session ? (
 							<Button size="sm" nativeButton={false} render={<Link to="/app" role={undefined} />}>
-								{t("Dashboard")}
+								<T>Dashboard</T>
 							</Button>
 						) : (
 							<>
@@ -58,14 +57,14 @@ export function MarketingHeader({ variant = "default" }: MarketingHeaderProps) {
 									nativeButton={false}
 									render={<Link to="/login" role={undefined} />}
 								>
-									{t("Login")}
+									<T>Login</T>
 								</Button>
 								<Button
 									size="sm"
 									nativeButton={false}
 									render={<Link to="/signup" role={undefined} />}
 								>
-									{t("Sign Up")}
+									<T>Sign Up</T>
 								</Button>
 							</>
 						)}

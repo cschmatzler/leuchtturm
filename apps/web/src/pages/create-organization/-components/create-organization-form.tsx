@@ -3,7 +3,7 @@ import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useRouter } from "@tanstack/react-router";
 import * as Schema from "effect/Schema";
-import { useGT } from "gt-react";
+import { T, useGT } from "gt-react";
 import { useState } from "react";
 
 import { OrganizationInsert } from "@leuchtturm/core/auth/schema";
@@ -83,9 +83,11 @@ export function CreateOrganizationForm() {
 	return (
 		<form action={() => form.handleSubmit()} className="flex flex-col gap-6">
 			<div className="flex flex-col gap-2 text-center">
-				<h1 className="text-2xl font-semibold tracking-tight">{t("Create an organization")}</h1>
+				<h1 className="text-2xl font-semibold tracking-tight">
+					<T>Create an organization</T>
+				</h1>
 				<p className="text-balance text-muted-foreground">
-					{t("Set up your workspace to get started")}
+					<T>Set up your workspace to get started</T>
 				</p>
 			</div>
 			<FieldGroup>
@@ -97,7 +99,9 @@ export function CreateOrganizationForm() {
 				>
 					{(field) => (
 						<Field>
-							<FieldLabel htmlFor={field.name}>{t("Name")}</FieldLabel>
+							<FieldLabel htmlFor={field.name}>
+								<T>Name</T>
+							</FieldLabel>
 							<Input
 								id={field.name}
 								name={field.name}
@@ -128,7 +132,7 @@ export function CreateOrganizationForm() {
 					{([canSubmit, isSubmitting]) => (
 						<Button type="submit" className="w-full" disabled={!canSubmit || isSubmitting}>
 							{isSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : null}
-							{t("Create organization")}
+							<T>Create organization</T>
 						</Button>
 					)}
 				</form.Subscribe>

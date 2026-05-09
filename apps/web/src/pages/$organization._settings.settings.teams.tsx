@@ -5,7 +5,7 @@ import { useForm } from "@tanstack/react-form";
 import { createFileRoute, stripSearchParams, useNavigate } from "@tanstack/react-router";
 import * as Effect from "effect/Effect";
 import * as Schema from "effect/Schema";
-import { useGT } from "gt-react";
+import { T, useGT } from "gt-react";
 import { toast } from "sonner";
 
 import { TeamInsert } from "@leuchtturm/core/auth/schema";
@@ -111,9 +111,11 @@ function Page() {
 			<Dialog open={search.create} onOpenChange={setCreateDialogOpen}>
 				<DialogContent>
 					<DialogHeader>
-						<DialogTitle>{t("Create team")}</DialogTitle>
+						<DialogTitle>
+							<T>Create team</T>
+						</DialogTitle>
 						<DialogDescription>
-							{t("Teams organize work inside this organization.")}
+							<T>Teams organize work inside this organization.</T>
 						</DialogDescription>
 					</DialogHeader>
 					<form action={() => form.handleSubmit()} className="space-y-6">
@@ -125,7 +127,9 @@ function Page() {
 						>
 							{(field) => (
 								<div className="space-y-2">
-									<FieldLabel htmlFor={field.name}>{t("Name")}</FieldLabel>
+									<FieldLabel htmlFor={field.name}>
+										<T>Name</T>
+									</FieldLabel>
 									<div>
 										<Input
 											id={field.name}
@@ -162,7 +166,7 @@ function Page() {
 										) : (
 											<PlusIcon className="size-4" />
 										)}
-										{t("Create team")}
+										<T>Create team</T>
 									</Button>
 								</DialogFooter>
 							)}
@@ -174,14 +178,16 @@ function Page() {
 			<section className="py-6">
 				<div className="flex items-start justify-between gap-4">
 					<div className="space-y-1">
-						<h2 className="text-lg font-semibold">{t("Teams")}</h2>
+						<h2 className="text-lg font-semibold">
+							<T>Teams</T>
+						</h2>
 						<p className="text-sm text-muted-foreground">
-							{t("Manage teams in this organization.")}
+							<T>Manage teams in this organization.</T>
 						</p>
 					</div>
 					<Button type="button" onClick={() => setCreateDialogOpen(true)}>
 						<PlusIcon className="size-4" />
-						{t("Create team")}
+						<T>Create team</T>
 					</Button>
 				</div>
 				<div className="mt-5">
@@ -206,7 +212,7 @@ function Page() {
 												}
 											>
 												<GearIcon className="size-4" />
-												{t("Settings")}
+												<T>Settings</T>
 											</Button>
 										</div>
 									</li>
@@ -215,7 +221,7 @@ function Page() {
 						</>
 					) : (
 						<div className="py-10 text-center text-sm text-muted-foreground">
-							{t("Create your first team to start working in this organization.")}
+							<T>Create your first team to start working in this organization.</T>
 						</div>
 					)}
 				</div>

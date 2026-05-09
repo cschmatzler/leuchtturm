@@ -2,7 +2,7 @@ import { SpinnerIcon } from "@phosphor-icons/react/Spinner";
 import { useForm } from "@tanstack/react-form";
 import { Link } from "@tanstack/react-router";
 import * as Schema from "effect/Schema";
-import { useGT } from "gt-react";
+import { T, useGT, Var } from "gt-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -69,18 +69,20 @@ export function SignupForm() {
 	return (
 		<form action={() => form.handleSubmit()} className="flex flex-col gap-6">
 			<div className="flex flex-col gap-2 text-center">
-				<h1 className="text-2xl font-semibold tracking-tight">{t("Create an account")}</h1>
+				<h1 className="text-2xl font-semibold tracking-tight">
+					<T>Create an account</T>
+				</h1>
 				<p className="text-balance text-muted-foreground">
-					{t("Sign up with your email or Google to create your account")}
+					<T>Sign up with your email or Google to create your account</T>
 				</p>
 			</div>
 			<FieldGroup>
 				{submitError ? <FieldError>{submitError}</FieldError> : null}
 				{magicLinkSentTo ? (
 					<FieldDescription className="text-center">
-						{t("Check your inbox for a sign-up link sent to {email}.", {
-							email: magicLinkSentTo,
-						})}
+						<T>
+							Check your inbox for a sign-up link sent to <Var>{magicLinkSentTo}</Var>.
+						</T>
 					</FieldDescription>
 				) : null}
 				<form.Field
@@ -91,7 +93,9 @@ export function SignupForm() {
 				>
 					{(field) => (
 						<Field>
-							<FieldLabel htmlFor={field.name}>{t("Name")}</FieldLabel>
+							<FieldLabel htmlFor={field.name}>
+								<T>Name</T>
+							</FieldLabel>
 							<Input
 								id={field.name}
 								name={field.name}
@@ -121,7 +125,9 @@ export function SignupForm() {
 				>
 					{(field) => (
 						<Field>
-							<FieldLabel htmlFor={field.name}>{t("Email")}</FieldLabel>
+							<FieldLabel htmlFor={field.name}>
+								<T>Email</T>
+							</FieldLabel>
 							<Input
 								id={field.name}
 								name={field.name}
@@ -153,9 +159,11 @@ export function SignupForm() {
 								disabled={!canSubmit || isSubmitting || isGoogleSubmitting}
 							>
 								{isSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : null}
-								{t("Send sign-up link")}
+								<T>Send sign-up link</T>
 							</Button>
-							<FieldSeparator>{t("or")}</FieldSeparator>
+							<FieldSeparator>
+								<T>or</T>
+							</FieldSeparator>
 							<Button
 								type="button"
 								variant="outline"
@@ -164,16 +172,16 @@ export function SignupForm() {
 								onClick={signUpWithGoogle}
 							>
 								{isGoogleSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : null}
-								{t("Continue with Google")}
+								<T>Continue with Google</T>
 							</Button>
 						</>
 					)}
 				</form.Subscribe>
 			</FieldGroup>
 			<div className="text-center text-sm">
-				{t("Already have an account?")}{" "}
+				<T>Already have an account?</T>{" "}
 				<Link to="/login" className="underline underline-offset-4 hover:text-primary">
-					{t("Sign in")}
+					<T>Sign in</T>
 				</Link>
 			</div>
 		</form>

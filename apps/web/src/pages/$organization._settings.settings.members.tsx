@@ -14,7 +14,7 @@ import {
 } from "@tanstack/react-table";
 import * as Effect from "effect/Effect";
 import * as Schema from "effect/Schema";
-import { useGT } from "gt-react";
+import { T, useGT } from "gt-react";
 import { useMemo } from "react";
 import { toast } from "sonner";
 
@@ -297,8 +297,12 @@ function Page() {
 			<Dialog open={invite} onOpenChange={setInviteDialogOpen}>
 				<DialogContent>
 					<DialogHeader>
-						<DialogTitle>{t("Invite member")}</DialogTitle>
-						<DialogDescription>{t("Invite a new member to this organization.")}</DialogDescription>
+						<DialogTitle>
+							<T>Invite member</T>
+						</DialogTitle>
+						<DialogDescription>
+							<T>Invite a new member to this organization.</T>
+						</DialogDescription>
 					</DialogHeader>
 					<form action={() => form.handleSubmit()} className="space-y-6">
 						<form.Field
@@ -309,7 +313,9 @@ function Page() {
 						>
 							{(field) => (
 								<div className="space-y-2">
-									<FieldLabel htmlFor={field.name}>{t("Email")}</FieldLabel>
+									<FieldLabel htmlFor={field.name}>
+										<T>Email</T>
+									</FieldLabel>
 									<div>
 										<Input
 											id={field.name}
@@ -347,7 +353,7 @@ function Page() {
 										) : (
 											<EnvelopeSimpleIcon className="size-4" />
 										)}
-										{t("Invite member")}
+										<T>Invite member</T>
 									</Button>
 								</DialogFooter>
 							)}
@@ -359,14 +365,16 @@ function Page() {
 			<section className="py-6">
 				<div className="flex items-start justify-between gap-4">
 					<div className="space-y-1">
-						<h2 className="text-lg font-semibold">{t("Organization members")}</h2>
+						<h2 className="text-lg font-semibold">
+							<T>Organization members</T>
+						</h2>
 						<p className="text-sm text-muted-foreground">
-							{t("Manage access at the organization level.")}
+							<T>Manage access at the organization level.</T>
 						</p>
 					</div>
 					<Button type="button" onClick={() => setInviteDialogOpen(true)}>
 						<EnvelopeSimpleIcon className="size-4" />
-						{t("Invite member")}
+						<T>Invite member</T>
 					</Button>
 				</div>
 				<DataTable
@@ -383,9 +391,11 @@ function Page() {
 			{activeInvitations.length > 0 && (
 				<section className="border-t border-border py-6">
 					<div className="space-y-1">
-						<h2 className="text-lg font-semibold">{t("Pending invitations")}</h2>
+						<h2 className="text-lg font-semibold">
+							<T>Pending invitations</T>
+						</h2>
 						<p className="text-sm text-muted-foreground">
-							{t("Invitations that have not been accepted yet.")}
+							<T>Invitations that have not been accepted yet.</T>
 						</p>
 					</div>
 					<DataTable

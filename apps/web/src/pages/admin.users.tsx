@@ -15,7 +15,7 @@ import {
 	useReactTable,
 	type ColumnDef,
 } from "@tanstack/react-table";
-import { useGT } from "gt-react";
+import { T, useGT, Var } from "gt-react";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -282,27 +282,33 @@ function AdminUsersPage() {
 					<div className="space-y-2">
 						<div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
 							<ShieldCheckIcon className="size-4" />
-							{t("Admin")}
+							<T>Admin</T>
 						</div>
 						<div>
 							<h1 className="font-heading text-2xl font-semibold tracking-tight">
-								{t("User management")}
+								<T>User management</T>
 							</h1>
 							<p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-								{t("Review accounts, adjust application roles, and disable access when needed.")}
+								<T>Review accounts, adjust application roles, and disable access when needed.</T>
 							</p>
 						</div>
 					</div>
 					<div className="rounded-lg border bg-card px-3 py-2 text-sm">
-						<span className="text-muted-foreground">{t("Total users")}</span>
+						<span className="text-muted-foreground">
+							<T>Total users</T>
+						</span>
 						<span className="ml-2 font-semibold">{total}</span>
 					</div>
 				</header>
 
 				<Card>
 					<CardHeader>
-						<CardTitle>{t("Accounts")}</CardTitle>
-						<CardDescription>{t("Filter accounts and manage global access.")}</CardDescription>
+						<CardTitle>
+							<T>Accounts</T>
+						</CardTitle>
+						<CardDescription>
+							<T>Filter accounts and manage global access.</T>
+						</CardDescription>
 					</CardHeader>
 					<CardContent>
 						<DataTable
@@ -325,15 +331,19 @@ function AdminUsersPage() {
 							<AlertDialogMedia>
 								<TrashIcon className="size-4" />
 							</AlertDialogMedia>
-							<AlertDialogTitle>{t("Delete user?")}</AlertDialogTitle>
+							<AlertDialogTitle>
+								<T>Delete user?</T>
+							</AlertDialogTitle>
 							<AlertDialogDescription>
-								{t("This permanently removes {user} and their sessions.", {
-									user: deleteUserName,
-								})}
+								<T>
+									This permanently removes <Var>{deleteUserName}</Var> and their sessions.
+								</T>
 							</AlertDialogDescription>
 						</AlertDialogHeader>
 						<AlertDialogFooter>
-							<AlertDialogCancel>{t("Cancel")}</AlertDialogCancel>
+							<AlertDialogCancel>
+								<T>Cancel</T>
+							</AlertDialogCancel>
 							<AlertDialogAction
 								variant="destructive"
 								disabled={!deleteUser}
@@ -348,7 +358,7 @@ function AdminUsersPage() {
 									);
 								}}
 							>
-								{t("Delete")}
+								<T>Delete</T>
 							</AlertDialogAction>
 						</AlertDialogFooter>
 					</AlertDialogContent>
@@ -391,7 +401,9 @@ function UserActions({
 				)}
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" className="w-48">
-				<DropdownMenuLabel>{t("Manage user")}</DropdownMenuLabel>
+				<DropdownMenuLabel>
+					<T>Manage user</T>
+				</DropdownMenuLabel>
 				<DropdownMenuItem
 					disabled={isCurrentUser}
 					onClick={() =>
@@ -407,7 +419,7 @@ function UserActions({
 					}
 				>
 					<ShieldCheckIcon className="size-4" />
-					{role === "admin" ? t("Make user") : t("Make admin")}
+					{role === "admin" ? <T>Make user</T> : <T>Make admin</T>}
 				</DropdownMenuItem>
 				<DropdownMenuItem
 					disabled={isCurrentUser}
@@ -426,7 +438,7 @@ function UserActions({
 					}
 				>
 					<XCircleIcon className="size-4" />
-					{isBanned ? t("Unban user") : t("Ban user")}
+					{isBanned ? <T>Unban user</T> : <T>Ban user</T>}
 				</DropdownMenuItem>
 				<DropdownMenuItem
 					onClick={() =>
@@ -438,7 +450,7 @@ function UserActions({
 					}
 				>
 					<XCircleIcon className="size-4" />
-					{t("Revoke sessions")}
+					<T>Revoke sessions</T>
 				</DropdownMenuItem>
 				<DropdownMenuSeparator />
 				<DropdownMenuItem
@@ -447,7 +459,7 @@ function UserActions({
 					onClick={() => setDeleteUser(user)}
 				>
 					<TrashIcon className="size-4" />
-					{t("Delete user")}
+					<T>Delete user</T>
 				</DropdownMenuItem>
 			</DropdownMenuContent>
 		</DropdownMenu>

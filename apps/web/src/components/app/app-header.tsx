@@ -8,7 +8,7 @@ import { SparkleIcon } from "@phosphor-icons/react/Sparkle";
 import { UserIcon } from "@phosphor-icons/react/User";
 import { useQuery } from "@tanstack/react-query";
 import { useMatchRoute, useNavigate } from "@tanstack/react-router";
-import { useGT, useSetLocale } from "gt-react";
+import { T, useGT, useSetLocale } from "gt-react";
 import { Fragment, useEffect } from "react";
 import type { ReactNode } from "react";
 
@@ -93,7 +93,7 @@ export function AppHeader({
 										className="inline-flex max-w-48 items-center gap-1 text-foreground"
 									>
 										<span className="truncate">
-											{currentOrganization?.name ?? t("Organization")}
+											{currentOrganization?.name ?? <T>Organization</T>}
 										</span>
 										<CaretDownIcon className="size-3.5 shrink-0" />
 									</BreadcrumbLink>
@@ -121,7 +121,9 @@ export function AppHeader({
 									}}
 								>
 									<PlusIcon />
-									<span>{t("Create organization")}</span>
+									<span>
+										<T>Create organization</T>
+									</span>
 								</DropdownMenuItem>
 							</DropdownMenuContent>
 						</DropdownMenu>
@@ -170,7 +172,9 @@ export function AppHeader({
 											}}
 										>
 											<PlusIcon />
-											<span>{t("Create team")}</span>
+											<span>
+												<T>Create team</T>
+											</span>
 										</DropdownMenuItem>
 									</DropdownMenuContent>
 								</DropdownMenu>
@@ -228,7 +232,9 @@ export function AppHeader({
 						{deviceSessions && deviceSessions.length > 1 && (
 							<>
 								<DropdownMenuSub>
-									<DropdownMenuSubTrigger>{t("Switch account")}</DropdownMenuSubTrigger>
+									<DropdownMenuSubTrigger>
+										<T>Switch account</T>
+									</DropdownMenuSubTrigger>
 									<DropdownMenuSubContent>
 										{deviceSessions.map((deviceSession) => (
 											<DropdownMenuCheckboxItem
@@ -252,7 +258,9 @@ export function AppHeader({
 							}}
 						>
 							<PlusIcon />
-							<span>{t("Add another account")}</span>
+							<span>
+								<T>Add another account</T>
+							</span>
 						</DropdownMenuItem>
 						<DropdownMenuSeparator />
 						<DropdownMenuItem
@@ -261,7 +269,9 @@ export function AppHeader({
 							}}
 						>
 							<SignOutIcon />
-							<span>{t("Log out")}</span>
+							<span>
+								<T>Log out</T>
+							</span>
 							<div className="ml-auto">
 								<KbdGroup>
 									<Kbd>
@@ -285,7 +295,9 @@ export function AppHeader({
 								}}
 							>
 								<SignOutIcon />
-								<span>{t("Log out of all accounts")}</span>
+								<span>
+									<T>Log out of all accounts</T>
+								</span>
 							</DropdownMenuItem>
 						)}
 					</DropdownMenuContent>

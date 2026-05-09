@@ -3,7 +3,7 @@ import { useDebouncedCallback } from "@tanstack/react-pacer";
 import { addDays } from "date-fns/addDays";
 import { format } from "date-fns/format";
 import { isEqual } from "date-fns/isEqual";
-import { useGT } from "gt-react";
+import { T, useGT } from "gt-react";
 import { cloneElement, isValidElement, memo, useCallback, useMemo, useState } from "react";
 import type { DateRange } from "react-day-picker";
 import { take } from "remeda";
@@ -224,8 +224,6 @@ function FilterValueTextDisplay<TData>({ filter }: FilterValueDisplayProps<TData
 }
 
 function FilterValueNumberDisplay<TData>({ filter }: FilterValueDisplayProps<TData, "number">) {
-	const t = useGT();
-
 	if (!filter || !filter.values || filter.values.length === 0) return null;
 
 	if (filter.operator === "is between" || filter.operator === "is not between") {
@@ -234,7 +232,7 @@ function FilterValueNumberDisplay<TData>({ filter }: FilterValueDisplayProps<TDa
 
 		return (
 			<span className="tracking-tight tabular-nums">
-				{minValue} {t("and")} {maxValue}
+				{minValue} <T>and</T> {maxValue}
 			</span>
 		);
 	}
@@ -366,7 +364,9 @@ function FilterValueOptionController<TData>({
 	return (
 		<Command loop>
 			<CommandInput placeholder={t("Search")} />
-			<CommandEmpty>{t("No results")}</CommandEmpty>
+			<CommandEmpty>
+				<T>No results</T>
+			</CommandEmpty>
 			<CommandList className="max-h-fit">
 				<CommandGroup className={cn(selectedOptions.length === 0 && "hidden")}>
 					{selectedOptions.map((option) => (
@@ -388,7 +388,6 @@ function FilterValueDateController<TData>({
 	filter,
 	column,
 }: FilterValueControllerProps<TData, "date">) {
-	const t = useGT();
 	const { actions } = useDataTableFilterContext();
 	type DateTabValue = "single" | "range";
 	type DateOperator = keyof typeof dateFilterOperators;
@@ -501,8 +500,12 @@ function FilterValueDateController<TData>({
 					<div className="flex w-full flex-col">
 						<Tabs value={tabValue} onValueChange={(tab) => changeType(tab as DateTabValue)}>
 							<TabsList className="w-full *:text-xs">
-								<TabsTrigger value="single">{t("Single")}</TabsTrigger>
-								<TabsTrigger value="range">{t("Range")}</TabsTrigger>
+								<TabsTrigger value="single">
+									<T>Single</T>
+								</TabsTrigger>
+								<TabsTrigger value="range">
+									<T>Range</T>
+								</TabsTrigger>
 							</TabsList>
 							<TabsContent value="single">
 								<Calendar
@@ -565,7 +568,6 @@ function FilterValueNumberController<TData>({
 	filter,
 	column,
 }: FilterValueControllerProps<TData, "number">) {
-	const t = useGT();
 	const { actions } = useDataTableFilterContext();
 
 	const minMax = column.getFacetedMinMaxValues();
@@ -637,8 +639,12 @@ function FilterValueNumberController<TData>({
 							onValueChange={(v) => changeType(v as "single" | "range")}
 						>
 							<TabsList className="w-full *:text-xs">
-								<TabsTrigger value="single">{t("Single")}</TabsTrigger>
-								<TabsTrigger value="range">{t("Range")}</TabsTrigger>
+								<TabsTrigger value="single">
+									<T>Single</T>
+								</TabsTrigger>
+								<TabsTrigger value="range">
+									<T>Range</T>
+								</TabsTrigger>
 							</TabsList>
 							<TabsContent value="single" className="mt-4 flex flex-col gap-4">
 								{minMax && (
@@ -652,7 +658,9 @@ function FilterValueNumberController<TData>({
 									/>
 								)}
 								<div className="flex items-center gap-2">
-									<span className="text-xs font-medium">{t("Value")}</span>
+									<span className="text-xs font-medium">
+										<T>Value</T>
+									</span>
 									<DebouncedInput
 										id="single"
 										type="number"
@@ -674,7 +682,9 @@ function FilterValueNumberController<TData>({
 								)}
 								<div className="grid grid-cols-2 gap-4">
 									<div className="flex items-center gap-2">
-										<span className="text-xs font-medium">{t("min")}</span>
+										<span className="text-xs font-medium">
+											<T>min</T>
+										</span>
 										<DebouncedInput
 											type="number"
 											value={values[0]}
@@ -682,7 +692,9 @@ function FilterValueNumberController<TData>({
 										/>
 									</div>
 									<div className="flex items-center gap-2">
-										<span className="text-xs font-medium">{t("max")}</span>
+										<span className="text-xs font-medium">
+											<T>max</T>
+										</span>
 										<DebouncedInput
 											type="number"
 											value={values[1]}

@@ -5,7 +5,7 @@ import { StackIcon } from "@phosphor-icons/react/Stack";
 import { UserIcon } from "@phosphor-icons/react/User";
 import { useQuery } from "@tanstack/react-query";
 import { getRouteApi } from "@tanstack/react-router";
-import { useGT } from "gt-react";
+import { T } from "gt-react";
 
 import {
 	Collapsible,
@@ -39,18 +39,20 @@ export function SettingsSidebar({ organization }: { readonly organization: strin
 	const [teams] = useZeroQuery(queries.organizationTeams({ organizationId }));
 	const { data: organizations } = useQuery(organizationsQuery());
 
-	const t = useGT();
-
 	const currentOrganization = organizations?.find((item) => item.slug === organization);
 
 	return (
 		<Sidebar variant="inset" className="absolute inset-y-0 h-full">
 			<SidebarHeader>
-				<h2 className="px-2 text-sm font-semibold tracking-tight">{t("Settings")}</h2>
+				<h2 className="px-2 text-sm font-semibold tracking-tight">
+					<T>Settings</T>
+				</h2>
 			</SidebarHeader>
 			<SidebarContent>
 				<SidebarGroup>
-					<SidebarGroupLabel>{t("Account")}</SidebarGroupLabel>
+					<SidebarGroupLabel>
+						<T>Account</T>
+					</SidebarGroupLabel>
 					<SidebarGroupContent>
 						<SidebarMenu>
 							<SidebarMenuItem>
@@ -58,7 +60,9 @@ export function SettingsSidebar({ organization }: { readonly organization: strin
 									render={<Link to="/$organization/settings/profile" params={{ organization }} />}
 								>
 									<UserIcon />
-									<span>{t("Profile")}</span>
+									<span>
+										<T>Profile</T>
+									</span>
 								</SidebarMenuButton>
 							</SidebarMenuItem>
 							<SidebarMenuItem>
@@ -68,7 +72,9 @@ export function SettingsSidebar({ organization }: { readonly organization: strin
 									}
 								>
 									<GearIcon />
-									<span>{t("Preferences")}</span>
+									<span>
+										<T>Preferences</T>
+									</span>
 								</SidebarMenuButton>
 							</SidebarMenuItem>
 						</SidebarMenu>
@@ -76,7 +82,7 @@ export function SettingsSidebar({ organization }: { readonly organization: strin
 				</SidebarGroup>
 
 				<SidebarGroup>
-					<SidebarGroupLabel>{currentOrganization?.name ?? t("Organization")}</SidebarGroupLabel>
+					<SidebarGroupLabel>{currentOrganization?.name ?? <T>Organization</T>}</SidebarGroupLabel>
 					<SidebarGroupContent>
 						<SidebarMenu>
 							<SidebarMenuItem>
@@ -84,7 +90,9 @@ export function SettingsSidebar({ organization }: { readonly organization: strin
 									render={<Link to="/$organization/settings/members" params={{ organization }} />}
 								>
 									<UserIcon />
-									<span>{t("Members")}</span>
+									<span>
+										<T>Members</T>
+									</span>
 								</SidebarMenuButton>
 							</SidebarMenuItem>
 							<SidebarMenuItem>
@@ -92,7 +100,9 @@ export function SettingsSidebar({ organization }: { readonly organization: strin
 									render={<Link to="/$organization/settings/teams" params={{ organization }} />}
 								>
 									<StackIcon />
-									<span>{t("Teams")}</span>
+									<span>
+										<T>Teams</T>
+									</span>
 								</SidebarMenuButton>
 							</SidebarMenuItem>
 							<SidebarMenuItem>
@@ -100,7 +110,9 @@ export function SettingsSidebar({ organization }: { readonly organization: strin
 									render={<Link to="/$organization/settings/billing" params={{ organization }} />}
 								>
 									<CreditCardIcon />
-									<span>{t("Billing")}</span>
+									<span>
+										<T>Billing</T>
+									</span>
 								</SidebarMenuButton>
 							</SidebarMenuItem>
 						</SidebarMenu>
@@ -109,7 +121,9 @@ export function SettingsSidebar({ organization }: { readonly organization: strin
 
 				{teams.length > 0 ? (
 					<SidebarGroup>
-						<SidebarGroupLabel>{t("Teams")}</SidebarGroupLabel>
+						<SidebarGroupLabel>
+							<T>Teams</T>
+						</SidebarGroupLabel>
 						<SidebarGroupContent>
 							<SidebarMenu>
 								{teams.map((team) => (
@@ -132,7 +146,9 @@ export function SettingsSidebar({ organization }: { readonly organization: strin
 															}
 														>
 															<GearIcon />
-															<span>{t("General")}</span>
+															<span>
+																<T>General</T>
+															</span>
 														</SidebarMenuSubButton>
 													</SidebarMenuSubItem>
 													<SidebarMenuSubItem>
@@ -145,7 +161,9 @@ export function SettingsSidebar({ organization }: { readonly organization: strin
 															}
 														>
 															<UserIcon />
-															<span>{t("Members")}</span>
+															<span>
+																<T>Members</T>
+															</span>
 														</SidebarMenuSubButton>
 													</SidebarMenuSubItem>
 												</SidebarMenuSub>

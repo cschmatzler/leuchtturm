@@ -1,5 +1,5 @@
 import { StarIcon } from "@phosphor-icons/react/Star";
-import { useGT } from "gt-react";
+import { T, useGT } from "gt-react";
 
 export function StarRating({ rating, size = "md" }: { rating: number; size?: "sm" | "md" }) {
 	const t = useGT();
@@ -56,7 +56,7 @@ export function StarRatingInput({
 					onClick={() => onChange(undefined)}
 					className="text-muted-foreground ml-2 text-xs hover:underline"
 				>
-					{t("Clear")}
+					<T>Clear</T>
 				</button>
 			)}
 		</div>

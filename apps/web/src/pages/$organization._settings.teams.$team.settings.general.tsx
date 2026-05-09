@@ -4,7 +4,7 @@ import { useForm } from "@tanstack/react-form";
 import { createFileRoute, stripSearchParams, useNavigate } from "@tanstack/react-router";
 import * as Effect from "effect/Effect";
 import * as Schema from "effect/Schema";
-import { useGT } from "gt-react";
+import { T, useGT, Var } from "gt-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -134,8 +134,12 @@ function GeneralSettings(props: { readonly organization: string; readonly team: 
 		<div className="mx-auto w-full max-w-3xl">
 			<section className="py-6">
 				<div className="space-y-1">
-					<h2 className="text-lg font-semibold">{t("Team")}</h2>
-					<p className="text-sm text-muted-foreground">{t("Manage this team's identity.")}</p>
+					<h2 className="text-lg font-semibold">
+						<T>Team</T>
+					</h2>
+					<p className="text-sm text-muted-foreground">
+						<T>Manage this team&apos;s identity.</T>
+					</p>
 				</div>
 				<form action={() => form.handleSubmit()} className="mt-5 space-y-6">
 					<form.Field
@@ -146,7 +150,9 @@ function GeneralSettings(props: { readonly organization: string; readonly team: 
 					>
 						{(field) => (
 							<div className="grid gap-x-10 gap-y-2 lg:grid-cols-[1fr_2fr]">
-								<FieldLabel htmlFor={field.name}>{t("Name")}</FieldLabel>
+								<FieldLabel htmlFor={field.name}>
+									<T>Name</T>
+								</FieldLabel>
 								<div>
 									<Input
 										id={field.name}
@@ -177,7 +183,7 @@ function GeneralSettings(props: { readonly organization: string; readonly team: 
 							<div className="flex justify-end">
 								<Button type="submit" disabled={!canSubmit || isSubmitting}>
 									{isSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : null}
-									{t("Save")}
+									<T>Save</T>
 								</Button>
 							</div>
 						)}
@@ -189,15 +195,17 @@ function GeneralSettings(props: { readonly organization: string; readonly team: 
 
 			<section className="py-6">
 				<div className="space-y-1">
-					<h2 className="text-lg font-semibold">{t("Delete team")}</h2>
+					<h2 className="text-lg font-semibold">
+						<T>Delete team</T>
+					</h2>
 					<p className="text-sm text-muted-foreground">
-						{t("Delete this team and remove its memberships.")}
+						<T>Delete this team and remove its memberships.</T>
 					</p>
 				</div>
 				<div className="mt-5">
 					<Button variant="destructive" onClick={() => setDeleteDialogOpen(true)}>
 						<TrashIcon className="size-4" />
-						{t("Delete team")}
+						<T>Delete team</T>
 					</Button>
 				</div>
 				<AlertDialog
@@ -209,12 +217,18 @@ function GeneralSettings(props: { readonly organization: string; readonly team: 
 				>
 					<AlertDialogContent>
 						<AlertDialogHeader>
-							<AlertDialogTitle>{t("Delete this team?")}</AlertDialogTitle>
-							<AlertDialogDescription>{t("This action cannot be undone.")}</AlertDialogDescription>
+							<AlertDialogTitle>
+								<T>Delete this team?</T>
+							</AlertDialogTitle>
+							<AlertDialogDescription>
+								<T>This action cannot be undone.</T>
+							</AlertDialogDescription>
 						</AlertDialogHeader>
 						<div className="space-y-2">
 							<FieldLabel htmlFor="delete-team-confirmation">
-								{t("Type {team} to confirm deletion.", { team: team?.name })}
+								<T>
+									Type <Var>{team?.name}</Var> to confirm deletion.
+								</T>
 							</FieldLabel>
 							<Input
 								id="delete-team-confirmation"
@@ -223,14 +237,16 @@ function GeneralSettings(props: { readonly organization: string; readonly team: 
 							/>
 						</div>
 						<AlertDialogFooter>
-							<AlertDialogCancel disabled={isDeletingTeam}>{t("Cancel")}</AlertDialogCancel>
+							<AlertDialogCancel disabled={isDeletingTeam}>
+								<T>Cancel</T>
+							</AlertDialogCancel>
 							<AlertDialogAction
 								variant="destructive"
 								disabled={isDeletingTeam || !team || deleteTeamConfirmation !== team.name}
 								onClick={() => void removeTeam()}
 							>
 								{isDeletingTeam ? <SpinnerIcon className="size-4 animate-spin" /> : null}
-								{t("Delete")}
+								<T>Delete</T>
 							</AlertDialogAction>
 						</AlertDialogFooter>
 					</AlertDialogContent>

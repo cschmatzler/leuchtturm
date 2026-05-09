@@ -1,7 +1,7 @@
 import { ArrowRightIcon } from "@phosphor-icons/react/ArrowRight";
 import { CaretRightIcon } from "@phosphor-icons/react/CaretRight";
 import { FunnelIcon } from "@phosphor-icons/react/Funnel";
-import { useGT } from "gt-react";
+import { T, useGT } from "gt-react";
 import { Fragment, isValidElement, memo, useCallback, useRef, useState } from "react";
 
 import { useDataTableFilterContext } from "@leuchtturm/web/components/data-table-filter/context";
@@ -59,7 +59,9 @@ export function FilterSelector<TData>() {
 					ref={inputRef}
 					placeholder={t("Search")}
 				/>
-				<CommandEmpty>{t("No results")}</CommandEmpty>
+				<CommandEmpty>
+					<T>No results</T>
+				</CommandEmpty>
 				<CommandList className="max-h-fit">
 					<CommandGroup>
 						{filterColumns.map((column) => (
@@ -90,7 +92,11 @@ export function FilterSelector<TData>() {
 				render={<Button variant="outline" className={cn("h-7", hasFilters && "w-fit !px-2")} />}
 			>
 				<FunnelIcon className="size-4" />
-				{!hasFilters && <span>{t("Filter")}</span>}
+				{!hasFilters && (
+					<span>
+						<T>Filter</T>
+					</span>
+				)}
 			</PopoverTrigger>
 			<PopoverContent
 				align="start"

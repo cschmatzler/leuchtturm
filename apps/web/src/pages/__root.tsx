@@ -16,7 +16,7 @@ import {
 	useRouter,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
-import { GTProvider, useGT } from "gt-react";
+import { GTProvider, T } from "gt-react";
 import { useEffect } from "react";
 
 import { DEFAULT_LANGUAGE, SupportedLanguage } from "@leuchtturm/core/i18n";
@@ -42,7 +42,6 @@ async function loadTranslations(locale: string) {
 }
 
 function RootErrorView() {
-	const t = useGT();
 	const router = useRouter();
 
 	return (
@@ -50,10 +49,14 @@ function RootErrorView() {
 			<div className="flex size-14 items-center justify-center rounded-full bg-destructive/10">
 				<WarningCircleIcon className="text-destructive size-6" />
 			</div>
-			<h1 className="text-xl font-semibold">{t("Something went wrong")}</h1>
-			<p className="text-muted-foreground max-w-md text-center text-sm">{t("Please try again.")}</p>
+			<h1 className="text-xl font-semibold">
+				<T>Something went wrong</T>
+			</h1>
+			<p className="text-muted-foreground max-w-md text-center text-sm">
+				<T>Please try again.</T>
+			</p>
 			<Button variant="outline" onClick={() => router.invalidate()}>
-				{t("Try again")}
+				<T>Try again</T>
 			</Button>
 		</div>
 	);

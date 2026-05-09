@@ -3,7 +3,7 @@ import { CompassIcon } from "@phosphor-icons/react/Compass";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react/MagnifyingGlass";
 import { SparkleIcon } from "@phosphor-icons/react/Sparkle";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useGT } from "gt-react";
+import { T } from "gt-react";
 import type { ReactNode } from "react";
 
 import { Button } from "@leuchtturm/web/components/ui/button";
@@ -31,8 +31,6 @@ function Page() {
 }
 
 function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
-	const t = useGT();
-
 	return (
 		<div className="relative overflow-hidden bg-foreground text-background">
 			<div className="pointer-events-none absolute inset-0" aria-hidden="true">
@@ -57,7 +55,7 @@ function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
 							nativeButton={false}
 							render={<Link to="/app" role={undefined} />}
 						>
-							{t("Dashboard")}
+							<T>Dashboard</T>
 						</Button>
 					) : (
 						<>
@@ -68,7 +66,7 @@ function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
 								nativeButton={false}
 								render={<Link to="/login" role={undefined} />}
 							>
-								{t("Login")}
+								<T>Login</T>
 							</Button>
 							<Button
 								size="sm"
@@ -76,7 +74,7 @@ function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
 								nativeButton={false}
 								render={<Link to="/signup" role={undefined} />}
 							>
-								{t("Sign Up")}
+								<T>Sign Up</T>
 							</Button>
 						</>
 					)}
@@ -87,21 +85,22 @@ function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
 				<div className="mx-auto max-w-3xl text-center">
 					<div className="animate-hero inline-flex items-center gap-2 rounded-full border border-background/10 bg-background/[0.06] px-4 py-1.5 text-xs font-medium tracking-wide text-background/60">
 						<SparkleIcon className="size-3" />
-						{t("Built for focus")}
+						<T>Built for focus</T>
 					</div>
 					<h1
 						className="animate-hero mt-8 font-display text-5xl font-extrabold tracking-tight sm:text-6xl md:text-7xl lg:text-8xl"
 						style={{ animationDelay: "0.08s" }}
 					>
-						{t("Your workflow, refined.")}
+						<T>Your workflow, refined.</T>
 					</h1>
 					<p
 						className="animate-hero mx-auto mt-7 max-w-lg text-lg leading-relaxed text-background/45"
 						style={{ animationDelay: "0.16s" }}
 					>
-						{t(
-							"A fast, focused workspace built for clarity. Keep your projects organized, find what you need instantly, and stay on top of what matters.",
-						)}
+						<T>
+							A fast, focused workspace built for clarity. Keep your projects organized, find what
+							you need instantly, and stay on top of what matters.
+						</T>
 					</p>
 					<div
 						className="animate-hero mt-11 flex justify-center gap-3"
@@ -114,7 +113,7 @@ function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
 								nativeButton={false}
 								render={<Link to="/app" role={undefined} />}
 							>
-								{t("Go to Dashboard")}
+								<T>Go to Dashboard</T>
 								<ArrowRightIcon data-icon="inline-end" />
 							</Button>
 						) : (
@@ -125,7 +124,7 @@ function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
 									nativeButton={false}
 									render={<Link to="/signup" role={undefined} />}
 								>
-									{t("Get Started")}
+									<T>Get Started</T>
 									<ArrowRightIcon data-icon="inline-end" />
 								</Button>
 								<Button
@@ -135,7 +134,7 @@ function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
 									nativeButton={false}
 									render={<Link to="/login" role={undefined} />}
 								>
-									{t("Login")}
+									<T>Login</T>
 								</Button>
 							</>
 						)}
@@ -147,39 +146,39 @@ function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
 }
 
 function FeaturesSection() {
-	const t = useGT();
-
 	return (
 		<section className="mx-auto max-w-7xl px-6 py-28 md:py-36">
 			<div className="max-w-xl">
 				<h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
-					{t("Everything you need.")}
+					<T>Everything you need.</T>
 				</h2>
 				<p className="mt-3 text-lg leading-relaxed text-muted-foreground">
-					{t("Nothing you don't.")}
+					<T>Nothing you don&apos;t.</T>
 				</p>
 			</div>
 
 			<div className="mt-16 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
 				<FeatureCard
 					icon={<CompassIcon className="size-5" />}
-					title={t("Workspace")}
-					description={t(
-						"Stay organized with a clean, keyboard-first workspace designed for speed and focus.",
-					)}
+					title={<T>Workspace</T>}
+					description={
+						<T>
+							Stay organized with a clean, keyboard-first workspace designed for speed and focus.
+						</T>
+					}
 				/>
 				<FeatureCard
 					icon={<SparkleIcon className="size-5" />}
-					title={t("Automation")}
-					description={t(
-						"Automate repetitive tasks and spend more time on the work that actually matters.",
-					)}
+					title={<T>Automation</T>}
+					description={
+						<T>Automate repetitive tasks and spend more time on the work that actually matters.</T>
+					}
 				/>
 				<FeatureCard
 					className="sm:col-span-2 lg:col-span-1"
 					icon={<MagnifyingGlassIcon className="size-5" />}
-					title={t("Search")}
-					description={t("Find anything instantly with fast, reliable full-text search.")}
+					title={<T>Search</T>}
+					description={<T>Find anything instantly with fast, reliable full-text search.</T>}
 				/>
 			</div>
 		</section>
@@ -193,8 +192,8 @@ function FeatureCard({
 	className,
 }: {
 	icon: ReactNode;
-	title: string;
-	description: string;
+	title: ReactNode;
+	description: ReactNode;
 	className?: string;
 }) {
 	return (
@@ -213,8 +212,6 @@ function FeatureCard({
 }
 
 function CallToActionSection({ isAuthenticated }: { isAuthenticated: boolean }) {
-	const t = useGT();
-
 	return (
 		<section className="mx-auto max-w-7xl px-6 pb-28 md:pb-36">
 			<div className="relative overflow-hidden rounded-2xl bg-foreground text-background">
@@ -223,12 +220,14 @@ function CallToActionSection({ isAuthenticated }: { isAuthenticated: boolean }) 
 				</div>
 				<div className="relative px-6 py-24 text-center md:py-28">
 					<h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
-						{t("Ready to take control?")}
+						<T>Ready to take control?</T>
 					</h2>
 					<p className="mx-auto mt-4 max-w-xl text-background/45">
-						{isAuthenticated
-							? t("Head back to your workspace and keep moving.")
-							: t("Sign up free and stay in flow.")}
+						{isAuthenticated ? (
+							<T>Head back to your workspace and keep moving.</T>
+						) : (
+							<T>Sign up free and stay in flow.</T>
+						)}
 					</p>
 					<div className="mt-9 flex justify-center gap-3">
 						{isAuthenticated ? (
@@ -238,7 +237,7 @@ function CallToActionSection({ isAuthenticated }: { isAuthenticated: boolean }) 
 								nativeButton={false}
 								render={<Link to="/app" role={undefined} />}
 							>
-								{t("Go to Dashboard")}
+								<T>Go to Dashboard</T>
 								<ArrowRightIcon data-icon="inline-end" />
 							</Button>
 						) : (
@@ -249,7 +248,7 @@ function CallToActionSection({ isAuthenticated }: { isAuthenticated: boolean }) 
 									nativeButton={false}
 									render={<Link to="/signup" role={undefined} />}
 								>
-									{t("Sign Up")}
+									<T>Sign Up</T>
 									<ArrowRightIcon data-icon="inline-end" />
 								</Button>
 								<Button
@@ -259,7 +258,7 @@ function CallToActionSection({ isAuthenticated }: { isAuthenticated: boolean }) 
 									nativeButton={false}
 									render={<Link to="/login" role={undefined} />}
 								>
-									{t("Login")}
+									<T>Login</T>
 								</Button>
 							</>
 						)}
@@ -271,8 +270,6 @@ function CallToActionSection({ isAuthenticated }: { isAuthenticated: boolean }) 
 }
 
 function MarketingFooter({ isAuthenticated }: { isAuthenticated: boolean }) {
-	const t = useGT();
-
 	return (
 		<footer className="border-t border-border px-6 py-16">
 			<div className="mx-auto max-w-7xl">
@@ -280,31 +277,31 @@ function MarketingFooter({ isAuthenticated }: { isAuthenticated: boolean }) {
 					<div className="flex flex-col gap-3">
 						<BrandLink accent />
 						<p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
-							{t("A fast, focused app built for people who value clarity.")}
+							<T>A fast, focused app built for people who value clarity.</T>
 						</p>
 					</div>
 					<div>
 						<h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-							{t("Legal")}
+							<T>Legal</T>
 						</h3>
 						<nav className="mt-4 flex flex-col gap-2.5">
 							<Link
 								to="/terms-of-service"
 								className="text-sm text-foreground/70 transition-colors hover:text-foreground"
 							>
-								{t("Terms of Service")}
+								<T>Terms of Service</T>
 							</Link>
 							<Link
 								to="/privacy-policy"
 								className="text-sm text-foreground/70 transition-colors hover:text-foreground"
 							>
-								{t("Privacy Policy")}
+								<T>Privacy Policy</T>
 							</Link>
 						</nav>
 					</div>
 					<div>
 						<h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-							{t("Account")}
+							<T>Account</T>
 						</h3>
 						<nav className="mt-4 flex flex-col gap-2.5">
 							{isAuthenticated ? (
@@ -312,7 +309,7 @@ function MarketingFooter({ isAuthenticated }: { isAuthenticated: boolean }) {
 									to="/app"
 									className="text-sm text-foreground/70 transition-colors hover:text-foreground"
 								>
-									{t("Dashboard")}
+									<T>Dashboard</T>
 								</Link>
 							) : (
 								<>
@@ -320,13 +317,13 @@ function MarketingFooter({ isAuthenticated }: { isAuthenticated: boolean }) {
 										to="/signup"
 										className="text-sm text-foreground/70 transition-colors hover:text-foreground"
 									>
-										{t("Sign Up")}
+										<T>Sign Up</T>
 									</Link>
 									<Link
 										to="/login"
 										className="text-sm text-foreground/70 transition-colors hover:text-foreground"
 									>
-										{t("Login")}
+										<T>Login</T>
 									</Link>
 								</>
 							)}
@@ -335,16 +332,16 @@ function MarketingFooter({ isAuthenticated }: { isAuthenticated: boolean }) {
 				</div>
 				<div className="mt-14 border-t border-border pt-6">
 					<p className="text-xs text-muted-foreground">
-						{t("By using this service, you agree to our")}{" "}
+						<T>By using this service, you agree to our</T>{" "}
 						<Link
 							to="/terms-of-service"
 							className="underline underline-offset-4 hover:text-primary"
 						>
-							{t("Terms of Service")}
+							<T>Terms of Service</T>
 						</Link>{" "}
-						{t("and acknowledge our")}{" "}
+						<T>and acknowledge our</T>{" "}
 						<Link to="/privacy-policy" className="underline underline-offset-4 hover:text-primary">
-							{t("Privacy Policy")}
+							<T>Privacy Policy</T>
 						</Link>
 						.
 					</p>

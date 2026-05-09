@@ -2,7 +2,7 @@ import { CaretLeftIcon } from "@phosphor-icons/react/CaretLeft";
 import { SpinnerIcon } from "@phosphor-icons/react/Spinner";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { useGT } from "gt-react";
+import { T, useGT, Var } from "gt-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -131,18 +131,24 @@ function Page() {
 			<div className="flex w-full justify-between">
 				<Button onClick={() => navigate({ to: "/app" })} size="sm" variant="ghost">
 					<CaretLeftIcon className="mr-2 size-3" />
-					{t("Go back")}
+					<T>Go back</T>
 				</Button>
 			</div>
 			<div className="flex h-full w-full max-w-240 translate-y-1/4 flex-col">
 				<Card>
 					<CardHeader>
-						<CardTitle>{t("Accept invitation")}</CardTitle>
-						<CardDescription>{t("You've been invited to join an organization")}</CardDescription>
+						<CardTitle>
+							<T>Accept invitation</T>
+						</CardTitle>
+						<CardDescription>
+							<T>You&apos;ve been invited to join an organization</T>
+						</CardDescription>
 					</CardHeader>
 					<CardContent>
 						<p className="mb-4 text-sm text-muted-foreground">
-							{t("Invitation for {email}", { email: invitation.data?.email })}
+							<T>
+								Invitation for <Var>{invitation.data?.email}</Var>
+							</T>
 						</p>
 						<div className="flex gap-2">
 							<Button
@@ -152,10 +158,10 @@ function Page() {
 								className="flex-1"
 							>
 								{isSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : null}
-								{t("Accept")}
+								<T>Accept</T>
 							</Button>
 							<Button type="button" variant="outline" onClick={handleReject} className="flex-1">
-								{t("Reject")}
+								<T>Reject</T>
 							</Button>
 						</div>
 					</CardContent>

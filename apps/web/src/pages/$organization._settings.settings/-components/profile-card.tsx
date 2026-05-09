@@ -1,7 +1,7 @@
 import { SpinnerIcon } from "@phosphor-icons/react/Spinner";
 import { useForm } from "@tanstack/react-form";
 import * as Schema from "effect/Schema";
-import { useGT } from "gt-react";
+import { T, useGT } from "gt-react";
 import { toast } from "sonner";
 
 import { UserInsert } from "@leuchtturm/core/auth/schema";
@@ -37,8 +37,12 @@ export function ProfileCard() {
 	return (
 		<section>
 			<div className="space-y-1">
-				<h2 className="text-lg font-semibold">{t("Profile")}</h2>
-				<p className="text-sm text-muted-foreground">{t("Your personal information.")}</p>
+				<h2 className="text-lg font-semibold">
+					<T>Profile</T>
+				</h2>
+				<p className="text-sm text-muted-foreground">
+					<T>Your personal information.</T>
+				</p>
 			</div>
 			<form action={submitForm} className="mt-5 space-y-6">
 				<form.Field
@@ -50,9 +54,11 @@ export function ProfileCard() {
 					{(field) => (
 						<div className="grid gap-x-10 gap-y-2 lg:grid-cols-[1fr_2fr]">
 							<div>
-								<FieldLabel htmlFor={field.name}>{t("Name")}</FieldLabel>
+								<FieldLabel htmlFor={field.name}>
+									<T>Name</T>
+								</FieldLabel>
 								<FieldDescription className="mt-1">
-									{t("What you'd like to be called throughout the application.")}
+									<T>What you&apos;d like to be called throughout the application.</T>
 								</FieldDescription>
 							</div>
 							<div>
@@ -84,7 +90,7 @@ export function ProfileCard() {
 								disabled={!currentUser || !state.canSubmit || state.isSubmitting}
 							>
 								{state.isSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : null}
-								{t("Save")}
+								<T>Save</T>
 							</Button>
 						</div>
 					)}

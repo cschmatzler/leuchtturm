@@ -3,7 +3,7 @@ import { ClockIcon } from "@phosphor-icons/react/Clock";
 import { format as formatDate } from "date-fns/format";
 import { isValid } from "date-fns/isValid";
 import { parse } from "date-fns/parse";
-import { useGT } from "gt-react";
+import { T, Var } from "gt-react";
 import {
 	useCallback,
 	useEffect,
@@ -46,7 +46,6 @@ export function DateInput({
 	modal = false,
 	...props
 }: DateInputProps) {
-	const t = useGT();
 	const inputId = useId();
 
 	const format = formatProp ?? (includeTime ? "yyyy-MM-dd HH:mm" : "yyyy-MM-dd");
@@ -210,7 +209,9 @@ export function DateInput({
 			</Popover>
 			{isInvalid && (
 				<FieldError className="mt-2">
-					{t("Invalid date format. Please use {format} format.", { format })}
+					<T>
+						Invalid date format. Please use <Var>{format}</Var> format.
+					</T>
 				</FieldError>
 			)}
 		</div>

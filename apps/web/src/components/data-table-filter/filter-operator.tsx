@@ -1,4 +1,4 @@
-import { useGT } from "gt-react";
+import { T, useGT } from "gt-react";
 import { memo, useState } from "react";
 
 import { useDataTableFilterContext } from "@leuchtturm/web/components/data-table-filter/context";
@@ -81,7 +81,9 @@ export function FilterOperator<TData, TType extends ColumnDataType>({
 			>
 				<Command loop>
 					<CommandInput placeholder={t("Search")} />
-					<CommandEmpty>{t("No results")}</CommandEmpty>
+					<CommandEmpty>
+						<T>No results</T>
+					</CommandEmpty>
 					<CommandList className="max-h-fit">
 						<FilterOperatorController
 							filter={filter}

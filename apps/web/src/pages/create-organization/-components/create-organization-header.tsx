@@ -1,7 +1,7 @@
 import { CaretDownIcon } from "@phosphor-icons/react/CaretDown";
 import { SparkleIcon } from "@phosphor-icons/react/Sparkle";
 import { Link, useNavigate, useRouteContext } from "@tanstack/react-router";
-import { useGT } from "gt-react";
+import { T } from "gt-react";
 import { useState } from "react";
 
 import { Button } from "@leuchtturm/web/components/ui/button";
@@ -18,7 +18,6 @@ import { useAuth } from "@leuchtturm/web/hooks/use-auth";
 export function CreateOrganizationHeader() {
 	const { session } = useRouteContext({ from: "/create-organization" });
 	const navigate = useNavigate();
-	const t = useGT();
 	const { deviceSessions, setActiveSession, signOutCurrent } = useAuth();
 	const [accountMenuOpen, setAccountMenuOpen] = useState(false);
 
@@ -57,14 +56,14 @@ export function CreateOrganizationHeader() {
 							void navigate({ to: "/login" });
 						}}
 					>
-						{t("Add account")}
+						<T>Add account</T>
 					</DropdownMenuItem>
 					<DropdownMenuItem
 						onClick={() => {
 							void signOutCurrent();
 						}}
 					>
-						{t("Log out")}
+						<T>Log out</T>
 					</DropdownMenuItem>
 				</DropdownMenuContent>
 			</DropdownMenu>

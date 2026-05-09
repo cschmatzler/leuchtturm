@@ -10,7 +10,7 @@ import {
 	useReactTable,
 	type ColumnDef,
 } from "@tanstack/react-table";
-import { useGT } from "gt-react";
+import { T, useGT } from "gt-react";
 import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
 
@@ -163,7 +163,7 @@ function MembersSettings(props: { readonly team: string }) {
 							onClick={() => void removeMember(row.original.userId)}
 						>
 							<TrashIcon className="size-4" />
-							{t("Remove")}
+							<T>Remove</T>
 						</Button>
 					) : null,
 			},
@@ -261,7 +261,7 @@ function MembersSettings(props: { readonly team: string }) {
 				cell: ({ row }) => (
 					<Button variant="outline" size="sm" onClick={() => void addMember(row.original.userId)}>
 						<PlusIcon className="size-4" />
-						{t("Add")}
+						<T>Add</T>
 					</Button>
 				),
 			},
@@ -325,8 +325,12 @@ function MembersSettings(props: { readonly team: string }) {
 		<div className="mx-auto w-full max-w-3xl">
 			<section className="py-6">
 				<div className="space-y-1">
-					<h2 className="text-lg font-semibold">{t("Team members")}</h2>
-					<p className="text-sm text-muted-foreground">{t("Members who can access this team.")}</p>
+					<h2 className="text-lg font-semibold">
+						<T>Team members</T>
+					</h2>
+					<p className="text-sm text-muted-foreground">
+						<T>Members who can access this team.</T>
+					</p>
 				</div>
 				<DataTable
 					className="mt-5"
@@ -345,9 +349,11 @@ function MembersSettings(props: { readonly team: string }) {
 
 					<section className="py-6">
 						<div className="space-y-1">
-							<h2 className="text-lg font-semibold">{t("Add organization members")}</h2>
+							<h2 className="text-lg font-semibold">
+								<T>Add organization members</T>
+							</h2>
 							<p className="text-sm text-muted-foreground">
-								{t("Add existing organization members to this team.")}
+								<T>Add existing organization members to this team.</T>
 							</p>
 						</div>
 						<DataTable

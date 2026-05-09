@@ -1,4 +1,4 @@
-import { useGT } from "gt-react";
+import { T, useGT } from "gt-react";
 
 import {
 	Command,
@@ -25,7 +25,9 @@ function CommandBar() {
 					placeholder={t("Type a command...")}
 				/>
 				<CommandList>
-					<CommandEmpty>{t("No results found.")}</CommandEmpty>
+					<CommandEmpty>
+						<T>No results found.</T>
+					</CommandEmpty>
 					{Object.entries(commandBar.categories).map(([category, actions]) => (
 						<CommandGroup heading={category} key={category}>
 							{actions.map((action) => (

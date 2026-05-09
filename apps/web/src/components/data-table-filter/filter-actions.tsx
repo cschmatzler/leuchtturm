@@ -1,5 +1,5 @@
 import { FunnelXIcon } from "@phosphor-icons/react/FunnelX";
-import { useGT } from "gt-react";
+import { T } from "gt-react";
 import { memo } from "react";
 
 import { useDataTableFilterContext } from "@leuchtturm/web/components/data-table-filter/context";
@@ -8,7 +8,6 @@ import { cn } from "@leuchtturm/web/lib/cn";
 
 export const FilterActions = memo(FilterActionsComponent);
 function FilterActionsComponent() {
-	const t = useGT();
 	const { actions, filters } = useDataTableFilterContext();
 	const hasFilters = filters.length > 0;
 
@@ -19,7 +18,9 @@ function FilterActionsComponent() {
 			onClick={actions?.removeAllFilters}
 		>
 			<FunnelXIcon />
-			<span className="hidden md:block">{t("Clear")}</span>
+			<span className="hidden md:block">
+				<T>Clear</T>
+			</span>
 		</Button>
 	);
 }

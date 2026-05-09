@@ -1,6 +1,6 @@
 import { SpinnerIcon } from "@phosphor-icons/react/Spinner";
 import { useForm } from "@tanstack/react-form";
-import { useGT, useSetLocale } from "gt-react";
+import { T, useGT, useSetLocale } from "gt-react";
 import { toast } from "sonner";
 
 import { DEFAULT_LANGUAGE, resolveLanguage, SupportedLanguage } from "@leuchtturm/core/i18n";
@@ -59,17 +59,23 @@ export function PreferencesCard() {
 	return (
 		<section>
 			<div className="space-y-1">
-				<h2 className="text-lg font-semibold">{t("Preferences")}</h2>
-				<p className="text-sm text-muted-foreground">{t("Customize your experience.")}</p>
+				<h2 className="text-lg font-semibold">
+					<T>Preferences</T>
+				</h2>
+				<p className="text-sm text-muted-foreground">
+					<T>Customize your experience.</T>
+				</p>
 			</div>
 			<form action={submitForm} className="mt-5 space-y-6">
 				<form.Field name="language">
 					{(field) => (
 						<div className="grid gap-x-10 gap-y-2 lg:grid-cols-[1fr_2fr]">
 							<div>
-								<FieldLabel htmlFor={field.name}>{t("Language")}</FieldLabel>
+								<FieldLabel htmlFor={field.name}>
+									<T>Language</T>
+								</FieldLabel>
 								<FieldDescription className="mt-1">
-									{t("Select your preferred language for the interface.")}
+									<T>Select your preferred language for the interface.</T>
 								</FieldDescription>
 							</div>
 							<div>
@@ -111,7 +117,7 @@ export function PreferencesCard() {
 								disabled={!currentUser || !state.canSubmit || state.isSubmitting}
 							>
 								{state.isSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : null}
-								{t("Save")}
+								<T>Save</T>
 							</Button>
 						</div>
 					)}
