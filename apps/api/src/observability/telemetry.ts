@@ -1,5 +1,8 @@
+import * as Effect from "effect/Effect";
+import * as Exit from "effect/Exit";
 import * as Layer from "effect/Layer";
 import * as Metric from "effect/Metric";
+import * as Scope from "effect/Scope";
 import * as FetchHttpClient from "effect/unstable/http/FetchHttpClient";
 import * as Otlp from "effect/unstable/observability/Otlp";
 import { Resource } from "sst";
@@ -32,4 +35,16 @@ export namespace Telemetry {
 			),
 		),
 	);
+
+	export const withRequest = <A, E, R>(effect: Effect.Effect<A, E, R>) =>
+		Effect.acquireUseRelease(
+			Scope.make(),
+			(telemetryScope) =>
+				Layer.buildWithScope(layer, telemetryScope).pipe(
+					Effect.flatMap((telemetryContext) =>
+						effect.pipe(Effect.provideContext(telemetryContext)),
+					),
+				),
+			(telemetryScope) => RequestRuntime.runAfterWaitUntil(Scope.close(telemetryScope, Exit.void)),
+		);
 }

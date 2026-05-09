@@ -1,6 +1,5 @@
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
-import * as Fiber from "effect/Fiber";
 import * as Layer from "effect/Layer";
 
 import { RequestRuntime } from "@leuchtturm/api/request-runtime";
@@ -10,18 +9,17 @@ export namespace BackgroundTasks {
 		label: string,
 		effect: Effect.Effect<A, E, R>,
 	) {
-		const fiber = yield* effect.pipe(
-			Effect.withSpan(`background.${label}`, {
-				attributes: { label },
-				kind: "internal",
-			}),
-			Effect.tapError(() =>
-				Effect.logError(`${label} failed`).pipe(Effect.annotateLogs({ label })),
+		yield* RequestRuntime.fork(
+			effect.pipe(
+				Effect.withSpan(`background.${label}`, {
+					attributes: { label },
+					kind: "internal",
+				}),
+				Effect.tapError(() =>
+					Effect.logError(`${label} failed`).pipe(Effect.annotateLogs({ label })),
+				),
 			),
-			Effect.forkDetach({ startImmediately: true }),
 		);
-
-		yield* RequestRuntime.register(Effect.runPromise(Fiber.await(fiber)).then(() => undefined));
 	});
 
 	export interface Interface {
