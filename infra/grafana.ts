@@ -2,18 +2,9 @@ import * as grafana from "@pulumiverse/grafana";
 
 const cloudProvider = new grafana.Provider("GrafanaCloudProvider");
 
-const stack = new grafana.cloud.Stack(
-	"GrafanaStack",
+const stack = grafana.cloud.getStackOutput(
 	{
-		deleteProtection: $app.stage === "prod",
-		description: `Leuchtturm ${$app.stage} observability`,
-		labels: {
-			app: $app.name,
-			stage: $app.stage,
-		},
-		name: `${$app.name}-${$app.stage}`,
-		regionSlug: "eu",
-		slug: `${$app.name}-${$app.stage}`,
+		slug: "leuchtturmdev",
 	},
 	{ provider: cloudProvider },
 );
@@ -242,9 +233,3 @@ new grafana.alerting.RuleGroup(
 	},
 	{ dependsOn: [prometheus], provider: stackProvider },
 );
-
-export const grafanaOtlpUrl = new sst.Linkable("GrafanaOtlpUrl", {
-	properties: {
-		value: stack.otlpUrl,
-	},
-});

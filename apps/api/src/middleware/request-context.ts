@@ -29,6 +29,7 @@ export namespace RequestContext {
 				Option.flatMap(Schema.decodeUnknownOption(RequestId)),
 				Option.getOrElse(() => crypto.randomUUID()),
 			);
+
 			const context = Service.of({
 				method: request.method,
 				path: request.url,

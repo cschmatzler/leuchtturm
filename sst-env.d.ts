@@ -58,6 +58,10 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
+    "GrafanaApiToken": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
     "PlanetScaleDatabaseId": {
       "type": "sst.sst.Secret"
       "value": string
