@@ -10,73 +10,51 @@ import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 export namespace RequestContext {
 	const RequestIdHeader = "x-request-id";
 	const RequestIdPattern = /^[A-Za-z0-9._:-]{1,128}$/;
-	const TrustedProxyPeers = new Set(["127.0.0.1", "::1", "::ffff:127.0.0.1"]);
-
-	export interface CurrentShape {
+	export interface RequestContextShape {
 		readonly method: string;
 		readonly path: string;
 		readonly requestId: string;
 	}
 
-	export class Current extends Context.Service<Current, CurrentShape>()(
+	export class Service extends Context.Service<Service, RequestContextShape>()(
 		"@leuchtturm/RequestContext",
 	) {}
 
-	const requestPath = (url: string) => {
-		try {
-			return new URL(url).pathname;
-		} catch {
-			return new URL(url, "http://internal").pathname;
-		}
-	};
-
-	const getIncomingRequestId = (
+	const requestId = Effect.fn("RequestContext.requestId")(function* (
 		request: HttpServerRequest.HttpServerRequest,
-	): string | undefined => {
-		const peerAddress = Option.getOrElse(request.remoteAddress, () => "unknown");
-		if (peerAddress !== "unknown" && !TrustedProxyPeers.has(peerAddress)) {
-			return undefined;
-		}
-
-		return Headers.get(request.headers, RequestIdHeader).pipe(
-			Option.map((value) => value.trim()),
-			Option.filter((value) => RequestIdPattern.test(value)),
-			Option.getOrUndefined,
+	) {
+		return yield* Effect.succeed(
+			Headers.get(request.headers, RequestIdHeader).pipe(
+				Option.map((value) => value.trim()),
+				Option.filter((value) => RequestIdPattern.test(value)),
+				Option.getOrElse(() => crypto.randomUUID()),
+			),
 		);
-	};
-
-	export const makeRequestId = (input?: string): string => {
-		if (input && RequestIdPattern.test(input)) {
-			return input;
-		}
-
-		return crypto.randomUUID();
-	};
+	});
 
 	export const Middleware = HttpMiddleware.make((app) =>
 		Effect.gen(function* () {
 			const request = yield* HttpServerRequest.HttpServerRequest;
-			const requestId = makeRequestId(getIncomingRequestId(request));
-			const current = Current.of({
+			const id = yield* requestId(request);
+			const context = Service.of({
 				method: request.method,
-				path: requestPath(request.url),
-				requestId,
+				path: request.url,
+				requestId: id,
 			});
-			const appWithContext = app.pipe(
-				Effect.annotateLogs({ requestId }),
-				Effect.annotateSpans({ "http.request.id": requestId }),
-				Effect.provideService(Current, current),
+
+			yield* Effect.annotateCurrentSpan({ "http.request.id": id });
+
+			return yield* app.pipe(
+				Effect.annotateLogs({ requestId: id }),
+				Effect.annotateSpans({ "http.request.id": id }),
+				Effect.provideService(Service, context),
+				Effect.map((response) => HttpServerResponse.setHeader(response, RequestIdHeader, id)),
+				Effect.catchCause((cause) =>
+					HttpServerError.causeResponse(cause).pipe(
+						Effect.map(([response]) => HttpServerResponse.setHeader(response, RequestIdHeader, id)),
+					),
+				),
 			);
-
-			yield* Effect.annotateCurrentSpan({ "http.request.id": requestId });
-			const exit = yield* Effect.exit(appWithContext);
-
-			if (exit._tag === "Success") {
-				return HttpServerResponse.setHeader(exit.value, RequestIdHeader, requestId);
-			}
-
-			const [response] = yield* HttpServerError.causeResponse(exit.cause);
-			return HttpServerResponse.setHeader(response, RequestIdHeader, requestId);
 		}),
 	);
 }
