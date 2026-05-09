@@ -9,7 +9,7 @@ describe("sendMagicLinkEmail", () => {
 
 		await Effect.runPromise(
 			sendMagicLinkEmail({
-				signInUrl: "https://leuchtturm.dev/api/auth/magic-link/verify?token=abc",
+				signInUrl: "https://api.leuchtturm.dev/auth/magic-link/verify?token=abc",
 				email: "user@example.com",
 				from: "Leuchtturm <no-reply@mail.leuchtturm.dev>",
 				send,
@@ -23,7 +23,7 @@ describe("sendMagicLinkEmail", () => {
 			to: "user@example.com",
 			subject: "Sign in to Leuchtturm",
 			html: expect.stringContaining("Sign in to Leuchtturm"),
-			text: expect.stringContaining("https://leuchtturm.dev/api/auth/magic-link/verify?token=abc"),
+			text: expect.stringContaining("https://api.leuchtturm.dev/auth/magic-link/verify?token=abc"),
 		});
 	});
 
@@ -34,7 +34,7 @@ describe("sendMagicLinkEmail", () => {
 		await expect(
 			Effect.runPromise(
 				sendMagicLinkEmail({
-					signInUrl: "https://leuchtturm.dev/api/auth/magic-link/verify?token=abc",
+					signInUrl: "https://api.leuchtturm.dev/auth/magic-link/verify?token=abc",
 					email: "user@example.com",
 					from: "Leuchtturm <no-reply@mail.leuchtturm.dev>",
 					send,

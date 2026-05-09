@@ -79,5 +79,4 @@ export const auth = HttpApiGroup.make("auth")
 
 export class LeuchtturmApi extends HttpApi.make("leuchtturm")
 	.add(health, zero, session, billing, auth)
-	.middleware(ErrorCatalog)
-	.prefix("/api") {}
+	.middleware(ErrorCatalog) {}

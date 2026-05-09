@@ -16,7 +16,7 @@ describe("request context middleware", () => {
 
 	it("adds x-request-id headers to error responses", async () => {
 		const request = HttpServerRequest.fromWeb(
-			new Request("http://example.com/api/query", {
+			new Request("http://example.com/query", {
 				headers: {
 					"x-request-id": "req_from_proxy",
 				},
@@ -37,7 +37,7 @@ describe("request context middleware", () => {
 
 	it("keeps gateway request ids when the runtime has no peer address", async () => {
 		const request = HttpServerRequest.fromWeb(
-			new Request("http://example.com/api/query", {
+			new Request("http://example.com/query", {
 				headers: {
 					"x-request-id": "req_gateway_123",
 				},

@@ -27,13 +27,20 @@ if ($dev) {
 		sessionDuration: "24h",
 	});
 
+	const zeroPolicy = new cloudflare.ZeroTrustAccessPolicy("ZeroAccessPolicy", {
+		accountId: secrets.cloudflareAccountId.value,
+		name: `${$app.name}-${$app.stage}-zero-render`,
+		decision: "bypass",
+		includes: [{ ip: { ip: "74.220.51.0/24" } }, { ip: { ip: "74.220.59.0/24" } }],
+	});
+
 	new cloudflare.ZeroTrustAccessApplication("Access", {
 		accountId: secrets.cloudflareAccountId.value,
 		name: `${$app.name}-${$app.stage}`,
 		type: "self_hosted",
 		domain: appDomain,
 		allowedIdps: [githubProvider.id],
-		policies: [{ id: policy.id }],
+		policies: [{ id: zeroPolicy.id }, { id: policy.id }],
 		autoRedirectToIdentity: true,
 		destinations: [
 			{ type: "public", uri: appDomain },

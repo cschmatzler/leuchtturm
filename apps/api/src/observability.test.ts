@@ -10,17 +10,17 @@ import { RequestRuntime } from "@leuchtturm/api/request-runtime";
 
 describe("observability helpers", () => {
 	it("derives request names, attributes, and log annotations", () => {
-		const request = new Request("https://example.com/api/query?cursor=123", {
+		const request = new Request("https://example.com/query?cursor=123", {
 			method: "POST",
 		});
 
-		expect(Observability.requestPath(request)).toBe("/api/query");
-		expect(Observability.requestSpanName(request)).toBe("POST /api/query");
+		expect(Observability.requestPath(request)).toBe("/query");
+		expect(Observability.requestSpanName(request)).toBe("POST /query");
 		expect(Observability.requestSpanAttributes(request)).toEqual({
 			"http.request.method": "POST",
-			"http.route": "/api/query",
+			"http.route": "/query",
 			"server.address": "example.com",
-			"url.path": "/api/query",
+			"url.path": "/query",
 			"url.scheme": "https",
 		});
 		expect(
@@ -29,7 +29,7 @@ describe("observability helpers", () => {
 			}),
 		).toEqual({
 			method: "POST",
-			path: "/api/query",
+			path: "/query",
 			status: 200,
 		});
 	});
@@ -43,15 +43,15 @@ describe("observability helpers", () => {
 	it("supports effect-native relative request urls", () => {
 		const request = {
 			method: "GET",
-			url: "/api/up",
+			url: "/up",
 		};
 
-		expect(Observability.requestPath(request)).toBe("/api/up");
-		expect(Observability.requestSpanName(request)).toBe("GET /api/up");
+		expect(Observability.requestPath(request)).toBe("/up");
+		expect(Observability.requestSpanName(request)).toBe("GET /up");
 		expect(Observability.requestSpanAttributes(request)).toEqual({
 			"http.request.method": "GET",
-			"http.route": "/api/up",
-			"url.path": "/api/up",
+			"http.route": "/up",
+			"url.path": "/up",
 			"url.scheme": "http",
 		});
 	});
@@ -94,7 +94,7 @@ describe("observability helpers", () => {
 							RequestContext.Current,
 							RequestContext.Current.of({
 								method: "POST",
-								path: "/api/query",
+								path: "/query",
 								requestId: "req_123",
 							}),
 						),
@@ -111,7 +111,7 @@ describe("observability helpers", () => {
 				level: "info",
 				message: "API request completed",
 				method: "POST",
-				path: "/api/query",
+				path: "/query",
 				requestId: "req_123",
 				service_name: "leuchtturm-api",
 				service_namespace: "leuchtturm",
@@ -167,7 +167,7 @@ describe("observability helpers", () => {
 							RequestContext.Current,
 							RequestContext.Current.of({
 								method: "POST",
-								path: "/api/auth/organization/update-team",
+								path: "/auth/organization/update-team",
 								requestId: "req_123",
 							}),
 						),
@@ -184,7 +184,7 @@ describe("observability helpers", () => {
 				message: "Auth team updated",
 				method: "POST",
 				organizationId: "org_123",
-				path: "/api/auth/organization/update-team",
+				path: "/auth/organization/update-team",
 				requestId: "req_123",
 				teamId: "tea_123",
 			}),

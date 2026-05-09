@@ -90,7 +90,7 @@ export namespace Auth {
 
 			const makeAuth = (runAuthEffect: <A, E>(effect: Effect.Effect<A, E>) => Promise<A>) =>
 				betterAuth({
-					baseURL: `https://${Resource.Dns.ApiDomain}/api/auth`,
+					baseURL: `https://${Resource.Dns.ApiDomain}/auth`,
 					trustedOrigins: [`https://${Resource.Dns.AppDomain}`],
 					secret: Resource.BetterAuthSecret.value,
 					onAPIError: {

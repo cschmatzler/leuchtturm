@@ -27,24 +27,13 @@ function isViteApiUrl(node) {
 	);
 }
 
-function isApiPathString(value) {
-	return typeof value === "string" && value.startsWith("/api/");
-}
-
 function isOurApiUrl(node) {
 	if (!node) {
 		return false;
 	}
 
-	if (node.type === "Literal") {
-		return isApiPathString(node.value);
-	}
-
 	if (node.type === "TemplateLiteral") {
-		return (
-			node.quasis.some((quasi) => isApiPathString(quasi.value.cooked ?? quasi.value.raw)) ||
-			node.expressions.some(isOurApiUrl)
-		);
+		return node.expressions.some(isOurApiUrl);
 	}
 
 	if (node.type === "BinaryExpression" && node.operator === "+") {

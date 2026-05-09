@@ -16,7 +16,7 @@ describe("zero handlers", () => {
 				return query.fn({ args, ctx: { userId: TEST_USER_ID } });
 			},
 			schema,
-			new Request("http://example.com/api/query", {
+			new Request("http://example.com/query", {
 				body: JSON.stringify(["transform", [{ args: [], id: "query-1", name: "missing.query" }]]),
 				headers: { "content-type": "application/json" },
 				method: "POST",
@@ -53,7 +53,7 @@ describe("zero handlers", () => {
 					const mutator = mustGetMutator(mutators, name);
 					return mutator.fn({ tx, ctx: { userId: TEST_USER_ID }, args });
 				}),
-			new Request("http://example.com/api/mutate?schema=public&appID=web", {
+			new Request("http://example.com/mutate?schema=public&appID=web", {
 				body: JSON.stringify({
 					clientGroupID: "group-1",
 					mutations: [
