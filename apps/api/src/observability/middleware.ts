@@ -41,7 +41,7 @@ export namespace ObservabilityMiddleware {
 			const responseStatusGroup = statusGroup(response.status);
 			const requestMetricAttributes = {
 				method: request.method,
-				path,
+				route: path,
 			};
 			yield* Metric.update(
 				Metric.withAttributes(Metrics.requestDuration, requestMetricAttributes),

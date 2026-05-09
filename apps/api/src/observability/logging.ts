@@ -25,6 +25,8 @@ export namespace Logging {
 					serviceName: "leuchtturm-api",
 					attributes: {
 						"service.namespace": "leuchtturm",
+						app: "leuchtturm",
+						stage: Resource.App.stage,
 					},
 				}),
 			),
