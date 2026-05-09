@@ -38,10 +38,6 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "GrafanaApiToken": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
     "GrafanaOtlpUrl": {
       "type": "sst.sst.Linkable"
       "value": string
