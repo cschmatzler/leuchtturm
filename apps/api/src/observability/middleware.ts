@@ -7,9 +7,7 @@ import * as HttpServerError from "effect/unstable/http/HttpServerError";
 import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import type * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 import * as HttpTraceContext from "effect/unstable/http/HttpTraceContext";
-import { Resource } from "sst";
 
-import { Logging } from "@leuchtturm/api/observability/logging";
 import { Metrics } from "@leuchtturm/api/observability/metrics";
 import {
 	requestPath,
@@ -17,23 +15,13 @@ import {
 	requestSpanName,
 	statusGroup,
 } from "@leuchtturm/api/observability/request";
-import { Tracing } from "@leuchtturm/api/observability/tracing";
-import { RequestRuntime } from "@leuchtturm/api/request-runtime";
+import { Telemetry } from "@leuchtturm/api/observability/telemetry";
 
 export namespace ObservabilityMiddleware {
 	export const layer = HttpMiddleware.make((app) =>
 		Effect.gen(function* () {
 			const request = yield* HttpServerRequest.HttpServerRequest;
 			const startedAt = Date.now();
-			const flushTelemetry = Effect.gen(function* () {
-				const metrics = yield* Metrics.Flusher;
-				const logging = yield* Logging.Flusher;
-				const tracing = yield* Tracing.Flusher;
-
-				yield* RequestRuntime.register(
-					Promise.all([metrics.flush(), logging.flush(), tracing.flush()]).then(() => undefined),
-				);
-			});
 			const observe = (
 				response: HttpServerResponse.HttpServerResponse,
 				cause?: Cause.Cause<unknown>,
@@ -42,10 +30,8 @@ export namespace ObservabilityMiddleware {
 				const path = requestPath(request);
 				const responseStatusGroup = statusGroup(response.status);
 				const requestMetricAttributes = {
-					app: "leuchtturm",
 					method: request.method,
 					route: path,
-					stage: Resource.App.stage,
 				};
 				const logAnnotations = {
 					duration_ms: durationMs,
@@ -111,7 +97,7 @@ export namespace ObservabilityMiddleware {
 					kind: "server",
 					parent: Option.getOrUndefined(HttpTraceContext.fromHeaders(request.headers)),
 				}),
-				Effect.ensuring(flushTelemetry),
+				Effect.provide(Telemetry.layer),
 			);
 		}),
 	);
