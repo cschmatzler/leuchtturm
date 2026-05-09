@@ -11,6 +11,7 @@ export const Route = createFileRoute("/$organization/teams/$team/")({
 function Page() {
 	const { team } = Route.useParams();
 	const { organizationId } = Route.useRouteContext();
+
 	const [currentTeam] = useZeroQuery(queries.team({ organizationId, team }));
 
 	return (

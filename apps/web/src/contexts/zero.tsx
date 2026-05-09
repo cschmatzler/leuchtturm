@@ -27,6 +27,7 @@ export function ZeroProvider({
 	children: ReactNode;
 }) {
 	const router = useRouter();
+
 	const [ready, setReady] = useState(false);
 	const hasInvalidatedRef = useRef(false);
 

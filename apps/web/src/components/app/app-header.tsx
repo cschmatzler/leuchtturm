@@ -49,6 +49,7 @@ export function AppHeader({
 }) {
 	const navigate = useNavigate();
 	const matchRoute = useMatchRoute();
+
 	const [currentUser] = useZeroQuery(queries.currentUser());
 	const [currentOrganization] = useZeroQuery(queries.organization({ organization }));
 	const { data: organizations } = useQuery(organizationsQuery());

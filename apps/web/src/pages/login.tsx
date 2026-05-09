@@ -38,6 +38,7 @@ export const Route = createFileRoute("/login")({
 function Page() {
 	const t = useGT();
 	const { redirect } = Route.useSearch();
+
 	const [submitError, setSubmitError] = useState<string>();
 	const [magicLinkSentTo, setMagicLinkSentTo] = useState<string>();
 	const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);

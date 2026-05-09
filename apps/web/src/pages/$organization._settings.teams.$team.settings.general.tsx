@@ -58,7 +58,9 @@ function GeneralSettings(props: { readonly organization: string; readonly team: 
 	const navigate = useNavigate();
 	const t = useGT();
 	const { delete: isDeleteDialogOpen } = Route.useSearch();
+
 	const [team] = useZeroQuery(queries.team({ organizationId, team: props.team }));
+
 	const [deleteTeamConfirmation, setDeleteTeamConfirmation] = useState("");
 	const [isDeletingTeam, setIsDeletingTeam] = useState(false);
 

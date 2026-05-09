@@ -115,6 +115,7 @@ function checkFunction(context, node) {
 	}
 
 	let previousGroup;
+	let previousStatement;
 	for (const statement of node.body.body) {
 		const group = getDeclarationHookGroup(statement);
 		if (!group) {
@@ -129,7 +130,22 @@ function checkFunction(context, node) {
 			return;
 		}
 
+		if (
+			previousGroup &&
+			previousGroup !== group &&
+			previousStatement?.loc?.end?.line !== undefined &&
+			statement.loc?.start?.line !== undefined &&
+			statement.loc.start.line <= previousStatement.loc.end.line + 1
+		) {
+			context.report({
+				node: statement,
+				messageId: "missingBlankLine",
+			});
+			return;
+		}
+
 		previousGroup = group;
+		previousStatement = statement;
 	}
 }
 
@@ -143,6 +159,7 @@ const rule = {
 		messages: {
 			wrongOrder:
 				"Group top-level component hooks consistently: route hooks first, then query hooks, then local state hooks.",
+			missingBlankLine: "Separate top-level component hook groups with a blank line.",
 		},
 	},
 	create(context) {

@@ -53,7 +53,9 @@ function Layout() {
 	const { organization } = Route.useParams();
 	const { session } = Route.useRouteContext();
 	const navigate = useNavigate();
+
 	const { data: organizations } = useQuery(organizationsQuery());
+
 	const t = useGT();
 	const { deviceSessions, signOutCurrent, signOutAll } = useAuth();
 	const commandBar = useCommandBar();

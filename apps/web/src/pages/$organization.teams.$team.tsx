@@ -20,6 +20,7 @@ function Layout() {
 	const { organization, team } = Route.useParams();
 	const { organizationId } = Route.useRouteContext();
 	const navigate = useNavigate();
+
 	const [currentTeam] = useZeroQuery(queries.team({ organizationId, team }));
 	const [teams] = useZeroQuery(queries.organizationTeams({ organizationId }));
 	const t = useGT();
