@@ -1,10 +1,6 @@
 import * as grafana from "@pulumiverse/grafana";
 
-import { secrets } from "@leuchtturm/infra/secrets";
-
-const cloudProvider = new grafana.Provider("GrafanaCloudProvider", {
-	cloudAccessPolicyToken: secrets.grafanaApiToken.value,
-});
+const cloudProvider = new grafana.Provider("GrafanaCloudProvider");
 
 const stack = new grafana.cloud.Stack(
 	"GrafanaStack",
