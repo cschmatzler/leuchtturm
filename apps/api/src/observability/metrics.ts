@@ -1,6 +1,6 @@
 import * as OtelMetrics from "@effect/opentelemetry/Metrics";
 import * as OtelResource from "@effect/opentelemetry/Resource";
-import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-http";
+import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-proto";
 import { PeriodicExportingMetricReader } from "@opentelemetry/sdk-metrics";
 import * as Layer from "effect/Layer";
 import * as Metric from "effect/Metric";

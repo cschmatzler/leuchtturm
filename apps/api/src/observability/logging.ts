@@ -1,6 +1,6 @@
 import * as OtelLogger from "@effect/opentelemetry/Logger";
 import * as OtelResource from "@effect/opentelemetry/Resource";
-import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http";
+import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-proto";
 import { BatchLogRecordProcessor } from "@opentelemetry/sdk-logs";
 import * as Layer from "effect/Layer";
 import { Resource } from "sst";
