@@ -21,17 +21,14 @@ export namespace RequestContext {
 		"@leuchtturm/RequestContext",
 	) {}
 
-	const requestId = (request: HttpServerRequest.HttpServerRequest) =>
-		Headers.get(request.headers, "x-request-id").pipe(
-			Option.map((value) => value.trim()),
-			Option.flatMap(Schema.decodeUnknownOption(RequestId)),
-			Option.getOrElse(() => crypto.randomUUID()),
-		);
-
 	export const Middleware = HttpMiddleware.make((app) =>
 		Effect.gen(function* () {
 			const request = yield* HttpServerRequest.HttpServerRequest;
-			const id = requestId(request);
+			const id = Headers.get(request.headers, "x-request-id").pipe(
+				Option.map((value) => value.trim()),
+				Option.flatMap(Schema.decodeUnknownOption(RequestId)),
+				Option.getOrElse(() => crypto.randomUUID()),
+			);
 			const context = Service.of({
 				method: request.method,
 				path: request.url,
