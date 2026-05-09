@@ -1,5 +1,3 @@
-import { instrument } from "@microlabs/otel-cf-workers";
-import { trace } from "@opentelemetry/api";
 import * as Cause from "effect/Cause";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
@@ -101,7 +99,6 @@ namespace Api {
 				handle: Effect.fn("Api.handle")(
 					(request: Request, waitUntil?: (promise: Promise<unknown>) => void) => {
 						const requestContext = RequestRuntime.makeContext({
-							activeSpan: trace.getActiveSpan(),
 							waitUntil,
 						});
 
@@ -136,30 +133,8 @@ namespace Api {
 	export const create = (env: Env) => makeRuntime(Service, layer(env));
 }
 
-const grafanaOtlp = JSON.parse(Resource.GrafanaOtlpUrl.value);
-
-export default wrapCloudflareHandler(
-	instrument(
-		{
-			fetch(
-				request: Request,
-				env: Api.Env,
-				ctx: { waitUntil: (promise: Promise<unknown>) => void },
-			) {
-				return Api.create(env).runPromise((api) => api.handle(request, ctx.waitUntil.bind(ctx)));
-			},
-		},
-		() => ({
-			exporter: {
-				headers: {
-					Authorization: grafanaOtlp.authorization,
-				},
-				url: `${grafanaOtlp.url}/v1/traces`,
-			},
-			service: {
-				name: "leuchtturm-api",
-				namespace: "leuchtturm",
-			},
-		}),
-	),
-);
+export default wrapCloudflareHandler({
+	fetch(request: Request, env: Api.Env, ctx: { waitUntil: (promise: Promise<unknown>) => void }) {
+		return Api.create(env).runPromise((api) => api.handle(request, ctx.waitUntil.bind(ctx)));
+	},
+});

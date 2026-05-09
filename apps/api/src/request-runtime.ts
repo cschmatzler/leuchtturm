@@ -1,11 +1,7 @@
-import * as OtelTracer from "@effect/opentelemetry/Tracer";
-import type { Span } from "@opentelemetry/api";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Metric from "effect/Metric";
-import * as References from "effect/References";
-import * as Tracer from "effect/Tracer";
 
 export namespace RequestRuntime {
 	export interface Interface {
@@ -21,28 +17,13 @@ export namespace RequestRuntime {
 	export const layer = Layer.succeed(Service, Service.of({}));
 
 	export const makeContext = (options: {
-		readonly activeSpan?: Span | null;
 		readonly waitUntil?: (promise: Promise<unknown>) => void;
-	}) => {
-		const activeSpan = options.activeSpan ?? undefined;
-		const requestContext = Context.add(
-			Context.add(
-				Context.add(Context.empty(), Metric.MetricRegistry, metricRegistry),
-				References.TracerEnabled,
-				false,
-			),
+	}) =>
+		Context.add(
+			Context.add(Context.empty(), Metric.MetricRegistry, metricRegistry),
 			Service,
 			Service.of({ waitUntil: options.waitUntil }),
 		);
-
-		return activeSpan
-			? Context.add(
-					requestContext,
-					Tracer.ParentSpan,
-					OtelTracer.makeExternalSpan(activeSpan.spanContext()),
-				)
-			: requestContext;
-	};
 
 	export const register = (promise: Promise<unknown>) =>
 		Effect.gen(function* () {

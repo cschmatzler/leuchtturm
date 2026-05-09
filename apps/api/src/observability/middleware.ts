@@ -7,88 +7,109 @@ import * as HttpServerError from "effect/unstable/http/HttpServerError";
 import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import type * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 
+import { Logging } from "@leuchtturm/api/observability/logging";
 import { Metrics } from "@leuchtturm/api/observability/metrics";
 import {
 	requestPath,
 	requestSpanAttributes,
 	statusGroup,
 } from "@leuchtturm/api/observability/request";
+import { Tracing } from "@leuchtturm/api/observability/tracing";
 import { RequestRuntime } from "@leuchtturm/api/request-runtime";
 
 export namespace ObservabilityMiddleware {
 	export const layer = HttpMiddleware.make((app) =>
 		Effect.gen(function* () {
 			const request = yield* HttpServerRequest.HttpServerRequest;
-			yield* Effect.annotateCurrentSpan(requestSpanAttributes(request));
 			const startedAt = Date.now();
-			const exit = yield* Effect.exit(app);
-			const durationMs = Date.now() - startedAt;
-			let response: HttpServerResponse.HttpServerResponse;
-			let errorCause: Cause.Cause<unknown> | undefined;
-
-			if (exit._tag === "Success") {
-				response = exit.value;
-			} else {
-				[response] = yield* HttpServerError.causeResponse(exit.cause);
-				errorCause = exit.cause;
-				if (response.status >= 500) {
-					yield* Effect.annotateCurrentSpan({
-						"request.error": Cause.pretty(exit.cause),
-					});
-				}
-			}
-
-			const path = requestPath(request);
-			const responseStatusGroup = statusGroup(response.status);
-			const requestMetricAttributes = {
-				method: request.method,
-				route: path,
-			};
-			yield* Metric.update(
-				Metric.withAttributes(Metrics.requestDuration, requestMetricAttributes),
-				Duration.millis(durationMs),
-			);
-			yield* Metric.update(
-				Metric.withAttributes(Metrics.requestCount, {
-					...requestMetricAttributes,
+			const observe = (
+				response: HttpServerResponse.HttpServerResponse,
+				cause?: Cause.Cause<unknown>,
+			) => {
+				const durationMs = Date.now() - startedAt;
+				const path = requestPath(request);
+				const responseStatusGroup = statusGroup(response.status);
+				const requestMetricAttributes = {
+					method: request.method,
+					route: path,
+				};
+				const logAnnotations = {
+					duration_ms: durationMs,
+					method: request.method,
+					path,
+					...(cause ? { request_error: Cause.pretty(cause) } : {}),
+					status: response.status,
 					status_group: responseStatusGroup,
-				}),
-				1,
-			);
-			yield* Effect.annotateCurrentSpan({
-				"http.response.status_code": response.status,
-				"http.response.status_group": responseStatusGroup,
-				"request.duration_ms": durationMs,
-			});
-			yield* RequestRuntime.register((yield* Metrics.Flusher).flush());
+				};
+				const logLevel =
+					response.status >= 500 ? "Error" : response.status >= 400 ? "Warn" : "Info";
+				const logMessage =
+					response.status >= 500
+						? "API request failed"
+						: response.status >= 400
+							? "API request rejected"
+							: "API request succeeded";
 
-			const logAnnotations = {
-				duration_ms: durationMs,
-				method: request.method,
-				path,
-				...(errorCause ? { request_error: Cause.pretty(errorCause) } : {}),
-				status: response.status,
-				status_group: responseStatusGroup,
+				return Effect.all([
+					Metric.update(
+						Metric.withAttributes(Metrics.requestDuration, requestMetricAttributes),
+						Duration.millis(durationMs),
+					),
+					Metric.update(
+						Metric.withAttributes(Metrics.requestCount, {
+							...requestMetricAttributes,
+							status_group: responseStatusGroup,
+						}),
+						1,
+					),
+					Metric.update(
+						Metric.withAttributes(Metrics.requestErrorCount, {
+							...requestMetricAttributes,
+							error_type: "response",
+							status_group: responseStatusGroup,
+						}),
+						1,
+					).pipe(Effect.when(Effect.succeed(response.status >= 500))),
+					Effect.annotateCurrentSpan({
+						"http.response.status_code": response.status,
+						"http.response.status_group": responseStatusGroup,
+						"request.duration_ms": durationMs,
+						...(cause && response.status >= 500 ? { "request.error": Cause.pretty(cause) } : {}),
+					}),
+				]).pipe(
+					Effect.andThen(
+						Effect.logWithLevel(logLevel)(logMessage).pipe(Effect.annotateLogs(logAnnotations)),
+					),
+					Effect.andThen(
+						Effect.gen(function* () {
+							const metrics = yield* Metrics.Flusher;
+							const logging = yield* Logging.Flusher;
+							const tracing = yield* Tracing.Flusher;
+
+							yield* RequestRuntime.register(
+								Promise.all([metrics.flush(), logging.flush(), tracing.flush()]).then(
+									() => undefined,
+								),
+							);
+						}),
+					),
+					Effect.as(response),
+				);
 			};
 
-			if (response.status >= 500) {
-				yield* Metric.update(
-					Metric.withAttributes(Metrics.requestErrorCount, {
-						...requestMetricAttributes,
-						error_type: "response",
-						status_group: responseStatusGroup,
-					}),
-					1,
-				);
-				yield* Effect.logError("API request failed").pipe(Effect.annotateLogs(logAnnotations));
-			} else if (response.status >= 400) {
-				yield* Effect.logWarning("API request rejected").pipe(Effect.annotateLogs(logAnnotations));
-			} else {
-				yield* Effect.logInfo("API request succeeded").pipe(Effect.annotateLogs(logAnnotations));
-			}
-
-			if (exit._tag === "Success") return response;
-			return yield* Effect.failCause(exit.cause);
+			return yield* Effect.annotateCurrentSpan(requestSpanAttributes(request)).pipe(
+				Effect.andThen(
+					app.pipe(
+						Effect.tap(observe),
+						Effect.catchCause((cause) =>
+							HttpServerError.causeResponse(cause).pipe(
+								Effect.tap(([response]) => observe(response, cause)),
+								Effect.andThen(Effect.failCause(cause)),
+							),
+						),
+					),
+				),
+			);
 		}),
 	);
 }
