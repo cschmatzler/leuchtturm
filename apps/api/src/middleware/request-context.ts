@@ -18,10 +18,7 @@ export namespace RequestContext {
 		"@leuchtturm/api/RequestContext",
 	) {}
 
-	export function makeContext(
-		request: Request,
-		executionContext: Pick<ExecutionContext, "waitUntil">,
-	) {
+	export function make(request: Request, executionContext: Pick<ExecutionContext, "waitUntil">) {
 		const requestId = Option.fromNullishOr(request.headers.get("x-request-id")).pipe(
 			Option.map((value) => value.trim()),
 			Option.flatMap(Schema.decodeUnknownOption(Schema.String.check(Schema.isUUID(4)))),

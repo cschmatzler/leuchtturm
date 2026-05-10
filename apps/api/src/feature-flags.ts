@@ -37,19 +37,16 @@ export namespace FeatureFlags {
 		}
 	}
 
-	export const FeatureFlagsError = Schema.Union([
+	export const Error = Schema.Union([
 		FeatureFlagProviderRequestError,
 		FeatureFlagMissingEvaluationError,
 	]);
 
 	export interface Interface {
-		readonly isEnabled: (
-			key: string,
-			userId: string,
-		) => Effect.Effect<boolean, typeof FeatureFlagsError.Type>;
+		readonly isEnabled: (key: string, userId: string) => Effect.Effect<boolean, typeof Error.Type>;
 		readonly listForUser: (
 			userId: string,
-		) => Effect.Effect<Record<string, boolean>, typeof FeatureFlagsError.Type>;
+		) => Effect.Effect<Record<string, boolean>, typeof Error.Type>;
 	}
 
 	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/FeatureFlags") {}

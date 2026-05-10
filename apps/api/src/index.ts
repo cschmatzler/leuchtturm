@@ -90,14 +90,14 @@ namespace Api {
 			Service.of({
 				handle: Effect.fn("Api.handle")(
 					(request: Request, executionContext: Pick<ExecutionContext, "waitUntil">) => {
-						const requestContext = RequestContext.makeContext(request, executionContext);
+						const requestContext = RequestContext.make(request, executionContext);
 
 						return Effect.tryPromise({
 							try: () =>
 								(
 									handler.handler as (
 										request: Request,
-										context: ReturnType<typeof RequestContext.makeContext>,
+										context: ReturnType<typeof RequestContext.make>,
 									) => Promise<Response>
 								)(request, requestContext),
 							catch: (cause) => cause,
