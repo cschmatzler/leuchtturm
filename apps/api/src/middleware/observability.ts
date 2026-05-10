@@ -1,4 +1,5 @@
 import * as Cause from "effect/Cause";
+import * as Clock from "effect/Clock";
 import * as Effect from "effect/Effect";
 import * as Metric from "effect/Metric";
 import * as Option from "effect/Option";
@@ -22,12 +23,12 @@ export namespace Observability {
 		app: Effect.Effect<HttpServerResponse.HttpServerResponse, E, R>,
 	) {
 		const request = yield* HttpServerRequest.HttpServerRequest;
-		const startedAt = Date.now();
-		const observe = (
+		const startedAt = yield* Clock.currentTimeMillis;
+		const observe = Effect.fn("Observability.observe")(function* (
 			response: HttpServerResponse.HttpServerResponse,
 			cause?: Cause.Cause<unknown>,
-		) => {
-			const durationMs = Date.now() - startedAt;
+		) {
+			const durationMs = (yield* Clock.currentTimeMillis) - startedAt;
 			const path = requestPath(request);
 			const responseStatusGroup = statusGroup(response.status);
 			const requestMetricAttributes = {
@@ -50,7 +51,7 @@ export namespace Observability {
 						? "API request rejected"
 						: "API request succeeded";
 
-			return Effect.all([
+			return yield* Effect.all([
 				Metric.update(
 					Metric.withAttributes(Metrics.requestDuration, requestMetricAttributes),
 					durationMs,
@@ -82,7 +83,7 @@ export namespace Observability {
 				),
 				Effect.as(response),
 			);
-		};
+		});
 
 		return yield* app.pipe(
 			Effect.tap(observe),

@@ -7,8 +7,7 @@ import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 import * as HttpApiBuilder from "effect/unstable/httpapi/HttpApiBuilder";
 
-import { LeuchtturmApi } from "@leuchtturm/api/contract";
-import { AuthMiddleware } from "@leuchtturm/api/middleware/auth";
+import { CurrentUser, LeuchtturmApi } from "@leuchtturm/api/contract";
 import { Database } from "@leuchtturm/core/drizzle";
 import { DatabaseError } from "@leuchtturm/core/errors";
 import { mutators } from "@leuchtturm/zero/mutators";
@@ -17,7 +16,7 @@ import { schema } from "@leuchtturm/zero/schema";
 
 export namespace ZeroHandler {
 	const handleQuery = Effect.fn("zero.query")(function* () {
-		const { user } = yield* AuthMiddleware.CurrentUser;
+		const { user } = yield* CurrentUser;
 		const request = yield* HttpServerRequest.HttpServerRequest;
 		const rawRequest = yield* HttpServerRequest.toWeb(request).pipe(Effect.orDie);
 
@@ -45,7 +44,7 @@ export namespace ZeroHandler {
 	});
 
 	const handleMutate = Effect.fn("zero.mutate")(function* () {
-		const { user } = yield* AuthMiddleware.CurrentUser;
+		const { user } = yield* CurrentUser;
 		const { rawDatabase } = yield* Database.Service;
 		const ctx = { userId: user.id };
 		const request = yield* HttpServerRequest.HttpServerRequest;
