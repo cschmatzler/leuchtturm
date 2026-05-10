@@ -18,18 +18,17 @@ export namespace RequestContext {
 		"@leuchtturm/api/RequestContext",
 	) {}
 
-	export const makeContext = (
+	export function makeContext(
 		request: Request,
 		executionContext: Pick<ExecutionContext, "waitUntil">,
-	) => {
+	) {
 		const requestId = Option.fromNullishOr(request.headers.get("x-request-id")).pipe(
 			Option.map((value) => value.trim()),
 			Option.flatMap(Schema.decodeUnknownOption(Schema.String.check(Schema.isUUID(4)))),
 			Option.getOrElse(() => crypto.randomUUID()),
 		);
 
-		return Context.add(
-			Context.empty(),
+		return Context.make(
 			Service,
 			Service.of({
 				method: request.method,
@@ -38,7 +37,7 @@ export namespace RequestContext {
 				waitUntil: executionContext.waitUntil.bind(executionContext),
 			}),
 		);
-	};
+	}
 
 	const run = Effect.fn("RequestContext.run")(function* <E, R>(
 		app: Effect.Effect<HttpServerResponse.HttpServerResponse, E, R>,
