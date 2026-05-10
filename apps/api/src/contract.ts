@@ -4,7 +4,7 @@ import * as HttpApiEndpoint from "effect/unstable/httpapi/HttpApiEndpoint";
 import * as HttpApiGroup from "effect/unstable/httpapi/HttpApiGroup";
 
 import { ErrorCatalog } from "@leuchtturm/api/errors";
-import { AuthMiddleware } from "@leuchtturm/api/middleware/auth";
+import { AuthMiddleware } from "@leuchtturm/api/middleware/auth-contract";
 import { DeviceSessions } from "@leuchtturm/core/auth/schema";
 
 const HealthCheckSuccessResponse = Schema.Struct({
