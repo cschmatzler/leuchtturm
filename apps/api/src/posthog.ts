@@ -7,7 +7,7 @@ import { Resource } from "sst";
 import { RequestContext } from "@leuchtturm/api/middleware/request-context";
 
 export namespace ProductAnalytics {
-	const createClient = (waitUntil: RequestContext.RequestContextShape["waitUntil"]) =>
+	const createClient = (waitUntil: RequestContext.Interface["waitUntil"]) =>
 		new PostHog(Resource.PostHogProjectApiKey.value, {
 			host: Resource.PostHogHost.value,
 			waitUntil,

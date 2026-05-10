@@ -8,12 +8,12 @@ import * as HttpApiMiddleware from "effect/unstable/httpapi/HttpApiMiddleware";
 import { ErrorCatalog, Errors } from "@leuchtturm/api/errors";
 import { DeviceSessions, SessionSelect, UserSelect } from "@leuchtturm/core/auth/schema";
 
-export interface CurrentUserShape {
+export interface CurrentUserInterface {
 	readonly user: typeof UserSelect.Type;
 	readonly session: typeof SessionSelect.Type;
 }
 
-export class CurrentUser extends Context.Service<CurrentUser, CurrentUserShape>()(
+export class CurrentUser extends Context.Service<CurrentUser, CurrentUserInterface>()(
 	"@leuchtturm/api/AuthMiddleware/CurrentUser",
 ) {}
 
