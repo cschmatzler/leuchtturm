@@ -1,11 +1,26 @@
+import * as Context from "effect/Context";
 import * as Schema from "effect/Schema";
 import * as HttpApi from "effect/unstable/httpapi/HttpApi";
 import * as HttpApiEndpoint from "effect/unstable/httpapi/HttpApiEndpoint";
 import * as HttpApiGroup from "effect/unstable/httpapi/HttpApiGroup";
+import * as HttpApiMiddleware from "effect/unstable/httpapi/HttpApiMiddleware";
 
-import { ErrorCatalog } from "@leuchtturm/api/errors";
-import { AuthMiddleware } from "@leuchtturm/api/middleware/auth-contract";
-import { DeviceSessions } from "@leuchtturm/core/auth/schema";
+import { ErrorCatalog, Errors } from "@leuchtturm/api/errors";
+import { DeviceSessions, SessionSelect, UserSelect } from "@leuchtturm/core/auth/schema";
+
+export interface CurrentUserShape {
+	readonly user: typeof UserSelect.Type;
+	readonly session: typeof SessionSelect.Type;
+}
+
+export class CurrentUser extends Context.Service<CurrentUser, CurrentUserShape>()(
+	"@leuchtturm/api/AuthMiddleware/CurrentUser",
+) {}
+
+export class AuthMiddleware extends HttpApiMiddleware.Service<
+	AuthMiddleware,
+	{ provides: CurrentUser }
+>()("@leuchtturm/api/AuthMiddleware", { error: Errors }) {}
 
 const HealthCheckSuccessResponse = Schema.Struct({
 	success: Schema.Literal(true),
@@ -42,7 +57,7 @@ export const health = HttpApiGroup.make("health").add(
 export const zero = HttpApiGroup.make("zero")
 	.add(HttpApiEndpoint.post("query", "/query"))
 	.add(HttpApiEndpoint.post("mutate", "/mutate"))
-	.middleware(AuthMiddleware.Service);
+	.middleware(AuthMiddleware);
 
 export const session = HttpApiGroup.make("session")
 	.add(
@@ -50,7 +65,7 @@ export const session = HttpApiGroup.make("session")
 			success: DeviceSessions,
 		}),
 	)
-	.middleware(AuthMiddleware.Service);
+	.middleware(AuthMiddleware);
 
 export const billing = HttpApiGroup.make("billing")
 	.add(
@@ -71,7 +86,7 @@ export const billing = HttpApiGroup.make("billing")
 			success: BillingUrlResponse,
 		}),
 	)
-	.middleware(AuthMiddleware.Service);
+	.middleware(AuthMiddleware);
 
 export const auth = HttpApiGroup.make("auth")
 	.add(HttpApiEndpoint.get("authGet", "/auth/*"))
