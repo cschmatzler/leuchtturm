@@ -1,6 +1,8 @@
 import { all } from "@pulumi/pulumi";
 import * as grafana from "@pulumiverse/grafana";
 
+import apiDashboard from "@leuchtturm/infra/grafana/api" with { type: "json" };
+
 const cloudProvider = new grafana.Provider("GrafanaCloudProvider");
 const grafanaCloudRegion = "eu";
 
@@ -67,90 +69,11 @@ const grafanaStack = (() => {
 			"GrafanaApiDashboard",
 			{
 				configJson: stack.slug.apply((slug) =>
-					JSON.stringify({
-						annotations: { list: [] },
-						editable: true,
-						fiscalYearStartMonth: 0,
-						graphTooltip: 1,
-						panels: [
-							{
-								datasource: { type: "prometheus", uid: `grafanacloud-${slug}-prom` },
-								fieldConfig: { defaults: { unit: "reqps" }, overrides: [] },
-								gridPos: { h: 8, w: 12, x: 0, y: 0 },
-								id: 1,
-								targets: [
-									{
-										expr: 'sum by (route, method) (rate(api_requests_total{stage=~"$stage"}[5m]))',
-										legendFormat: "{{method}} {{route}}",
-										refId: "A",
-									},
-								],
-								title: "API request rate",
-								type: "timeseries",
-							},
-							{
-								datasource: { type: "prometheus", uid: `grafanacloud-${slug}-prom` },
-								fieldConfig: { defaults: { unit: "ms" }, overrides: [] },
-								gridPos: { h: 8, w: 12, x: 12, y: 0 },
-								id: 2,
-								targets: [
-									{
-										expr: 'sum by (route, method) (rate(api_request_duration_ms_sum{stage=~"$stage"}[5m])) / sum by (route, method) (rate(api_request_duration_ms_count{stage=~"$stage"}[5m]))',
-										legendFormat: "{{method}} {{route}}",
-										refId: "A",
-									},
-								],
-								title: "Average API duration",
-								type: "timeseries",
-							},
-							{
-								datasource: { type: "loki", uid: `grafanacloud-${slug}-logs` },
-								gridPos: { h: 10, w: 12, x: 0, y: 8 },
-								id: 3,
-								targets: [
-									{
-										expr: '{app="leuchtturm", stage=~"$stage", service_name="leuchtturm-api"} | json',
-										refId: "A",
-									},
-								],
-								title: "API logs",
-								type: "logs",
-							},
-							{
-								datasource: { type: "tempo", uid: `grafanacloud-${slug}-traces` },
-								gridPos: { h: 10, w: 12, x: 12, y: 8 },
-								id: 4,
-								targets: [{ query: "leuchtturm-api", queryType: "serviceMap", refId: "A" }],
-								title: "API traces",
-								type: "nodeGraph",
-							},
-						],
-						refresh: "30s",
-						schemaVersion: 39,
-						tags: ["leuchtturm", "api"],
-						templating: {
-							list: [
-								{
-									current: { selected: true, text: $app.stage, value: $app.stage },
-									datasource: { type: "prometheus", uid: `grafanacloud-${slug}-prom` },
-									definition: "label_values(api_requests_total, stage)",
-									label: "Stage",
-									name: "stage",
-									query: {
-										query: "label_values(api_requests_total, stage)",
-										refId: "StandardVariableQuery",
-									},
-									refresh: 1,
-									type: "query",
-								},
-							],
-						},
-						time: { from: "now-6h", to: "now" },
-						timezone: "browser",
-						title: "Leuchtturm API",
-						uid: "leuchtturm-api",
-						version: 1,
-					}),
+					JSON.stringify(apiDashboard)
+						.replaceAll("__APP_STAGE__", $app.stage)
+						.replaceAll("__GRAFANA_LOGS_UID__", `grafanacloud-${slug}-logs`)
+						.replaceAll("__GRAFANA_PROMETHEUS_UID__", `grafanacloud-${slug}-prom`)
+						.replaceAll("__GRAFANA_TRACES_UID__", `grafanacloud-${slug}-traces`),
 				),
 				folder: folder.uid,
 				overwrite: true,
