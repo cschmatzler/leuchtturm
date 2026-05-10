@@ -1,6 +1,7 @@
 import * as Clock from "effect/Clock";
 import * as Effect from "effect/Effect";
 import * as Metric from "effect/Metric";
+import * as Option from "effect/Option";
 import * as HttpMiddleware from "effect/unstable/http/HttpMiddleware";
 import * as HttpServerError from "effect/unstable/http/HttpServerError";
 import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
@@ -24,7 +25,10 @@ export namespace Observability {
 	) {
 		const request = yield* HttpServerRequest.HttpServerRequest;
 		const startedAt = yield* Clock.currentTimeMillis;
-		const [path] = request.url.split("?");
+		const path = Option.getOrElse(
+			Option.map(HttpServerRequest.toURL(request), (url) => url.pathname),
+			() => request.url,
+		);
 
 		const record = (response: HttpServerResponse.HttpServerResponse) =>
 			Effect.gen(function* () {
