@@ -10,7 +10,6 @@ import * as HttpApiBuilder from "effect/unstable/httpapi/HttpApiBuilder";
 import { Resource } from "sst";
 import { wrapCloudflareHandler } from "sst/resource/cloudflare";
 
-import { BackgroundTasks } from "@leuchtturm/api/background";
 import { LeuchtturmApi } from "@leuchtturm/api/contract";
 import { ErrorCatalog } from "@leuchtturm/api/errors";
 import { FeatureFlags } from "@leuchtturm/api/feature-flags";
@@ -66,12 +65,7 @@ namespace Api {
 			Billing.defaultLayer,
 			FeatureFlags.defaultLayer,
 		).pipe(Layer.provideMerge(database));
-		const runtime = Layer.mergeAll(
-			core,
-			HttpServer.layerServices,
-			BackgroundTasks.layer,
-			ProductAnalytics.layer,
-		);
+		const runtime = Layer.mergeAll(core, HttpServer.layerServices, ProductAnalytics.layer);
 		const handler = HttpEffect.toWebHandlerLayer(api, runtime, {
 			middleware: (app) =>
 				HttpMiddleware.cors({
