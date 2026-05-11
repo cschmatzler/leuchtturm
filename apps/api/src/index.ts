@@ -53,6 +53,7 @@ namespace Api {
 			ZeroHandler.layer,
 			AuthHandler.layer,
 		);
+
 		const api = HttpRouter.toHttpEffect(
 			HttpApiBuilder.layer(LeuchtturmApi).pipe(
 				Layer.provide(handlers),
@@ -60,18 +61,22 @@ namespace Api {
 				Layer.provide(ErrorCatalog.layer),
 			),
 		).pipe(Effect.flatten);
+
 		const database = Database.layer(env.Database.connectionString);
+
 		const core = Layer.mergeAll(
 			Auth.defaultLayer,
 			Billing.defaultLayer,
 			FeatureFlags.defaultLayer,
 		).pipe(Layer.provideMerge(database));
+
 		const runtime = Layer.mergeAll(
 			core,
 			HttpServer.layerServices,
 			ProductAnalytics.layer,
 			Metrics.layer,
 		);
+
 		const handler = HttpEffect.toWebHandlerLayer(api, runtime, {
 			middleware: (app) =>
 				HttpMiddleware.cors({
