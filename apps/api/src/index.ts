@@ -16,11 +16,13 @@ import { FeatureFlags } from "@leuchtturm/api/feature-flags";
 import { AuthHandler } from "@leuchtturm/api/handlers/auth";
 import { BillingHandler } from "@leuchtturm/api/handlers/billing";
 import { HealthHandler } from "@leuchtturm/api/handlers/health";
+import { MetricsHandler } from "@leuchtturm/api/handlers/metrics";
 import { SessionHandler } from "@leuchtturm/api/handlers/session";
 import { ZeroHandler } from "@leuchtturm/api/handlers/zero";
 import { AuthMiddleware } from "@leuchtturm/api/middleware/auth";
 import { Observability } from "@leuchtturm/api/middleware/observability";
 import { RequestContext } from "@leuchtturm/api/middleware/request-context";
+import { Metrics } from "@leuchtturm/api/observability/metrics";
 import { ProductAnalytics } from "@leuchtturm/api/posthog";
 import { Auth } from "@leuchtturm/core/auth";
 import { Billing } from "@leuchtturm/core/billing";
@@ -47,6 +49,7 @@ namespace Api {
 	export const layer = (env: Env) => {
 		const handlers = Layer.mergeAll(
 			HealthHandler.layer,
+			MetricsHandler.layer,
 			SessionHandler.layer,
 			BillingHandler.layer,
 			ZeroHandler.layer,
@@ -65,7 +68,12 @@ namespace Api {
 			Billing.defaultLayer,
 			FeatureFlags.defaultLayer,
 		).pipe(Layer.provideMerge(database));
-		const runtime = Layer.mergeAll(core, HttpServer.layerServices, ProductAnalytics.layer);
+		const runtime = Layer.mergeAll(
+			core,
+			HttpServer.layerServices,
+			ProductAnalytics.layer,
+			Metrics.layer,
+		);
 		const handler = HttpEffect.toWebHandlerLayer(api, runtime, {
 			middleware: (app) =>
 				HttpMiddleware.cors({

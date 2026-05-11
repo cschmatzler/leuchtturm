@@ -1,25 +1,15 @@
 import * as Clock from "effect/Clock";
 import * as Effect from "effect/Effect";
-import * as Metric from "effect/Metric";
 import * as Option from "effect/Option";
 import * as HttpMiddleware from "effect/unstable/http/HttpMiddleware";
 import * as HttpServerError from "effect/unstable/http/HttpServerError";
 import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 
+import { Metrics } from "@leuchtturm/api/observability/metrics";
 import { Telemetry } from "@leuchtturm/api/observability/telemetry";
 
 export namespace Observability {
-	const requestCount = Metric.counter("api_requests_total", {
-		description: "Total number of API requests handled by the worker.",
-		incremental: true,
-	});
-
-	const requestDuration = Metric.histogram("api_request_duration_ms", {
-		boundaries: Metric.exponentialBoundaries({ start: 0.5, factor: 2, count: 35 }),
-		description: "End-to-end duration of API request handling in milliseconds.",
-	});
-
 	const run = Effect.fn("Observability.run")(function* <E, R>(
 		app: Effect.Effect<HttpServerResponse.HttpServerResponse, E, R>,
 	) {
@@ -40,8 +30,15 @@ export namespace Observability {
 				};
 
 				yield* Effect.all([
-					Metric.update(Metric.withAttributes(requestCount, attributes), 1),
-					Metric.update(Metric.withAttributes(requestDuration, attributes), durationMs),
+					Metrics.increment("api_requests_total", 1, {
+						attributes,
+						description: "Total number of API requests handled by the worker.",
+					}),
+					Metrics.observe("api_request_duration_ms", durationMs, {
+						attributes,
+						boundaries: Metrics.requestDurationBoundaries,
+						description: "End-to-end duration of API request handling in milliseconds.",
+					}),
 				]);
 			});
 
