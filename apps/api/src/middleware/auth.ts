@@ -3,7 +3,7 @@ import * as Layer from "effect/Layer";
 import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 
-import { AuthMiddleware as AuthMiddlewareService, CurrentUser } from "@leuchtturm/api/contract";
+import { Contract } from "@leuchtturm/api/contract";
 import { Auth } from "@leuchtturm/core/auth";
 import { UnauthorizedError } from "@leuchtturm/core/errors";
 
@@ -27,10 +27,10 @@ export namespace AuthMiddleware {
 			return yield* Effect.fail(new UnauthorizedError());
 		}
 
-		return yield* httpApp.pipe(Effect.provideService(CurrentUser, currentUser));
+		return yield* httpApp.pipe(Effect.provideService(Contract.CurrentUserContext, currentUser));
 	});
 
-	export const layer = Layer.effect(AuthMiddlewareService)(
+	export const layer = Layer.effect(Contract.AuthMiddleware)(
 		Effect.gen(function* () {
 			const auth = yield* Auth.Service;
 
