@@ -41,7 +41,7 @@ function Page() {
 			toast.loading(t("Sending sign-up link..."));
 			const email = Schema.decodeSync(UserInsert.fields.email)(value.email);
 			const name = Schema.decodeSync(UserInsert.fields.name)(value.name);
-			const { error } = await authClient.signIn.magicLink({ email, name });
+			const { error } = await authClient.signIn.magicLink({ email, name, callbackURL });
 			toast.dismiss();
 
 			if (error) {

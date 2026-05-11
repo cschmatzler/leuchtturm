@@ -52,7 +52,7 @@ function Page() {
 			setMagicLinkSentTo(undefined);
 			toast.loading(t("Sending sign-in link..."));
 			const email = Schema.decodeSync(UserInsert.fields.email)(value.email);
-			const { error } = await authClient.signIn.magicLink({ email });
+			const { error } = await authClient.signIn.magicLink({ email, callbackURL });
 			toast.dismiss();
 
 			if (error) {
