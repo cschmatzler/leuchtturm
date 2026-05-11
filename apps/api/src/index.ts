@@ -1,11 +1,8 @@
-import * as OtelTracer from "@effect/opentelemetry/Tracer";
 import { instrument } from "@microlabs/otel-cf-workers";
-import { trace } from "@opentelemetry/api";
 import * as Cause from "effect/Cause";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
-import * as EffectTracer from "effect/Tracer";
 import * as HttpEffect from "effect/unstable/http/HttpEffect";
 import * as HttpMiddleware from "effect/unstable/http/HttpMiddleware";
 import * as HttpRouter from "effect/unstable/http/HttpRouter";
@@ -100,17 +97,11 @@ namespace Api {
 			Service,
 			Service.of({
 				handle: Effect.fn("Api.handle")(
-					(request: Request, executionContext: Pick<ExecutionContext, "waitUntil">) => {
-						const activeSpan = trace.getActiveSpan();
-						const requestContext = activeSpan
-							? Context.add(
-									RequestContext.make(request, executionContext),
-									EffectTracer.ParentSpan,
-									OtelTracer.makeExternalSpan(activeSpan.spanContext()),
-								)
-							: RequestContext.make(request, executionContext);
-
-						return Effect.promise(() => handler.handler(request, requestContext)).pipe(
+					(request: Request, executionContext: Pick<ExecutionContext, "waitUntil">) =>
+						Telemetry.withActiveSpan(RequestContext.make(request, executionContext)).pipe(
+							Effect.flatMap((requestContext) =>
+								Effect.promise(() => handler.handler(request, requestContext)),
+							),
 							Effect.catchCause((cause) =>
 								Effect.gen(function* () {
 									yield* Effect.annotateCurrentSpan({
@@ -123,15 +114,12 @@ namespace Api {
 									return yield* Effect.fail(new InternalServerError());
 								}),
 							),
-						);
-					},
+						),
 				),
 			}),
 		);
 	}
 }
-
-const grafanaOtlp = JSON.parse(Resource.GrafanaOtlpUrl.value);
 
 export default wrapCloudflareHandler(
 	instrument(
@@ -143,9 +131,9 @@ export default wrapCloudflareHandler(
 		() => ({
 			exporter: {
 				headers: {
-					Authorization: grafanaOtlp.authorization,
+					Authorization: JSON.parse(Resource.GrafanaOtlpUrl.value).authorization,
 				},
-				url: `${grafanaOtlp.url}/v1/traces`,
+				url: `${JSON.parse(Resource.GrafanaOtlpUrl.value).url}/v1/traces`,
 			},
 			service: {
 				name: "leuchtturm-api",
