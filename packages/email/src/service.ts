@@ -5,7 +5,7 @@ import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Schema from "effect/Schema";
 
-import { type EmailSendParams } from "@leuchtturm/email/shared";
+import { type EmailSendParams } from "@leuchtturm/email/contracts";
 
 export namespace Email {
 	export class EmailProviderRequestError extends Schema.TaggedErrorClass<EmailProviderRequestError>()(

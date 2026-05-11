@@ -2,7 +2,7 @@ import { Button, Heading, Hr, Link, Text } from "@react-email/components";
 import { render } from "@react-email/render";
 import * as Effect from "effect/Effect";
 
-import { EmailRenderError, type EmailSender } from "@leuchtturm/email/shared";
+import { EmailRenderError, type EmailSender } from "@leuchtturm/email/contracts";
 import { defaultFrom, EmailFrame } from "@leuchtturm/email/templates/email-frame";
 
 const preheaderText = "Use this secure link to sign in to Leuchtturm.";
