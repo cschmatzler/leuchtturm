@@ -92,10 +92,6 @@ export const auth = HttpApiGroup.make("auth")
 	.add(HttpApiEndpoint.get("authGet", "/auth/*"))
 	.add(HttpApiEndpoint.post("authPost", "/auth/*"));
 
-export const metrics = HttpApiGroup.make("metrics").add(
-	HttpApiEndpoint.get("prometheus", "/metrics"),
-);
-
 export class LeuchtturmApi extends HttpApi.make("leuchtturm")
-	.add(health, zero, session, billing, auth, metrics)
+	.add(health, zero, session, billing, auth)
 	.middleware(ErrorCatalog) {}

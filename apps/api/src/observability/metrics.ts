@@ -2,7 +2,6 @@ import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Metric from "effect/Metric";
-import { PrometheusMetrics } from "effect/unstable/observability";
 
 export namespace Metrics {
 	export type Attributes = Readonly<Record<string, string>> | ReadonlyArray<[string, string]>;
@@ -35,7 +34,6 @@ export namespace Metrics {
 			value: number,
 			options: HistogramOptions,
 		) => Effect.Effect<void>;
-		readonly formatPrometheus: (options?: PrometheusMetrics.FormatOptions) => Effect.Effect<string>;
 	}
 
 	export class Service extends Context.Service<Service, Interface>()(
@@ -77,7 +75,6 @@ export namespace Metrics {
 					}),
 					value,
 				),
-			formatPrometheus: (options) => PrometheusMetrics.format(options),
 		}),
 	);
 
@@ -97,11 +94,5 @@ export namespace Metrics {
 		Effect.gen(function* () {
 			const metrics = yield* Service;
 			yield* metrics.observe(name, value, options);
-		});
-
-	export const formatPrometheus = (options?: PrometheusMetrics.FormatOptions) =>
-		Effect.gen(function* () {
-			const metrics = yield* Service;
-			return yield* metrics.formatPrometheus(options);
 		});
 }

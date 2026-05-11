@@ -1,4 +1,5 @@
 import * as Effect from "effect/Effect";
+import { PrometheusMetrics } from "effect/unstable/observability";
 import { describe, expect, it } from "vite-plus/test";
 
 import { Metrics } from "@leuchtturm/api/observability/metrics";
@@ -23,7 +24,7 @@ describe("Metrics", () => {
 					description: "API action duration in milliseconds.",
 				});
 
-				return yield* metrics.formatPrometheus();
+				return yield* PrometheusMetrics.format();
 			}).pipe(Effect.provide(Metrics.layer)),
 		);
 
