@@ -22,7 +22,7 @@ export namespace Observability {
 			const record = (response: HttpServerResponse.HttpServerResponse) =>
 				Effect.gen(function* () {
 					const durationMs = (yield* Clock.currentTimeMillis) - startedAt;
-					const rootSpan = yield* Effect.serviceOption(Telemetry.RootSpan);
+					const rootSpan = yield* Telemetry.RootSpan;
 					const attributes = {
 						method: request.method,
 						path,
@@ -32,10 +32,8 @@ export namespace Observability {
 					yield* Effect.annotateCurrentSpan({
 						"http.response.status_code": response.status,
 					});
-					if (Option.isSome(rootSpan)) {
-						rootSpan.value.setAttribute("http.route", path);
-						rootSpan.value.updateName(`${request.method} ${path}`);
-					}
+					rootSpan.setAttribute("http.route", path);
+					rootSpan.updateName(`${request.method} ${path}`);
 
 					yield* Effect.all([
 						Metrics.increment("api_requests_total", 1, {
