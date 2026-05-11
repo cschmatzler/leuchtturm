@@ -4,6 +4,7 @@ import * as HttpApiBuilder from "effect/unstable/httpapi/HttpApiBuilder";
 import { Resource } from "sst";
 
 import { LeuchtturmApi } from "@leuchtturm/api/contract";
+import { Metrics } from "@leuchtturm/api/observability/metrics";
 import { Auth } from "@leuchtturm/core/auth";
 import { Billing } from "@leuchtturm/core/billing";
 import { NotFoundError } from "@leuchtturm/core/errors";
@@ -74,6 +75,36 @@ export namespace BillingHandler {
 	});
 
 	export const layer = HttpApiBuilder.group(LeuchtturmApi, "billing", (handlers) =>
-		handlers.handle("overview", overview).handle("checkout", checkout).handle("portal", portal),
+		handlers
+			.handle("overview", (request) =>
+				overview(request).pipe(
+					Effect.tap(() => Metrics.action("billing.overview", "success")),
+					Effect.catchCause((cause) =>
+						Metrics.action("billing.overview", "failure").pipe(
+							Effect.andThen(Effect.failCause(cause)),
+						),
+					),
+				),
+			)
+			.handle("checkout", (request) =>
+				checkout(request).pipe(
+					Effect.tap(() => Metrics.action("billing.checkout", "success")),
+					Effect.catchCause((cause) =>
+						Metrics.action("billing.checkout", "failure").pipe(
+							Effect.andThen(Effect.failCause(cause)),
+						),
+					),
+				),
+			)
+			.handle("portal", (request) =>
+				portal(request).pipe(
+					Effect.tap(() => Metrics.action("billing.portal", "success")),
+					Effect.catchCause((cause) =>
+						Metrics.action("billing.portal", "failure").pipe(
+							Effect.andThen(Effect.failCause(cause)),
+						),
+					),
+				),
+			),
 	);
 }

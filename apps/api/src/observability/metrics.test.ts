@@ -10,10 +10,8 @@ describe("Metrics", () => {
 			Effect.gen(function* () {
 				const metrics = yield* Metrics.Service;
 
-				yield* metrics.increment("api_action_total", 2, {
-					attributes: { action: "billing.checkout" },
-					description: "API actions completed by action name.",
-				});
+				yield* metrics.action("billing.checkout", "success");
+				yield* Metrics.action("billing.checkout", "failure");
 				yield* Metrics.setGauge("api_queue_depth", 7, {
 					attributes: { queue: "email" },
 					description: "Current API queue depth.",
@@ -28,9 +26,12 @@ describe("Metrics", () => {
 			}).pipe(Effect.provide(Metrics.layer)),
 		);
 
-		expect(output).toContain("# HELP api_action_total API actions completed by action name.");
+		expect(output).toContain(
+			"# HELP api_action_total API actions completed by action name and result.",
+		);
 		expect(output).toContain("# TYPE api_action_total counter");
-		expect(output).toContain('api_action_total{action="billing.checkout"} 2');
+		expect(output).toContain('api_action_total{action="billing.checkout",result="success"} 1');
+		expect(output).toContain('api_action_total{action="billing.checkout",result="failure"} 1');
 		expect(output).toContain("# TYPE api_queue_depth gauge");
 		expect(output).toContain('api_queue_depth{queue="email"} 7');
 		expect(output).toContain("# TYPE api_action_duration_ms histogram");

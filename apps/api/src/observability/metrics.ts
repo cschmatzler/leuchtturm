@@ -23,6 +23,7 @@ export namespace Metrics {
 	}
 
 	export interface Interface {
+		readonly action: (action: string, result: "success" | "failure") => Effect.Effect<void>;
 		readonly increment: (
 			name: string,
 			value?: number,
@@ -49,6 +50,15 @@ export namespace Metrics {
 	export const layer = Layer.succeed(
 		Service,
 		Service.of({
+			action: (action, result) =>
+				Metric.update(
+					Metric.counter("api_action_total", {
+						attributes: { action, result },
+						description: "API actions completed by action name and result.",
+						incremental: true,
+					}),
+					1,
+				),
 			increment: (name, value = 1, options) =>
 				Metric.update(
 					Metric.counter(name, {
@@ -77,6 +87,12 @@ export namespace Metrics {
 				),
 		}),
 	);
+
+	export const action = (action: string, result: "success" | "failure") =>
+		Effect.gen(function* () {
+			const metrics = yield* Service;
+			yield* metrics.action(action, result);
+		});
 
 	export const increment = (name: string, value?: number, options?: CounterOptions) =>
 		Effect.gen(function* () {

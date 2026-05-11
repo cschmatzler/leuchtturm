@@ -35,8 +35,23 @@
 			"type": "timeseries"
 		},
 		{
+			"datasource": { "type": "prometheus", "uid": "__GRAFANA_PROMETHEUS_UID__" },
+			"fieldConfig": { "defaults": { "unit": "ops" }, "overrides": [] },
+			"gridPos": { "h": 8, "w": 24, "x": 0, "y": 8 },
+			"id": 5,
+			"targets": [
+				{
+					"expr": "sum by (action, result) (rate(api_action_total{stage=~\"$stage\"}[5m]))",
+					"legendFormat": "{{action}} {{result}}",
+					"refId": "A"
+				}
+			],
+			"title": "API action rate",
+			"type": "timeseries"
+		},
+		{
 			"datasource": { "type": "loki", "uid": "__GRAFANA_LOGS_UID__" },
-			"gridPos": { "h": 10, "w": 12, "x": 0, "y": 8 },
+			"gridPos": { "h": 10, "w": 12, "x": 0, "y": 16 },
 			"id": 3,
 			"targets": [
 				{
@@ -49,7 +64,7 @@
 		},
 		{
 			"datasource": { "type": "tempo", "uid": "__GRAFANA_TRACES_UID__" },
-			"gridPos": { "h": 10, "w": 12, "x": 12, "y": 8 },
+			"gridPos": { "h": 10, "w": 12, "x": 12, "y": 16 },
 			"id": 4,
 			"targets": [{ "query": "leuchtturm-api", "queryType": "serviceMap", "refId": "A" }],
 			"title": "API traces",
