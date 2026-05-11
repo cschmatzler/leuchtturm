@@ -47,9 +47,6 @@ export namespace FeatureFlags {
 			key: string,
 			userId: string,
 		) => Effect.Effect<boolean, typeof FeatureFlagError.Type>;
-		readonly listForUser: (
-			userId: string,
-		) => Effect.Effect<Record<string, boolean>, typeof FeatureFlagError.Type>;
 	}
 
 	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/FeatureFlags") {}
@@ -62,51 +59,29 @@ export namespace FeatureFlags {
 
 			return Service.of({
 				isEnabled: (key, userId) =>
-					Effect.gen(function* () {
-						const result = yield* Effect.promise(() =>
-							client.getFeatureFlagResult(key, userId, {
-								sendFeatureFlagEvents: false,
+					Effect.promise(() =>
+						client.getFeatureFlagResult(key, userId, {
+							sendFeatureFlagEvents: false,
+						}),
+					).pipe(
+						Effect.catchCause((cause) =>
+							Effect.gen(function* () {
+								yield* Effect.annotateCurrentSpan({
+									"error.original_cause": Cause.pretty(cause),
+								});
+								return yield* Effect.fail(
+									new FeatureFlagProviderRequestError({
+										operation: `Evaluate feature flag ${key} for user ${userId}`,
+									}),
+								);
 							}),
-						).pipe(
-							Effect.catchCause((cause) =>
-								Effect.gen(function* () {
-									yield* Effect.annotateCurrentSpan({
-										"error.original_cause": Cause.pretty(cause),
-									});
-									return yield* Effect.fail(
-										new FeatureFlagProviderRequestError({
-											operation: `Evaluate feature flag ${key} for user ${userId}`,
-										}),
-									);
-								}),
-							),
-						);
-
-						if (result === undefined) {
-							return yield* Effect.fail(new FeatureFlagEvaluationError({ key, userId }));
-						}
-
-						return result.enabled;
-					}),
-				listForUser: (userId) =>
-					Effect.gen(function* () {
-						const flags = yield* Effect.promise(() => client.evaluateFlags(userId)).pipe(
-							Effect.catchCause((cause) =>
-								Effect.gen(function* () {
-									yield* Effect.annotateCurrentSpan({
-										"error.original_cause": Cause.pretty(cause),
-									});
-									return yield* Effect.fail(
-										new FeatureFlagProviderRequestError({
-											operation: `List feature flags for user ${userId}`,
-										}),
-									);
-								}),
-							),
-						);
-
-						return Object.fromEntries(flags.keys.map((key) => [key, flags.isEnabled(key)]));
-					}),
+						),
+						Effect.filterOrFail(
+							(result) => result !== undefined,
+							() => new FeatureFlagEvaluationError({ key, userId }),
+						),
+						Effect.map((result) => result.enabled),
+					),
 			});
 		}),
 	);
