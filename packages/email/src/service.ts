@@ -5,7 +5,17 @@ import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Schema from "effect/Schema";
 
-import { type EmailSendParams } from "@leuchtturm/email/contracts";
+export interface EmailSendParams {
+	readonly from: string;
+	readonly to: string;
+	readonly subject: string;
+	readonly html: string;
+	readonly text: string;
+}
+
+export type EmailSender<Success, SendError> = (
+	params: EmailSendParams,
+) => Effect.Effect<Success, SendError>;
 
 export namespace Email {
 	export class EmailProviderRequestError extends Schema.TaggedErrorClass<EmailProviderRequestError>()(
