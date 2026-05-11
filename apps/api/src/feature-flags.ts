@@ -2,46 +2,16 @@ import * as Cause from "effect/Cause";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
-import * as Schema from "effect/Schema";
 import { PostHog } from "posthog-node/edge";
 import { Resource } from "sst";
 
+import {
+	FeatureFlagError,
+	FeatureFlagEvaluationError,
+	FeatureFlagProviderRequestError,
+} from "@leuchtturm/api/feature-flags/errors";
+
 export namespace FeatureFlags {
-	export class FeatureFlagProviderRequestError extends Schema.TaggedErrorClass<FeatureFlagProviderRequestError>()(
-		"FeatureFlagProviderRequestError",
-		{
-			operation: Schema.String,
-			message: Schema.String,
-		},
-		{ httpApiStatus: 500 },
-	) {
-		constructor(params: { readonly operation: string }) {
-			super({ ...params, message: `Feature flag provider request failed: ${params.operation}` });
-		}
-	}
-
-	export class FeatureFlagEvaluationError extends Schema.TaggedErrorClass<FeatureFlagEvaluationError>()(
-		"FeatureFlagEvaluationError",
-		{
-			key: Schema.String,
-			userId: Schema.String,
-			message: Schema.String,
-		},
-		{ httpApiStatus: 500 },
-	) {
-		constructor(params: { readonly key: string; readonly userId: string }) {
-			super({
-				...params,
-				message: `Feature flag ${params.key} could not be evaluated for user ${params.userId}`,
-			});
-		}
-	}
-
-	export const FeatureFlagError = Schema.Union([
-		FeatureFlagProviderRequestError,
-		FeatureFlagEvaluationError,
-	]);
-
 	export interface Interface {
 		readonly isEnabled: (
 			key: string,

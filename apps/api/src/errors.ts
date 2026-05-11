@@ -3,6 +3,10 @@ import * as HttpApiMiddleware from "effect/unstable/httpapi/HttpApiMiddleware";
 import * as HttpApiSchema from "effect/unstable/httpapi/HttpApiSchema";
 
 import {
+	FeatureFlagEvaluationError,
+	FeatureFlagProviderRequestError,
+} from "@leuchtturm/api/feature-flags/errors";
+import {
 	AuthDeviceSessionsListError,
 	AuthDuplicateOrganizationNameError,
 	AuthDuplicateTeamNameError,
@@ -66,6 +70,8 @@ export const Errors = [
 	HttpApiSchema.status(500)(BillingSubscriptionOwnershipMismatchError),
 	HttpApiSchema.status(500)(BillingMissingSubscriptionSnapshotError),
 	HttpApiSchema.status(500)(BillingSubscriptionReferenceMismatchError),
+	HttpApiSchema.status(500)(FeatureFlagProviderRequestError),
+	HttpApiSchema.status(500)(FeatureFlagEvaluationError),
 ] as const;
 
 export class ErrorCatalog extends HttpApiMiddleware.Service<ErrorCatalog>()("ErrorCatalog", {
