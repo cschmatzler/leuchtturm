@@ -71,7 +71,13 @@ namespace Api {
 			Metrics.layer,
 		);
 
-		const handler = HttpEffect.toWebHandlerLayer(api, runtime, {
+		const handler: {
+			readonly dispose: () => Promise<void>;
+			readonly handler: (
+				request: Request,
+				context: ReturnType<typeof RequestContext.make>,
+			) => Promise<Response>;
+		} = HttpEffect.toWebHandlerLayer(api, runtime, {
 			middleware: (app) =>
 				HttpMiddleware.cors({
 					allowedOrigins: (origin) => {
@@ -91,14 +97,7 @@ namespace Api {
 					(request: Request, executionContext: Pick<ExecutionContext, "waitUntil">) => {
 						const requestContext = RequestContext.make(request, executionContext);
 
-						return Effect.promise(() =>
-							(
-								handler.handler as (
-									request: Request,
-									context: ReturnType<typeof RequestContext.make>,
-								) => Promise<Response>
-							)(request, requestContext),
-						).pipe(
+						return Effect.promise(() => handler.handler(request, requestContext)).pipe(
 							Effect.catchCause((cause) =>
 								Effect.gen(function* () {
 									yield* Effect.annotateCurrentSpan({
