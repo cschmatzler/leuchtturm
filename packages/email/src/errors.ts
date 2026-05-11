@@ -20,3 +20,5 @@ export class EmailRenderError extends Schema.TaggedErrorClass<EmailRenderError>(
 		super({ ...params, message: `Failed to render ${params.template} email` });
 	}
 }
+
+export const EmailError = Schema.Union([EmailProviderRequestError]);

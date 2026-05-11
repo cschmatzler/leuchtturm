@@ -3,7 +3,7 @@ import { render } from "@react-email/render";
 import * as Effect from "effect/Effect";
 
 import { EmailRenderError } from "@leuchtturm/email/errors";
-import { type EmailSender } from "@leuchtturm/email/service";
+import { type Email } from "@leuchtturm/email/service";
 import { defaultFrom, EmailFrame } from "@leuchtturm/email/templates/email-frame";
 
 const preheaderText = "Use this secure link to sign in to Leuchtturm.";
@@ -58,7 +58,7 @@ export async function renderMagicLinkEmail({ signInUrl }: MagicLinkEmailParams) 
 export function sendMagicLinkEmail<Success, SendError>(params: {
 	readonly signInUrl: string;
 	readonly email: string;
-	readonly send: EmailSender<Success, SendError>;
+	readonly send: Email.Sender<Success, SendError>;
 	readonly from?: string;
 	readonly subject?: string;
 }): Effect.Effect<void, SendError | EmailRenderError> {

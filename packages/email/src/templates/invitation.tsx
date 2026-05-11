@@ -3,7 +3,7 @@ import { render } from "@react-email/render";
 import * as Effect from "effect/Effect";
 
 import { EmailRenderError } from "@leuchtturm/email/errors";
-import { type EmailSender } from "@leuchtturm/email/service";
+import { type Email } from "@leuchtturm/email/service";
 import { defaultFrom, EmailFrame } from "@leuchtturm/email/templates/email-frame";
 
 const preheaderText = "You have been invited to join a Leuchtturm organization.";
@@ -77,7 +77,7 @@ export function sendInvitationEmail<Success, SendError>(params: {
 	readonly email: string;
 	readonly inviterName: string;
 	readonly organizationName: string;
-	readonly send: EmailSender<Success, SendError>;
+	readonly send: Email.Sender<Success, SendError>;
 	readonly from?: string;
 	readonly subject?: string;
 }): Effect.Effect<void, SendError | EmailRenderError> {

@@ -3,36 +3,31 @@ import * as Cause from "effect/Cause";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
-import * as Schema from "effect/Schema";
 
-import { EmailProviderRequestError } from "@leuchtturm/email/errors";
-
-export interface EmailSendParams {
-	readonly from: string;
-	readonly to: string;
-	readonly subject: string;
-	readonly html: string;
-	readonly text: string;
-}
-
-export type EmailSender<Success, SendError> = (
-	params: EmailSendParams,
-) => Effect.Effect<Success, SendError>;
+import { EmailError, EmailProviderRequestError } from "@leuchtturm/email/errors";
 
 export namespace Email {
-	export const EmailError = Schema.Union([EmailProviderRequestError]);
+	export interface SendParams {
+		readonly from: string;
+		readonly to: string;
+		readonly subject: string;
+		readonly html: string;
+		readonly text: string;
+	}
+
+	export type Sender<Success, SendError> = (
+		params: SendParams,
+	) => Effect.Effect<Success, SendError>;
 
 	export interface Interface {
-		readonly send: (
-			params: EmailSendParams,
-		) => Effect.Effect<EmailSendResult, typeof EmailError.Type>;
+		readonly send: (params: SendParams) => Effect.Effect<EmailSendResult, typeof EmailError.Type>;
 	}
 
 	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/Email") {}
 
 	export const layer = Layer.effect(Service)(
 		Effect.sync(() => {
-			const send = Effect.fn("Email.send")(function* (params: EmailSendParams) {
+			const send = Effect.fn("Email.send")(function* (params: SendParams) {
 				return yield* Effect.tryPromise({
 					try: (): Promise<EmailSendResult> => env.EMAIL.send(params),
 					catch: (cause) => cause,
