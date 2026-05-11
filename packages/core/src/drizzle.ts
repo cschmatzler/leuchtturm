@@ -9,7 +9,8 @@ import * as Redacted from "effect/Redacted";
 import * as Reactivity from "effect/unstable/reactivity/Reactivity";
 import { Client, types, type CustomTypesConfig } from "pg";
 
-import { relations } from "@leuchtturm/core/drizzle/relations";
+import { authRelations } from "@leuchtturm/core/auth/auth.sql";
+import { billingRelations } from "@leuchtturm/core/billing/billing.sql";
 import { DatabaseError } from "@leuchtturm/core/errors";
 
 const drizzleTypes: CustomTypesConfig = {
@@ -23,6 +24,18 @@ const drizzleTypes: CustomTypesConfig = {
 };
 
 export namespace Database {
+	export const relations = {
+		...authRelations,
+		...billingRelations,
+		organization: {
+			...authRelations.organization,
+			relations: {
+				...authRelations.organization.relations,
+				...billingRelations.organization.relations,
+			},
+		},
+	};
+
 	export type RawDatabase = NodePgDatabase<typeof relations> & {
 		$client: NodePgClient;
 	};

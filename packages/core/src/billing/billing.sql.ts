@@ -1,3 +1,4 @@
+import { defineRelationsPart } from "drizzle-orm";
 import {
 	boolean,
 	char,
@@ -117,4 +118,71 @@ export const billingOrderTable = pgTable(
 			foreignColumns: [billingSubscriptionTable.id, billingSubscriptionTable.organizationId],
 		}),
 	],
+);
+
+export const billingRelations = defineRelationsPart(
+	{
+		organization: organizationTable,
+		billingCustomer: billingCustomerTable,
+		billingSubscription: billingSubscriptionTable,
+		billingOrder: billingOrderTable,
+	},
+	(r) => ({
+		organization: {
+			billingCustomer: r.one.billingCustomer({
+				from: r.organization.id,
+				to: r.billingCustomer.organizationId,
+			}),
+			billingSubscriptions: r.many.billingSubscription({
+				from: r.organization.id,
+				to: r.billingSubscription.organizationId,
+			}),
+			billingOrders: r.many.billingOrder({
+				from: r.organization.id,
+				to: r.billingOrder.organizationId,
+			}),
+		},
+		billingCustomer: {
+			organization: r.one.organization({
+				from: r.billingCustomer.organizationId,
+				to: r.organization.id,
+			}),
+			subscriptions: r.many.billingSubscription({
+				from: [r.billingCustomer.organizationId, r.billingCustomer.polarCustomerId],
+				to: [r.billingSubscription.organizationId, r.billingSubscription.polarCustomerId],
+			}),
+			orders: r.many.billingOrder({
+				from: [r.billingCustomer.organizationId, r.billingCustomer.polarCustomerId],
+				to: [r.billingOrder.organizationId, r.billingOrder.polarCustomerId],
+			}),
+		},
+		billingSubscription: {
+			organization: r.one.organization({
+				from: r.billingSubscription.organizationId,
+				to: r.organization.id,
+			}),
+			customer: r.one.billingCustomer({
+				from: [r.billingSubscription.organizationId, r.billingSubscription.polarCustomerId],
+				to: [r.billingCustomer.organizationId, r.billingCustomer.polarCustomerId],
+			}),
+			orders: r.many.billingOrder({
+				from: [r.billingSubscription.id, r.billingSubscription.organizationId],
+				to: [r.billingOrder.subscriptionId, r.billingOrder.organizationId],
+			}),
+		},
+		billingOrder: {
+			organization: r.one.organization({
+				from: r.billingOrder.organizationId,
+				to: r.organization.id,
+			}),
+			customer: r.one.billingCustomer({
+				from: [r.billingOrder.organizationId, r.billingOrder.polarCustomerId],
+				to: [r.billingCustomer.organizationId, r.billingCustomer.polarCustomerId],
+			}),
+			subscription: r.one.billingSubscription({
+				from: [r.billingOrder.subscriptionId, r.billingOrder.organizationId],
+				to: [r.billingSubscription.id, r.billingSubscription.organizationId],
+			}),
+		},
+	}),
 );

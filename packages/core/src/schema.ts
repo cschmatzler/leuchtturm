@@ -5,13 +5,6 @@ export const Ulid = Schema.String.check(Schema.isPattern(/^[0-9A-Z]{26}$/)).anno
 	message: "Invalid ID",
 });
 
-export const TrimmedNonEmptyString = Schema.String.pipe(
-	Schema.decodeTo(Schema.NonEmptyString.annotate({ message: "Required" }), {
-		decode: SchemaGetter.transform((s: string) => s.trim()),
-		encode: SchemaGetter.transform((s: string) => s),
-	}),
-);
-
 export const Email = Schema.String.pipe(
 	Schema.decodeTo(
 		Schema.String.check(Schema.isPattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)).annotate({

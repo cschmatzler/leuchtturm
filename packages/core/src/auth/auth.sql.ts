@@ -1,3 +1,4 @@
+import { defineRelationsPart } from "drizzle-orm";
 import { boolean, char, index, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
 
 export const userTable = pgTable("user", {
@@ -182,4 +183,65 @@ export const invitationTable = pgTable(
 		index("invitation_organization_id_idx").on(table.organizationId),
 		index("invitation_email_idx").on(table.email),
 	],
+);
+
+export const authRelations = defineRelationsPart(
+	{
+		user: userTable,
+		session: sessionTable,
+		account: accountTable,
+		verification: verificationTable,
+		organization: organizationTable,
+		member: memberTable,
+		team: teamTable,
+		teamMember: teamMemberTable,
+		invitation: invitationTable,
+	},
+	(r) => ({
+		user: {
+			sessions: r.many.session({ from: r.user.id, to: r.session.userId }),
+			accounts: r.many.account({ from: r.user.id, to: r.account.userId }),
+			memberships: r.many.member({ from: r.user.id, to: r.member.userId }),
+			invitationsSent: r.many.invitation({ from: r.user.id, to: r.invitation.inviterId }),
+		},
+		session: {
+			user: r.one.user({ from: r.session.userId, to: r.user.id }),
+			activeOrganization: r.one.organization({
+				from: r.session.activeOrganizationId,
+				to: r.organization.id,
+			}),
+			activeTeam: r.one.team({ from: r.session.activeTeamId, to: r.team.id }),
+		},
+		account: {
+			user: r.one.user({ from: r.account.userId, to: r.user.id }),
+		},
+		verification: {},
+		organization: {
+			members: r.many.member({ from: r.organization.id, to: r.member.organizationId }),
+			teams: r.many.team({ from: r.organization.id, to: r.team.organizationId }),
+			invitations: r.many.invitation({
+				from: r.organization.id,
+				to: r.invitation.organizationId,
+			}),
+		},
+		member: {
+			organization: r.one.organization({ from: r.member.organizationId, to: r.organization.id }),
+			user: r.one.user({ from: r.member.userId, to: r.user.id }),
+		},
+		team: {
+			organization: r.one.organization({ from: r.team.organizationId, to: r.organization.id }),
+			members: r.many.teamMember({ from: r.team.id, to: r.teamMember.teamId }),
+		},
+		teamMember: {
+			team: r.one.team({ from: r.teamMember.teamId, to: r.team.id }),
+			user: r.one.user({ from: r.teamMember.userId, to: r.user.id }),
+		},
+		invitation: {
+			organization: r.one.organization({
+				from: r.invitation.organizationId,
+				to: r.organization.id,
+			}),
+			inviter: r.one.user({ from: r.invitation.inviterId, to: r.user.id }),
+		},
+	}),
 );

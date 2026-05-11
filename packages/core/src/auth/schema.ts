@@ -17,20 +17,32 @@ import {
 	userTable,
 	verificationTable,
 } from "@leuchtturm/core/auth/auth.sql";
-import { Email, TrimmedNonEmptyString, Ulid } from "@leuchtturm/core/schema";
+import { Email, Ulid } from "@leuchtturm/core/schema";
 
 export const Role = Schema.Literals(["admin", "owner", "member"]);
 export const UserRole = Schema.Literals(["admin", "user"]);
 
 export const UserInsert = createInsertSchema(userTable, {
 	id: () => Schema.TemplateLiteral(["usr_", Ulid]).pipe(Schema.brand("UserId")),
-	name: () => TrimmedNonEmptyString.annotate({ message: "Name is required" }),
+	name: () =>
+		Schema.String.pipe(
+			Schema.decodeTo(Schema.NonEmptyString.annotate({ message: "Name is required" }), {
+				decode: SchemaGetter.transform((value: string) => value.trim()),
+				encode: SchemaGetter.transform((value: string) => value),
+			}),
+		),
 	email: () => Email,
 	role: () => UserRole,
 });
 export const UserUpdate = createUpdateSchema(userTable, {
 	id: () => Schema.TemplateLiteral(["usr_", Ulid]).pipe(Schema.brand("UserId")),
-	name: () => TrimmedNonEmptyString.annotate({ message: "Name is required" }),
+	name: () =>
+		Schema.String.pipe(
+			Schema.decodeTo(Schema.NonEmptyString.annotate({ message: "Name is required" }), {
+				decode: SchemaGetter.transform((value: string) => value.trim()),
+				encode: SchemaGetter.transform((value: string) => value),
+			}),
+		),
 	email: () => Email,
 	role: () => UserRole,
 });
