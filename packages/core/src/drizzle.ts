@@ -24,18 +24,6 @@ const drizzleTypes: CustomTypesConfig = {
 };
 
 export namespace Database {
-	export const relations = {
-		...authRelations,
-		...billingRelations,
-		organization: {
-			...authRelations.organization,
-			relations: {
-				...authRelations.organization.relations,
-				...billingRelations.organization.relations,
-			},
-		},
-	};
-
 	export type RawDatabase = NodePgDatabase<typeof relations> & {
 		$client: NodePgClient;
 	};
@@ -52,6 +40,18 @@ export namespace Database {
 	}
 
 	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/Database") {}
+
+	export const relations = {
+		...authRelations,
+		...billingRelations,
+		organization: {
+			...authRelations.organization,
+			relations: {
+				...authRelations.organization.relations,
+				...billingRelations.organization.relations,
+			},
+		},
+	};
 
 	export function layer(connectionString: string) {
 		return Layer.effect(Service)(
