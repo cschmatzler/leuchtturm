@@ -12,6 +12,7 @@
 # Style
 
 - Prefer inline code over unnecessary helper functions.
+- Do not introduce constants for values that are only used to avoid repeating short literals or simple property accesses; inline them instead.
 
 # Vite+ Toolchain
 
