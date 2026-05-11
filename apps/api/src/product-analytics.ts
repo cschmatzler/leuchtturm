@@ -29,13 +29,11 @@ export namespace ProductAnalytics {
 
 						yield* Effect.sync(() => {
 							context.waitUntil(
-								client
-									.captureImmediate({
-										distinctId,
-										event,
-										properties,
-									})
-									.catch(() => {}),
+								client.captureImmediate({
+									distinctId,
+									event,
+									properties,
+								}),
 							);
 						});
 					}),

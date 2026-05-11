@@ -1,8 +1,6 @@
 import { mustGetMutator, mustGetQuery, type ReadonlyJSONValue } from "@rocicorp/zero";
 import { handleMutateRequest, handleQueryRequest } from "@rocicorp/zero/server";
-import { zeroDrizzle } from "@rocicorp/zero/server/adapters/drizzle";
 import * as Cause from "effect/Cause";
-import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
@@ -12,31 +10,13 @@ import * as HttpApiBuilder from "effect/unstable/httpapi/HttpApiBuilder";
 import { LeuchtturmApi } from "@leuchtturm/api/contract";
 import { Metrics } from "@leuchtturm/api/observability/metrics";
 import { Session } from "@leuchtturm/api/session";
-import { Database } from "@leuchtturm/core/drizzle";
+import { ZeroDatabaseProvider } from "@leuchtturm/api/zero/database-provider";
 import { DatabaseError } from "@leuchtturm/core/errors";
 import { mutators } from "@leuchtturm/zero/mutators";
 import { queries } from "@leuchtturm/zero/queries";
 import { schema } from "@leuchtturm/zero/schema";
 
 export namespace ZeroHandler {
-	interface DatabaseProviderInterface {
-		readonly databaseProvider: ReturnType<typeof zeroDrizzle<typeof schema, Database.RawDatabase>>;
-	}
-
-	class DatabaseProvider extends Context.Service<DatabaseProvider, DatabaseProviderInterface>()(
-		"@leuchtturm/api/ZeroHandler/DatabaseProvider",
-	) {}
-
-	const databaseProviderLayer = Layer.effect(DatabaseProvider)(
-		Effect.gen(function* () {
-			const { rawDatabase } = yield* Database.Service;
-
-			return DatabaseProvider.of({
-				databaseProvider: zeroDrizzle(schema, rawDatabase),
-			});
-		}),
-	);
-
 	const handleQuery = Effect.fn("zero.query")(function* () {
 		const { user } = yield* Session.Service;
 		const request = yield* HttpServerRequest.HttpServerRequest;
@@ -67,7 +47,7 @@ export namespace ZeroHandler {
 
 	const handleMutate = Effect.fn("zero.mutate")(function* () {
 		const { user } = yield* Session.Service;
-		const { databaseProvider } = yield* DatabaseProvider;
+		const { databaseProvider } = yield* ZeroDatabaseProvider.Service;
 		const ctx = { userId: user.id };
 		const request = yield* HttpServerRequest.HttpServerRequest;
 		const rawRequest = yield* HttpServerRequest.toWeb(request).pipe(Effect.orDie);
@@ -102,5 +82,5 @@ export namespace ZeroHandler {
 		handlers
 			.handleRaw("query", () => Metrics.trackAction("zero.query", handleQuery()))
 			.handleRaw("mutate", () => Metrics.trackAction("zero.mutate", handleMutate())),
-	).pipe(Layer.provide(databaseProviderLayer));
+	).pipe(Layer.provide(ZeroDatabaseProvider.layer));
 }
