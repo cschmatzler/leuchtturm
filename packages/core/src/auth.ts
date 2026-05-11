@@ -88,9 +88,6 @@ export namespace Auth {
 			const email = yield* Email.Service;
 			const context = new AsyncLocalStorage<Context.Context<never>>();
 
-			const runAuthEffect = <A, E>(effect: Effect.Effect<A, E>) =>
-				Effect.runPromiseWith(context.getStore() ?? Context.empty())(effect);
-
 			const auth = betterAuth({
 				baseURL: `https://${Resource.Dns.ApiDomain}/auth`,
 				trustedOrigins: [`https://${Resource.Dns.AppDomain}`],
@@ -133,7 +130,7 @@ export namespace Auth {
 					magicLink({
 						storeToken: "hashed",
 						sendMagicLink: ({ email: emailAddress, url }) =>
-							runAuthEffect(
+							Effect.runPromiseWith(context.getStore() ?? Context.empty())(
 								sendMagicLinkEmail({
 									email: emailAddress,
 									signInUrl: url,
@@ -152,7 +149,7 @@ export namespace Auth {
 					}),
 					organizationPlugin({
 						sendInvitationEmail: (params) =>
-							runAuthEffect(
+							Effect.runPromiseWith(context.getStore() ?? Context.empty())(
 								sendInvitationEmail({
 									acceptUrl: `https://${Resource.Dns.AppDomain}/accept-invitation/${params.id}`,
 									email: params.email,
@@ -188,7 +185,7 @@ export namespace Auth {
 						},
 						organizationHooks: {
 							beforeCreateOrganization: ({ organization }) =>
-								runAuthEffect(
+								Effect.runPromiseWith(context.getStore() ?? Context.empty())(
 									Effect.gen(function* () {
 										const organizationName = yield* Schema.decodeEffect(
 											OrganizationInsert.fields.name,
@@ -213,7 +210,7 @@ export namespace Auth {
 									}),
 								),
 							afterCreateOrganization: ({ organization, user }) =>
-								runAuthEffect(
+								Effect.runPromiseWith(context.getStore() ?? Context.empty())(
 									billing.createCustomer({
 										organizationId: organization.id,
 										name: organization.name,
@@ -223,7 +220,7 @@ export namespace Auth {
 									}),
 								),
 							beforeUpdateOrganization: ({ organization, member }) =>
-								runAuthEffect(
+								Effect.runPromiseWith(context.getStore() ?? Context.empty())(
 									Effect.logInfo("Auth organization update requested").pipe(
 										Effect.annotateLogs({
 											organizationId: member.organizationId,
@@ -234,7 +231,7 @@ export namespace Auth {
 							afterUpdateOrganization: ({ organization }) => {
 								const updatedOrganization = organization!;
 
-								return runAuthEffect(
+								return Effect.runPromiseWith(context.getStore() ?? Context.empty())(
 									Effect.gen(function* () {
 										yield* Effect.logInfo("Auth organization updated").pipe(
 											Effect.annotateLogs({ organizationId: updatedOrganization.id }),
@@ -249,7 +246,7 @@ export namespace Auth {
 								);
 							},
 							beforeCreateTeam: ({ team, organization }) =>
-								runAuthEffect(
+								Effect.runPromiseWith(context.getStore() ?? Context.empty())(
 									Effect.gen(function* () {
 										const teamName = yield* Schema.decodeEffect(TeamInsert.fields.name)(team.name);
 										const existingTeam = yield* database
@@ -278,7 +275,7 @@ export namespace Auth {
 									}),
 								),
 							beforeUpdateTeam: ({ team, updates, organization }) =>
-								runAuthEffect(
+								Effect.runPromiseWith(context.getStore() ?? Context.empty())(
 									Effect.gen(function* () {
 										yield* Effect.logInfo("Auth team update requested").pipe(
 											Effect.annotateLogs({
@@ -321,7 +318,7 @@ export namespace Auth {
 									}),
 								),
 							afterUpdateTeam: ({ team, organization }) =>
-								runAuthEffect(
+								Effect.runPromiseWith(context.getStore() ?? Context.empty())(
 									Effect.logInfo("Auth team updated").pipe(
 										Effect.annotateLogs({
 											teamId: team!.id,
