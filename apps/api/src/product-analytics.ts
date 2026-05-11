@@ -3,7 +3,7 @@ import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 
 import { RequestContext } from "@leuchtturm/api/middleware/request-context";
-import { PostHogClient } from "@leuchtturm/core/posthog";
+import { PostHog } from "@leuchtturm/core/posthog";
 
 export namespace ProductAnalytics {
 	export interface Interface {
@@ -24,7 +24,7 @@ export namespace ProductAnalytics {
 			capture: (distinctId, event, properties = {}) =>
 				Effect.gen(function* () {
 					const context = yield* RequestContext.Service;
-					const client = PostHogClient.create(context.waitUntil);
+					const client = PostHog.create(context.waitUntil);
 
 					yield* Effect.sync(() => {
 						client.capture({
