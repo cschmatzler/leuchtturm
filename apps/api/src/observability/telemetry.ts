@@ -1,6 +1,6 @@
 import * as OtelResource from "@effect/opentelemetry/Resource";
 import * as OtelTracer from "@effect/opentelemetry/Tracer";
-import { trace } from "@opentelemetry/api";
+import { trace, type Span } from "@opentelemetry/api";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
@@ -13,13 +13,17 @@ import { Resource } from "sst";
 import { RequestContext } from "@leuchtturm/api/middleware/request-context";
 
 export namespace Telemetry {
+	export class RootSpan extends Context.Service<RootSpan, Span>()(
+		"@leuchtturm/api/observability/Telemetry/RootSpan",
+	) {}
+
 	export function withActiveSpan(context: ReturnType<typeof RequestContext.make>) {
 		return Effect.sync(() =>
 			Option.match(Option.fromNullishOr(trace.getActiveSpan()), {
 				onNone: () => context,
 				onSome: (activeSpan) =>
 					Context.add(
-						context,
+						Context.add(context, RootSpan, activeSpan),
 						EffectTracer.ParentSpan,
 						OtelTracer.makeExternalSpan(activeSpan.spanContext()),
 					),

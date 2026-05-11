@@ -7,6 +7,7 @@ import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 
 import { Metrics } from "@leuchtturm/api/observability/metrics";
+import { Telemetry } from "@leuchtturm/api/observability/telemetry";
 
 export namespace Observability {
 	const run = <E, R>(app: Effect.Effect<HttpServerResponse.HttpServerResponse, E, R>) =>
@@ -21,6 +22,7 @@ export namespace Observability {
 			const record = (response: HttpServerResponse.HttpServerResponse) =>
 				Effect.gen(function* () {
 					const durationMs = (yield* Clock.currentTimeMillis) - startedAt;
+					const rootSpan = yield* Effect.serviceOption(Telemetry.RootSpan);
 					const attributes = {
 						method: request.method,
 						path,
@@ -30,6 +32,10 @@ export namespace Observability {
 					yield* Effect.annotateCurrentSpan({
 						"http.response.status_code": response.status,
 					});
+					if (Option.isSome(rootSpan)) {
+						rootSpan.value.setAttribute("http.route", path);
+						rootSpan.value.updateName(`${request.method} ${path}`);
+					}
 
 					yield* Effect.all([
 						Metrics.increment("api_requests_total", 1, {
