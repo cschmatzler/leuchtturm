@@ -20,7 +20,6 @@
 	"engines": {
 		"node": ">=25.0.0"
 	},
-	"packageManager": "pnpm@11.0.4",
 	"trustedDependencies": [
 		"@rocicorp/zero-sqlite3"
 	]
