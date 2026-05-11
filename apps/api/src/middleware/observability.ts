@@ -7,7 +7,6 @@ import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 
 import { Metrics } from "@leuchtturm/api/observability/metrics";
-import { Telemetry } from "@leuchtturm/api/observability/telemetry";
 
 export namespace Observability {
 	const run = <E, R>(app: Effect.Effect<HttpServerResponse.HttpServerResponse, E, R>) =>
@@ -54,15 +53,6 @@ export namespace Observability {
 						Effect.andThen(Effect.failCause(cause)),
 					),
 				),
-				Effect.withSpan(`${request.method} ${path}`, {
-					attributes: {
-						"http.request.method": request.method,
-						"url.path": path,
-					},
-					kind: "server",
-					root: true,
-				}),
-				Telemetry.withRequest,
 			);
 		});
 

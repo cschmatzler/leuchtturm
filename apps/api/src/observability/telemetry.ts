@@ -1,49 +1,34 @@
-import * as Effect from "effect/Effect";
-import * as Exit from "effect/Exit";
+import * as OtelResource from "@effect/opentelemetry/Resource";
+import * as OtelTracer from "@effect/opentelemetry/Tracer";
 import * as Layer from "effect/Layer";
-import * as Scope from "effect/Scope";
-import * as FetchHttpClient from "effect/unstable/http/FetchHttpClient";
-import * as Otlp from "effect/unstable/observability/Otlp";
+import * as Option from "effect/Option";
+import * as HttpMiddleware from "effect/unstable/http/HttpMiddleware";
+import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import { Resource } from "sst";
 
-import { RequestContext } from "@leuchtturm/api/middleware/request-context";
-
 export namespace Telemetry {
-	const grafanaOtlp = JSON.parse(Resource.GrafanaOtlpUrl.value);
+	const spanName = (request: HttpServerRequest.HttpServerRequest) => {
+		const path = Option.getOrElse(
+			Option.map(HttpServerRequest.toURL(request), (url) => url.pathname),
+			() => request.url,
+		);
 
-	export const layer = Layer.fresh(
-		Layer.suspend(() =>
-			Otlp.layerProtobuf({
-				baseUrl: grafanaOtlp.url,
-				headers: {
-					Authorization: grafanaOtlp.authorization,
-				},
-				loggerMergeWithExisting: true,
-				resource: {
+		return `${request.method} ${path}`;
+	};
+
+	export const layer = Layer.mergeAll(
+		OtelTracer.layerGlobal.pipe(
+			Layer.provide(
+				OtelResource.layer({
 					serviceName: "leuchtturm-api",
 					attributes: {
 						"service.namespace": "leuchtturm",
 						app: "leuchtturm",
 						stage: Resource.App.stage,
 					},
-				},
-				shutdownTimeout: "3 seconds",
-			}).pipe(Layer.provide(FetchHttpClient.layer)),
-		),
-	);
-
-	export const withRequest = <A, E, R>(effect: Effect.Effect<A, E, R>) =>
-		Effect.acquireUseRelease(
-			Scope.make(),
-			(telemetryScope) =>
-				Layer.buildWithScope(layer, telemetryScope).pipe(
-					Effect.flatMap((telemetryContext) =>
-						effect.pipe(Effect.provideContext(telemetryContext)),
-					),
-				),
-			(telemetryScope) =>
-				RequestContext.Service.useSync((context) => {
-					context.waitUntil(Effect.runPromise(Scope.close(telemetryScope, Exit.void)));
 				}),
-		);
+			),
+		),
+		Layer.succeed(HttpMiddleware.SpanNameGenerator, spanName),
+	);
 }

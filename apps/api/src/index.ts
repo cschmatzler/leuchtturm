@@ -1,7 +1,11 @@
+import * as OtelTracer from "@effect/opentelemetry/Tracer";
+import { instrument } from "@microlabs/otel-cf-workers";
+import { trace } from "@opentelemetry/api";
 import * as Cause from "effect/Cause";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import * as EffectTracer from "effect/Tracer";
 import * as HttpEffect from "effect/unstable/http/HttpEffect";
 import * as HttpMiddleware from "effect/unstable/http/HttpMiddleware";
 import * as HttpRouter from "effect/unstable/http/HttpRouter";
@@ -22,6 +26,7 @@ import { AuthMiddleware } from "@leuchtturm/api/middleware/auth";
 import { Observability } from "@leuchtturm/api/middleware/observability";
 import { RequestContext } from "@leuchtturm/api/middleware/request-context";
 import { Metrics } from "@leuchtturm/api/observability/metrics";
+import { Telemetry } from "@leuchtturm/api/observability/telemetry";
 import { ProductAnalytics } from "@leuchtturm/api/product-analytics";
 import { Auth } from "@leuchtturm/core/auth";
 import { Billing } from "@leuchtturm/core/billing";
@@ -69,6 +74,7 @@ namespace Api {
 			HttpServer.layerServices,
 			ProductAnalytics.layer,
 			Metrics.layer,
+			Telemetry.layer,
 		);
 
 		const handler: {
@@ -95,7 +101,14 @@ namespace Api {
 			Service.of({
 				handle: Effect.fn("Api.handle")(
 					(request: Request, executionContext: Pick<ExecutionContext, "waitUntil">) => {
-						const requestContext = RequestContext.make(request, executionContext);
+						const activeSpan = trace.getActiveSpan();
+						const requestContext = activeSpan
+							? Context.add(
+									RequestContext.make(request, executionContext),
+									EffectTracer.ParentSpan,
+									OtelTracer.makeExternalSpan(activeSpan.spanContext()),
+								)
+							: RequestContext.make(request, executionContext);
 
 						return Effect.promise(() => handler.handler(request, requestContext)).pipe(
 							Effect.catchCause((cause) =>
@@ -118,8 +131,26 @@ namespace Api {
 	}
 }
 
-export default wrapCloudflareHandler({
-	fetch(request: Request, _env: unknown, ctx: ExecutionContext) {
-		return makeRuntime(Api.Service, Api.layer()).runPromise((api) => api.handle(request, ctx));
-	},
-});
+const grafanaOtlp = JSON.parse(Resource.GrafanaOtlpUrl.value);
+
+export default wrapCloudflareHandler(
+	instrument(
+		{
+			fetch(request: Request, _env: unknown, ctx: ExecutionContext) {
+				return makeRuntime(Api.Service, Api.layer()).runPromise((api) => api.handle(request, ctx));
+			},
+		},
+		() => ({
+			exporter: {
+				headers: {
+					Authorization: grafanaOtlp.authorization,
+				},
+				url: `${grafanaOtlp.url}/v1/traces`,
+			},
+			service: {
+				name: "leuchtturm-api",
+				namespace: "leuchtturm",
+			},
+		}),
+	),
+);
