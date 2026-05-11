@@ -135,6 +135,28 @@ export default wrapCloudflareHandler(
 				},
 				url: `${JSON.parse(Resource.GrafanaOtlpConfig.value).url}/v1/traces`,
 			},
+			postProcessor: (spans) => {
+				const rootSpan = spans.find((span) => span.parentSpanContext === undefined);
+				const routeSpan = spans.find(
+					(span) =>
+						typeof span.attributes["http.route"] === "string" &&
+						span.spanContext().traceId === rootSpan?.spanContext().traceId,
+				);
+
+				if (
+					rootSpan &&
+					routeSpan &&
+					typeof rootSpan.attributes["http.request.method"] === "string" &&
+					typeof routeSpan.attributes["http.route"] === "string"
+				) {
+					rootSpan.attributes["http.route"] = routeSpan.attributes["http.route"];
+					Object.assign(rootSpan, {
+						name: `${rootSpan.attributes["http.request.method"]} ${routeSpan.attributes["http.route"]}`,
+					});
+				}
+
+				return spans;
+			},
 			service: {
 				name: "leuchtturm-api",
 				namespace: "leuchtturm",
