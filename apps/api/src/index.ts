@@ -117,14 +117,10 @@ namespace Api {
 			}),
 		);
 	}
-
-	export function create() {
-		return makeRuntime(Service, layer());
-	}
 }
 
 export default wrapCloudflareHandler({
 	fetch(request: Request, _env: unknown, ctx: ExecutionContext) {
-		return Api.create().runPromise((api) => api.handle(request, ctx));
+		return makeRuntime(Api.Service, Api.layer()).runPromise((api) => api.handle(request, ctx));
 	},
 });
