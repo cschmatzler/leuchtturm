@@ -40,8 +40,8 @@ export namespace Database {
 
 	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/Database") {}
 
-	export const layer = (connectionString: string) =>
-		Layer.effect(Service)(
+	export function layer(connectionString: string) {
+		return Layer.effect(Service)(
 			Effect.gen(function* () {
 				const rawClient = yield* Effect.acquireRelease(
 					Effect.tryPromise({
@@ -94,4 +94,5 @@ export namespace Database {
 				});
 			}),
 		);
+	}
 }
