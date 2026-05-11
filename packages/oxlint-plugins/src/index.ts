@@ -1,4 +1,5 @@
 import consistentComponentHookGroups from "@leuchtturm/oxlint-plugins/consistent-component-hook-groups";
+import namespaceFilenameMatch from "@leuchtturm/oxlint-plugins/namespace-filename-match";
 import noApiResponseSchemaInCore from "@leuchtturm/oxlint-plugins/no-api-response-schema-in-core";
 import noDirectFetch from "@leuchtturm/oxlint-plugins/no-direct-fetch";
 import noEffectTryHelper from "@leuchtturm/oxlint-plugins/no-effect-try-helper";
@@ -32,6 +33,7 @@ const plugin = {
 		...noLiveSuffix.rules,
 		...noLocalEffectCallbackWrapper.rules,
 		...noLocalWebSchema.rules,
+		...namespaceFilenameMatch.rules,
 		...noNamespaceImports.rules,
 		...noNonExactPackageJsonVersions.rules,
 		...noPhosphorTopLevelImport.rules,

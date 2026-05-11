@@ -8,7 +8,7 @@ import {
 	FeatureFlagEvaluationError,
 	FeatureFlagProviderRequestError,
 } from "@leuchtturm/api/feature-flags/errors";
-import { PostHog } from "@leuchtturm/api/posthog";
+import { PostHog } from "@leuchtturm/api/post-hog";
 
 export namespace FeatureFlags {
 	export interface Interface {

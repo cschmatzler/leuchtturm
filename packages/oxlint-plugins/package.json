@@ -14,6 +14,7 @@
 		"./no-live-suffix": "./src/no-live-suffix.ts",
 		"./no-local-effect-callback-wrapper": "./src/no-local-effect-callback-wrapper.ts",
 		"./no-local-web-schema": "./src/no-local-web-schema.ts",
+		"./namespace-filename-match": "./src/namespace-filename-match.ts",
 		"./no-namespace-imports": "./src/no-namespace-imports.ts",
 		"./no-non-exact-package-json-versions": "./src/no-non-exact-package-json-versions.ts",
 		"./no-phosphor-top-level-import": "./src/no-phosphor-top-level-import.ts",
