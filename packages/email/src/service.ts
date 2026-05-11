@@ -5,6 +5,8 @@ import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Schema from "effect/Schema";
 
+import { EmailProviderRequestError } from "@leuchtturm/email/errors";
+
 export interface EmailSendParams {
 	readonly from: string;
 	readonly to: string;
@@ -18,15 +20,6 @@ export type EmailSender<Success, SendError> = (
 ) => Effect.Effect<Success, SendError>;
 
 export namespace Email {
-	export class EmailProviderRequestError extends Schema.TaggedErrorClass<EmailProviderRequestError>()(
-		"EmailProviderRequestError",
-		{ message: Schema.String },
-	) {
-		constructor() {
-			super({ message: "Cloudflare Email request failed" });
-		}
-	}
-
 	export const EmailError = Schema.Union([EmailProviderRequestError]);
 
 	export interface Interface {
