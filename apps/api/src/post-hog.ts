@@ -1,5 +1,5 @@
 import { PostHog as PostHogEdge } from "posthog-node/edge";
-import { Resource } from "sst";
+import { Resource } from "sst/resource/cloudflare";
 
 export namespace PostHog {
 	export function create(waitUntil?: (promise: Promise<unknown>) => void) {

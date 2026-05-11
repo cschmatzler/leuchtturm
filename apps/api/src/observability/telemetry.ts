@@ -8,7 +8,7 @@ import * as Option from "effect/Option";
 import * as EffectTracer from "effect/Tracer";
 import * as HttpMiddleware from "effect/unstable/http/HttpMiddleware";
 import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
-import { Resource } from "sst";
+import { Resource } from "sst/resource/cloudflare";
 
 import { RequestContext } from "@leuchtturm/api/middleware/request-context";
 

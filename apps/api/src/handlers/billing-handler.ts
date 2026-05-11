@@ -1,7 +1,7 @@
 import * as Effect from "effect/Effect";
 import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import * as HttpApiBuilder from "effect/unstable/httpapi/HttpApiBuilder";
-import { Resource } from "sst";
+import { Resource } from "sst/resource/cloudflare";
 
 import { LeuchtturmApi } from "@leuchtturm/api/contract";
 import { Metrics } from "@leuchtturm/api/observability/metrics";
