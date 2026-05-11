@@ -1,28 +1,13 @@
-import * as Context from "effect/Context";
 import * as Schema from "effect/Schema";
 import * as HttpApi from "effect/unstable/httpapi/HttpApi";
 import * as HttpApiEndpoint from "effect/unstable/httpapi/HttpApiEndpoint";
 import * as HttpApiGroup from "effect/unstable/httpapi/HttpApiGroup";
-import * as HttpApiMiddleware from "effect/unstable/httpapi/HttpApiMiddleware";
 
-import { ErrorCatalog, Errors } from "@leuchtturm/api/errors";
-import { DeviceSessions, SessionSelect, UserSelect } from "@leuchtturm/core/auth/schema";
+import { Auth } from "@leuchtturm/api/auth";
+import { ErrorCatalog } from "@leuchtturm/api/errors";
+import { DeviceSessions } from "@leuchtturm/core/auth/schema";
 
 export namespace Contract {
-	export interface CurrentUser {
-		readonly user: typeof UserSelect.Type;
-		readonly session: typeof SessionSelect.Type;
-	}
-
-	export class CurrentUserContext extends Context.Service<CurrentUserContext, CurrentUser>()(
-		"@leuchtturm/api/AuthMiddleware/CurrentUser",
-	) {}
-
-	export class AuthMiddleware extends HttpApiMiddleware.Service<
-		AuthMiddleware,
-		{ provides: CurrentUserContext }
-	>()("@leuchtturm/api/AuthMiddleware", { error: Errors }) {}
-
 	const HealthCheckSuccessResponse = Schema.Struct({
 		success: Schema.Literal(true),
 		database: Schema.Struct({
@@ -58,7 +43,7 @@ export namespace Contract {
 	export const zero = HttpApiGroup.make("zero")
 		.add(HttpApiEndpoint.post("query", "/query"))
 		.add(HttpApiEndpoint.post("mutate", "/mutate"))
-		.middleware(AuthMiddleware);
+		.middleware(Auth.Middleware);
 
 	export const session = HttpApiGroup.make("session")
 		.add(
@@ -66,7 +51,7 @@ export namespace Contract {
 				success: DeviceSessions,
 			}),
 		)
-		.middleware(AuthMiddleware);
+		.middleware(Auth.Middleware);
 
 	export const billing = HttpApiGroup.make("billing")
 		.add(
@@ -87,7 +72,7 @@ export namespace Contract {
 				success: BillingUrlResponse,
 			}),
 		)
-		.middleware(AuthMiddleware);
+		.middleware(Auth.Middleware);
 
 	export const auth = HttpApiGroup.make("auth")
 		.add(HttpApiEndpoint.get("authGet", "/auth/*"))
