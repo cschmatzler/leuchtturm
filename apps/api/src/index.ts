@@ -131,9 +131,9 @@ export default wrapCloudflareHandler(
 		() => ({
 			exporter: {
 				headers: {
-					Authorization: JSON.parse(Resource.GrafanaOtlpUrl.value).authorization,
+					Authorization: JSON.parse(Resource.GrafanaOtlpConfig.value).authorization,
 				},
-				url: `${JSON.parse(Resource.GrafanaOtlpUrl.value).url}/v1/traces`,
+				url: `${JSON.parse(Resource.GrafanaOtlpConfig.value).url}/v1/traces`,
 			},
 			service: {
 				name: "leuchtturm-api",

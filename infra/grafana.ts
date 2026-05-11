@@ -119,7 +119,7 @@ const telemetryAccessPolicyToken = new grafana.cloud.AccessPolicyToken(
 	{ provider: cloudProvider },
 );
 
-export const grafanaOtlpUrl = new sst.Linkable("GrafanaOtlpUrl", {
+export const grafanaOtlpConfig = new sst.Linkable("GrafanaOtlpConfig", {
 	properties: {
 		value: all({
 			username: grafanaStack.apply((stack) => stack.id),

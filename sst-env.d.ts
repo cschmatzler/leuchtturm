@@ -38,7 +38,7 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "GrafanaOtlpUrl": {
+    "GrafanaOtlpConfig": {
       "type": "sst.sst.Linkable"
       "value": string
     }

@@ -13,6 +13,20 @@ import { Resource } from "sst";
 import { RequestContext } from "@leuchtturm/api/middleware/request-context";
 
 export namespace Telemetry {
+	export function withActiveSpan(context: ReturnType<typeof RequestContext.make>) {
+		return Effect.sync(() =>
+			Option.match(Option.fromNullishOr(trace.getActiveSpan()), {
+				onNone: () => context,
+				onSome: (activeSpan) =>
+					Context.add(
+						context,
+						EffectTracer.ParentSpan,
+						OtelTracer.makeExternalSpan(activeSpan.spanContext()),
+					),
+			}),
+		);
+	}
+
 	export const layer = Layer.mergeAll(
 		OtelTracer.layerGlobal.pipe(
 			Layer.provide(
@@ -35,17 +49,4 @@ export namespace Telemetry {
 				)}`,
 		),
 	);
-
-	export const withActiveSpan = (context: ReturnType<typeof RequestContext.make>) =>
-		Effect.sync(() =>
-			Option.match(Option.fromNullishOr(trace.getActiveSpan()), {
-				onNone: () => context,
-				onSome: (activeSpan) =>
-					Context.add(
-						context,
-						EffectTracer.ParentSpan,
-						OtelTracer.makeExternalSpan(activeSpan.spanContext()),
-					),
-			}),
-		);
 }
