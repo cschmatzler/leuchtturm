@@ -15,17 +15,17 @@ export function EmailFrame(props: {
 		<Html lang="en">
 			<Tailwind config={tailwindConfig}>
 				<Preview>{props.preheader}</Preview>
-				<Body className="bg-background font-sans text-foreground">
+				<Body className="bg-sidebar font-sans text-foreground">
 					<Container className="mx-auto w-full max-w-[560px] px-4 py-10">
-						<Section className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+						<Section className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
 							<Section className="border-b border-border px-6 py-5">
-								<Text className="m-0 text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+								<Text className="m-0 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
 									Leuchtturm
 								</Text>
 							</Section>
 							<Section className="px-6 py-6">{props.children}</Section>
-							<Section className="border-t border-border px-6 py-5">
-								<Text className="m-0 text-xs leading-[18px] text-muted-foreground">
+							<Section className="border-t border-border bg-muted px-6 py-5">
+								<Text className="m-0 text-xs leading-relaxed text-muted-foreground">
 									{props.footer}
 								</Text>
 							</Section>

@@ -18,10 +18,10 @@ const MagicLinkEmail = ({ signInUrl }: MagicLinkEmailParams) => {
 			preheader={preheaderText}
 			footer="If you did not request this sign-in link, you can safely ignore this email."
 		>
-			<Heading className="m-0 mb-3 text-2xl font-semibold text-foreground">
+			<Heading className="m-0 mb-3 text-2xl font-semibold tracking-tight text-foreground">
 				Sign in to Leuchtturm
 			</Heading>
-			<Text className="m-0 mb-5 text-base leading-[24px] text-muted-foreground">
+			<Text className="m-0 mb-5 text-sm leading-relaxed text-muted-foreground">
 				Use this secure link to sign in to your Leuchtturm account.
 			</Text>
 			<Button
@@ -31,10 +31,10 @@ const MagicLinkEmail = ({ signInUrl }: MagicLinkEmailParams) => {
 				Sign in
 			</Button>
 			<Hr className="my-6 border-border" />
-			<Text className="m-0 text-sm leading-[20px] text-muted-foreground">
+			<Text className="m-0 text-xs leading-relaxed text-muted-foreground">
 				If the button does not work, paste this link into your browser:
 			</Text>
-			<Link href={signInUrl} className="break-all text-sm font-medium text-accent underline">
+			<Link href={signInUrl} className="break-all text-xs font-medium text-primary underline">
 				{signInUrl}
 			</Link>
 		</EmailFrame>

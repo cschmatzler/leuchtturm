@@ -20,10 +20,10 @@ const InvitationEmail = ({ acceptUrl, inviterName, organizationName }: Invitatio
 			preheader={preheaderText}
 			footer="If you did not expect this invitation, you can safely ignore this email."
 		>
-			<Heading className="m-0 mb-3 text-2xl font-semibold text-foreground">
+			<Heading className="m-0 mb-3 text-2xl font-semibold tracking-tight text-foreground">
 				Join {organizationName}
 			</Heading>
-			<Text className="m-0 mb-5 text-base leading-[24px] text-muted-foreground">
+			<Text className="m-0 mb-5 text-sm leading-relaxed text-muted-foreground">
 				{inviterName} invited you to join {organizationName} on Leuchtturm.
 			</Text>
 			<Button
@@ -33,10 +33,10 @@ const InvitationEmail = ({ acceptUrl, inviterName, organizationName }: Invitatio
 				Accept invitation
 			</Button>
 			<Hr className="my-6 border-border" />
-			<Text className="m-0 text-sm leading-[20px] text-muted-foreground">
+			<Text className="m-0 text-xs leading-relaxed text-muted-foreground">
 				If the button does not work, paste this link into your browser:
 			</Text>
-			<Link href={acceptUrl} className="break-all text-sm font-medium text-accent underline">
+			<Link href={acceptUrl} className="break-all text-xs font-medium text-primary underline">
 				{acceptUrl}
 			</Link>
 		</EmailFrame>
