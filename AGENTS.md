@@ -2,6 +2,8 @@
 
 - If asked a question, answer it. Do not edit files.
 - Clarify ambiguous requirements before editing. Do not guess.
+- Always investigate existing codebase patterns thoroughly before changing code, naming, structure, or architecture.
+- Do not make changes without first checking the relevant surrounding implementation and comparable patterns elsewhere in the codebase.
 - Collaborate with the user; do not proceed silently.
 - Never generate migrations. Tell the user to create them.
 - When the user points out a mistake, fix it in the same turn.
