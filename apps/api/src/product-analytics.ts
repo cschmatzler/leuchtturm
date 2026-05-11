@@ -3,7 +3,7 @@ import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 
 import { RequestContext } from "@leuchtturm/api/middleware/request-context";
-import { PostHog } from "@leuchtturm/core/posthog";
+import { PostHog } from "@leuchtturm/api/posthog";
 
 export namespace ProductAnalytics {
 	export interface Interface {

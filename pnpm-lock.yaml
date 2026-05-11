@@ -52,6 +52,9 @@ importers:
       effect:
         specifier: 4.0.0-beta.64
         version: 4.0.0-beta.64
+      posthog-node:
+        specifier: 5.33.4
+        version: 5.33.4
       sst:
         specifier: 4.13.1
         version: 4.13.1
@@ -245,12 +248,6 @@ importers:
       pg:
         specifier: 8.20.0
         version: 8.20.0
-      posthog-node:
-        specifier: 5.33.4
-        version: 5.33.4
-      sst:
-        specifier: 4.13.1
-        version: 4.13.1
       ulid:
         specifier: 3.0.2
         version: 3.0.2
