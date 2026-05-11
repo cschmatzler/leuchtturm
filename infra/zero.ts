@@ -51,11 +51,6 @@ new render.services.EnvVarsForService("ZeroServiceEnvVars", {
 	envVars: zeroEnvVars,
 });
 
-new render.services.CustomDomain("ZeroCustomDomain", {
-	name: syncDomain,
-	serviceId: zero.id,
-});
-
 new cloudflare.DnsRecord("ZeroCustomDomainRecord", {
 	zoneId: zone.zoneId,
 	name: syncDomain,

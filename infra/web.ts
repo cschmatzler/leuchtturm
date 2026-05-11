@@ -14,10 +14,10 @@ export const web = new sst.cloudflare.StaticSiteV2("Web", {
 	},
 	dev: {
 		url: $interpolate`https://${appDomain}`,
-		command: "vp dev --host 127.0.0.1 --strictPort",
+		command: "pnpm vp dev --host 127.0.0.1 --strictPort",
 	},
 	build: {
-		command: "vp build",
+		command: "pnpm vp build",
 		output: "dist",
 	},
 });
