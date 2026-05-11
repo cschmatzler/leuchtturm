@@ -4,7 +4,7 @@ import * as HttpApiMiddleware from "effect/unstable/httpapi/HttpApiMiddleware";
 import { Errors } from "@leuchtturm/api/errors";
 import { SessionSelect, UserSelect } from "@leuchtturm/core/auth/schema";
 
-export namespace Auth {
+export namespace ApiAuth {
 	export interface Interface {
 		readonly user: typeof UserSelect.Type;
 		readonly session: typeof SessionSelect.Type;
