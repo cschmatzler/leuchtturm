@@ -7,8 +7,8 @@ import { PostHog } from "posthog-node/edge";
 import { Resource } from "sst";
 
 export namespace FeatureFlags {
-	export class FeatureFlagProviderRequestError extends Schema.TaggedErrorClass<FeatureFlagProviderRequestError>()(
-		"FeatureFlagProviderRequestError",
+	export class PostHogRequestFailed extends Schema.TaggedErrorClass<PostHogRequestFailed>()(
+		"PostHogRequestFailed",
 		{
 			operation: Schema.String,
 			message: Schema.String,
@@ -16,12 +16,15 @@ export namespace FeatureFlags {
 		{ httpApiStatus: 500 },
 	) {
 		constructor(params: { readonly operation: string }) {
-			super({ ...params, message: `PostHog request failed: ${params.operation}` });
+			super({
+				...params,
+				message: `PostHog failed to ${params.operation}`,
+			});
 		}
 	}
 
-	export class FeatureFlagMissingEvaluationError extends Schema.TaggedErrorClass<FeatureFlagMissingEvaluationError>()(
-		"FeatureFlagMissingEvaluationError",
+	export class FeatureFlagEvaluationMissing extends Schema.TaggedErrorClass<FeatureFlagEvaluationMissing>()(
+		"FeatureFlagEvaluationMissing",
 		{
 			key: Schema.String,
 			userId: Schema.String,
@@ -32,24 +35,30 @@ export namespace FeatureFlags {
 		constructor(params: { readonly key: string; readonly userId: string }) {
 			super({
 				...params,
-				message: `PostHog returned no feature flag evaluation result for ${params.key} and user ${params.userId}`,
+				message: `PostHog returned no evaluation for feature flag ${params.key} and user ${params.userId}`,
 			});
 		}
 	}
 
-	export const Error = Schema.Union([
-		FeatureFlagProviderRequestError,
-		FeatureFlagMissingEvaluationError,
-	]);
+	export const Failure = Schema.Union([PostHogRequestFailed, FeatureFlagEvaluationMissing]);
 
 	export interface Interface {
-		readonly isEnabled: (key: string, userId: string) => Effect.Effect<boolean, typeof Error.Type>;
+		readonly isEnabled: (
+			key: string,
+			userId: string,
+		) => Effect.Effect<boolean, typeof Failure.Type>;
 		readonly listForUser: (
 			userId: string,
-		) => Effect.Effect<Record<string, boolean>, typeof Error.Type>;
+		) => Effect.Effect<Record<string, boolean>, typeof Failure.Type>;
 	}
 
 	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/FeatureFlags") {}
+
+	const failPostHogRequest = (cause: Cause.Cause<unknown>, operation: string) =>
+		Effect.gen(function* () {
+			yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
+			return yield* Effect.fail(new PostHogRequestFailed({ operation }));
+		});
 
 	const toEnabledRecord = (flags: Record<string, boolean | string>): Record<string, boolean> => {
 		return Object.fromEntries(
@@ -65,6 +74,7 @@ export namespace FeatureFlags {
 			const client = new PostHog(Resource.PostHogProjectApiKey.value, {
 				host: Resource.PostHogHost.value,
 			});
+
 			return Service.of({
 				isEnabled: (key, userId) =>
 					Effect.gen(function* () {
@@ -76,24 +86,12 @@ export namespace FeatureFlags {
 							catch: (cause) => cause,
 						}).pipe(
 							Effect.catchCause((cause) =>
-								Effect.gen(function* () {
-									yield* Effect.annotateCurrentSpan({
-										"error.original_cause": Cause.pretty(cause),
-									});
-									return yield* Effect.fail(
-										new FeatureFlagProviderRequestError({
-											operation: `Failed to evaluate feature flag ${key} for user ${userId}`,
-										}),
-									);
-								}),
+								failPostHogRequest(cause, `evaluate feature flag ${key} for user ${userId}`),
 							),
 						);
 
 						if (enabled === undefined) {
-							return yield* new FeatureFlagMissingEvaluationError({
-								key,
-								userId,
-							});
+							return yield* Effect.fail(new FeatureFlagEvaluationMissing({ key, userId }));
 						}
 
 						return enabled;
@@ -104,16 +102,7 @@ export namespace FeatureFlags {
 						catch: (cause) => cause,
 					}).pipe(
 						Effect.catchCause((cause) =>
-							Effect.gen(function* () {
-								yield* Effect.annotateCurrentSpan({
-									"error.original_cause": Cause.pretty(cause),
-								});
-								return yield* Effect.fail(
-									new FeatureFlagProviderRequestError({
-										operation: `Failed to list feature flags for user ${userId}`,
-									}),
-								);
-							}),
+							failPostHogRequest(cause, `list feature flags for user ${userId}`),
 						),
 					),
 			});
