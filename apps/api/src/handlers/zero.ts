@@ -11,7 +11,7 @@ import { LeuchtturmApi } from "@leuchtturm/api/contract";
 import { Metrics } from "@leuchtturm/api/observability/metrics";
 import { Session } from "@leuchtturm/api/session";
 import { DatabaseError } from "@leuchtturm/core/errors";
-import { Database } from "@leuchtturm/zero/database";
+import { ZeroDatabase } from "@leuchtturm/zero/database";
 import { mutators } from "@leuchtturm/zero/mutators";
 import { queries } from "@leuchtturm/zero/queries";
 import { schema } from "@leuchtturm/zero/schema";
@@ -47,7 +47,7 @@ export namespace ZeroHandler {
 
 	const handleMutate = Effect.fn("zero.mutate")(function* () {
 		const { user } = yield* Session.Service;
-		const { database } = yield* Database.Service;
+		const { database } = yield* ZeroDatabase.Service;
 		const ctx = { userId: user.id };
 		const request = yield* HttpServerRequest.HttpServerRequest;
 		const rawRequest = yield* HttpServerRequest.toWeb(request).pipe(Effect.orDie);
@@ -82,5 +82,5 @@ export namespace ZeroHandler {
 		handlers
 			.handleRaw("query", () => Metrics.trackAction("zero.query", handleQuery()))
 			.handleRaw("mutate", () => Metrics.trackAction("zero.mutate", handleMutate())),
-	).pipe(Layer.provide(Database.layer));
+	).pipe(Layer.provide(ZeroDatabase.layer));
 }

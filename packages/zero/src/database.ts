@@ -6,12 +6,14 @@ import * as Layer from "effect/Layer";
 import { Database as CoreDatabase } from "@leuchtturm/core/drizzle";
 import { schema } from "@leuchtturm/zero/schema";
 
-export namespace Database {
+export namespace ZeroDatabase {
 	export interface Interface {
 		readonly database: ReturnType<typeof zeroDrizzle<typeof schema, CoreDatabase.RawDatabase>>;
 	}
 
-	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/zero/Database") {}
+	export class Service extends Context.Service<Service, Interface>()(
+		"@leuchtturm/zero/ZeroDatabase",
+	) {}
 
 	export const layer = Layer.effect(Service)(
 		Effect.gen(function* () {
