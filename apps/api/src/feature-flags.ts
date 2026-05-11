@@ -54,15 +54,6 @@ export namespace FeatureFlags {
 
 	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/FeatureFlags") {}
 
-	const toEnabledRecord = (flags: Record<string, boolean | string>): Record<string, boolean> => {
-		return Object.fromEntries(
-			Object.entries(flags).map(([key, value]) => [
-				key,
-				value === true || typeof value === "string",
-			]),
-		);
-	};
-
 	export const layer = Layer.effect(Service)(
 		Effect.sync(() => {
 			const client = new PostHog(Resource.PostHogProjectApiKey.value, {
@@ -72,13 +63,11 @@ export namespace FeatureFlags {
 			return Service.of({
 				isEnabled: (key, userId) =>
 					Effect.gen(function* () {
-						const enabled = yield* Effect.tryPromise({
-							try: () =>
-								client.isFeatureEnabled(key, userId, {
-									sendFeatureFlagEvents: false,
-								}),
-							catch: (cause) => cause,
-						}).pipe(
+						const result = yield* Effect.promise(() =>
+							client.getFeatureFlagResult(key, userId, {
+								sendFeatureFlagEvents: false,
+							}),
+						).pipe(
 							Effect.catchCause((cause) =>
 								Effect.gen(function* () {
 									yield* Effect.annotateCurrentSpan({
@@ -93,30 +82,31 @@ export namespace FeatureFlags {
 							),
 						);
 
-						if (enabled === undefined) {
+						if (result === undefined) {
 							return yield* Effect.fail(new FeatureFlagEvaluationError({ key, userId }));
 						}
 
-						return enabled;
+						return result.enabled;
 					}),
 				listForUser: (userId) =>
-					Effect.tryPromise({
-						try: async () => toEnabledRecord(await client.getAllFlags(userId)),
-						catch: (cause) => cause,
-					}).pipe(
-						Effect.catchCause((cause) =>
-							Effect.gen(function* () {
-								yield* Effect.annotateCurrentSpan({
-									"error.original_cause": Cause.pretty(cause),
-								});
-								return yield* Effect.fail(
-									new FeatureFlagProviderRequestError({
-										operation: `List feature flags for user ${userId}`,
-									}),
-								);
-							}),
-						),
-					),
+					Effect.gen(function* () {
+						const flags = yield* Effect.promise(() => client.evaluateFlags(userId)).pipe(
+							Effect.catchCause((cause) =>
+								Effect.gen(function* () {
+									yield* Effect.annotateCurrentSpan({
+										"error.original_cause": Cause.pretty(cause),
+									});
+									return yield* Effect.fail(
+										new FeatureFlagProviderRequestError({
+											operation: `List feature flags for user ${userId}`,
+										}),
+									);
+								}),
+							),
+						);
+
+						return Object.fromEntries(flags.keys.map((key) => [key, flags.isEnabled(key)]));
+					}),
 			});
 		}),
 	);
