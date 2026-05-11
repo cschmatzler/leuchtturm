@@ -17,7 +17,7 @@ export const web = new sst.cloudflare.StaticSiteV2("Web", {
 		command: "vp dev --host 127.0.0.1 --strictPort",
 	},
 	build: {
-		command: "pnpm run build",
+		command: "vp build",
 		output: "dist",
 	},
 });
