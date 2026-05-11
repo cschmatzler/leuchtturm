@@ -6,13 +6,13 @@ import * as Layer from "effect/Layer";
 import { Database } from "@leuchtturm/core/drizzle";
 import { schema } from "@leuchtturm/zero/schema";
 
-export namespace ZeroDatabaseProvider {
+export namespace ZeroPushDatabase {
 	export interface Interface {
-		readonly databaseProvider: ReturnType<typeof zeroDrizzle<typeof schema, Database.RawDatabase>>;
+		readonly database: ReturnType<typeof zeroDrizzle<typeof schema, Database.RawDatabase>>;
 	}
 
 	export class Service extends Context.Service<Service, Interface>()(
-		"@leuchtturm/api/ZeroDatabaseProvider",
+		"@leuchtturm/zero/ZeroPushDatabase",
 	) {}
 
 	export const layer = Layer.effect(Service)(
@@ -20,7 +20,7 @@ export namespace ZeroDatabaseProvider {
 			const { rawDatabase } = yield* Database.Service;
 
 			return Service.of({
-				databaseProvider: zeroDrizzle(schema, rawDatabase),
+				database: zeroDrizzle(schema, rawDatabase),
 			});
 		}),
 	);
