@@ -120,13 +120,15 @@ namespace Api {
 	}
 }
 
-const apiRuntime = makeRuntime(Api.Service, Api.layer());
+let apiRuntime: ReturnType<typeof makeRuntime<Api.Service, Api.Interface, never>> | undefined;
 
 export default wrapCloudflareHandler(
 	instrument(
 		{
 			fetch(request: Request, _env: unknown, ctx: ExecutionContext) {
-				return apiRuntime.runPromise((api) => api.handle(request, ctx));
+				return (apiRuntime ??= makeRuntime(Api.Service, Api.layer())).runPromise((api) =>
+					api.handle(request, ctx),
+				);
 			},
 		},
 		() => ({
