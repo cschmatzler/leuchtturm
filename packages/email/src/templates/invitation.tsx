@@ -1,10 +1,10 @@
-import { Button, Heading, Hr, Link, Text } from "@react-email/components";
 import { render } from "@react-email/render";
 import * as Effect from "effect/Effect";
 
-import { EmailRenderError } from "@leuchtturm/email/errors";
+import { type EmailRenderError } from "@leuchtturm/email/errors";
 import { type Email } from "@leuchtturm/email/service";
-import { defaultFrom, EmailFrame } from "@leuchtturm/email/templates/email-frame";
+import { ActionEmailContent, sendRenderedEmail } from "@leuchtturm/email/templates/action-email";
+import { EmailFrame } from "@leuchtturm/email/templates/email-frame";
 
 const preheaderText = "You have been invited to join a Leuchtturm organization.";
 const defaultSubject = "You have been invited to Leuchtturm";
@@ -21,25 +21,12 @@ const InvitationEmail = ({ acceptUrl, inviterName, organizationName }: Invitatio
 			preheader={preheaderText}
 			footer="If you did not expect this invitation, you can safely ignore this email."
 		>
-			<Heading className="m-0 mb-3 text-2xl font-semibold tracking-tight text-foreground">
-				Join {organizationName}
-			</Heading>
-			<Text className="m-0 mb-5 text-sm leading-relaxed text-muted-foreground">
-				{inviterName} invited you to join {organizationName} on Leuchtturm.
-			</Text>
-			<Button
-				href={acceptUrl}
-				className="rounded-md bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground no-underline"
-			>
-				Accept invitation
-			</Button>
-			<Hr className="my-6 border-border" />
-			<Text className="m-0 text-xs leading-relaxed text-muted-foreground">
-				If the button does not work, paste this link into your browser:
-			</Text>
-			<Link href={acceptUrl} className="break-all text-xs font-medium text-primary underline">
-				{acceptUrl}
-			</Link>
+			<ActionEmailContent
+				heading={`Join ${organizationName}`}
+				body={`${inviterName} invited you to join ${organizationName} on Leuchtturm.`}
+				actionHref={acceptUrl}
+				actionLabel="Accept invitation"
+			/>
 		</EmailFrame>
 	);
 };
@@ -81,23 +68,18 @@ export function sendInvitationEmail<Success, SendError>(params: {
 	readonly from?: string;
 	readonly subject?: string;
 }): Effect.Effect<void, SendError | EmailRenderError> {
-	return Effect.gen(function* () {
-		const { html, text } = yield* Effect.tryPromise({
-			try: () =>
-				renderInvitationEmail({
-					acceptUrl: params.acceptUrl,
-					inviterName: params.inviterName,
-					organizationName: params.organizationName,
-				}),
-			catch: () => new EmailRenderError({ template: "invitation" }),
-		});
-
-		yield* params.send({
-			from: params.from ?? defaultFrom,
-			to: params.email,
-			subject: params.subject ?? defaultSubject,
-			html,
-			text,
-		});
+	return sendRenderedEmail({
+		email: params.email,
+		from: params.from,
+		send: params.send,
+		subject: params.subject,
+		defaultSubject,
+		template: "invitation",
+		render: () =>
+			renderInvitationEmail({
+				acceptUrl: params.acceptUrl,
+				inviterName: params.inviterName,
+				organizationName: params.organizationName,
+			}),
 	});
 }
