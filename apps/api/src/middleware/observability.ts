@@ -10,51 +10,61 @@ import { Metrics } from "@leuchtturm/api/observability/metrics";
 import { Telemetry } from "@leuchtturm/api/observability/telemetry";
 
 export namespace Observability {
-	const run = Effect.fn("Observability.run")(function* <E, R>(
-		app: Effect.Effect<HttpServerResponse.HttpServerResponse, E, R>,
-	) {
-		const request = yield* HttpServerRequest.HttpServerRequest;
-		const startedAt = yield* Clock.currentTimeMillis;
-		const path = Option.getOrElse(
-			Option.map(HttpServerRequest.toURL(request), (url) => url.pathname),
-			() => request.url,
-		);
+	const run = <E, R>(app: Effect.Effect<HttpServerResponse.HttpServerResponse, E, R>) =>
+		Effect.gen(function* () {
+			const request = yield* HttpServerRequest.HttpServerRequest;
+			const startedAt = yield* Clock.currentTimeMillis;
+			const path = Option.getOrElse(
+				Option.map(HttpServerRequest.toURL(request), (url) => url.pathname),
+				() => request.url,
+			);
 
-		const record = (response: HttpServerResponse.HttpServerResponse) =>
-			Effect.gen(function* () {
-				const durationMs = (yield* Clock.currentTimeMillis) - startedAt;
-				const attributes = {
-					method: request.method,
-					path,
-					status: String(response.status),
-				};
+			const record = (response: HttpServerResponse.HttpServerResponse) =>
+				Effect.gen(function* () {
+					const durationMs = (yield* Clock.currentTimeMillis) - startedAt;
+					const attributes = {
+						method: request.method,
+						path,
+						status: String(response.status),
+					};
 
-				yield* Effect.all([
-					Metrics.increment("api_requests_total", 1, {
-						attributes,
-						description: "Total number of API requests handled by the worker.",
-					}),
-					Metrics.observe("api_request_duration_ms", durationMs, {
-						attributes,
-						boundaries: Metrics.requestDurationBoundaries,
-						description: "End-to-end duration of API request handling in milliseconds.",
-					}),
-				]);
-			});
+					yield* Effect.annotateCurrentSpan({
+						"http.response.status_code": response.status,
+					});
 
-		return yield* app.pipe(
-			HttpMiddleware.tracer,
-			HttpMiddleware.logger,
-			Effect.tap(record),
-			Effect.catchCause((cause) =>
-				HttpServerError.causeResponse(cause).pipe(
-					Effect.tap(([response]) => record(response)),
-					Effect.andThen(Effect.failCause(cause)),
+					yield* Effect.all([
+						Metrics.increment("api_requests_total", 1, {
+							attributes,
+							description: "Total number of API requests handled by the worker.",
+						}),
+						Metrics.observe("api_request_duration_ms", durationMs, {
+							attributes,
+							boundaries: Metrics.requestDurationBoundaries,
+							description: "End-to-end duration of API request handling in milliseconds.",
+						}),
+					]);
+				});
+
+			return yield* app.pipe(
+				HttpMiddleware.logger,
+				Effect.tap(record),
+				Effect.catchCause((cause) =>
+					HttpServerError.causeResponse(cause).pipe(
+						Effect.tap(([response]) => record(response)),
+						Effect.andThen(Effect.failCause(cause)),
+					),
 				),
-			),
-			Telemetry.withRequest,
-		);
-	});
+				Effect.withSpan(`${request.method} ${path}`, {
+					attributes: {
+						"http.request.method": request.method,
+						"url.path": path,
+					},
+					kind: "server",
+					root: true,
+				}),
+				Telemetry.withRequest,
+			);
+		});
 
 	export const middleware = HttpMiddleware.make(run);
 }
