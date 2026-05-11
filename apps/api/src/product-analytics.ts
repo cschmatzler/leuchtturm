@@ -18,22 +18,28 @@ export namespace ProductAnalytics {
 		"@leuchtturm/api/ProductAnalytics",
 	) {}
 
-	export const layer = Layer.succeed(
-		Service,
-		Service.of({
-			capture: (distinctId, event, properties = {}) =>
-				Effect.gen(function* () {
-					const context = yield* RequestContext.Service;
-					const client = PostHog.create(context.waitUntil);
+	export const layer = Layer.effect(Service)(
+		Effect.sync(() => {
+			const client = PostHog.create();
 
-					yield* Effect.sync(() => {
-						client.capture({
-							distinctId,
-							event,
-							properties,
+			return Service.of({
+				capture: (distinctId, event, properties = {}) =>
+					Effect.gen(function* () {
+						const context = yield* RequestContext.Service;
+
+						yield* Effect.sync(() => {
+							context.waitUntil(
+								client
+									.captureImmediate({
+										distinctId,
+										event,
+										properties,
+									})
+									.catch(() => {}),
+							);
 						});
-					});
-				}),
+					}),
+			});
 		}),
 	);
 }
