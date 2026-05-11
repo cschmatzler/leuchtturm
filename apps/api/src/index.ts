@@ -30,12 +30,6 @@ import { makeRuntime } from "@leuchtturm/core/effect/run-service";
 import { InternalServerError } from "@leuchtturm/core/errors";
 
 namespace Api {
-	export interface Env {
-		readonly Database: {
-			readonly connectionString: string;
-		};
-	}
-
 	export interface Interface {
 		readonly handle: (
 			request: Request,
@@ -45,24 +39,24 @@ namespace Api {
 
 	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/Api") {}
 
-	export const layer = (env: Env) => {
-		const handlers = Layer.mergeAll(
-			HealthHandler.layer,
-			SessionHandler.layer,
-			BillingHandler.layer,
-			ZeroHandler.layer,
-			AuthHandler.layer,
-		);
-
+	export function layer() {
 		const api = HttpRouter.toHttpEffect(
 			HttpApiBuilder.layer(LeuchtturmApi).pipe(
-				Layer.provide(handlers),
+				Layer.provide(
+					Layer.mergeAll(
+						HealthHandler.layer,
+						SessionHandler.layer,
+						BillingHandler.layer,
+						ZeroHandler.layer,
+						AuthHandler.layer,
+					),
+				),
 				Layer.provide(AuthMiddleware.layer),
 				Layer.provide(ErrorCatalog.layer),
 			),
 		).pipe(Effect.flatten);
 
-		const database = Database.layer(env.Database.connectionString);
+		const database = Database.layer(Resource.Database.connectionString);
 
 		const core = Layer.mergeAll(
 			Auth.defaultLayer,
@@ -97,22 +91,21 @@ namespace Api {
 					(request: Request, executionContext: Pick<ExecutionContext, "waitUntil">) => {
 						const requestContext = RequestContext.make(request, executionContext);
 
-						return Effect.tryPromise({
-							try: () =>
-								(
-									handler.handler as (
-										request: Request,
-										context: ReturnType<typeof RequestContext.make>,
-									) => Promise<Response>
-								)(request, requestContext),
-							catch: (cause) => cause,
-						}).pipe(
+						return Effect.promise(() =>
+							(
+								handler.handler as (
+									request: Request,
+									context: ReturnType<typeof RequestContext.make>,
+								) => Promise<Response>
+							)(request, requestContext),
+						).pipe(
 							Effect.catchCause((cause) =>
 								Effect.gen(function* () {
-									const prettyCause = Cause.pretty(cause);
-									yield* Effect.annotateCurrentSpan({ "error.original_cause": prettyCause });
+									yield* Effect.annotateCurrentSpan({
+										"error.original_cause": Cause.pretty(cause),
+									});
 									yield* Effect.logError("API handler failed").pipe(
-										Effect.annotateLogs({ cause: prettyCause, url: request.url }),
+										Effect.annotateLogs({ cause: Cause.pretty(cause), url: request.url }),
 									);
 
 									return yield* Effect.fail(new InternalServerError());
@@ -123,13 +116,15 @@ namespace Api {
 				),
 			}),
 		);
-	};
+	}
 
-	export const create = (env: Env) => makeRuntime(Service, layer(env));
+	export function create() {
+		return makeRuntime(Service, layer());
+	}
 }
 
 export default wrapCloudflareHandler({
-	fetch(request: Request, env: Api.Env, ctx: ExecutionContext) {
-		return Api.create(env).runPromise((api) => api.handle(request, ctx));
+	fetch(request: Request, _env: unknown, ctx: ExecutionContext) {
+		return Api.create().runPromise((api) => api.handle(request, ctx));
 	},
 });
