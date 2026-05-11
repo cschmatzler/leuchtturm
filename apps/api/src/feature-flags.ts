@@ -8,7 +8,7 @@ import {
 	FeatureFlagEvaluationError,
 	FeatureFlagProviderRequestError,
 } from "@leuchtturm/api/feature-flags/errors";
-import { PostHog } from "@leuchtturm/api/post-hog";
+import { Posthog } from "@leuchtturm/api/posthog";
 
 export namespace FeatureFlags {
 	export interface Interface {
@@ -24,7 +24,7 @@ export namespace FeatureFlags {
 
 	export const layer = Layer.effect(Service)(
 		Effect.sync(() => {
-			const client = PostHog.create();
+			const client = Posthog.create();
 
 			return Service.of({
 				isEnabled: (key, userId) =>
