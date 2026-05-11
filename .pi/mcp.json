@@ -9,6 +9,16 @@
 			"url": "https://mcp.pscale.dev/mcp/planetscale",
 			"auth": "oauth",
 			"lifecycle": "eager"
+		},
+		"posthog": {
+			"url": "https://mcp.posthog.com/mcp",
+			"auth": "oauth",
+			"lifecycle": "eager"
+		},
+		"grafana": {
+			"url": "https://mcp.grafana.com/mcp",
+			"auth": "oauth",
+			"lifecycle": "eager"
 		}
 	}
 }
