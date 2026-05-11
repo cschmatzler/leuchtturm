@@ -56,9 +56,9 @@ new grafana.oss.Dashboard(
 	{
 		configJson: JSON.stringify(apiDashboard)
 			.replaceAll("__APP_STAGE__", $app.stage)
-			.replaceAll("__GRAFANA_LOGS_UID__", "grafanacloud-leuchtturmdev-logs")
-			.replaceAll("__GRAFANA_PROMETHEUS_UID__", "grafanacloud-leuchtturmdev-prom")
-			.replaceAll("__GRAFANA_TRACES_UID__", "grafanacloud-leuchtturmdev-traces"),
+			.replaceAll("__GRAFANA_LOGS_UID__", "grafanacloud-logs")
+			.replaceAll("__GRAFANA_PROMETHEUS_UID__", "grafanacloud-prom")
+			.replaceAll("__GRAFANA_TRACES_UID__", "grafanacloud-traces"),
 		folder: folder.uid,
 		overwrite: true,
 	},

@@ -55,7 +55,7 @@
 			"id": 3,
 			"targets": [
 				{
-					"expr": "{app=\"leuchtturm\", stage=~\"$stage\", service_name=\"leuchtturm-api\"} | json",
+					"expr": "{service_name=\"leuchtturm-api\", stage=~\"$stage\"}",
 					"refId": "A"
 				}
 			],
@@ -66,9 +66,15 @@
 			"datasource": { "type": "tempo", "uid": "__GRAFANA_TRACES_UID__" },
 			"gridPos": { "h": 10, "w": 12, "x": 12, "y": 16 },
 			"id": 4,
-			"targets": [{ "query": "leuchtturm-api", "queryType": "serviceMap", "refId": "A" }],
+			"targets": [
+				{
+					"query": "{ resource.service.name = \"leuchtturm-api\" }",
+					"queryType": "traceql",
+					"refId": "A"
+				}
+			],
 			"title": "API traces",
-			"type": "nodeGraph"
+			"type": "table"
 		}
 	],
 	"refresh": "30s",
