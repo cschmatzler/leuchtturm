@@ -1,10 +1,9 @@
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
-import { PostHog } from "posthog-node/edge";
-import { Resource } from "sst";
 
 import { RequestContext } from "@leuchtturm/api/middleware/request-context";
+import { PostHogClient } from "@leuchtturm/core/posthog";
 
 export namespace ProductAnalytics {
 	export interface Interface {
@@ -19,20 +18,13 @@ export namespace ProductAnalytics {
 		"@leuchtturm/api/ProductAnalytics",
 	) {}
 
-	export function createClient(waitUntil?: RequestContext.Interface["waitUntil"]) {
-		return new PostHog(Resource.PostHogProjectApiKey.value, {
-			host: Resource.PostHogHost.value,
-			waitUntil,
-		});
-	}
-
 	export const layer = Layer.succeed(
 		Service,
 		Service.of({
 			capture: (distinctId, event, properties = {}) =>
 				Effect.gen(function* () {
 					const context = yield* RequestContext.Service;
-					const client = createClient(context.waitUntil);
+					const client = PostHogClient.create(context.waitUntil);
 
 					yield* Effect.sync(() => {
 						client.capture({
