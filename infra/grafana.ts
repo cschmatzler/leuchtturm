@@ -102,7 +102,7 @@ const telemetryAccessPolicy = new grafana.cloud.AccessPolicy(
 		displayName: "Leuchtturm telemetry",
 		name: `${$app.name}-${$app.stage}-telemetry`,
 		realms: [{ identifier: grafanaStack.apply((stack) => stack.id), type: "stack" }],
-		region: "eu",
+		region: grafanaStack.apply((stack) => stack.regionSlug),
 		scopes: ["stacks:read", "logs:write", "metrics:write", "traces:write"],
 	},
 	{ provider: cloudProvider },
@@ -114,7 +114,7 @@ const telemetryAccessPolicyToken = new grafana.cloud.AccessPolicyToken(
 		accessPolicyId: telemetryAccessPolicy.policyId,
 		displayName: "Leuchtturm telemetry token",
 		name: `${$app.name}-${$app.stage}-telemetry-token`,
-		region: "eu",
+		region: grafanaStack.apply((stack) => stack.regionSlug),
 	},
 	{ provider: cloudProvider },
 );
