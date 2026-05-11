@@ -3,8 +3,8 @@ import * as HttpApi from "effect/unstable/httpapi/HttpApi";
 import * as HttpApiEndpoint from "effect/unstable/httpapi/HttpApiEndpoint";
 import * as HttpApiGroup from "effect/unstable/httpapi/HttpApiGroup";
 
-import { ApiAuth } from "@leuchtturm/api/auth";
 import { ErrorCatalog } from "@leuchtturm/api/errors";
+import { Session } from "@leuchtturm/api/session";
 import { DeviceSessions } from "@leuchtturm/core/auth/schema";
 
 export namespace Contract {
@@ -43,7 +43,7 @@ export namespace Contract {
 	export const zero = HttpApiGroup.make("zero")
 		.add(HttpApiEndpoint.post("query", "/query"))
 		.add(HttpApiEndpoint.post("mutate", "/mutate"))
-		.middleware(ApiAuth.Middleware);
+		.middleware(Session.Middleware);
 
 	export const session = HttpApiGroup.make("session")
 		.add(
@@ -51,7 +51,7 @@ export namespace Contract {
 				success: DeviceSessions,
 			}),
 		)
-		.middleware(ApiAuth.Middleware);
+		.middleware(Session.Middleware);
 
 	export const billing = HttpApiGroup.make("billing")
 		.add(
@@ -72,7 +72,7 @@ export namespace Contract {
 				success: BillingUrlResponse,
 			}),
 		)
-		.middleware(ApiAuth.Middleware);
+		.middleware(Session.Middleware);
 
 	export const auth = HttpApiGroup.make("auth")
 		.add(HttpApiEndpoint.get("authGet", "/auth/*"))
