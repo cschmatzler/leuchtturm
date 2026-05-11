@@ -1,8 +1,8 @@
 import { render } from "@react-email/render";
 import * as Effect from "effect/Effect";
 
+import { type Email } from "@leuchtturm/email/email";
 import { type EmailRenderError } from "@leuchtturm/email/errors";
-import { type Email } from "@leuchtturm/email/service";
 import { ActionEmailContent, sendRenderedEmail } from "@leuchtturm/email/templates/action-email";
 import { EmailFrame } from "@leuchtturm/email/templates/email-frame";
 

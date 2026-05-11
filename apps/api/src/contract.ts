@@ -3,7 +3,7 @@ import * as HttpApi from "effect/unstable/httpapi/HttpApi";
 import * as HttpApiEndpoint from "effect/unstable/httpapi/HttpApiEndpoint";
 import * as HttpApiGroup from "effect/unstable/httpapi/HttpApiGroup";
 
-import { ErrorCatalog } from "@leuchtturm/api/errors";
+import { ErrorCatalog } from "@leuchtturm/api/error-catalog";
 import { Session } from "@leuchtturm/api/session";
 import { DeviceSessions } from "@leuchtturm/core/auth/schema";
 

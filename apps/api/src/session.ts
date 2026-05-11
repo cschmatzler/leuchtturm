@@ -1,7 +1,7 @@
 import * as Context from "effect/Context";
 import * as HttpApiMiddleware from "effect/unstable/httpapi/HttpApiMiddleware";
 
-import { Errors } from "@leuchtturm/api/errors";
+import { Errors } from "@leuchtturm/api/error-catalog";
 import { SessionSelect, UserSelect } from "@leuchtturm/core/auth/schema";
 
 export namespace Session {

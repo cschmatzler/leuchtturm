@@ -5,7 +5,7 @@ import { apiSecrets, secrets } from "@leuchtturm/infra/secrets";
 import { storage } from "@leuchtturm/infra/storage";
 
 export const api = new sst.cloudflare.Worker("ApiWorker", {
-	handler: "apps/api/src/index.ts",
+	handler: "apps/api/src/api.ts",
 	placement: { mode: "smart" },
 	domain: apiDomain,
 	compatibility: {

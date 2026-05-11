@@ -3,7 +3,7 @@ import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 
-import { Database as CoreDatabase } from "@leuchtturm/core/drizzle";
+import { Database as CoreDatabase } from "@leuchtturm/core/database";
 import { schema } from "@leuchtturm/zero/schema";
 
 export namespace ZeroDatabase {

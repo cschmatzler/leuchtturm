@@ -3,7 +3,7 @@ import * as Effect from "effect/Effect";
 import * as HttpApiBuilder from "effect/unstable/httpapi/HttpApiBuilder";
 
 import { LeuchtturmApi } from "@leuchtturm/api/contract";
-import { Database } from "@leuchtturm/core/drizzle";
+import { Database } from "@leuchtturm/core/database";
 import { DatabaseError } from "@leuchtturm/core/errors";
 
 export namespace HealthHandler {

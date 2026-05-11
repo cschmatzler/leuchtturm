@@ -36,7 +36,7 @@ import {
 } from "@leuchtturm/core/billing/errors";
 import { POLAR_PRO_PRODUCT_ID } from "@leuchtturm/core/billing/products";
 import { CustomerSelect, OrderSelect, SubscriptionSelect } from "@leuchtturm/core/billing/schema";
-import { Database } from "@leuchtturm/core/drizzle";
+import { Database } from "@leuchtturm/core/database";
 
 type TransactionEffect<A> = Effect.Effect<
 	A,

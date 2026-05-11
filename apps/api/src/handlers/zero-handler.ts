@@ -11,10 +11,10 @@ import { LeuchtturmApi } from "@leuchtturm/api/contract";
 import { Metrics } from "@leuchtturm/api/observability/metrics";
 import { Session } from "@leuchtturm/api/session";
 import { DatabaseError } from "@leuchtturm/core/errors";
-import { ZeroDatabase } from "@leuchtturm/zero/database";
 import { mutators } from "@leuchtturm/zero/mutators";
 import { queries } from "@leuchtturm/zero/queries";
 import { schema } from "@leuchtturm/zero/schema";
+import { ZeroDatabase } from "@leuchtturm/zero/zero-database";
 
 export namespace ZeroHandler {
 	const handleQuery = Effect.fn("zero.query")(function* () {

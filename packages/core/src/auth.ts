@@ -56,8 +56,8 @@ import {
 	VerificationSelect,
 } from "@leuchtturm/core/auth/schema";
 import { Billing } from "@leuchtturm/core/billing";
-import { Database } from "@leuchtturm/core/drizzle";
-import { Email } from "@leuchtturm/email/service";
+import { Database } from "@leuchtturm/core/database";
+import { Email } from "@leuchtturm/email/email";
 import { sendInvitationEmail } from "@leuchtturm/email/templates/invitation";
 import { sendMagicLinkEmail } from "@leuchtturm/email/templates/magic-link";
 
