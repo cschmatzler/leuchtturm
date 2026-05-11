@@ -124,7 +124,7 @@ export const grafanaOtlpUrl = new sst.Linkable("GrafanaOtlpUrl", {
 		value: all({
 			username: grafanaStack.apply((stack) => stack.id),
 			token: telemetryAccessPolicyToken.token,
-			url: grafanaStack.apply((stack) => stack.otlpUrl),
+			url: grafanaStack.apply((stack) => `${stack.otlpUrl}/otlp`),
 		}).apply(({ username, token, url }: { token: string; url: string; username: string }) =>
 			JSON.stringify({
 				authorization: `Basic ${Buffer.from(`${username}:${token}`).toString("base64")}`,
