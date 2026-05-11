@@ -7,12 +7,6 @@ import { Resource } from "sst";
 import { RequestContext } from "@leuchtturm/api/middleware/request-context";
 
 export namespace ProductAnalytics {
-	const createClient = (waitUntil: RequestContext.Interface["waitUntil"]) =>
-		new PostHog(Resource.PostHogProjectApiKey.value, {
-			host: Resource.PostHogHost.value,
-			waitUntil,
-		});
-
 	export interface Interface {
 		readonly capture: (
 			distinctId: string,
@@ -24,6 +18,13 @@ export namespace ProductAnalytics {
 	export class Service extends Context.Service<Service, Interface>()(
 		"@leuchtturm/api/ProductAnalytics",
 	) {}
+
+	export function createClient(waitUntil?: RequestContext.Interface["waitUntil"]) {
+		return new PostHog(Resource.PostHogProjectApiKey.value, {
+			host: Resource.PostHogHost.value,
+			waitUntil,
+		});
+	}
 
 	export const layer = Layer.succeed(
 		Service,

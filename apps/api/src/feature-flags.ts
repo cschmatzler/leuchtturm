@@ -2,14 +2,13 @@ import * as Cause from "effect/Cause";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
-import { PostHog } from "posthog-node/edge";
-import { Resource } from "sst";
 
 import {
 	FeatureFlagError,
 	FeatureFlagEvaluationError,
 	FeatureFlagProviderRequestError,
 } from "@leuchtturm/api/feature-flags/errors";
+import { ProductAnalytics } from "@leuchtturm/api/product-analytics";
 
 export namespace FeatureFlags {
 	export interface Interface {
@@ -25,9 +24,7 @@ export namespace FeatureFlags {
 
 	export const layer = Layer.effect(Service)(
 		Effect.sync(() => {
-			const client = new PostHog(Resource.PostHogProjectApiKey.value, {
-				host: Resource.PostHogHost.value,
-			});
+			const client = ProductAnalytics.createClient();
 
 			return Service.of({
 				isEnabled: (key, userId) =>
