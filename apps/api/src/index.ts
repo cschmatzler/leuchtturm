@@ -22,7 +22,7 @@ import { AuthMiddleware } from "@leuchtturm/api/middleware/auth";
 import { Observability } from "@leuchtturm/api/middleware/observability";
 import { RequestContext } from "@leuchtturm/api/middleware/request-context";
 import { Metrics } from "@leuchtturm/api/observability/metrics";
-import { ProductAnalytics } from "@leuchtturm/api/posthog";
+import { ProductAnalytics } from "@leuchtturm/api/product-analytics";
 import { Auth } from "@leuchtturm/core/auth";
 import { Billing } from "@leuchtturm/core/billing";
 import { Database } from "@leuchtturm/core/drizzle";
@@ -37,7 +37,7 @@ namespace Api {
 		) => Effect.Effect<Response, InternalServerError>;
 	}
 
-	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/Api") {}
+	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/api/Api") {}
 
 	export function layer() {
 		const api = HttpRouter.toHttpEffect(

@@ -74,9 +74,12 @@ export const Errors = [
 	HttpApiSchema.status(500)(FeatureFlagEvaluationError),
 ] as const;
 
-export class ErrorCatalog extends HttpApiMiddleware.Service<ErrorCatalog>()("ErrorCatalog", {
-	error: Errors,
-}) {}
+export class ErrorCatalog extends HttpApiMiddleware.Service<ErrorCatalog>()(
+	"@leuchtturm/api/ErrorCatalog",
+	{
+		error: Errors,
+	},
+) {}
 
 export namespace ErrorCatalog {
 	export const layer = Layer.succeed(ErrorCatalog, (httpApp) => httpApp);

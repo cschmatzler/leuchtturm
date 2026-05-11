@@ -22,7 +22,7 @@ export namespace ProductAnalytics {
 	}
 
 	export class Service extends Context.Service<Service, Interface>()(
-		"@leuchtturm/ProductAnalytics",
+		"@leuchtturm/api/ProductAnalytics",
 	) {}
 
 	export const layer = Layer.succeed(

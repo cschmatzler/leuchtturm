@@ -19,7 +19,9 @@ export namespace FeatureFlags {
 		) => Effect.Effect<boolean, typeof FeatureFlagError.Type>;
 	}
 
-	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/FeatureFlags") {}
+	export class Service extends Context.Service<Service, Interface>()(
+		"@leuchtturm/api/FeatureFlags",
+	) {}
 
 	export const layer = Layer.effect(Service)(
 		Effect.sync(() => {
