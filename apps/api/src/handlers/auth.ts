@@ -11,7 +11,7 @@ import { Auth } from "@leuchtturm/core/auth";
 import { AuthError, AuthHandlerError } from "@leuchtturm/core/auth/errors";
 
 export namespace AuthHandler {
-	export const handlePassthrough = Effect.fn("auth.passthrough.handle")(function* (
+	export const handlePassthrough = Effect.fn("AuthHandler.handlePassthrough")(function* (
 		request: HttpServerRequest.HttpServerRequest,
 	) {
 		const auth = yield* Auth.Service;
