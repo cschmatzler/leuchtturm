@@ -11,6 +11,13 @@ describe("Metrics", () => {
 				const metrics = yield* Metrics.Service;
 
 				yield* metrics.action("billing.checkout", "success");
+				yield* Metrics.trackAction("zero.query", Effect.void);
+				yield* Metrics.trackAction("zero.mutate", Effect.fail("boom")).pipe(
+					Effect.catchIf(
+						() => true,
+						() => Effect.void,
+					),
+				);
 				yield* Metrics.action("billing.checkout", "failure");
 				yield* Metrics.setGauge("api_queue_depth", 7, {
 					attributes: { queue: "email" },
@@ -32,6 +39,8 @@ describe("Metrics", () => {
 		expect(output).toContain("# TYPE api_action_total counter");
 		expect(output).toContain('api_action_total{action="billing.checkout",result="success"} 1');
 		expect(output).toContain('api_action_total{action="billing.checkout",result="failure"} 1');
+		expect(output).toContain('api_action_total{action="zero.query",result="success"} 1');
+		expect(output).toContain('api_action_total{action="zero.mutate",result="failure"} 1');
 		expect(output).toContain("# TYPE api_queue_depth gauge");
 		expect(output).toContain('api_queue_depth{queue="email"} 7');
 		expect(output).toContain("# TYPE api_action_duration_ms histogram");

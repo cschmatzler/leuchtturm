@@ -3,6 +3,7 @@ import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import * as HttpApiBuilder from "effect/unstable/httpapi/HttpApiBuilder";
 
 import { LeuchtturmApi } from "@leuchtturm/api/contract";
+import { Metrics } from "@leuchtturm/api/observability/metrics";
 import { Auth } from "@leuchtturm/core/auth";
 
 export namespace SessionHandler {
@@ -14,6 +15,8 @@ export namespace SessionHandler {
 	});
 
 	export const layer = HttpApiBuilder.group(LeuchtturmApi, "session", (handlers) =>
-		handlers.handle("deviceSessions", deviceSessions),
+		handlers.handle("deviceSessions", () =>
+			Metrics.trackAction("session.device_sessions", deviceSessions()),
+		),
 	);
 }

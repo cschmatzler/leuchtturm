@@ -8,6 +8,7 @@ import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 import * as HttpApiBuilder from "effect/unstable/httpapi/HttpApiBuilder";
 
 import { CurrentUser, LeuchtturmApi } from "@leuchtturm/api/contract";
+import { Metrics } from "@leuchtturm/api/observability/metrics";
 import { Database } from "@leuchtturm/core/drizzle";
 import { DatabaseError } from "@leuchtturm/core/errors";
 import { mutators } from "@leuchtturm/zero/mutators";
@@ -78,6 +79,8 @@ export namespace ZeroHandler {
 	});
 
 	export const layer = HttpApiBuilder.group(LeuchtturmApi, "zero", (handlers) =>
-		handlers.handleRaw("query", handleQuery).handleRaw("mutate", handleMutate),
+		handlers
+			.handleRaw("query", () => Metrics.trackAction("zero.query", handleQuery()))
+			.handleRaw("mutate", () => Metrics.trackAction("zero.mutate", handleMutate())),
 	);
 }
