@@ -107,6 +107,9 @@ export namespace Auth {
 						},
 					},
 				},
+				emailAndPassword: {
+					enabled: true,
+				},
 				socialProviders: {
 					google: {
 						clientId: Resource.GoogleClientId.value,

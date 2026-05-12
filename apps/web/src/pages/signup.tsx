@@ -1,8 +1,9 @@
 import { SpinnerIcon } from "@phosphor-icons/react/Spinner";
 import { useForm } from "@tanstack/react-form";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
 import * as Schema from "effect/Schema";
-import { T, useGT, Var } from "gt-react";
+import { T, useGT } from "gt-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -12,7 +13,6 @@ import { AuthPageLayout } from "@leuchtturm/web/components/app/auth-page-layout"
 import { Button } from "@leuchtturm/web/components/ui/button";
 import {
 	Field,
-	FieldDescription,
 	FieldError,
 	FieldGroup,
 	FieldLabel,
@@ -26,22 +26,24 @@ export const Route = createFileRoute("/signup")({
 
 function Page() {
 	const t = useGT();
+	const navigate = useNavigate();
+	const router = useRouter();
+	const queryClient = useQueryClient();
 	const [submitError, setSubmitError] = useState<string>();
-	const [magicLinkSentTo, setMagicLinkSentTo] = useState<string>();
 	const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
 	const callbackURL = new URL("/app", window.location.origin).toString();
 	const form = useForm({
 		defaultValues: {
 			name: "",
 			email: "",
+			password: "",
 		},
 		onSubmit: async ({ value }) => {
 			setSubmitError(undefined);
-			setMagicLinkSentTo(undefined);
-			toast.loading(t("Sending sign-up link..."));
+			toast.loading(t("Creating account..."));
 			const email = Schema.decodeSync(UserInsert.fields.email)(value.email);
 			const name = Schema.decodeSync(UserInsert.fields.name)(value.name);
-			const { error } = await authClient.signIn.magicLink({ email, name, callbackURL });
+			const { error } = await authClient.signUp.email({ email, name, password: value.password });
 			toast.dismiss();
 
 			if (error) {
@@ -49,14 +51,17 @@ function Page() {
 				return;
 			}
 
-			setMagicLinkSentTo(email);
-			toast.success(t("Sign-up link sent"));
+			toast.success(t("Account created"));
+			await queryClient.invalidateQueries({ queryKey: ["session"] });
+			await queryClient.invalidateQueries({ queryKey: ["deviceSessions"] });
+			await queryClient.invalidateQueries({ queryKey: ["organizations"] });
+			await router.invalidate();
+			await navigate({ to: "/app" });
 		},
 	});
 
 	const signUpWithGoogle = async () => {
 		setSubmitError(undefined);
-		setMagicLinkSentTo(undefined);
 		setIsGoogleSubmitting(true);
 		toast.loading(t("Creating account..."));
 		const { error } = await authClient.signIn.social({
@@ -79,18 +84,11 @@ function Page() {
 						<T>Create an account</T>
 					</h1>
 					<p className="text-balance text-muted-foreground">
-						<T>Sign up with your email or Google to create your account</T>
+						<T>Sign up with your email and password or Google to create your account</T>
 					</p>
 				</div>
 				<FieldGroup>
 					{submitError ? <FieldError>{submitError}</FieldError> : null}
-					{magicLinkSentTo ? (
-						<FieldDescription className="text-center">
-							<T>
-								Check your inbox for a sign-up link sent to <Var>{magicLinkSentTo}</Var>.
-							</T>
-						</FieldDescription>
-					) : null}
 					<form.Field
 						name="name"
 						validators={{
@@ -111,7 +109,6 @@ function Page() {
 									onBlur={field.handleBlur}
 									onInput={(event) => {
 										setSubmitError(undefined);
-										setMagicLinkSentTo(undefined);
 										field.handleChange(event.currentTarget.value);
 									}}
 									disabled={isGoogleSubmitting}
@@ -144,7 +141,41 @@ function Page() {
 									onBlur={field.handleBlur}
 									onInput={(event) => {
 										setSubmitError(undefined);
-										setMagicLinkSentTo(undefined);
+										field.handleChange(event.currentTarget.value);
+									}}
+									disabled={isGoogleSubmitting}
+									required
+								/>
+								{field.state.meta.errors.length > 0 && (
+									<FieldError>{field.state.meta.errors[0]?.message}</FieldError>
+								)}
+							</Field>
+						)}
+					</form.Field>
+					<form.Field
+						name="password"
+						validators={{
+							onBlur: Schema.toStandardSchemaV1(
+								Schema.String.check(Schema.isMinLength(8)).annotate({
+									message: "Password must be at least 8 characters",
+								}),
+							),
+						}}
+					>
+						{(field) => (
+							<Field>
+								<FieldLabel htmlFor={field.name}>
+									<T>Password</T>
+								</FieldLabel>
+								<Input
+									id={field.name}
+									name={field.name}
+									type="password"
+									autoComplete="new-password"
+									value={field.state.value}
+									onBlur={field.handleBlur}
+									onInput={(event) => {
+										setSubmitError(undefined);
 										field.handleChange(event.currentTarget.value);
 									}}
 									disabled={isGoogleSubmitting}
@@ -165,7 +196,7 @@ function Page() {
 									disabled={!canSubmit || isSubmitting || isGoogleSubmitting}
 								>
 									{isSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : null}
-									<T>Send sign-up link</T>
+									<T>Sign up</T>
 								</Button>
 								<FieldSeparator>
 									<T>or</T>

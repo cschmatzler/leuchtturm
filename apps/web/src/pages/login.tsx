@@ -1,8 +1,9 @@
 import { SpinnerIcon } from "@phosphor-icons/react/Spinner";
 import { useForm } from "@tanstack/react-form";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
 import * as Schema from "effect/Schema";
-import { T, useGT, Var } from "gt-react";
+import { T, useGT } from "gt-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -12,7 +13,6 @@ import { AuthPageLayout } from "@leuchtturm/web/components/app/auth-page-layout"
 import { Button } from "@leuchtturm/web/components/ui/button";
 import {
 	Field,
-	FieldDescription,
 	FieldError,
 	FieldGroup,
 	FieldLabel,
@@ -38,21 +38,26 @@ export const Route = createFileRoute("/login")({
 function Page() {
 	const t = useGT();
 	const { redirect } = Route.useSearch();
+	const navigate = useNavigate();
+	const router = useRouter();
+	const queryClient = useQueryClient();
 
 	const [submitError, setSubmitError] = useState<string>();
-	const [magicLinkSentTo, setMagicLinkSentTo] = useState<string>();
 	const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
 	const callbackURL = new URL(redirect ?? "/app", window.location.origin).toString();
 	const form = useForm({
 		defaultValues: {
 			email: "",
+			password: "",
 		},
 		onSubmit: async ({ value }) => {
 			setSubmitError(undefined);
-			setMagicLinkSentTo(undefined);
-			toast.loading(t("Sending sign-in link..."));
+			toast.loading(t("Signing in..."));
 			const email = Schema.decodeSync(UserInsert.fields.email)(value.email);
-			const { error } = await authClient.signIn.magicLink({ email, callbackURL });
+			const { error } = await authClient.signIn.email({
+				email,
+				password: value.password,
+			});
 			toast.dismiss();
 
 			if (error) {
@@ -60,14 +65,17 @@ function Page() {
 				return;
 			}
 
-			setMagicLinkSentTo(email);
-			toast.success(t("Sign-in link sent"));
+			toast.success(t("Signed in"));
+			await queryClient.invalidateQueries({ queryKey: ["session"] });
+			await queryClient.invalidateQueries({ queryKey: ["deviceSessions"] });
+			await queryClient.invalidateQueries({ queryKey: ["organizations"] });
+			await router.invalidate();
+			await navigate({ to: redirect ?? "/app" });
 		},
 	});
 
 	const signInWithGoogle = async () => {
 		setSubmitError(undefined);
-		setMagicLinkSentTo(undefined);
 		setIsGoogleSubmitting(true);
 		toast.loading(t("Signing in..."));
 		const { error } = await authClient.signIn.social({
@@ -90,18 +98,11 @@ function Page() {
 						<T>Welcome back</T>
 					</h1>
 					<p className="text-balance text-muted-foreground">
-						<T>Sign in with your email or Google to continue to your account</T>
+						<T>Sign in with your email and password or Google to continue to your account</T>
 					</p>
 				</div>
 				<FieldGroup>
 					{submitError ? <FieldError>{submitError}</FieldError> : null}
-					{magicLinkSentTo ? (
-						<FieldDescription className="text-center">
-							<T>
-								Check your inbox for a sign-in link sent to <Var>{magicLinkSentTo}</Var>.
-							</T>
-						</FieldDescription>
-					) : null}
 					<form.Field
 						name="email"
 						validators={{
@@ -123,7 +124,6 @@ function Page() {
 									onBlur={field.handleBlur}
 									onInput={(event) => {
 										setSubmitError(undefined);
-										setMagicLinkSentTo(undefined);
 										field.handleChange(event.currentTarget.value);
 									}}
 									disabled={isGoogleSubmitting}
@@ -132,6 +132,29 @@ function Page() {
 								{field.state.meta.errors.length > 0 && (
 									<FieldError>{field.state.meta.errors[0]?.message}</FieldError>
 								)}
+							</Field>
+						)}
+					</form.Field>
+					<form.Field name="password">
+						{(field) => (
+							<Field>
+								<FieldLabel htmlFor={field.name}>
+									<T>Password</T>
+								</FieldLabel>
+								<Input
+									id={field.name}
+									name={field.name}
+									type="password"
+									autoComplete="current-password"
+									value={field.state.value}
+									onBlur={field.handleBlur}
+									onInput={(event) => {
+										setSubmitError(undefined);
+										field.handleChange(event.currentTarget.value);
+									}}
+									disabled={isGoogleSubmitting}
+									required
+								/>
 							</Field>
 						)}
 					</form.Field>
@@ -144,7 +167,7 @@ function Page() {
 									disabled={!canSubmit || isSubmitting || isGoogleSubmitting}
 								>
 									{isSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : null}
-									<T>Send sign-in link</T>
+									<T>Sign in</T>
 								</Button>
 								<FieldSeparator>
 									<T>or</T>
