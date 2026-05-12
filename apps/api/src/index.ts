@@ -41,7 +41,7 @@ const apiRoutes = Layer.mergeAll(
 		),
 		Layer.provide(AuthMiddleware.layer),
 	),
-	HttpApiScalar.layer(Contract.LeuchtturmApi, {
+	HttpApiScalar.layerCdn(Contract.LeuchtturmApi, {
 		path: "/docs",
 		scalar: {
 			sources: [

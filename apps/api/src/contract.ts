@@ -108,6 +108,7 @@ export namespace Contract {
 		.annotateMerge(
 			OpenApi.annotations({
 				description: "Authentication passthrough endpoints handled by the auth service.",
+				exclude: true,
 			}),
 		)
 		.add(
