@@ -60,10 +60,10 @@ import { adminUsersQuery, type AdminUser } from "@leuchtturm/web/queries/admin-u
 import { sessionQuery } from "@leuchtturm/web/queries/session";
 
 export const Route = createFileRoute("/admin/users")({
-	beforeLoad: async ({ context: { queryClient }, location }) => {
+	beforeLoad: async ({ context: { queryClient } }) => {
 		const session = await queryClient.ensureQueryData(sessionQuery());
 		if (!session) {
-			throw redirect({ to: "/login", search: { redirect: location.href } });
+			throw redirect({ to: "/login" });
 		}
 
 		const role = "role" in session.user ? session.user.role : undefined;

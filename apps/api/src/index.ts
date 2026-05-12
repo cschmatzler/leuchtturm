@@ -41,9 +41,10 @@ const apiRoutes = Layer.mergeAll(
 		),
 		Layer.provide(AuthMiddleware.layer),
 	),
-	HttpApiScalar.layerCdn(Contract.Api, {
+	HttpApiScalar.layer(Contract.Api, {
 		path: "/docs",
 		scalar: {
+			// @ts-ignore: This is an accepted parameter, but not correctly typed in the Effect wrapper.
 			sources: [
 				{
 					title: "Leuchtturm",

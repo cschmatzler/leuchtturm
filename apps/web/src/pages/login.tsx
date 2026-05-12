@@ -1,11 +1,16 @@
-import { SpinnerIcon } from "@phosphor-icons/react/Spinner";
 import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
+import {
+	createFileRoute,
+	Link,
+	stripSearchParams,
+	useNavigate,
+	useRouter,
+} from "@tanstack/react-router";
+import * as Effect from "effect/Effect";
 import * as Schema from "effect/Schema";
 import { T, useGT } from "gt-react";
 import { useState } from "react";
-import { toast } from "sonner";
 
 import { UserInsert } from "@leuchtturm/core/auth/schema";
 import { authClient } from "@leuchtturm/web/clients/auth";
@@ -20,87 +25,96 @@ import {
 } from "@leuchtturm/web/components/ui/field";
 import { Input } from "@leuchtturm/web/components/ui/input";
 
-export const Route = createFileRoute("/login")({
-	validateSearch: (search) => {
-		if (
-			typeof search.redirect === "string" &&
-			search.redirect.startsWith("/") &&
-			!search.redirect.startsWith("//")
-		) {
-			return { redirect: search.redirect };
-		}
+const searchDefaults = { password: false };
 
-		return {};
+export const Route = createFileRoute("/login")({
+	validateSearch: Schema.toStandardSchemaV1(
+		Schema.Struct({
+			password: Schema.Boolean.pipe(
+				Schema.optional,
+				Schema.withDecodingDefault(Effect.succeed(false)),
+			),
+		}),
+	),
+	search: {
+		middlewares: [stripSearchParams(searchDefaults)],
 	},
 	component: Page,
 });
 
 function Page() {
 	const t = useGT();
-	const { redirect } = Route.useSearch();
+	const { password } = Route.useSearch();
 	const navigate = useNavigate();
 	const router = useRouter();
 	const queryClient = useQueryClient();
 
-	const [submitError, setSubmitError] = useState<string>();
 	const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
-	const [showPassword, setShowPassword] = useState(false);
 
-	const callbackURL = new URL(redirect ?? "/app", window.location.origin).toString();
 	const form = useForm({
 		defaultValues: {
 			email: "",
 			password: "",
 		},
 		onSubmit: async ({ value }) => {
-			setSubmitError(undefined);
+			resetFormError();
 			const email = Schema.decodeSync(UserInsert.fields.email)(value.email);
 
-			if (showPassword) {
-				toast.loading(t("Signing in..."));
-				const { error } = await authClient.signIn.email({ email, password: value.password });
-				toast.dismiss();
-
-				if (error) {
-					setSubmitError(error.message);
-					return;
-				}
-
-				toast.success(t("Signed in"));
-				await queryClient.invalidateQueries({ queryKey: ["session"] });
-				await queryClient.invalidateQueries({ queryKey: ["deviceSessions"] });
-				await queryClient.invalidateQueries({ queryKey: ["organizations"] });
-				await router.invalidate();
-				await navigate({ to: redirect ?? "/app" });
+			if (password) {
+				await signInWithPassword({ email, password: value.password });
 			} else {
-				toast.loading(t("Sending sign-in link..."));
-				const { error } = await authClient.signIn.magicLink({ email, callbackURL });
-				toast.dismiss();
-
-				if (error) {
-					setSubmitError(error.message);
-					return;
-				}
-
-				toast.success(t("Sign-in link sent"));
+				await sendMagicLink({ email });
 			}
 		},
 	});
 
-	const signInWithGoogle = async () => {
+	function setFormError(message: string) {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		form.setErrorMap({ onSubmit: message } as any);
+	}
+
+	function resetFormError() {
+		form.setErrorMap({ onSubmit: undefined });
+	}
+
+	async function sendMagicLink({ email }: { email: string }) {
+		const { error } = await authClient.signIn.magicLink({
+			email,
+			callbackURL: new URL("/app", window.location.origin).toString(),
+		});
+
+		if (error) {
+			setFormError(error.message ?? t("An error occurred"));
+		}
+	}
+
+	async function signInWithPassword({ email, password: pw }: { email: string; password: string }) {
+		const { error } = await authClient.signIn.email({ email, password: pw });
+
+		if (error) {
+			setFormError(error.message ?? t("An error occurred"));
+			return;
+		}
+
+		await queryClient.invalidateQueries({ queryKey: ["session"] });
+		await queryClient.invalidateQueries({ queryKey: ["deviceSessions"] });
+		await queryClient.invalidateQueries({ queryKey: ["organizations"] });
+		await router.invalidate();
+		await navigate({ to: "/app" });
+	}
+
+	async function signInWithGoogle() {
 		setIsGoogleSubmitting(true);
-		toast.loading(t("Signing in..."));
 		const { error } = await authClient.signIn.social({
 			provider: "google",
-			callbackURL,
+			callbackURL: new URL("/app", window.location.origin).toString(),
 		});
-		toast.dismiss();
 		setIsGoogleSubmitting(false);
 
 		if (error) {
-			toast.error(error.message);
+			setFormError(error.message ?? t("An error occurred"));
 		}
-	};
+	}
 
 	return (
 		<AuthPageLayout>
@@ -112,10 +126,9 @@ function Page() {
 					type="button"
 					variant="outline"
 					className="w-full"
-					disabled={isGoogleSubmitting}
+					loading={isGoogleSubmitting}
 					onClick={signInWithGoogle}
 				>
-					{isGoogleSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : null}
 					<T>Continue with Google</T>
 				</Button>
 				<FieldSeparator>
@@ -123,7 +136,9 @@ function Page() {
 				</FieldSeparator>
 				<form action={() => form.handleSubmit()}>
 					<FieldGroup>
-						{submitError ? <FieldError>{submitError}</FieldError> : null}
+						<form.Subscribe selector={(state) => state.errorMap.onSubmit}>
+							{(formError) => (formError ? <FieldError>{formError}</FieldError> : null)}
+						</form.Subscribe>
 						<form.Field
 							name="email"
 							validators={{
@@ -144,7 +159,7 @@ function Page() {
 										value={field.state.value}
 										onBlur={field.handleBlur}
 										onInput={(event) => {
-											setSubmitError(undefined);
+											resetFormError();
 											field.handleChange(event.currentTarget.value);
 										}}
 										required
@@ -155,47 +170,74 @@ function Page() {
 								</Field>
 							)}
 						</form.Field>
-						{showPassword ? (
-							<form.Field name="password">
-								{(field) => (
-									<Field>
-										<FieldLabel htmlFor={field.name}>
-											<T>Password</T>
-										</FieldLabel>
-										<Input
-											id={field.name}
-											name={field.name}
-											type="password"
-											autoComplete="current-password"
-											value={field.state.value}
-											onBlur={field.handleBlur}
-											onInput={(event) => {
-												setSubmitError(undefined);
-												field.handleChange(event.currentTarget.value);
-											}}
-											required
-										/>
-									</Field>
-								)}
-							</form.Field>
-						) : null}
-						<form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
-							{([canSubmit, isSubmitting]) => (
-								<Button type="submit" className="w-full" disabled={!canSubmit || isSubmitting}>
-									{isSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : null}
-									{showPassword ? <T>Sign in</T> : <T>Send me a link</T>}
+						{password ? (
+							<>
+								<form.Field name="password">
+									{(field) => (
+										<Field>
+											<FieldLabel htmlFor={field.name}>
+												<T>Password</T>
+											</FieldLabel>
+											<Input
+												id={field.name}
+												name={field.name}
+												type="password"
+												autoComplete="current-password"
+												value={field.state.value}
+												onBlur={field.handleBlur}
+												onInput={(event) => {
+													resetFormError();
+													field.handleChange(event.currentTarget.value);
+												}}
+												required
+											/>
+										</Field>
+									)}
+								</form.Field>
+								<form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
+									{([canSubmit, isSubmitting]) => (
+										<Button
+											type="submit"
+											className="w-full"
+											loading={isSubmitting}
+											disabled={!canSubmit}
+										>
+											<T>Sign in</T>
+										</Button>
+									)}
+								</form.Subscribe>
+								<Button
+									type="button"
+									variant="outline"
+									className="w-full"
+									onClick={() => navigate({ to: "/login", search: { password: false } })}
+								>
+									<T>Send me a link instead</T>
 								</Button>
-							)}
-						</form.Subscribe>
-						{showPassword ? null : (
-							<Button
-								type="button"
-								variant="outline"
-								className="w-full"
-								onClick={() => setShowPassword(true)}
-							>
-								<T>Login with password</T>
-							</Button>
+							</>
+						) : (
+							<>
+								<form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
+									{([canSubmit, isSubmitting]) => (
+										<Button
+											type="submit"
+											className="w-full"
+											loading={isSubmitting}
+											disabled={!canSubmit}
+										>
+											<T>Send me a link</T>
+										</Button>
+									)}
+								</form.Subscribe>
+								<Button
+									type="button"
+									variant="outline"
+									className="w-full"
+									onClick={() => navigate({ to: "/login", search: { password: true } })}
+								>
+									<T>Login with password</T>
+								</Button>
+							</>
 						)}
 					</FieldGroup>
 				</form>

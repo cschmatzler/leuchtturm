@@ -20,16 +20,11 @@ import { deviceSessionsQuery } from "@leuchtturm/web/queries/device-sessions";
 import { sessionQuery } from "@leuchtturm/web/queries/session";
 
 export const Route = createFileRoute("/accept-invitation/$id")({
-	beforeLoad: async ({ context: { queryClient }, location }) => {
+	beforeLoad: async ({ context: { queryClient } }) => {
 		const session = await queryClient.ensureQueryData(sessionQuery());
 
 		if (!session) {
-			throw redirect({
-				to: "/login",
-				search: {
-					redirect: location.href,
-				},
-			});
+			throw redirect({ to: "/login" });
 		}
 
 		return { session };
