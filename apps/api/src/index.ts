@@ -42,22 +42,22 @@ const apiRoutes = HttpApiBuilder.layer(LeuchtturmApi).pipe(
 	Layer.provide(ErrorCatalog.layer),
 );
 
-const apiServices = Layer.mergeAll(HttpServer.layerServices, Metrics.layer, Telemetry.layer);
+const { handler } = HttpEffect.toWebHandlerLayer(
+	HttpRouter.toHttpEffect(apiRoutes).pipe(Effect.flatten),
+	Layer.mergeAll(HttpServer.layerServices, Metrics.layer, Telemetry.layer),
+	{
+		middleware: (app) =>
+			HttpMiddleware.cors({
+				allowedOrigins: (origin) => {
+					if (!origin) return false;
+					if (Resource.App.stage !== "prod") return true;
 
-const api = HttpRouter.toHttpEffect(apiRoutes).pipe(Effect.flatten);
-
-const { handler } = HttpEffect.toWebHandlerLayer(api, apiServices, {
-	middleware: (app) =>
-		HttpMiddleware.cors({
-			allowedOrigins: (origin) => {
-				if (!origin) return false;
-				if (Resource.App.stage !== "prod") return true;
-
-				return origin === `https://${Resource.Dns.AppDomain}`;
-			},
-			credentials: true,
-		})(RequestContext.middleware(Observability.middleware(app))),
-});
+					return origin === `https://${Resource.Dns.AppDomain}`;
+				},
+				credentials: true,
+			})(RequestContext.middleware(Observability.middleware(app))),
+	},
+);
 
 const handleRequest = Effect.fn("handleRequest")(function* (
 	request: Request,
