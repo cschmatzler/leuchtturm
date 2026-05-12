@@ -14,7 +14,7 @@ import { Contract } from "@leuchtturm/api/contract";
 import { AuthHandler } from "@leuchtturm/api/handlers/auth/index";
 import { BillingHandler } from "@leuchtturm/api/handlers/billing/index";
 import { HealthHandler } from "@leuchtturm/api/handlers/health/index";
-import { SessionHandler } from "@leuchtturm/api/handlers/session-handler";
+import { SessionHandler } from "@leuchtturm/api/handlers/session/index";
 import { ZeroHandler } from "@leuchtturm/api/handlers/zero/index";
 import { AuthMiddleware } from "@leuchtturm/api/middleware/auth-middleware";
 import { Observability } from "@leuchtturm/api/middleware/observability";
