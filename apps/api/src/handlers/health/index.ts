@@ -2,7 +2,7 @@ import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
 import * as HttpApiBuilder from "effect/unstable/httpapi/HttpApiBuilder";
 
-import type { LeuchtturmApi } from "@leuchtturm/api/contract";
+import type { Contract } from "@leuchtturm/api/contract";
 import { Database } from "@leuchtturm/core/database";
 import { DatabaseError } from "@leuchtturm/core/errors";
 
@@ -40,6 +40,6 @@ export namespace HealthHandler {
 		};
 	});
 
-	export const layer = (api: LeuchtturmApi) =>
+	export const layer = (api: Contract.Api) =>
 		HttpApiBuilder.group(api, "health", (handlers) => handlers.handle("healthCheck", healthCheck));
 }

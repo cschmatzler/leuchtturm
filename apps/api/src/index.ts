@@ -28,20 +28,20 @@ import { InternalServerError } from "@leuchtturm/core/errors";
 import { ZeroDatabase } from "@leuchtturm/zero/zero-database";
 
 const apiRoutes = Layer.mergeAll(
-	HttpApiBuilder.layer(Contract.LeuchtturmApi, {
+	HttpApiBuilder.layer(Contract.Api, {
 		openapiPath: "/open-api",
 	}).pipe(
 		Layer.provide(
 			Layer.mergeAll(
-				HealthHandler.layer(Contract.LeuchtturmApi),
-				BillingHandler.layer(Contract.LeuchtturmApi),
-				ZeroHandler.layer(Contract.LeuchtturmApi),
-				AuthHandler.layer(Contract.LeuchtturmApi),
+				HealthHandler.layer(Contract.Api),
+				BillingHandler.layer(Contract.Api),
+				ZeroHandler.layer(Contract.Api),
+				AuthHandler.layer(Contract.Api),
 			),
 		),
 		Layer.provide(AuthMiddleware.layer),
 	),
-	HttpApiScalar.layerCdn(Contract.LeuchtturmApi, {
+	HttpApiScalar.layerCdn(Contract.Api, {
 		path: "/docs",
 		scalar: {
 			sources: [

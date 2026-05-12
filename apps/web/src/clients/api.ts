@@ -3,9 +3,9 @@ import * as Layer from "effect/Layer";
 import * as FetchHttpClient from "effect/unstable/http/FetchHttpClient";
 import * as HttpApiClient from "effect/unstable/httpapi/HttpApiClient";
 
-import { LeuchtturmApi } from "@leuchtturm/api/contract";
+import { Contract } from "@leuchtturm/api/contract";
 
-type EffectApi = HttpApiClient.ForApi<typeof LeuchtturmApi>;
+type EffectApi = HttpApiClient.ForApi<typeof Contract.Api>;
 
 type UnwrapResponse<T> = T extends readonly [infer Value, ...Array<unknown>] ? Value : T;
 
@@ -17,7 +17,7 @@ type PromiseApi<T> = {
 			: T[K];
 };
 
-const effectApi = HttpApiClient.make(LeuchtturmApi, {
+const effectApi = HttpApiClient.make(Contract.Api, {
 	baseUrl: import.meta.env.VITE_API_URL,
 }).pipe(
 	Effect.scoped,

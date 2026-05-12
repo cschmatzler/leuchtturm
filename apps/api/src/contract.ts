@@ -118,7 +118,7 @@ export namespace Contract {
 		.add(HttpApiEndpoint.get("authGet", "/auth/*", { error: AuthError }))
 		.add(HttpApiEndpoint.post("authPost", "/auth/*", { error: AuthError }));
 
-	export const LeuchtturmApi = HttpApi.make("leuchtturm")
+	export const Api = HttpApi.make("leuchtturm")
 		.annotateMerge(
 			OpenApi.annotations({
 				title: "Leuchtturm API",
@@ -129,7 +129,6 @@ export namespace Contract {
 		.add(zero)
 		.add(billing)
 		.add(auth);
-}
 
-export type LeuchtturmApi = typeof Contract.LeuchtturmApi;
-export const LeuchtturmApi = Contract.LeuchtturmApi;
+	export type Api = typeof Api;
+}

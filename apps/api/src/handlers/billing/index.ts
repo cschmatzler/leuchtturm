@@ -3,7 +3,7 @@ import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import * as HttpApiBuilder from "effect/unstable/httpapi/HttpApiBuilder";
 import { Resource } from "sst/resource/cloudflare";
 
-import type { LeuchtturmApi } from "@leuchtturm/api/contract";
+import type { Contract } from "@leuchtturm/api/contract";
 import { Metrics } from "@leuchtturm/api/observability/metrics";
 import { Auth } from "@leuchtturm/core/auth";
 import { Billing } from "@leuchtturm/core/billing";
@@ -74,7 +74,7 @@ export namespace BillingHandler {
 		return { url };
 	});
 
-	export const layer = (api: LeuchtturmApi) =>
+	export const layer = (api: Contract.Api) =>
 		HttpApiBuilder.group(api, "billing", (handlers) =>
 			handlers
 				.handle("overview", (request) =>
