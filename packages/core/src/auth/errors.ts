@@ -81,7 +81,7 @@ export class AuthInvalidOrganizationPayloadError extends Schema.TaggedErrorClass
 	}
 }
 
-export class AuthInvalidTeamPayloadError extends Schema.TaggedErrorClass<AuthInvalidTeamPayloadError>()(
+class AuthInvalidTeamPayloadError extends Schema.TaggedErrorClass<AuthInvalidTeamPayloadError>()(
 	"AuthInvalidTeamPayloadError",
 	{ message: Schema.String },
 	{ httpApiStatus: 400 },
@@ -101,7 +101,7 @@ export class AuthDuplicateOrganizationNameError extends Schema.TaggedErrorClass<
 	}
 }
 
-export class AuthTeamLookupError extends Schema.TaggedErrorClass<AuthTeamLookupError>()(
+class AuthTeamLookupError extends Schema.TaggedErrorClass<AuthTeamLookupError>()(
 	"AuthTeamLookupError",
 	{ message: Schema.String },
 ) {
