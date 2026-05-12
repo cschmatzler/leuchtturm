@@ -1,8 +1,10 @@
 import * as Context from "effect/Context";
 import * as HttpApiMiddleware from "effect/unstable/httpapi/HttpApiMiddleware";
+import * as HttpApiSchema from "effect/unstable/httpapi/HttpApiSchema";
 
-import { Errors } from "@leuchtturm/api/error-catalog";
+import { AuthError } from "@leuchtturm/core/auth/errors";
 import { SessionSelect, UserSelect } from "@leuchtturm/core/auth/schema";
+import { UnauthorizedError } from "@leuchtturm/core/errors";
 
 export namespace Session {
 	export interface Interface {
@@ -14,6 +16,6 @@ export namespace Session {
 
 	export class Middleware extends HttpApiMiddleware.Service<Middleware, { provides: Service }>()(
 		"@leuchtturm/api/SessionMiddleware",
-		{ error: Errors },
+		{ error: [HttpApiSchema.status(401)(UnauthorizedError), AuthError] },
 	) {}
 }

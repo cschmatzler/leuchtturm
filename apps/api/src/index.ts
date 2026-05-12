@@ -10,8 +10,7 @@ import * as HttpServer from "effect/unstable/http/HttpServer";
 import * as HttpApiBuilder from "effect/unstable/httpapi/HttpApiBuilder";
 import { Resource, wrapCloudflareHandler } from "sst/resource/cloudflare";
 
-import { LeuchtturmApi } from "@leuchtturm/api/contract";
-import { ErrorCatalog } from "@leuchtturm/api/error-catalog";
+import { Contract } from "@leuchtturm/api/contract";
 import { AuthHandler } from "@leuchtturm/api/handlers/auth-handler";
 import { BillingHandler } from "@leuchtturm/api/handlers/billing-handler";
 import { HealthHandler } from "@leuchtturm/api/handlers/health-handler";
@@ -28,18 +27,17 @@ import { Database } from "@leuchtturm/core/database";
 import { InternalServerError } from "@leuchtturm/core/errors";
 import { ZeroDatabase } from "@leuchtturm/zero/zero-database";
 
-const apiRoutes = HttpApiBuilder.layer(LeuchtturmApi).pipe(
+const apiRoutes = HttpApiBuilder.layer(Contract.LeuchtturmApi).pipe(
 	Layer.provide(
 		Layer.mergeAll(
-			HealthHandler.layer,
+			HealthHandler.layer(Contract.LeuchtturmApi),
 			SessionHandler.layer,
-			BillingHandler.layer,
+			BillingHandler.layer(Contract.LeuchtturmApi),
 			ZeroHandler.layer,
 			AuthHandler.layer,
 		),
 	),
 	Layer.provide(AuthMiddleware.layer),
-	Layer.provide(ErrorCatalog.layer),
 );
 
 const { handler } = HttpEffect.toWebHandlerLayer(

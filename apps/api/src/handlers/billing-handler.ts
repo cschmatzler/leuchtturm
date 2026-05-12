@@ -1,15 +1,29 @@
 import * as Effect from "effect/Effect";
+import * as Schema from "effect/Schema";
 import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import * as HttpApiBuilder from "effect/unstable/httpapi/HttpApiBuilder";
 import { Resource } from "sst/resource/cloudflare";
 
-import { LeuchtturmApi } from "@leuchtturm/api/contract";
+import type { LeuchtturmApi } from "@leuchtturm/api/contract";
 import { Metrics } from "@leuchtturm/api/observability/metrics";
 import { Auth } from "@leuchtturm/core/auth";
 import { Billing } from "@leuchtturm/core/billing";
 import { NotFoundError } from "@leuchtturm/core/errors";
 
 export namespace BillingHandler {
+	export const SubscriptionOverview = Schema.Struct({
+		currentPeriodEnd: Schema.Date,
+		cancelAtPeriodEnd: Schema.Boolean,
+	});
+
+	export const OverviewResponse = Schema.Struct({
+		activeSubscription: Schema.NullOr(SubscriptionOverview),
+	});
+
+	export const UrlResponse = Schema.Struct({
+		url: Schema.String,
+	});
+
 	const getOrganization = Effect.fn("billing.organization")(function* (organizationId: string) {
 		const auth = yield* Auth.Service;
 		const request = yield* HttpServerRequest.HttpServerRequest;
@@ -74,10 +88,11 @@ export namespace BillingHandler {
 		return { url };
 	});
 
-	export const layer = HttpApiBuilder.group(LeuchtturmApi, "billing", (handlers) =>
-		handlers
-			.handle("overview", (request) => Metrics.trackAction("billing.overview", overview(request)))
-			.handle("checkout", (request) => Metrics.trackAction("billing.checkout", checkout(request)))
-			.handle("portal", (request) => Metrics.trackAction("billing.portal", portal(request))),
-	);
+	export const layer = (api: LeuchtturmApi) =>
+		HttpApiBuilder.group(api, "billing", (handlers) =>
+			handlers
+				.handle("overview", (request) => Metrics.trackAction("billing.overview", overview(request)))
+				.handle("checkout", (request) => Metrics.trackAction("billing.checkout", checkout(request)))
+				.handle("portal", (request) => Metrics.trackAction("billing.portal", portal(request))),
+		);
 }

@@ -1,12 +1,22 @@
 import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
+import * as Schema from "effect/Schema";
 import * as HttpApiBuilder from "effect/unstable/httpapi/HttpApiBuilder";
 
-import { LeuchtturmApi } from "@leuchtturm/api/contract";
+import type { LeuchtturmApi } from "@leuchtturm/api/contract";
 import { Database } from "@leuchtturm/core/database";
 import { DatabaseError } from "@leuchtturm/core/errors";
 
 export namespace HealthHandler {
+	export const SuccessResponse = Schema.Struct({
+		success: Schema.Literal(true),
+		database: Schema.Struct({
+			status: Schema.Literal("up"),
+			latencyMs: Schema.Number,
+		}),
+		totalTimeMs: Schema.Number,
+	});
+
 	export const roundMilliseconds = (durationMs: number) => Math.round(durationMs * 1000) / 1000;
 
 	export const healthCheck = Effect.fn("health.check")(function* () {
@@ -40,7 +50,6 @@ export namespace HealthHandler {
 		};
 	});
 
-	export const layer = HttpApiBuilder.group(LeuchtturmApi, "health", (handlers) =>
-		handlers.handle("healthCheck", healthCheck),
-	);
+	export const layer = (api: LeuchtturmApi) =>
+		HttpApiBuilder.group(api, "health", (handlers) => handlers.handle("healthCheck", healthCheck));
 }
