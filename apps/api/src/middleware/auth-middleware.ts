@@ -1,3 +1,4 @@
+import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
@@ -5,13 +6,19 @@ import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 
 import { Session } from "@leuchtturm/api/session";
 import { Auth } from "@leuchtturm/core/auth";
-import { UnauthorizedError } from "@leuchtturm/core/errors";
+import { InternalServerError, UnauthorizedError } from "@leuchtturm/core/errors";
 
 export namespace AuthMiddleware {
+	export const CurrentAuth = Context.Reference<Auth.Interface | null>(
+		"@leuchtturm/api/AuthMiddleware/CurrentAuth",
+		{ defaultValue: () => null },
+	);
+
 	const run = Effect.fn("AuthMiddleware.run")(function* <E, R>(
-		auth: Auth.Interface,
 		httpApp: Effect.Effect<HttpServerResponse.HttpServerResponse, E, R>,
 	) {
+		const auth = yield* CurrentAuth;
+		if (!auth) return yield* Effect.fail(new InternalServerError());
 		const request = yield* HttpServerRequest.HttpServerRequest;
 
 		// Pass headers directly instead of calling toWeb(), which would create a
@@ -30,11 +37,5 @@ export namespace AuthMiddleware {
 		return yield* httpApp.pipe(Effect.provideService(Session.Service, currentUser));
 	});
 
-	export const layer = Layer.effect(Session.Middleware)(
-		Effect.gen(function* () {
-			const auth = yield* Auth.Service;
-
-			return (httpApp, _options) => run(auth, httpApp);
-		}),
-	);
+	export const layer = Layer.succeed(Session.Middleware, (httpApp, _options) => run(httpApp));
 }

@@ -3,7 +3,6 @@ import * as Cause from "effect/Cause";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
-import * as HttpEffect from "effect/unstable/http/HttpEffect";
 import * as HttpMiddleware from "effect/unstable/http/HttpMiddleware";
 import * as HttpRouter from "effect/unstable/http/HttpRouter";
 import * as HttpServer from "effect/unstable/http/HttpServer";
@@ -12,7 +11,6 @@ import { Resource, wrapCloudflareHandler } from "sst/resource/cloudflare";
 
 import { LeuchtturmApi } from "@leuchtturm/api/contract";
 import { ErrorCatalog } from "@leuchtturm/api/error-catalog";
-import { FeatureFlags } from "@leuchtturm/api/feature-flags";
 import { AuthHandler } from "@leuchtturm/api/handlers/auth-handler";
 import { BillingHandler } from "@leuchtturm/api/handlers/billing-handler";
 import { HealthHandler } from "@leuchtturm/api/handlers/health-handler";
@@ -23,112 +21,97 @@ import { Observability } from "@leuchtturm/api/middleware/observability";
 import { RequestContext } from "@leuchtturm/api/middleware/request-context";
 import { Metrics } from "@leuchtturm/api/observability/metrics";
 import { Telemetry } from "@leuchtturm/api/observability/telemetry";
-import { ProductAnalytics } from "@leuchtturm/api/product-analytics";
 import { Auth } from "@leuchtturm/core/auth";
 import { Billing } from "@leuchtturm/core/billing";
 import { Database } from "@leuchtturm/core/database";
-import { makeRuntime } from "@leuchtturm/core/effect/run-service";
 import { InternalServerError } from "@leuchtturm/core/errors";
+import { ZeroDatabase } from "@leuchtturm/zero/zero-database";
 
-namespace Api {
-	export interface Interface {
-		readonly handle: (
-			request: Request,
-			executionContext: Pick<ExecutionContext, "waitUntil">,
-		) => Effect.Effect<Response, InternalServerError>;
-	}
+const apiRoutes = HttpApiBuilder.layer(LeuchtturmApi).pipe(
+	Layer.provide(
+		Layer.mergeAll(
+			HealthHandler.layer,
+			SessionHandler.layer,
+			BillingHandler.layer,
+			ZeroHandler.layer,
+			AuthHandler.layer,
+		),
+	),
+	Layer.provide(AuthMiddleware.layer),
+	Layer.provide(ErrorCatalog.layer),
+	Layer.provideMerge(Layer.mergeAll(HttpServer.layerServices, Metrics.layer, Telemetry.layer)),
+);
 
-	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/api/Api") {}
+function requestServicesLayer() {
+	return Layer.mergeAll(Auth.defaultLayer, Billing.defaultLayer, ZeroDatabase.layer).pipe(
+		Layer.provideMerge(Database.layer(Resource.Database.connectionString)),
+	);
+}
 
-	export function layer() {
-		const api = HttpRouter.toHttpEffect(
-			HttpApiBuilder.layer(LeuchtturmApi).pipe(
-				Layer.provide(
-					Layer.mergeAll(
-						HealthHandler.layer,
-						SessionHandler.layer,
-						BillingHandler.layer,
-						ZeroHandler.layer,
-						AuthHandler.layer,
+const apiHandler = HttpRouter.toWebHandler(apiRoutes, {
+	disableLogger: true,
+	middleware: (app) =>
+		HttpMiddleware.cors({
+			allowedOrigins: (origin) => {
+				if (!origin) return false;
+				if (Resource.App.stage !== "prod") return true;
+
+				return origin === `https://${Resource.Dns.AppDomain}`;
+			},
+			credentials: true,
+		})(RequestContext.middleware(Observability.middleware(app))),
+});
+
+const handleRequest = Effect.fn("Api.handle")(function* (
+	request: Request,
+	executionContext: Pick<ExecutionContext, "waitUntil">,
+) {
+	const activeContext = yield* Telemetry.withActiveSpan(
+		RequestContext.make(request, executionContext),
+	);
+
+	return yield* Effect.scoped(
+		Effect.gen(function* () {
+			const servicesContext = yield* Layer.build(requestServicesLayer());
+			const requestContext = Context.add(
+				Context.merge(activeContext, servicesContext),
+				AuthMiddleware.CurrentAuth,
+				Context.get(servicesContext, Auth.Service),
+			);
+
+			return yield* Effect.provideContext(
+				Effect.promise(() =>
+					(
+						apiHandler.handler as (
+							request: Request,
+							context: Context.Context<never>,
+						) => Promise<Response>
+					)(request, requestContext as Context.Context<never>),
+				).pipe(
+					Effect.catchCause((cause) =>
+						Effect.gen(function* () {
+							yield* Effect.annotateCurrentSpan({
+								"error.original_cause": Cause.pretty(cause),
+							});
+							yield* Effect.logError("API handler failed").pipe(
+								Effect.annotateLogs({ cause: Cause.pretty(cause), url: request.url }),
+							);
+
+							return yield* Effect.fail(new InternalServerError());
+						}),
 					),
 				),
-				Layer.provide(AuthMiddleware.layer),
-				Layer.provide(ErrorCatalog.layer),
-			),
-		).pipe(Effect.flatten);
-
-		const database = Database.layer(Resource.Database.connectionString);
-
-		const core = Layer.mergeAll(
-			Auth.defaultLayer,
-			Billing.defaultLayer,
-			FeatureFlags.defaultLayer,
-		).pipe(Layer.provideMerge(database));
-
-		const runtime = Layer.mergeAll(
-			core,
-			HttpServer.layerServices,
-			ProductAnalytics.layer,
-			Metrics.layer,
-			Telemetry.layer,
-		);
-
-		const handler: {
-			readonly dispose: () => Promise<void>;
-			readonly handler: (
-				request: Request,
-				context: ReturnType<typeof RequestContext.make>,
-			) => Promise<Response>;
-		} = HttpEffect.toWebHandlerLayer(api, runtime, {
-			middleware: (app) =>
-				HttpMiddleware.cors({
-					allowedOrigins: (origin) => {
-						if (!origin) return false;
-						if (Resource.App.stage !== "prod") return true;
-
-						return origin === `https://${Resource.Dns.AppDomain}`;
-					},
-					credentials: true,
-				})(RequestContext.middleware(Observability.middleware(app))),
-		});
-
-		return Layer.succeed(
-			Service,
-			Service.of({
-				handle: Effect.fn("Api.handle")(
-					(request: Request, executionContext: Pick<ExecutionContext, "waitUntil">) =>
-						Telemetry.withActiveSpan(RequestContext.make(request, executionContext)).pipe(
-							Effect.flatMap((requestContext) =>
-								Effect.promise(() => handler.handler(request, requestContext)),
-							),
-							Effect.catchCause((cause) =>
-								Effect.gen(function* () {
-									yield* Effect.annotateCurrentSpan({
-										"error.original_cause": Cause.pretty(cause),
-									});
-									yield* Effect.logError("API handler failed").pipe(
-										Effect.annotateLogs({ cause: Cause.pretty(cause), url: request.url }),
-									);
-
-									return yield* Effect.fail(new InternalServerError());
-								}),
-							),
-						),
-				),
-			}),
-		);
-	}
-}
+				requestContext,
+			);
+		}),
+	);
+});
 
 export default wrapCloudflareHandler(
 	instrument(
 		{
 			fetch(request: Request, _env: unknown, ctx: ExecutionContext) {
-				const runtime = makeRuntime(Api.Service, Api.layer());
-
-				return runtime
-					.runPromise((api) => api.handle(request, ctx))
-					.finally(() => runtime.dispose());
+				return Effect.runPromise(handleRequest(request, ctx));
 			},
 		},
 		() => ({
