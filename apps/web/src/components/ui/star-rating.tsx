@@ -3,6 +3,7 @@ import { T, useGT } from "gt-react";
 
 export function StarRating({ rating, size = "md" }: { rating: number; size?: "sm" | "md" }) {
 	const t = useGT();
+
 	const sizeClass = size === "sm" ? "h-4 w-4" : "h-5 w-5";
 
 	return (

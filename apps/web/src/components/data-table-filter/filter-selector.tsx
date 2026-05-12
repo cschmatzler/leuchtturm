@@ -29,6 +29,7 @@ export function FilterSelector<TData>() {
 	const [open, setOpen] = useState(false);
 	const [value, setValue] = useState("");
 	const [property, setProperty] = useState<string | undefined>(undefined);
+
 	const inputRef = useRef<HTMLInputElement>(null);
 
 	const column = property ? getColumn(filterColumns, property) : undefined;

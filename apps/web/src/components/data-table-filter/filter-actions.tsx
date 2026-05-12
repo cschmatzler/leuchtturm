@@ -9,6 +9,7 @@ import { cn } from "@leuchtturm/web/lib/cn";
 export const FilterActions = memo(FilterActionsComponent);
 function FilterActionsComponent() {
 	const { actions, filters } = useDataTableFilterContext();
+
 	const hasFilters = filters.length > 0;
 
 	return (

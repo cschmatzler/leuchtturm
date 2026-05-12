@@ -131,6 +131,7 @@ function FilterOperatorController<TData, TType extends ColumnDataType>({
 	operatorLabels,
 }: FilterOperatorControllerProps<TData, TType>) {
 	const t = useGT();
+
 	const { actions } = useDataTableFilterContext();
 
 	const operators = filterTypeOperatorDetails[column.type];

@@ -38,6 +38,7 @@ function Page() {
 			toast.success(t("Profile updated"));
 		},
 	});
+
 	const submitForm = async () => {
 		await form.handleSubmit();
 	};

@@ -56,6 +56,7 @@ export function AppHeader({
 
 	const t = useGT();
 	const { session, deviceSessions, signOutCurrent, signOutAll, setActiveSession } = useAuth();
+
 	const teams = currentOrganization?.teams ?? [];
 	const activeTeam = team ? teams.find((item) => item.slug === team) : undefined;
 	const settingsActive = Boolean(

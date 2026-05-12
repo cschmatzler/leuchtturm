@@ -45,6 +45,7 @@ function Page() {
 
 	const t = useGT();
 	const { deviceSessions, setActiveSession, signOutCurrent } = useAuth();
+
 	const [accountMenuOpen, setAccountMenuOpen] = useState(false);
 	const [submitError, setSubmitError] = useState<string>();
 	const form = useForm({

@@ -25,6 +25,7 @@ function Layout() {
 	const [teams] = useZeroQuery(queries.organizationTeams({ organizationId }));
 
 	const t = useGT();
+
 	const commandBar = useCommandBar();
 
 	useCommandProvider(

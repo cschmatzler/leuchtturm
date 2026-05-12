@@ -53,6 +53,7 @@ function MembersSettings(props: { readonly team: string }) {
 	);
 
 	const t = useGT();
+
 	const teamMemberRows = useMemo(
 		() =>
 			teamMembers.map((teamMember) => {

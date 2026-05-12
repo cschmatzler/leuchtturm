@@ -337,6 +337,7 @@ function FilterValueOptionController<TData>({
 	column: Column<TData, OptionType>;
 }) {
 	const t = useGT();
+
 	const { actions } = useDataTableFilterContext();
 
 	const facetedCounts = column.getFacetedUniqueValues();
@@ -389,6 +390,7 @@ function FilterValueDateController<TData>({
 	column,
 }: FilterValueControllerProps<TData, "date">) {
 	const { actions } = useDataTableFilterContext();
+
 	type DateTabValue = "single" | "range";
 	type DateOperator = keyof typeof dateFilterOperators;
 

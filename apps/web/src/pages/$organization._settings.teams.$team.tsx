@@ -9,6 +9,7 @@ export const Route = createFileRoute("/$organization/_settings/teams/$team")({
 
 function Layout() {
 	const { team } = Route.useParams();
+
 	const setTeam = useContext(SettingsTeamContext);
 
 	useLayoutEffect(() => {

@@ -17,9 +17,15 @@ const QUERY_HOOKS = new Set([
 	"useQueryClient",
 ]);
 
-const CONTEXT_HOOKS = new Set(["useGT"]);
+const CONTEXT_HOOKS = new Set([
+	"useGT",
+	"useContext",
+	"useAuth",
+	"useCommandBar",
+	"useDataTableFilterContext",
+]);
 
-const LOCAL_STATE_HOOKS = new Set(["useForm", "useReducer", "useState"]);
+const LOCAL_STATE_HOOKS = new Set(["useForm", "useReducer", "useState", "useRef"]);
 
 const GROUP_ORDER = {
 	route: 0,
@@ -122,9 +128,11 @@ function checkFunction(context, node) {
 		return;
 	}
 
+	const statements = node.body.body;
+
 	let previousGroup;
 	let previousStatement;
-	for (const statement of node.body.body) {
+	for (const statement of statements) {
 		const group = getDeclarationHookGroup(statement);
 		if (!group) {
 			continue;
@@ -155,6 +163,23 @@ function checkFunction(context, node) {
 		previousGroup = group;
 		previousStatement = statement;
 	}
+
+	if (previousStatement) {
+		const lastIndex = statements.indexOf(previousStatement);
+		const nextStatement = statements[lastIndex + 1];
+
+		if (
+			nextStatement &&
+			previousStatement.loc?.end?.line !== undefined &&
+			nextStatement.loc?.start?.line !== undefined &&
+			nextStatement.loc.start.line <= previousStatement.loc.end.line + 1
+		) {
+			context.report({
+				node: nextStatement,
+				messageId: "missingBlankLineAfterHooks",
+			});
+		}
+	}
 }
 
 const rule = {
@@ -168,6 +193,7 @@ const rule = {
 			wrongOrder:
 				"Group top-level component hooks consistently: route hooks first, then query hooks, then local state hooks.",
 			missingBlankLine: "Separate top-level component hook groups with a blank line.",
+			missingBlankLineAfterHooks: "Add a blank line after the last hook group.",
 		},
 	},
 	create(context) {

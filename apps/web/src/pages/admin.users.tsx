@@ -388,6 +388,7 @@ function UserActions({
 	) => Promise<void>;
 }) {
 	const t = useGT();
+
 	const role = user.role ?? "user";
 	const isBanned = Boolean(user.banned);
 	const isPending = pendingAction?.endsWith(`:${user.id}`) ?? false;

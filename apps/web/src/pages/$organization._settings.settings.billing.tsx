@@ -19,6 +19,7 @@ function Page() {
 	const { data: billingOverview } = useQuery(billingOverviewQuery(organizationId));
 
 	const t = useGT();
+
 	const activeSubscription = billingOverview?.activeSubscription ?? null;
 	const renewalDate = activeSubscription?.currentPeriodEnd.toLocaleDateString();
 	const openPortal = async () => {

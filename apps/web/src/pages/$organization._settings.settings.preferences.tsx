@@ -56,6 +56,7 @@ function Page() {
 			toast.success(t("Preferences updated"));
 		},
 	});
+
 	const submitForm = async () => {
 		await form.handleSubmit();
 	};
