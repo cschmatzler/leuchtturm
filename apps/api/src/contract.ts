@@ -8,7 +8,6 @@ import { BillingSchema } from "@leuchtturm/api/handlers/billing/schema";
 import { HealthSchema } from "@leuchtturm/api/handlers/health/schema";
 import { Session } from "@leuchtturm/api/session";
 import { AuthError } from "@leuchtturm/core/auth/errors";
-import { DeviceSessions } from "@leuchtturm/core/auth/schema";
 import { BillingError } from "@leuchtturm/core/billing/errors";
 import { DatabaseError, NotFoundError } from "@leuchtturm/core/errors";
 
@@ -53,25 +52,6 @@ export namespace Contract {
 					summary: "Run a Zero mutation",
 					description:
 						"Executes a Zero mutation request for the authenticated user. The request and response bodies follow Zero's mutation protocol.",
-				}),
-			),
-		)
-		.middleware(Session.Middleware);
-
-	export const session = HttpApiGroup.make("session")
-		.annotateMerge(
-			OpenApi.annotations({
-				description: "Session and device management for the authenticated user.",
-			}),
-		)
-		.add(
-			HttpApiEndpoint.get("deviceSessions", "/device-sessions", {
-				success: DeviceSessions,
-				error: AuthError,
-			}).annotateMerge(
-				OpenApi.annotations({
-					summary: "List device sessions",
-					description: "Returns the active device sessions associated with the authenticated user.",
 				}),
 			),
 		)
@@ -158,7 +138,6 @@ export namespace Contract {
 		)
 		.add(health)
 		.add(zero)
-		.add(session)
 		.add(billing)
 		.add(auth) {}
 }

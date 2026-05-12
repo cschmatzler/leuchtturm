@@ -23,12 +23,10 @@ import {
 	verificationTable,
 } from "@leuchtturm/core/auth/auth.sql";
 import {
-	AuthDeviceSessionsListError,
 	AuthDuplicateOrganizationNameError,
 	AuthDuplicateTeamNameError,
 	AuthInvitationEmailError,
 	AuthError,
-	AuthInvalidDeviceSessionsPayloadError,
 	AuthInvalidSessionPayloadError,
 	AuthInvalidOrganizationPayloadError,
 	AuthMagicLinkEmailError,
@@ -37,7 +35,6 @@ import {
 } from "@leuchtturm/core/auth/errors";
 import {
 	AccountSelect,
-	DeviceSessions,
 	InvitationSelect,
 	MemberSelect,
 	OrganizationInsert,
@@ -69,9 +66,6 @@ export namespace Auth {
 			Pick<typeof OrganizationSelect.Type, "id" | "name" | "slug"> | null,
 			typeof AuthError.Type
 		>;
-		readonly getDeviceSessions: (
-			headers: Headers,
-		) => Effect.Effect<typeof DeviceSessions.Type, typeof AuthError.Type>;
 	}
 
 	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/Auth") {}
@@ -437,33 +431,7 @@ export namespace Auth {
 				);
 			});
 
-			const getDeviceSessions = Effect.fn("Auth.getDeviceSessions")(function* (headers: Headers) {
-				return yield* Effect.tryPromise({
-					try: () => auth.api.listDeviceSessions({ headers }),
-					catch: (cause) => cause,
-				}).pipe(
-					Effect.catchCause((cause) =>
-						Effect.gen(function* () {
-							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-							return yield* Effect.fail(new AuthDeviceSessionsListError());
-						}),
-					),
-					Effect.flatMap((deviceSessions) =>
-						Schema.decodeUnknownEffect(DeviceSessions)(deviceSessions).pipe(
-							Effect.catchCause((cause) =>
-								Effect.gen(function* () {
-									yield* Effect.annotateCurrentSpan({
-										"error.original_cause": Cause.pretty(cause),
-									});
-									return yield* Effect.fail(new AuthInvalidDeviceSessionsPayloadError());
-								}),
-							),
-						),
-					),
-				);
-			});
-
-			return Service.of({ handle, getSession, getOrganization, getDeviceSessions });
+			return Service.of({ handle, getSession, getOrganization });
 		}),
 	);
 
