@@ -48,6 +48,7 @@ function Page() {
 	const queryClient = useQueryClient();
 
 	const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
+
 	const form = useForm({
 		defaultValues: {
 			email: "",
