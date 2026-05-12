@@ -11,7 +11,7 @@ export namespace SessionHandler {
 		const auth = yield* Auth.Service;
 		const request = yield* HttpServerRequest.HttpServerRequest;
 
-		return yield* auth.getDeviceSessions(new Headers(request.headers as Record<string, string>));
+		return yield* auth.getDeviceSessions(new Headers(request.headers));
 	});
 
 	export const layer = HttpApiBuilder.group(LeuchtturmApi, "session", (handlers) =>
