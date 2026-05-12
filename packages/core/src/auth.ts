@@ -1,6 +1,5 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { isAPIError } from "better-auth/api";
 import { admin, multiSession, magicLink, organization } from "better-auth/plugins";
 import { and, eq, ne } from "drizzle-orm";
 import * as Cause from "effect/Cause";
@@ -372,26 +371,8 @@ export namespace Auth {
 
 				return yield* Effect.tryPromise({
 					try: () => context.run(currentContext, () => auth.handler(request)),
-					catch: (error) => error,
-				}).pipe(
-					Effect.catch((error) => {
-						if (!isAPIError(error)) return Effect.fail(error);
-
-						const headers = new Headers(error.headers);
-						const body = error.body ?? { message: error.message };
-
-						if (!headers.has("content-type")) {
-							headers.set("content-type", "application/json");
-						}
-
-						return Effect.succeed(
-							new Response(JSON.stringify(body), {
-								headers,
-								status: error.statusCode ?? 500,
-							}),
-						);
-					}),
-				);
+					catch: (cause) => cause,
+				});
 			});
 
 			const getSession = Effect.fn("Auth.getSession")(function* (headers: Headers) {
