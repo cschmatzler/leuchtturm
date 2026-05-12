@@ -1,10 +1,8 @@
-import { SpinnerIcon } from "@phosphor-icons/react/Spinner";
 import { useForm } from "@tanstack/react-form";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import * as Schema from "effect/Schema";
 import { T, useGT, Var } from "gt-react";
 import { useState } from "react";
-import { toast } from "sonner";
 
 import { UserInsert } from "@leuchtturm/core/auth/schema";
 import { authClient } from "@leuchtturm/web/clients/auth";
@@ -25,52 +23,50 @@ export const Route = createFileRoute("/signup")({
 });
 
 function Page() {
+	const router = useRouter();
+
 	const t = useGT();
 
-	const [submitError, setSubmitError] = useState<string>();
 	const [magicLinkSentTo, setMagicLinkSentTo] = useState<string>();
 	const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
-	const callbackURL = new URL("/app", window.location.origin).toString();
 	const form = useForm({
 		defaultValues: {
 			name: "",
 			email: "",
 		},
+		validators: {
+			onSubmitAsync: async ({ value }) => {
+				const email = Schema.decodeSync(UserInsert.fields.email)(value.email);
+				const name = Schema.decodeSync(UserInsert.fields.name)(value.name);
+				const { error } = await authClient.signIn.magicLink({
+					email,
+					name,
+					callbackURL: router.history.createHref("/app"),
+				});
+
+				if (error) return error.message;
+				return null;
+			},
+		},
 		onSubmit: async ({ value }) => {
-			setSubmitError(undefined);
-			setMagicLinkSentTo(undefined);
-			toast.loading(t("Sending sign-up link..."));
 			const email = Schema.decodeSync(UserInsert.fields.email)(value.email);
-			const name = Schema.decodeSync(UserInsert.fields.name)(value.name);
-			const { error } = await authClient.signIn.magicLink({ email, name, callbackURL });
-			toast.dismiss();
-
-			if (error) {
-				setSubmitError(error.message);
-				return;
-			}
-
 			setMagicLinkSentTo(email);
-			toast.success(t("Sign-up link sent"));
 		},
 	});
 
-	const signUpWithGoogle = async () => {
-		setSubmitError(undefined);
+	async function signUpWithGoogle() {
 		setMagicLinkSentTo(undefined);
 		setIsGoogleSubmitting(true);
-		toast.loading(t("Creating account..."));
 		const { error } = await authClient.signIn.social({
 			provider: "google",
-			callbackURL,
+			callbackURL: router.history.createHref("/app"),
 		});
-		toast.dismiss();
 		setIsGoogleSubmitting(false);
 
 		if (error) {
-			setSubmitError(error.message);
+			form.setErrorMap({ onSubmit: error.message });
 		}
-	};
+	}
 
 	return (
 		<AuthPageLayout>
@@ -84,7 +80,9 @@ function Page() {
 					</p>
 				</div>
 				<FieldGroup>
-					{submitError ? <FieldError>{submitError}</FieldError> : null}
+					<form.Subscribe selector={(state) => state.errorMap.onSubmit}>
+						{(formError) => (formError ? <FieldError>{String(formError)}</FieldError> : null)}
+					</form.Subscribe>
 					{magicLinkSentTo ? (
 						<FieldDescription className="text-center">
 							<T>
@@ -111,7 +109,7 @@ function Page() {
 									value={field.state.value}
 									onBlur={field.handleBlur}
 									onInput={(event) => {
-										setSubmitError(undefined);
+										form.setErrorMap({ onSubmit: undefined });
 										setMagicLinkSentTo(undefined);
 										field.handleChange(event.currentTarget.value);
 									}}
@@ -144,7 +142,7 @@ function Page() {
 									value={field.state.value}
 									onBlur={field.handleBlur}
 									onInput={(event) => {
-										setSubmitError(undefined);
+										form.setErrorMap({ onSubmit: undefined });
 										setMagicLinkSentTo(undefined);
 										field.handleChange(event.currentTarget.value);
 									}}
@@ -163,9 +161,9 @@ function Page() {
 								<Button
 									type="submit"
 									className="w-full"
-									disabled={!canSubmit || isSubmitting || isGoogleSubmitting}
+									loading={isSubmitting}
+									disabled={!canSubmit || isGoogleSubmitting}
 								>
-									{isSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : null}
 									<T>Send sign-up link</T>
 								</Button>
 								<FieldSeparator>
@@ -175,10 +173,10 @@ function Page() {
 									type="button"
 									variant="outline"
 									className="w-full"
-									disabled={isSubmitting || isGoogleSubmitting}
+									loading={isGoogleSubmitting}
+									disabled={isSubmitting}
 									onClick={signUpWithGoogle}
 								>
-									{isGoogleSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : null}
 									<T>Continue with Google</T>
 								</Button>
 							</>
