@@ -8,6 +8,7 @@ import * as HttpMiddleware from "effect/unstable/http/HttpMiddleware";
 import * as HttpRouter from "effect/unstable/http/HttpRouter";
 import * as HttpServer from "effect/unstable/http/HttpServer";
 import * as HttpApiBuilder from "effect/unstable/httpapi/HttpApiBuilder";
+import * as HttpApiScalar from "effect/unstable/httpapi/HttpApiScalar";
 import { Resource, wrapCloudflareHandler } from "sst/resource/cloudflare";
 
 import { Contract } from "@leuchtturm/api/contract";
@@ -27,17 +28,22 @@ import { Database } from "@leuchtturm/core/database";
 import { InternalServerError } from "@leuchtturm/core/errors";
 import { ZeroDatabase } from "@leuchtturm/zero/zero-database";
 
-const apiRoutes = HttpApiBuilder.layer(Contract.LeuchtturmApi).pipe(
-	Layer.provide(
-		Layer.mergeAll(
-			HealthHandler.layer(Contract.LeuchtturmApi),
-			SessionHandler.layer,
-			BillingHandler.layer(Contract.LeuchtturmApi),
-			ZeroHandler.layer(Contract.LeuchtturmApi),
-			AuthHandler.layer(Contract.LeuchtturmApi),
+const apiRoutes = Layer.mergeAll(
+	HttpApiBuilder.layer(Contract.LeuchtturmApi).pipe(
+		Layer.provide(
+			Layer.mergeAll(
+				HealthHandler.layer(Contract.LeuchtturmApi),
+				SessionHandler.layer,
+				BillingHandler.layer(Contract.LeuchtturmApi),
+				ZeroHandler.layer(Contract.LeuchtturmApi),
+				AuthHandler.layer(Contract.LeuchtturmApi),
+			),
 		),
+		Layer.provide(AuthMiddleware.layer),
 	),
-	Layer.provide(AuthMiddleware.layer),
+	HttpApiScalar.layer(Contract.LeuchtturmApi, {
+		path: "/docs",
+	}),
 );
 
 const { handler } = HttpEffect.toWebHandlerLayer(
