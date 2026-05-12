@@ -1,11 +1,11 @@
 import { XIcon } from "@phosphor-icons/react/X";
 import { memo, useEffect, useRef, useState, type ReactNode } from "react";
 
+import { getColumn } from "@leuchtturm/web/components/data-table-filter/columns";
 import { useDataTableFilterContext } from "@leuchtturm/web/components/data-table-filter/context";
 import { FilterOperator } from "@leuchtturm/web/components/data-table-filter/filter-operator";
 import { FilterSubject } from "@leuchtturm/web/components/data-table-filter/filter-subject";
 import { FilterValue } from "@leuchtturm/web/components/data-table-filter/filter-value";
-import { getColumn } from "@leuchtturm/web/components/data-table-filter/helpers";
 import type {
 	Column,
 	ColumnDataType,

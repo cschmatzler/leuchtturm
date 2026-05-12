@@ -5,7 +5,8 @@ import {
 	createDateRange,
 	createNumberFilterValue,
 	createNumberRange,
-} from "@leuchtturm/web/components/data-table-filter/helpers";
+	normalizeDateValue,
+} from "@leuchtturm/web/components/data-table-filter/filter-values";
 
 describe("createNumberFilterValue", () => {
 	it("returns empty array for undefined", () => {
@@ -55,6 +56,29 @@ describe("createDateFilterValue", () => {
 
 	it("keeps two dates in order if already sorted", () => {
 		expect(createDateFilterValue([earlier, later])).toEqual([earlier, later]);
+	});
+});
+
+describe("normalizeDateValue", () => {
+	it("returns undefined for empty values", () => {
+		expect(normalizeDateValue(undefined)).toBeUndefined();
+		expect(normalizeDateValue(null)).toBeUndefined();
+		expect(normalizeDateValue("")).toBeUndefined();
+	});
+
+	it("returns date values unchanged", () => {
+		const date = new Date("2024-01-01");
+		expect(normalizeDateValue(date)).toBe(date);
+	});
+
+	it("parses valid strings and non-zero numbers", () => {
+		expect(normalizeDateValue("2024-01-01")?.toISOString()).toBe("2024-01-01T00:00:00.000Z");
+		expect(normalizeDateValue(1)?.toISOString()).toBe("1970-01-01T00:00:00.001Z");
+	});
+
+	it("returns undefined for invalid values", () => {
+		expect(normalizeDateValue("not a date")).toBeUndefined();
+		expect(normalizeDateValue({})).toBeUndefined();
 	});
 });
 

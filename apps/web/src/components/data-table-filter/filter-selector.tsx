@@ -4,9 +4,9 @@ import { FunnelIcon } from "@phosphor-icons/react/Funnel";
 import { T, useGT } from "gt-react";
 import { Fragment, isValidElement, memo, useCallback, useRef, useState } from "react";
 
+import { getColumn } from "@leuchtturm/web/components/data-table-filter/columns";
 import { useDataTableFilterContext } from "@leuchtturm/web/components/data-table-filter/context";
 import { FilterValueController } from "@leuchtturm/web/components/data-table-filter/filter-value";
-import { getColumn } from "@leuchtturm/web/components/data-table-filter/helpers";
 import type { Column, ColumnDataType } from "@leuchtturm/web/components/data-table-filter/types";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { Checkbox } from "@leuchtturm/web/components/ui/checkbox";

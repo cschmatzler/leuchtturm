@@ -6,7 +6,7 @@ import { isWithinInterval } from "date-fns/isWithinInterval";
 import { startOfDay } from "date-fns/startOfDay";
 import { intersection } from "remeda";
 
-import { normalizeDateValue } from "@leuchtturm/web/components/data-table-filter/helpers";
+import { normalizeDateValue } from "@leuchtturm/web/components/data-table-filter/filter-values";
 import { dateFilterOperators } from "@leuchtturm/web/components/data-table-filter/operators";
 import type {
 	ColumnDataType,

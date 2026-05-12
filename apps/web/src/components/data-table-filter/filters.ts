@@ -1,6 +1,6 @@
 import type { Icon } from "@phosphor-icons/react/lib";
 
-import { isColumnOptionArray } from "@leuchtturm/web/components/data-table-filter/helpers";
+import { isColumnOptionArray } from "@leuchtturm/web/components/data-table-filter/guards";
 import type {
 	Column,
 	ColumnConfig,

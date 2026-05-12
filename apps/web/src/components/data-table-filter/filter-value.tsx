@@ -12,7 +12,7 @@ import { useDataTableFilterContext } from "@leuchtturm/web/components/data-table
 import {
 	createNumberRange,
 	normalizeDateValue,
-} from "@leuchtturm/web/components/data-table-filter/helpers";
+} from "@leuchtturm/web/components/data-table-filter/filter-values";
 import {
 	dateFilterOperators,
 	DEFAULT_OPERATORS,

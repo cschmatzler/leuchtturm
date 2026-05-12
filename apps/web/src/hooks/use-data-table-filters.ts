@@ -1,13 +1,15 @@
 import { useMemo, useState, type Dispatch, type SetStateAction } from "react";
 
-import { createFilterColumns } from "@leuchtturm/web/components/data-table-filter/filters";
 import {
 	createDateFilterValue,
 	createNumberFilterValue,
+} from "@leuchtturm/web/components/data-table-filter/filter-values";
+import { createFilterColumns } from "@leuchtturm/web/components/data-table-filter/filters";
+import {
 	isColumnOptionArray,
 	isColumnOptionMap,
 	isMinMaxTuple,
-} from "@leuchtturm/web/components/data-table-filter/helpers";
+} from "@leuchtturm/web/components/data-table-filter/guards";
 import {
 	dateFilterOperators,
 	DEFAULT_OPERATORS,

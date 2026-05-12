@@ -1,17 +1,5 @@
 import { isBefore } from "date-fns/isBefore";
 
-import type { Column, ColumnOption } from "@leuchtturm/web/components/data-table-filter/types";
-
-export function getColumn<TData>(filterColumns: Column<TData>[], id: string) {
-	const column = filterColumns.find((c) => c.id === id);
-
-	if (!column) {
-		throw new Error(`Column with id ${id} not found`);
-	}
-
-	return column;
-}
-
 export function createNumberFilterValue(values: number[] | undefined): number[] {
 	if (!values || values.length === 0) return [];
 	if (values.length === 1) return [values[0]];
@@ -60,43 +48,4 @@ export function createNumberRange(values: number[] | undefined) {
 	const [min, max] = a < b ? [a, b] : [b, a];
 
 	return [min, max];
-}
-
-export function isColumnOption(value: unknown): value is ColumnOption {
-	return typeof value === "object" && value !== null && "value" in value && "label" in value;
-}
-
-export function isColumnOptionArray(value: unknown): value is ColumnOption[] {
-	return Array.isArray(value) && value.every(isColumnOption);
-}
-
-export function isStringArray(value: unknown): value is string[] {
-	return Array.isArray(value) && value.every((v) => typeof v === "string");
-}
-
-export function isColumnOptionMap(value: unknown): value is Map<string, number> {
-	if (Object.prototype.toString.call(value) !== "[object Map]") {
-		return false;
-	}
-	const map = value as Map<string, number>;
-	for (const key of map.keys()) {
-		if (typeof key !== "string") {
-			return false;
-		}
-	}
-	for (const entry of map.values()) {
-		if (typeof entry !== "number") {
-			return false;
-		}
-	}
-	return true;
-}
-
-export function isMinMaxTuple(value: unknown): value is [number, number] {
-	return (
-		Array.isArray(value) &&
-		value.length === 2 &&
-		typeof value[0] === "number" &&
-		typeof value[1] === "number"
-	);
 }

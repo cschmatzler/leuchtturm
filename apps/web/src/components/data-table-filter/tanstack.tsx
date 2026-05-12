@@ -11,7 +11,7 @@ import {
 	isColumnOption,
 	isColumnOptionArray,
 	isStringArray,
-} from "@leuchtturm/web/components/data-table-filter/helpers";
+} from "@leuchtturm/web/components/data-table-filter/guards";
 import type {
 	Column,
 	FilterModel,
