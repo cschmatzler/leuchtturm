@@ -122,7 +122,7 @@ function Page() {
 						<T>Welcome back</T>
 					</h1>
 					<p className="text-balance text-muted-foreground">
-						<T>Sign in with your email and password, a magic link, or Google to continue</T>
+						<T>Use your password, or request a magic link that only needs your email.</T>
 					</p>
 				</div>
 				<FieldGroup>
@@ -171,7 +171,7 @@ function Page() {
 						{(field) => (
 							<Field>
 								<FieldLabel htmlFor={field.name}>
-									<T>Password</T>
+									<T>Password for password sign-in</T>
 								</FieldLabel>
 								<Input
 									id={field.name}
@@ -188,6 +188,9 @@ function Page() {
 									disabled={isGoogleSubmitting || isMagicLinkSubmitting}
 									required
 								/>
+								<FieldDescription>
+									<T>Required only for the password sign-in button below.</T>
+								</FieldDescription>
 							</Field>
 						)}
 					</form.Field>
@@ -202,8 +205,11 @@ function Page() {
 									}
 								>
 									{isSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : null}
-									<T>Sign in</T>
+									<T>Sign in with password</T>
 								</Button>
+								<FieldDescription className="text-center">
+									<T>Magic link sign-in uses the email above and does not need a password.</T>
+								</FieldDescription>
 								<Button
 									type="button"
 									variant="outline"
@@ -212,7 +218,7 @@ function Page() {
 									onClick={sendMagicLink}
 								>
 									{isMagicLinkSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : null}
-									<T>Send sign-in link</T>
+									<T>Email me a magic sign-in link</T>
 								</Button>
 								<FieldSeparator>
 									<T>or</T>
