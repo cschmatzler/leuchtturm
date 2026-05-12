@@ -2,16 +2,14 @@ packages:
   - infra
   - apps/*
   - packages/*
-
+minimumReleaseAge: 720
+trustPolicyIgnoreAfter: 3600
+patchedDependencies:
+  drizzle-orm@1.0.0-rc.2: patches/drizzle-orm@1.0.0-rc.2.patch
 allowBuilds:
-  "@rocicorp/zero-sqlite3": true
   core-js: false
   esbuild: false
   msgpackr-extract: false
   msw: false
   protobufjs: false
   tree-sitter-python: false
-
-minimumReleaseAge: 720
-patchedDependencies:
-  drizzle-orm@1.0.0-rc.2: patches/drizzle-orm@1.0.0-rc.2.patch
