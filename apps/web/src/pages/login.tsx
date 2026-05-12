@@ -100,6 +100,7 @@ function Page() {
 		await queryClient.invalidateQueries({ queryKey: ["deviceSessions"] });
 		await queryClient.invalidateQueries({ queryKey: ["organizations"] });
 		await router.invalidate();
+
 		await navigate({ to: "/app" });
 	}
 
@@ -124,7 +125,7 @@ function Page() {
 				</h1>
 				<Button
 					type="button"
-					variant="outline"
+					variant="default"
 					className="w-full"
 					loading={isGoogleSubmitting}
 					onClick={signInWithGoogle}
@@ -242,7 +243,7 @@ function Page() {
 					</FieldGroup>
 				</form>
 				<div className="text-center text-sm">
-					<T>Don&apos;t have an account?</T>{" "}
+					<T>Don't have an account?</T>{" "}
 					<Link to="/signup" className="underline underline-offset-4 hover:text-primary">
 						<T>Sign up</T>
 					</Link>
