@@ -3,7 +3,7 @@ import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
 import * as Schema from "effect/Schema";
-import { T, useGT } from "gt-react";
+import { T, useGT, Var } from "gt-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -13,6 +13,7 @@ import { AuthPageLayout } from "@leuchtturm/web/components/app/auth-page-layout"
 import { Button } from "@leuchtturm/web/components/ui/button";
 import {
 	Field,
+	FieldDescription,
 	FieldError,
 	FieldGroup,
 	FieldLabel,
@@ -43,7 +44,9 @@ function Page() {
 	const queryClient = useQueryClient();
 
 	const [submitError, setSubmitError] = useState<string>();
+	const [magicLinkSentTo, setMagicLinkSentTo] = useState<string>();
 	const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
+	const [isMagicLinkSubmitting, setIsMagicLinkSubmitting] = useState(false);
 	const callbackURL = new URL(redirect ?? "/app", window.location.origin).toString();
 	const form = useForm({
 		defaultValues: {
@@ -52,6 +55,7 @@ function Page() {
 		},
 		onSubmit: async ({ value }) => {
 			setSubmitError(undefined);
+			setMagicLinkSentTo(undefined);
 			toast.loading(t("Signing in..."));
 			const email = Schema.decodeSync(UserInsert.fields.email)(value.email);
 			const { error } = await authClient.signIn.email({
@@ -74,8 +78,28 @@ function Page() {
 		},
 	});
 
+	const sendMagicLink = async () => {
+		setSubmitError(undefined);
+		setMagicLinkSentTo(undefined);
+		setIsMagicLinkSubmitting(true);
+		toast.loading(t("Sending sign-in link..."));
+		const email = Schema.decodeSync(UserInsert.fields.email)(form.state.values.email);
+		const { error } = await authClient.signIn.magicLink({ email, callbackURL });
+		toast.dismiss();
+		setIsMagicLinkSubmitting(false);
+
+		if (error) {
+			setSubmitError(error.message);
+			return;
+		}
+
+		setMagicLinkSentTo(email);
+		toast.success(t("Sign-in link sent"));
+	};
+
 	const signInWithGoogle = async () => {
 		setSubmitError(undefined);
+		setMagicLinkSentTo(undefined);
 		setIsGoogleSubmitting(true);
 		toast.loading(t("Signing in..."));
 		const { error } = await authClient.signIn.social({
@@ -98,11 +122,18 @@ function Page() {
 						<T>Welcome back</T>
 					</h1>
 					<p className="text-balance text-muted-foreground">
-						<T>Sign in with your email and password or Google to continue to your account</T>
+						<T>Sign in with your email and password, a magic link, or Google to continue</T>
 					</p>
 				</div>
 				<FieldGroup>
 					{submitError ? <FieldError>{submitError}</FieldError> : null}
+					{magicLinkSentTo ? (
+						<FieldDescription className="text-center">
+							<T>
+								Check your inbox for a sign-in link sent to <Var>{magicLinkSentTo}</Var>.
+							</T>
+						</FieldDescription>
+					) : null}
 					<form.Field
 						name="email"
 						validators={{
@@ -124,9 +155,10 @@ function Page() {
 									onBlur={field.handleBlur}
 									onInput={(event) => {
 										setSubmitError(undefined);
+										setMagicLinkSentTo(undefined);
 										field.handleChange(event.currentTarget.value);
 									}}
-									disabled={isGoogleSubmitting}
+									disabled={isGoogleSubmitting || isMagicLinkSubmitting}
 									required
 								/>
 								{field.state.meta.errors.length > 0 && (
@@ -150,9 +182,10 @@ function Page() {
 									onBlur={field.handleBlur}
 									onInput={(event) => {
 										setSubmitError(undefined);
+										setMagicLinkSentTo(undefined);
 										field.handleChange(event.currentTarget.value);
 									}}
-									disabled={isGoogleSubmitting}
+									disabled={isGoogleSubmitting || isMagicLinkSubmitting}
 									required
 								/>
 							</Field>
@@ -164,10 +197,22 @@ function Page() {
 								<Button
 									type="submit"
 									className="w-full"
-									disabled={!canSubmit || isSubmitting || isGoogleSubmitting}
+									disabled={
+										!canSubmit || isSubmitting || isGoogleSubmitting || isMagicLinkSubmitting
+									}
 								>
 									{isSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : null}
 									<T>Sign in</T>
+								</Button>
+								<Button
+									type="button"
+									variant="outline"
+									className="w-full"
+									disabled={isSubmitting || isGoogleSubmitting || isMagicLinkSubmitting}
+									onClick={sendMagicLink}
+								>
+									{isMagicLinkSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : null}
+									<T>Send sign-in link</T>
 								</Button>
 								<FieldSeparator>
 									<T>or</T>
@@ -176,7 +221,7 @@ function Page() {
 									type="button"
 									variant="outline"
 									className="w-full"
-									disabled={isSubmitting || isGoogleSubmitting}
+									disabled={isSubmitting || isGoogleSubmitting || isMagicLinkSubmitting}
 									onClick={signInWithGoogle}
 								>
 									{isGoogleSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : null}
