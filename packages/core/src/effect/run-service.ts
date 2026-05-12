@@ -3,9 +3,8 @@ import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as ManagedRuntime from "effect/ManagedRuntime";
 
-const memoMap = Layer.makeMemoMapUnsafe();
-
 export function makeRuntime<R, S, E>(service: Context.Service<R, S>, layer: Layer.Layer<R, E>) {
+	const memoMap = Layer.makeMemoMapUnsafe();
 	let runtime: ManagedRuntime.ManagedRuntime<R, E> | undefined;
 	const getRuntime = () => (runtime ??= ManagedRuntime.make(layer, { memoMap }));
 
@@ -26,5 +25,6 @@ export function makeRuntime<R, S, E>(service: Context.Service<R, S>, layer: Laye
 			fn: (service: S) => Effect.Effect<A, Err, R>,
 			options?: Parameters<ManagedRuntime.ManagedRuntime<R, E>["runCallback"]>[1],
 		) => getRuntime().runCallback(service.use(fn), options),
+		dispose: () => (runtime ? runtime.dispose() : Promise.resolve()),
 	};
 }
