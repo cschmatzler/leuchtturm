@@ -42,27 +42,24 @@ function Page() {
 	const router = useRouter();
 	const queryClient = useQueryClient();
 
-	const [pwError, setPwError] = useState<string>();
-	const [mlError, setMlError] = useState<string>();
+	const [submitError, setSubmitError] = useState<string>();
 	const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
 	const callbackURL = new URL(redirect ?? "/app", window.location.origin).toString();
-	const passwordForm = useForm({
+	const form = useForm({
 		defaultValues: {
 			email: "",
 			password: "",
 		},
 		onSubmit: async ({ value }) => {
-			setPwError(undefined);
-			toast.loading(t("Signing in..."));
+			setSubmitError(undefined);
 			const email = Schema.decodeSync(UserInsert.fields.email)(value.email);
 			const { error } = await authClient.signIn.email({
 				email,
 				password: value.password,
 			});
-			toast.dismiss();
 
 			if (error) {
-				setPwError(error.message);
+				setSubmitError(error.message);
 				return;
 			}
 
@@ -74,25 +71,28 @@ function Page() {
 			await navigate({ to: redirect ?? "/app" });
 		},
 	});
-	const magicLinkForm = useForm({
-		defaultValues: {
-			email: "",
-		},
-		onSubmit: async ({ value }) => {
-			setMlError(undefined);
-			toast.loading(t("Sending sign-in link..."));
-			const email = Schema.decodeSync(UserInsert.fields.email)(value.email);
-			const { error } = await authClient.signIn.magicLink({ email, callbackURL });
-			toast.dismiss();
 
-			if (error) {
-				setMlError(error.message);
-				return;
-			}
+	const sendMagicLink = async () => {
+		let email: string;
+		try {
+			email = Schema.decodeSync(UserInsert.fields.email)(form.state.values.email);
+		} catch {
+			setSubmitError("Enter a valid email to receive a sign-in link.");
+			return;
+		}
 
-			toast.success(t("Sign-in link sent"));
-		},
-	});
+		setSubmitError(undefined);
+		toast.loading(t("Sending sign-in link..."));
+		const { error } = await authClient.signIn.magicLink({ email, callbackURL });
+		toast.dismiss();
+
+		if (error) {
+			setSubmitError(error.message);
+			return;
+		}
+
+		toast.success(t("Sign-in link sent"));
+	};
 
 	const signInWithGoogle = async () => {
 		setIsGoogleSubmitting(true);
@@ -115,41 +115,43 @@ function Page() {
 				<h1 className="text-2xl font-semibold tracking-tight text-center">
 					<T>Welcome back</T>
 				</h1>
-				<form action={() => passwordForm.handleSubmit()}>
+				<FieldGroup>
+					{submitError ? <FieldError>{submitError}</FieldError> : null}
+					<form.Field
+						name="email"
+						validators={{
+							onBlur: Schema.toStandardSchemaV1(UserInsert.fields.email),
+						}}
+					>
+						{(field) => (
+							<Field>
+								<FieldLabel htmlFor={field.name}>
+									<T>Email</T>
+								</FieldLabel>
+								<Input
+									id={field.name}
+									name={field.name}
+									type="email"
+									autoComplete="email"
+									placeholder="you@example.com"
+									value={field.state.value}
+									onBlur={field.handleBlur}
+									onInput={(event) => {
+										setSubmitError(undefined);
+										field.handleChange(event.currentTarget.value);
+									}}
+									required
+								/>
+								{field.state.meta.errors.length > 0 && (
+									<FieldError>{field.state.meta.errors[0]?.message}</FieldError>
+								)}
+							</Field>
+						)}
+					</form.Field>
+				</FieldGroup>
+				<form action={() => form.handleSubmit()}>
 					<FieldGroup>
-						{pwError ? <FieldError>{pwError}</FieldError> : null}
-						<passwordForm.Field
-							name="email"
-							validators={{
-								onBlur: Schema.toStandardSchemaV1(UserInsert.fields.email),
-							}}
-						>
-							{(field) => (
-								<Field>
-									<FieldLabel htmlFor={field.name}>
-										<T>Email</T>
-									</FieldLabel>
-									<Input
-										id={field.name}
-										name={field.name}
-										type="email"
-										autoComplete="email"
-										placeholder="you@example.com"
-										value={field.state.value}
-										onBlur={field.handleBlur}
-										onInput={(event) => {
-											setPwError(undefined);
-											field.handleChange(event.currentTarget.value);
-										}}
-										required
-									/>
-									{field.state.meta.errors.length > 0 && (
-										<FieldError>{field.state.meta.errors[0]?.message}</FieldError>
-									)}
-								</Field>
-							)}
-						</passwordForm.Field>
-						<passwordForm.Field name="password">
+						<form.Field name="password">
 							{(field) => (
 								<Field>
 									<FieldLabel htmlFor={field.name}>
@@ -163,76 +165,36 @@ function Page() {
 										value={field.state.value}
 										onBlur={field.handleBlur}
 										onInput={(event) => {
-											setPwError(undefined);
+											setSubmitError(undefined);
 											field.handleChange(event.currentTarget.value);
 										}}
 										required
 									/>
 								</Field>
 							)}
-						</passwordForm.Field>
-						<passwordForm.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
+						</form.Field>
+						<form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
 							{([canSubmit, isSubmitting]) => (
 								<Button type="submit" className="w-full" disabled={!canSubmit || isSubmitting}>
 									{isSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : null}
 									<T>Sign in</T>
 								</Button>
 							)}
-						</passwordForm.Subscribe>
+						</form.Subscribe>
 					</FieldGroup>
 				</form>
 				<FieldSeparator>
 					<T>or</T>
 				</FieldSeparator>
-				<form action={() => magicLinkForm.handleSubmit()}>
-					<FieldGroup>
-						{mlError ? <FieldError>{mlError}</FieldError> : null}
-						<magicLinkForm.Field
-							name="email"
-							validators={{
-								onBlur: Schema.toStandardSchemaV1(UserInsert.fields.email),
-							}}
-						>
-							{(field) => (
-								<Field>
-									<FieldLabel htmlFor={field.name}>
-										<T>Email</T>
-									</FieldLabel>
-									<Input
-										id={field.name}
-										name={field.name}
-										type="email"
-										autoComplete="email"
-										placeholder="you@example.com"
-										value={field.state.value}
-										onBlur={field.handleBlur}
-										onInput={(event) => {
-											setMlError(undefined);
-											field.handleChange(event.currentTarget.value);
-										}}
-										required
-									/>
-									{field.state.meta.errors.length > 0 && (
-										<FieldError>{field.state.meta.errors[0]?.message}</FieldError>
-									)}
-								</Field>
-							)}
-						</magicLinkForm.Field>
-						<magicLinkForm.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
-							{([canSubmit, isSubmitting]) => (
-								<Button
-									type="submit"
-									variant="outline"
-									className="w-full"
-									disabled={!canSubmit || isSubmitting}
-								>
-									{isSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : null}
-									<T>Email me a sign-in link</T>
-								</Button>
-							)}
-						</magicLinkForm.Subscribe>
-					</FieldGroup>
-				</form>
+				<Button
+					type="button"
+					variant="outline"
+					className="w-full"
+					disabled={isGoogleSubmitting}
+					onClick={sendMagicLink}
+				>
+					<T>Email me a sign-in link</T>
+				</Button>
 				<FieldSeparator>
 					<T>or</T>
 				</FieldSeparator>
