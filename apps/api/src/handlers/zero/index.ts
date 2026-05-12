@@ -80,7 +80,23 @@ export namespace ZeroHandler {
 	export const layer = (api: LeuchtturmApi) =>
 		HttpApiBuilder.group(api, "zero", (handlers) =>
 			handlers
-				.handleRaw("query", () => Metrics.trackAction("zero.query", handleQuery()))
-				.handleRaw("mutate", () => Metrics.trackAction("zero.mutate", handleMutate())),
+				.handleRaw("query", () =>
+					handleQuery().pipe(
+						Effect.tap(() => Metrics.action("zero.query", "success")),
+						Effect.catchCause((cause) =>
+							Metrics.action("zero.query", "failure").pipe(Effect.andThen(Effect.failCause(cause))),
+						),
+					),
+				)
+				.handleRaw("mutate", () =>
+					handleMutate().pipe(
+						Effect.tap(() => Metrics.action("zero.mutate", "success")),
+						Effect.catchCause((cause) =>
+							Metrics.action("zero.mutate", "failure").pipe(
+								Effect.andThen(Effect.failCause(cause)),
+							),
+						),
+					),
+				),
 		);
 }

@@ -94,14 +94,6 @@ export namespace Metrics {
 			yield* metrics.action(action, result);
 		});
 
-	export const trackAction = <A, E, R>(actionName: string, effect: Effect.Effect<A, E, R>) =>
-		effect.pipe(
-			Effect.tap(() => action(actionName, "success")),
-			Effect.catchCause((cause) =>
-				action(actionName, "failure").pipe(Effect.andThen(Effect.failCause(cause))),
-			),
-		);
-
 	export const increment = (name: string, value?: number, options?: CounterOptions) =>
 		Effect.gen(function* () {
 			const metrics = yield* Service;

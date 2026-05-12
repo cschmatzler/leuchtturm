@@ -77,8 +77,35 @@ export namespace BillingHandler {
 	export const layer = (api: LeuchtturmApi) =>
 		HttpApiBuilder.group(api, "billing", (handlers) =>
 			handlers
-				.handle("overview", (request) => Metrics.trackAction("billing.overview", overview(request)))
-				.handle("checkout", (request) => Metrics.trackAction("billing.checkout", checkout(request)))
-				.handle("portal", (request) => Metrics.trackAction("billing.portal", portal(request))),
+				.handle("overview", (request) =>
+					overview(request).pipe(
+						Effect.tap(() => Metrics.action("billing.overview", "success")),
+						Effect.catchCause((cause) =>
+							Metrics.action("billing.overview", "failure").pipe(
+								Effect.andThen(Effect.failCause(cause)),
+							),
+						),
+					),
+				)
+				.handle("checkout", (request) =>
+					checkout(request).pipe(
+						Effect.tap(() => Metrics.action("billing.checkout", "success")),
+						Effect.catchCause((cause) =>
+							Metrics.action("billing.checkout", "failure").pipe(
+								Effect.andThen(Effect.failCause(cause)),
+							),
+						),
+					),
+				)
+				.handle("portal", (request) =>
+					portal(request).pipe(
+						Effect.tap(() => Metrics.action("billing.portal", "success")),
+						Effect.catchCause((cause) =>
+							Metrics.action("billing.portal", "failure").pipe(
+								Effect.andThen(Effect.failCause(cause)),
+							),
+						),
+					),
+				),
 		);
 }

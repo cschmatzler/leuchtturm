@@ -11,13 +11,8 @@ describe("Metrics", () => {
 				const metrics = yield* Metrics.Service;
 
 				yield* metrics.action("billing.checkout", "success");
-				yield* Metrics.trackAction("zero.query", Effect.void);
-				yield* Metrics.trackAction("zero.mutate", Effect.fail("boom")).pipe(
-					Effect.catchIf(
-						() => true,
-						() => Effect.void,
-					),
-				);
+				yield* Metrics.action("zero.query", "success");
+				yield* Metrics.action("zero.mutate", "failure");
 				yield* Metrics.action("billing.checkout", "failure");
 				yield* Metrics.setGauge("api_queue_depth", 7, {
 					attributes: { queue: "email" },

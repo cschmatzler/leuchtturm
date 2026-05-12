@@ -16,7 +16,14 @@ export namespace SessionHandler {
 
 	export const layer = HttpApiBuilder.group(LeuchtturmApi, "session", (handlers) =>
 		handlers.handle("deviceSessions", () =>
-			Metrics.trackAction("session.device_sessions", deviceSessions()),
+			deviceSessions().pipe(
+				Effect.tap(() => Metrics.action("session.device_sessions", "success")),
+				Effect.catchCause((cause) =>
+					Metrics.action("session.device_sessions", "failure").pipe(
+						Effect.andThen(Effect.failCause(cause)),
+					),
+				),
+			),
 		),
 	);
 }

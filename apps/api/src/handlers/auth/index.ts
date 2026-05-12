@@ -37,10 +37,24 @@ export namespace AuthHandler {
 		HttpApiBuilder.group(api, "auth", (handlers) =>
 			handlers
 				.handleRaw("authGet", ({ request }) =>
-					Metrics.trackAction("auth.passthrough", handlePassthrough(request)),
+					handlePassthrough(request).pipe(
+						Effect.tap(() => Metrics.action("auth.passthrough", "success")),
+						Effect.catchCause((cause) =>
+							Metrics.action("auth.passthrough", "failure").pipe(
+								Effect.andThen(Effect.failCause(cause)),
+							),
+						),
+					),
 				)
 				.handleRaw("authPost", ({ request }) =>
-					Metrics.trackAction("auth.passthrough", handlePassthrough(request)),
+					handlePassthrough(request).pipe(
+						Effect.tap(() => Metrics.action("auth.passthrough", "success")),
+						Effect.catchCause((cause) =>
+							Metrics.action("auth.passthrough", "failure").pipe(
+								Effect.andThen(Effect.failCause(cause)),
+							),
+						),
+					),
 				),
 		);
 }
