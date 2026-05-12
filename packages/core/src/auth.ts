@@ -1,6 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { admin, multiSession, magicLink, organization } from "better-auth/plugins";
+import { admin, multiSession, magicLink, openAPI, organization } from "better-auth/plugins";
 import { and, eq, ne } from "drizzle-orm";
 import * as Cause from "effect/Cause";
 import * as Context from "effect/Context";
@@ -116,6 +116,7 @@ export namespace Auth {
 				plugins: [
 					admin(),
 					multiSession(),
+					openAPI(),
 					magicLink({
 						storeToken: "hashed",
 						sendMagicLink: ({ email: emailAddress, url }) =>

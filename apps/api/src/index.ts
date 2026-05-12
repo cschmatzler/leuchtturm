@@ -28,7 +28,9 @@ import { InternalServerError } from "@leuchtturm/core/errors";
 import { ZeroDatabase } from "@leuchtturm/zero/zero-database";
 
 const apiRoutes = Layer.mergeAll(
-	HttpApiBuilder.layer(Contract.LeuchtturmApi).pipe(
+	HttpApiBuilder.layer(Contract.LeuchtturmApi, {
+		openapiPath: "/open-api",
+	}).pipe(
 		Layer.provide(
 			Layer.mergeAll(
 				HealthHandler.layer(Contract.LeuchtturmApi),
@@ -41,6 +43,21 @@ const apiRoutes = Layer.mergeAll(
 	),
 	HttpApiScalar.layer(Contract.LeuchtturmApi, {
 		path: "/docs",
+		scalar: {
+			sources: [
+				{
+					title: "Leuchtturm API",
+					slug: "api",
+					url: "/open-api",
+					default: true,
+				},
+				{
+					title: "Auth",
+					slug: "auth",
+					url: "/auth/open-api/generate-schema",
+				},
+			],
+		} as HttpApiScalar.ScalarConfig,
 	}),
 );
 
