@@ -1,12 +1,7 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { isAPIError } from "better-auth/api";
-import {
-	admin as adminPlugin,
-	multiSession,
-	magicLink,
-	organization as organizationPlugin,
-} from "better-auth/plugins";
+import { admin, multiSession, magicLink, organization } from "better-auth/plugins";
 import { and, eq, ne } from "drizzle-orm";
 import * as Cause from "effect/Cause";
 import * as Context from "effect/Context";
@@ -126,7 +121,7 @@ export namespace Auth {
 					},
 				},
 				plugins: [
-					adminPlugin(),
+					admin(),
 					multiSession(),
 					magicLink({
 						storeToken: "hashed",
@@ -148,7 +143,7 @@ export namespace Auth {
 								),
 							),
 					}),
-					organizationPlugin({
+					organization({
 						sendInvitationEmail: (params) =>
 							Effect.runPromiseWith(context.getStore() ?? Context.empty())(
 								sendInvitationEmail({
@@ -377,9 +372,9 @@ export namespace Auth {
 
 				return yield* Effect.tryPromise({
 					try: () => context.run(currentContext, () => auth.handler(request)),
-					catch: (cause) => cause,
+					catch: (error) => error,
 				}).pipe(
-					Effect.catchAll((error) => {
+					Effect.catch((error) => {
 						if (!isAPIError(error)) return Effect.fail(error);
 
 						const headers = new Headers(error.headers);
