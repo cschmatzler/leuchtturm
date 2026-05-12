@@ -9,12 +9,9 @@
 		"./*": "./src/*.ts"
 	},
 	"dependencies": {
-		"@react-email/components": "1.0.12",
-		"@react-email/render": "2.0.8",
-		"@react-email/tailwind": "2.0.7",
-		"@react-email/text": "0.1.6",
 		"effect": "4.0.0-beta.64",
-		"react": "19.2.6"
+		"react": "19.2.6",
+		"react-email": "6.1.1"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "4.20260510.1",

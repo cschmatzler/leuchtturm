@@ -4,6 +4,7 @@
 	...
 }: {
 	packages = [
+		pkgs.hurl
 		pkgs.treefmt
 		pkgs.cloudflared
 	];

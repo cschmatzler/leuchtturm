@@ -1,5 +1,5 @@
-import { render } from "@react-email/render";
 import * as Effect from "effect/Effect";
+import { render } from "react-email";
 
 import { type Email } from "@leuchtturm/email";
 import { type EmailRenderError } from "@leuchtturm/email/errors";

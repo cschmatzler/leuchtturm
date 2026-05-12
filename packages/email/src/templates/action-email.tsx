@@ -1,6 +1,6 @@
-import { Button, Heading, Hr, Link, Text } from "@react-email/components";
 import * as Effect from "effect/Effect";
 import { type ReactNode } from "react";
+import { Button, Heading, Hr, Link, Text } from "react-email";
 
 import { type Email } from "@leuchtturm/email";
 import { EmailRenderError } from "@leuchtturm/email/errors";

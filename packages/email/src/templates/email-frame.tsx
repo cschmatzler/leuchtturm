@@ -1,6 +1,5 @@
-import { Body, Container, Html, Preview, Section, Text } from "@react-email/components";
-import { Tailwind } from "@react-email/tailwind";
 import { type ReactNode } from "react";
+import { Body, Container, Html, Preview, Section, Tailwind, Text } from "react-email";
 
 import { tailwindConfig } from "@leuchtturm/email/tailwind";
 
