@@ -22,7 +22,9 @@ export const Route = createFileRoute("/$organization/_settings/settings/profile"
 
 function Page() {
 	const [currentUser] = useZeroQuery(queries.currentUser());
+
 	const t = useGT();
+
 	const form = useForm({
 		defaultValues: {
 			name: currentUser?.name ?? "",

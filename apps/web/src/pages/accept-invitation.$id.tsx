@@ -81,7 +81,9 @@ function Page() {
 	const { id } = Route.useParams();
 	const { invitation } = Route.useLoaderData();
 	const navigate = useNavigate();
+
 	const queryClient = useQueryClient();
+
 	const t = useGT();
 	const { invalidateDeviceSessions } = useAuth();
 

@@ -56,10 +56,12 @@ function Page() {
 function GeneralSettings(props: { readonly organization: string; readonly team: string }) {
 	const { organizationId } = Route.useRouteContext();
 	const navigate = useNavigate();
-	const t = useGT();
+
 	const { delete: isDeleteDialogOpen } = Route.useSearch();
 
 	const [team] = useZeroQuery(queries.team({ organizationId, team: props.team }));
+
+	const t = useGT();
 
 	const [deleteTeamConfirmation, setDeleteTeamConfirmation] = useState("");
 	const [isDeletingTeam, setIsDeletingTeam] = useState(false);

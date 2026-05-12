@@ -45,12 +45,14 @@ function Page() {
 
 function MembersSettings(props: { readonly team: string }) {
 	const { organizationId, session } = Route.useRouteContext();
-	const t = useGT();
+
 	const [team] = useZeroQuery(queries.team({ organizationId, team: props.team }));
 	const [organizationMembers] = useZeroQuery(queries.organizationMembers({ organizationId }));
 	const [teamMembers] = useZeroQuery(
 		queries.teamMembersByTeam({ organizationId, team: props.team }),
 	);
+
+	const t = useGT();
 	const teamMemberRows = useMemo(
 		() =>
 			teamMembers.map((teamMember) => {

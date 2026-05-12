@@ -9,7 +9,7 @@ import {
 } from "@tanstack/react-router";
 import * as Effect from "effect/Effect";
 import * as Schema from "effect/Schema";
-import { T, useGT } from "gt-react";
+import { T } from "gt-react";
 import { useState } from "react";
 
 import { UserInsert } from "@leuchtturm/core/auth/schema";
@@ -25,8 +25,6 @@ import {
 } from "@leuchtturm/web/components/ui/field";
 import { Input } from "@leuchtturm/web/components/ui/input";
 
-const searchDefaults = { password: false };
-
 export const Route = createFileRoute("/login")({
 	validateSearch: Schema.toStandardSchemaV1(
 		Schema.Struct({
@@ -37,83 +35,73 @@ export const Route = createFileRoute("/login")({
 		}),
 	),
 	search: {
-		middlewares: [stripSearchParams(searchDefaults)],
+		middlewares: [stripSearchParams({ password: false })],
 	},
 	component: Page,
 });
 
 function Page() {
-	const t = useGT();
 	const { password } = Route.useSearch();
 	const navigate = useNavigate();
 	const router = useRouter();
+
 	const queryClient = useQueryClient();
 
 	const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
-
 	const form = useForm({
 		defaultValues: {
 			email: "",
 			password: "",
 		},
-		onSubmit: async ({ value }) => {
-			resetFormError();
-			const email = Schema.decodeSync(UserInsert.fields.email)(value.email);
+		validators: {
+			onSubmitAsync: async ({ value }) => {
+				const email = Schema.decodeSync(UserInsert.fields.email)(value.email);
 
-			if (password) {
-				await signInWithPassword({ email, password: value.password });
-			} else {
-				await sendMagicLink({ email });
-			}
+				if (password) {
+					return await signInWithPassword({ email, password: value.password });
+				}
+
+				return await sendMagicLink({ email });
+			},
+		},
+		onSubmit: async () => {
+			if (!password) return;
+
+			await queryClient.invalidateQueries({ queryKey: ["session"] });
+			await queryClient.invalidateQueries({ queryKey: ["deviceSessions"] });
+			await queryClient.invalidateQueries({ queryKey: ["organizations"] });
+			await router.invalidate();
+			await navigate({ to: "/app" });
 		},
 	});
-
-	function setFormError(message: string) {
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		form.setErrorMap({ onSubmit: message } as any);
-	}
-
-	function resetFormError() {
-		form.setErrorMap({ onSubmit: undefined });
-	}
 
 	async function sendMagicLink({ email }: { email: string }) {
 		const { error } = await authClient.signIn.magicLink({
 			email,
-			callbackURL: new URL("/app", window.location.origin).toString(),
+			callbackURL: router.history.createHref("/app"),
 		});
 
-		if (error) {
-			setFormError(error.message ?? t("An error occurred"));
-		}
+		if (error) return error.message;
+		return null;
 	}
 
 	async function signInWithPassword({ email, password: pw }: { email: string; password: string }) {
 		const { error } = await authClient.signIn.email({ email, password: pw });
 
-		if (error) {
-			setFormError(error.message ?? t("An error occurred"));
-			return;
-		}
-
-		await queryClient.invalidateQueries({ queryKey: ["session"] });
-		await queryClient.invalidateQueries({ queryKey: ["deviceSessions"] });
-		await queryClient.invalidateQueries({ queryKey: ["organizations"] });
-		await router.invalidate();
-
-		await navigate({ to: "/app" });
+		if (error) return error.message;
+		return null;
 	}
 
 	async function signInWithGoogle() {
 		setIsGoogleSubmitting(true);
 		const { error } = await authClient.signIn.social({
 			provider: "google",
-			callbackURL: new URL("/app", window.location.origin).toString(),
+			callbackURL: router.history.createHref("/app"),
 		});
 		setIsGoogleSubmitting(false);
 
 		if (error) {
-			setFormError(error.message ?? t("An error occurred"));
+			form.setErrorMap({ onSubmit: error.message });
 		}
 	}
 
@@ -125,7 +113,7 @@ function Page() {
 				</h1>
 				<Button
 					type="button"
-					variant="default"
+					variant="outline"
 					className="w-full"
 					loading={isGoogleSubmitting}
 					onClick={signInWithGoogle}
@@ -138,7 +126,7 @@ function Page() {
 				<form action={() => form.handleSubmit()}>
 					<FieldGroup>
 						<form.Subscribe selector={(state) => state.errorMap.onSubmit}>
-							{(formError) => (formError ? <FieldError>{formError}</FieldError> : null)}
+							{(formError) => (formError ? <FieldError>{String(formError)}</FieldError> : null)}
 						</form.Subscribe>
 						<form.Field
 							name="email"
@@ -160,7 +148,7 @@ function Page() {
 										value={field.state.value}
 										onBlur={field.handleBlur}
 										onInput={(event) => {
-											resetFormError();
+											form.setErrorMap({ onSubmit: undefined });
 											field.handleChange(event.currentTarget.value);
 										}}
 										required
@@ -187,7 +175,7 @@ function Page() {
 												value={field.state.value}
 												onBlur={field.handleBlur}
 												onInput={(event) => {
-													resetFormError();
+													form.setErrorMap({ onSubmit: undefined });
 													field.handleChange(event.currentTarget.value);
 												}}
 												required
@@ -213,7 +201,7 @@ function Page() {
 									className="w-full"
 									onClick={() => navigate({ to: "/login", search: { password: false } })}
 								>
-									<T>Send me a link instead</T>
+									<T>Send me a link</T>
 								</Button>
 							</>
 						) : (
@@ -243,7 +231,7 @@ function Page() {
 					</FieldGroup>
 				</form>
 				<div className="text-center text-sm">
-					<T>Don't have an account?</T>{" "}
+					<T>Don&apos;t have an account?</T>{" "}
 					<Link to="/signup" className="underline underline-offset-4 hover:text-primary">
 						<T>Sign up</T>
 					</Link>

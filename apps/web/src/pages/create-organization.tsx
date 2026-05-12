@@ -40,7 +40,9 @@ function Page() {
 	const { session } = Route.useRouteContext();
 	const navigate = useNavigate();
 	const router = useRouter();
+
 	const queryClient = useQueryClient();
+
 	const t = useGT();
 	const { deviceSessions, setActiveSession, signOutCurrent } = useAuth();
 	const [accountMenuOpen, setAccountMenuOpen] = useState(false);

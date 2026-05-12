@@ -48,8 +48,10 @@ function Page() {
 	const search = Route.useSearch();
 	const { organizationId, session } = Route.useRouteContext();
 	const navigate = useNavigate({ from: "/$organization/settings/teams" });
-	const t = useGT();
+
 	const [teams] = useZeroQuery(queries.organizationTeams({ organizationId }));
+
+	const t = useGT();
 
 	const setCreateDialogOpen = (value: boolean) => {
 		void navigate({

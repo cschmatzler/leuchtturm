@@ -23,6 +23,7 @@ function Layout() {
 
 	const [currentTeam] = useZeroQuery(queries.team({ organizationId, team }));
 	const [teams] = useZeroQuery(queries.organizationTeams({ organizationId }));
+
 	const t = useGT();
 	const commandBar = useCommandBar();
 

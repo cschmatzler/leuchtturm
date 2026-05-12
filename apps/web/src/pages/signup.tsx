@@ -26,6 +26,7 @@ export const Route = createFileRoute("/signup")({
 
 function Page() {
 	const t = useGT();
+
 	const [submitError, setSubmitError] = useState<string>();
 	const [magicLinkSentTo, setMagicLinkSentTo] = useState<string>();
 	const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);

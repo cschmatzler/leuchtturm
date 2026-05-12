@@ -88,7 +88,9 @@ function AdminUsersPage() {
 	const queryClient = useQueryClient();
 	const { data: session } = useQuery(sessionQuery());
 	const { data: users = [] } = useQuery(adminUsersQuery());
+
 	const t = useGT();
+
 	const [pendingAction, setPendingAction] = useState<string | null>(null);
 	const [deleteUser, setDeleteUser] = useState<AdminUser | null>(null);
 

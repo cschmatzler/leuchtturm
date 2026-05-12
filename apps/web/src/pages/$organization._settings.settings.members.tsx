@@ -69,9 +69,11 @@ function Page() {
 	const { invite } = Route.useSearch();
 	const { organizationId } = Route.useRouteContext();
 	const navigate = useNavigate();
-	const t = useGT();
+
 	const [members] = useZeroQuery(queries.organizationMembers({ organizationId }));
 	const [invitations] = useZeroQuery(queries.organizationInvitations({ organizationId }));
+
+	const t = useGT();
 	const activeInvitations = useMemo(
 		() => invitations.filter((invitation) => invitation.expiresAt > Date.now()),
 		[invitations],

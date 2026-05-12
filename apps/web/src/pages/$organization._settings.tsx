@@ -19,7 +19,9 @@ export const Route = createFileRoute("/$organization/_settings")({
 
 function Layout() {
 	const { organization } = Route.useParams();
+
 	const t = useGT();
+
 	const [team, setTeam] = useState<string>();
 
 	return (

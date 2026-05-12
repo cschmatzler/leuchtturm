@@ -14,14 +14,18 @@ const QUERY_HOOKS = new Set([
 	"useSuspenseQuery",
 	"useInfiniteQuery",
 	"useSuspenseInfiniteQuery",
+	"useQueryClient",
 ]);
+
+const CONTEXT_HOOKS = new Set(["useGT"]);
 
 const LOCAL_STATE_HOOKS = new Set(["useForm", "useReducer", "useState"]);
 
 const GROUP_ORDER = {
 	route: 0,
 	query: 1,
-	localState: 2,
+	context: 2,
+	localState: 3,
 };
 
 function isCapitalized(name) {
@@ -73,6 +77,10 @@ function getHookGroup(node) {
 
 	if (QUERY_HOOKS.has(hookName)) {
 		return "query";
+	}
+
+	if (CONTEXT_HOOKS.has(hookName)) {
+		return "context";
 	}
 
 	if (LOCAL_STATE_HOOKS.has(hookName)) {

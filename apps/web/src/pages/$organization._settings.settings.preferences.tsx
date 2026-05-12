@@ -42,6 +42,7 @@ export const Route = createFileRoute("/$organization/_settings/settings/preferen
 
 function Page() {
 	const [currentUser] = useZeroQuery(queries.currentUser());
+
 	const t = useGT();
 	const currentLanguage = resolveLanguage(currentUser?.language, DEFAULT_LANGUAGE);
 	const form = useForm({
