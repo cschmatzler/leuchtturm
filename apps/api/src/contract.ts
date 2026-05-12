@@ -15,6 +15,7 @@ export namespace Contract {
 	export const health = HttpApiGroup.make("health")
 		.annotateMerge(
 			OpenApi.annotations({
+				title: "Health",
 				description: "Operational health checks for the API and its dependencies.",
 			}),
 		)
@@ -34,6 +35,7 @@ export namespace Contract {
 	export const zero = HttpApiGroup.make("zero")
 		.annotateMerge(
 			OpenApi.annotations({
+				title: "Zero",
 				description: "Zero sync endpoints used by the client for reads and writes.",
 			}),
 		)
@@ -60,6 +62,7 @@ export namespace Contract {
 	export const billing = HttpApiGroup.make("billing")
 		.annotateMerge(
 			OpenApi.annotations({
+				title: "Billing",
 				description: "Billing, checkout, and customer portal endpoints for organizations.",
 			}),
 		)
@@ -107,6 +110,7 @@ export namespace Contract {
 	export const auth = HttpApiGroup.make("auth")
 		.annotateMerge(
 			OpenApi.annotations({
+				title: "Auth",
 				description: "Authentication passthrough endpoints handled by the auth service.",
 				exclude: true,
 			}),
