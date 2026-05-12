@@ -1,6 +1,10 @@
 import * as Schema from "effect/Schema";
 
 export namespace BillingSchema {
+	export const OrganizationQuery = Schema.Struct({
+		organizationId: Schema.String,
+	});
+
 	export const SubscriptionOverview = Schema.Struct({
 		currentPeriodEnd: Schema.Date,
 		cancelAtPeriodEnd: Schema.Boolean,

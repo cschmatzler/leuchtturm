@@ -1,4 +1,3 @@
-import * as Schema from "effect/Schema";
 import * as HttpApi from "effect/unstable/httpapi/HttpApi";
 import * as HttpApiEndpoint from "effect/unstable/httpapi/HttpApiEndpoint";
 import * as HttpApiGroup from "effect/unstable/httpapi/HttpApiGroup";
@@ -12,10 +11,6 @@ import { BillingError } from "@leuchtturm/core/billing/errors";
 import { DatabaseError, NotFoundError } from "@leuchtturm/core/errors";
 
 export namespace Contract {
-	const BillingOrganizationQuery = Schema.Struct({
-		organizationId: Schema.String,
-	});
-
 	export const health = HttpApiGroup.make("health").add(
 		HttpApiEndpoint.get("healthCheck", "/up", {
 			success: HealthSchema.SuccessResponse,
@@ -40,21 +35,21 @@ export namespace Contract {
 	export const billing = HttpApiGroup.make("billing")
 		.add(
 			HttpApiEndpoint.get("overview", "/billing/overview", {
-				query: BillingOrganizationQuery,
+				query: BillingSchema.OrganizationQuery,
 				success: BillingSchema.OverviewResponse,
 				error: [AuthError, BillingError, NotFoundError],
 			}),
 		)
 		.add(
 			HttpApiEndpoint.post("checkout", "/billing/checkout", {
-				query: BillingOrganizationQuery,
+				query: BillingSchema.OrganizationQuery,
 				success: BillingSchema.UrlResponse,
 				error: [AuthError, BillingError, NotFoundError],
 			}),
 		)
 		.add(
 			HttpApiEndpoint.post("portal", "/billing/portal", {
-				query: BillingOrganizationQuery,
+				query: BillingSchema.OrganizationQuery,
 				success: BillingSchema.UrlResponse,
 				error: [AuthError, BillingError, NotFoundError],
 			}),
