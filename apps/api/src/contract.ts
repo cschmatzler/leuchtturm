@@ -134,7 +134,7 @@ export namespace Contract {
 			),
 		);
 
-	export class LeuchtturmApi extends HttpApi.make("leuchtturm")
+	export const LeuchtturmApi = HttpApi.make("leuchtturm")
 		.annotateMerge(
 			OpenApi.annotations({
 				title: "Leuchtturm API",
@@ -144,7 +144,7 @@ export namespace Contract {
 		.add(health)
 		.add(zero)
 		.add(billing)
-		.add(auth) {}
+		.add(auth);
 }
 
 export type LeuchtturmApi = typeof Contract.LeuchtturmApi;
