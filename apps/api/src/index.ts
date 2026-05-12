@@ -3,6 +3,7 @@ import * as Cause from "effect/Cause";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import * as HttpEffect from "effect/unstable/http/HttpEffect";
 import * as HttpMiddleware from "effect/unstable/http/HttpMiddleware";
 import * as HttpRouter from "effect/unstable/http/HttpRouter";
 import * as HttpServer from "effect/unstable/http/HttpServer";
@@ -39,17 +40,13 @@ const apiRoutes = HttpApiBuilder.layer(LeuchtturmApi).pipe(
 	),
 	Layer.provide(AuthMiddleware.layer),
 	Layer.provide(ErrorCatalog.layer),
-	Layer.provideMerge(Layer.mergeAll(HttpServer.layerServices, Metrics.layer, Telemetry.layer)),
 );
 
-function requestServicesLayer() {
-	return Layer.mergeAll(Auth.defaultLayer, Billing.defaultLayer, ZeroDatabase.layer).pipe(
-		Layer.provideMerge(Database.layer(Resource.Database.connectionString)),
-	);
-}
+const apiServices = Layer.mergeAll(HttpServer.layerServices, Metrics.layer, Telemetry.layer);
 
-const apiHandler = HttpRouter.toWebHandler(apiRoutes, {
-	disableLogger: true,
+const api = HttpRouter.toHttpEffect(apiRoutes).pipe(Effect.flatten);
+
+const { handler } = HttpEffect.toWebHandlerLayer(api, apiServices, {
 	middleware: (app) =>
 		HttpMiddleware.cors({
 			allowedOrigins: (origin) => {
@@ -62,7 +59,7 @@ const apiHandler = HttpRouter.toWebHandler(apiRoutes, {
 		})(RequestContext.middleware(Observability.middleware(app))),
 });
 
-const handleRequest = Effect.fn("Api.handle")(function* (
+const handleRequest = Effect.fn("handleRequest")(function* (
 	request: Request,
 	executionContext: Pick<ExecutionContext, "waitUntil">,
 ) {
@@ -72,22 +69,15 @@ const handleRequest = Effect.fn("Api.handle")(function* (
 
 	return yield* Effect.scoped(
 		Effect.gen(function* () {
-			const servicesContext = yield* Layer.build(requestServicesLayer());
-			const requestContext = Context.add(
-				Context.merge(activeContext, servicesContext),
-				AuthMiddleware.CurrentAuth,
-				Context.get(servicesContext, Auth.Service),
+			const servicesContext = yield* Layer.build(
+				Layer.mergeAll(Auth.defaultLayer, Billing.defaultLayer, ZeroDatabase.layer).pipe(
+					Layer.provideMerge(Database.layer(Resource.Database.connectionString)),
+				),
 			);
+			const requestContext = Context.merge(activeContext, servicesContext);
 
 			return yield* Effect.provideContext(
-				Effect.promise(() =>
-					(
-						apiHandler.handler as (
-							request: Request,
-							context: Context.Context<never>,
-						) => Promise<Response>
-					)(request, requestContext as Context.Context<never>),
-				).pipe(
+				Effect.promise(() => handler(request, requestContext)).pipe(
 					Effect.catchCause((cause) =>
 						Effect.gen(function* () {
 							yield* Effect.annotateCurrentSpan({
