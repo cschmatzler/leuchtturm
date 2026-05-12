@@ -25,11 +25,6 @@ export function makeRuntime<R, S, E>(service: Context.Service<R, S>, layer: Laye
 			fn: (service: S) => Effect.Effect<A, Err, R>,
 			options?: Parameters<ManagedRuntime.ManagedRuntime<R, E>["runCallback"]>[1],
 		) => getRuntime().runCallback(service.use(fn), options),
-		dispose: () => {
-			const currentRuntime = runtime;
-			runtime = undefined;
-
-			return currentRuntime ? currentRuntime.dispose() : Promise.resolve();
-		},
+		dispose: () => (runtime ? runtime.dispose() : Promise.resolve()),
 	};
 }
