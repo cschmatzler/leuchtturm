@@ -35,12 +35,25 @@ function getIndexName(filename) {
 	return parts[srcIndex - 1];
 }
 
+function getParentName(filename) {
+	return filename.replace(/\\/g, "/").split("/").at(-2);
+}
+
 function getExpectedFilename(filename, namespaceName) {
 	const basename = getBasename(filename);
 	const namespaceFilename = toKebabCase(namespaceName);
+	const parentName = getParentName(filename);
 
 	if (basename === "index" && getIndexName(filename) === namespaceFilename) {
 		return "index";
+	}
+
+	if (basename === "index" && parentName && `${parentName}-handler` === namespaceFilename) {
+		return "index";
+	}
+
+	if (parentName && `${parentName}-${basename}` === namespaceFilename) {
+		return basename;
 	}
 
 	return namespaceFilename;

@@ -11,11 +11,11 @@ import * as HttpApiBuilder from "effect/unstable/httpapi/HttpApiBuilder";
 import { Resource, wrapCloudflareHandler } from "sst/resource/cloudflare";
 
 import { Contract } from "@leuchtturm/api/contract";
-import { AuthHandler } from "@leuchtturm/api/handlers/auth-handler";
-import { BillingHandler } from "@leuchtturm/api/handlers/billing-handler";
-import { HealthHandler } from "@leuchtturm/api/handlers/health-handler";
+import { AuthHandler } from "@leuchtturm/api/handlers/auth/index";
+import { BillingHandler } from "@leuchtturm/api/handlers/billing/index";
+import { HealthHandler } from "@leuchtturm/api/handlers/health/index";
 import { SessionHandler } from "@leuchtturm/api/handlers/session-handler";
-import { ZeroHandler } from "@leuchtturm/api/handlers/zero-handler";
+import { ZeroHandler } from "@leuchtturm/api/handlers/zero/index";
 import { AuthMiddleware } from "@leuchtturm/api/middleware/auth-middleware";
 import { Observability } from "@leuchtturm/api/middleware/observability";
 import { RequestContext } from "@leuchtturm/api/middleware/request-context";
@@ -33,8 +33,8 @@ const apiRoutes = HttpApiBuilder.layer(Contract.LeuchtturmApi).pipe(
 			HealthHandler.layer(Contract.LeuchtturmApi),
 			SessionHandler.layer,
 			BillingHandler.layer(Contract.LeuchtturmApi),
-			ZeroHandler.layer,
-			AuthHandler.layer,
+			ZeroHandler.layer(Contract.LeuchtturmApi),
+			AuthHandler.layer(Contract.LeuchtturmApi),
 		),
 	),
 	Layer.provide(AuthMiddleware.layer),

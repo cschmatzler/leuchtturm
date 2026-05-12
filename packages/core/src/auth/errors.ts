@@ -84,6 +84,7 @@ export class AuthInvalidOrganizationPayloadError extends Schema.TaggedErrorClass
 export class AuthInvalidTeamPayloadError extends Schema.TaggedErrorClass<AuthInvalidTeamPayloadError>()(
 	"AuthInvalidTeamPayloadError",
 	{ message: Schema.String },
+	{ httpApiStatus: 400 },
 ) {
 	constructor() {
 		super({ message: "Invalid auth team payload" });
@@ -93,6 +94,7 @@ export class AuthInvalidTeamPayloadError extends Schema.TaggedErrorClass<AuthInv
 export class AuthDuplicateOrganizationNameError extends Schema.TaggedErrorClass<AuthDuplicateOrganizationNameError>()(
 	"AuthDuplicateOrganizationNameError",
 	{ message: Schema.String },
+	{ httpApiStatus: 409 },
 ) {
 	constructor() {
 		super({ message: "Organization name already exists" });
@@ -111,6 +113,7 @@ export class AuthTeamLookupError extends Schema.TaggedErrorClass<AuthTeamLookupE
 export class AuthDuplicateTeamNameError extends Schema.TaggedErrorClass<AuthDuplicateTeamNameError>()(
 	"AuthDuplicateTeamNameError",
 	{ message: Schema.String },
+	{ httpApiStatus: 409 },
 ) {
 	constructor() {
 		super({ message: "Team name already exists" });

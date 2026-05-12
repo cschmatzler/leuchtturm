@@ -3,8 +3,8 @@ import * as HttpApi from "effect/unstable/httpapi/HttpApi";
 import * as HttpApiEndpoint from "effect/unstable/httpapi/HttpApiEndpoint";
 import * as HttpApiGroup from "effect/unstable/httpapi/HttpApiGroup";
 
-import { BillingHandler } from "@leuchtturm/api/handlers/billing-handler";
-import { HealthHandler } from "@leuchtturm/api/handlers/health-handler";
+import { BillingSchema } from "@leuchtturm/api/handlers/billing/schema";
+import { HealthSchema } from "@leuchtturm/api/handlers/health/schema";
 import { Session } from "@leuchtturm/api/session";
 import { AuthError } from "@leuchtturm/core/auth/errors";
 import { DeviceSessions } from "@leuchtturm/core/auth/schema";
@@ -18,7 +18,7 @@ export namespace Contract {
 
 	export const health = HttpApiGroup.make("health").add(
 		HttpApiEndpoint.get("healthCheck", "/up", {
-			success: HealthHandler.SuccessResponse,
+			success: HealthSchema.SuccessResponse,
 			error: DatabaseError,
 		}),
 	);
@@ -41,21 +41,21 @@ export namespace Contract {
 		.add(
 			HttpApiEndpoint.get("overview", "/billing/overview", {
 				query: BillingOrganizationQuery,
-				success: BillingHandler.OverviewResponse,
+				success: BillingSchema.OverviewResponse,
 				error: [AuthError, BillingError, NotFoundError],
 			}),
 		)
 		.add(
 			HttpApiEndpoint.post("checkout", "/billing/checkout", {
 				query: BillingOrganizationQuery,
-				success: BillingHandler.UrlResponse,
+				success: BillingSchema.UrlResponse,
 				error: [AuthError, BillingError, NotFoundError],
 			}),
 		)
 		.add(
 			HttpApiEndpoint.post("portal", "/billing/portal", {
 				query: BillingOrganizationQuery,
-				success: BillingHandler.UrlResponse,
+				success: BillingSchema.UrlResponse,
 				error: [AuthError, BillingError, NotFoundError],
 			}),
 		)

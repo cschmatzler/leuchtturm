@@ -4,7 +4,6 @@ import noApiResponseSchemaInCore from "@leuchtturm/oxlint-plugins/no-api-respons
 import noDirectFetch from "@leuchtturm/oxlint-plugins/no-direct-fetch";
 import noEffectTryHelper from "@leuchtturm/oxlint-plugins/no-effect-try-helper";
 import noGenericDomainErrorClass from "@leuchtturm/oxlint-plugins/no-generic-domain-error-class";
-import noHttpStatusInCore from "@leuchtturm/oxlint-plugins/no-http-status-in-core";
 import noLiveSuffix from "@leuchtturm/oxlint-plugins/no-live-suffix";
 import noLocalEffectCallbackWrapper from "@leuchtturm/oxlint-plugins/no-local-effect-callback-wrapper";
 import noLocalWebSchema from "@leuchtturm/oxlint-plugins/no-local-web-schema";
@@ -28,7 +27,6 @@ const plugin = {
 		...noDirectFetch.rules,
 		...noEffectTryHelper.rules,
 		...noGenericDomainErrorClass.rules,
-		...noHttpStatusInCore.rules,
 		...noVariableAlias.rules,
 		...noLiveSuffix.rules,
 		...noLocalEffectCallbackWrapper.rules,

@@ -6,7 +6,7 @@ import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 import * as HttpApiBuilder from "effect/unstable/httpapi/HttpApiBuilder";
 
-import { LeuchtturmApi } from "@leuchtturm/api/contract";
+import type { LeuchtturmApi } from "@leuchtturm/api/contract";
 import { Metrics } from "@leuchtturm/api/observability/metrics";
 import { Session } from "@leuchtturm/api/session";
 import { DatabaseError } from "@leuchtturm/core/errors";
@@ -77,9 +77,10 @@ export namespace ZeroHandler {
 		return yield* HttpServerResponse.json(result).pipe(Effect.orDie);
 	});
 
-	export const layer = HttpApiBuilder.group(LeuchtturmApi, "zero", (handlers) =>
-		handlers
-			.handleRaw("query", () => Metrics.trackAction("zero.query", handleQuery()))
-			.handleRaw("mutate", () => Metrics.trackAction("zero.mutate", handleMutate())),
-	);
+	export const layer = (api: LeuchtturmApi) =>
+		HttpApiBuilder.group(api, "zero", (handlers) =>
+			handlers
+				.handleRaw("query", () => Metrics.trackAction("zero.query", handleQuery()))
+				.handleRaw("mutate", () => Metrics.trackAction("zero.mutate", handleMutate())),
+		);
 }

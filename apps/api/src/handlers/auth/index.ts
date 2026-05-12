@@ -5,7 +5,7 @@ import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 import * as HttpApiBuilder from "effect/unstable/httpapi/HttpApiBuilder";
 
-import { LeuchtturmApi } from "@leuchtturm/api/contract";
+import type { LeuchtturmApi } from "@leuchtturm/api/contract";
 import { Metrics } from "@leuchtturm/api/observability/metrics";
 import { Auth } from "@leuchtturm/core/auth";
 import { AuthError, AuthHandlerError } from "@leuchtturm/core/auth/errors";
@@ -33,13 +33,14 @@ export namespace AuthHandler {
 		);
 	});
 
-	export const layer = HttpApiBuilder.group(LeuchtturmApi, "auth", (handlers) =>
-		handlers
-			.handleRaw("authGet", ({ request }) =>
-				Metrics.trackAction("auth.passthrough", handlePassthrough(request)),
-			)
-			.handleRaw("authPost", ({ request }) =>
-				Metrics.trackAction("auth.passthrough", handlePassthrough(request)),
-			),
-	);
+	export const layer = (api: LeuchtturmApi) =>
+		HttpApiBuilder.group(api, "auth", (handlers) =>
+			handlers
+				.handleRaw("authGet", ({ request }) =>
+					Metrics.trackAction("auth.passthrough", handlePassthrough(request)),
+				)
+				.handleRaw("authPost", ({ request }) =>
+					Metrics.trackAction("auth.passthrough", handlePassthrough(request)),
+				),
+		);
 }

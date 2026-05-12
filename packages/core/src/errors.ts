@@ -23,6 +23,7 @@ export class ValidationError extends Schema.TaggedErrorClass<ValidationError>()(
 export class UnauthorizedError extends Schema.TaggedErrorClass<UnauthorizedError>()(
 	"UnauthorizedError",
 	{ message: Schema.String },
+	{ httpApiStatus: 401 },
 ) {
 	constructor() {
 		super({ message: "Unauthorized" });
@@ -37,10 +38,14 @@ export class ForbiddenError extends Schema.TaggedErrorClass<ForbiddenError>()("F
 	}
 }
 
-export class NotFoundError extends Schema.TaggedErrorClass<NotFoundError>()("NotFoundError", {
-	resource: Schema.String,
-	message: Schema.String,
-}) {
+export class NotFoundError extends Schema.TaggedErrorClass<NotFoundError>()(
+	"NotFoundError",
+	{
+		resource: Schema.String,
+		message: Schema.String,
+	},
+	{ httpApiStatus: 404 },
+) {
 	constructor(params: { readonly resource: string }) {
 		super({ ...params, message: `${params.resource} not found` });
 	}

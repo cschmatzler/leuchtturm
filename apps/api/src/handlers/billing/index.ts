@@ -1,5 +1,4 @@
 import * as Effect from "effect/Effect";
-import * as Schema from "effect/Schema";
 import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import * as HttpApiBuilder from "effect/unstable/httpapi/HttpApiBuilder";
 import { Resource } from "sst/resource/cloudflare";
@@ -11,19 +10,6 @@ import { Billing } from "@leuchtturm/core/billing";
 import { NotFoundError } from "@leuchtturm/core/errors";
 
 export namespace BillingHandler {
-	export const SubscriptionOverview = Schema.Struct({
-		currentPeriodEnd: Schema.Date,
-		cancelAtPeriodEnd: Schema.Boolean,
-	});
-
-	export const OverviewResponse = Schema.Struct({
-		activeSubscription: Schema.NullOr(SubscriptionOverview),
-	});
-
-	export const UrlResponse = Schema.Struct({
-		url: Schema.String,
-	});
-
 	const getOrganization = Effect.fn("billing.organization")(function* (organizationId: string) {
 		const auth = yield* Auth.Service;
 		const request = yield* HttpServerRequest.HttpServerRequest;
