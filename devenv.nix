@@ -4,7 +4,6 @@
 	...
 }: {
 	packages = [
-		pkgs.aube
 		pkgs.treefmt
 		pkgs.cloudflared
 	];
@@ -14,6 +13,7 @@
 
 	languages.javascript.enable = true;
 	languages.javascript.package = pkgs.nodejs_25;
+	languages.javascript.pnpm.enable = true;
 
 	# Formatting
 	# ----------
@@ -58,6 +58,12 @@
 	# -----
 
 	enterShell = ''
+		PATH=":''${PATH}:"
+		PATH="''${PATH//:node_modules\/.bin:/:}"
+		PATH="''${PATH#:}"
+		PATH="''${PATH%:}"
+		export PATH
+
 		if [[ -f secrets/dev.env ]]; then
 			echo "Loading secrets from secrets/dev.env..."
 			set -a
