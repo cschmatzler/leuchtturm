@@ -111,28 +111,12 @@ export namespace Contract {
 		.annotateMerge(
 			OpenApi.annotations({
 				title: "Auth",
-				description: "Authentication passthrough endpoints handled by the auth service.",
-				exclude: true,
+				description:
+					"Authentication passthrough; select the Better Auth API document to view endpoints.",
 			}),
 		)
-		.add(
-			HttpApiEndpoint.get("authGet", "/auth/*", { error: AuthError }).annotateMerge(
-				OpenApi.annotations({
-					summary: "Handle auth GET request",
-					description:
-						"Forwards GET requests under /auth to the auth service for authentication flows such as callbacks and session lookups.",
-				}),
-			),
-		)
-		.add(
-			HttpApiEndpoint.post("authPost", "/auth/*", { error: AuthError }).annotateMerge(
-				OpenApi.annotations({
-					summary: "Handle auth POST request",
-					description:
-						"Forwards POST requests under /auth to the auth service for authentication actions such as sign-in and sign-out.",
-				}),
-			),
-		);
+		.add(HttpApiEndpoint.get("authGet", "/auth/*", { error: AuthError }))
+		.add(HttpApiEndpoint.post("authPost", "/auth/*", { error: AuthError }));
 
 	export const LeuchtturmApi = HttpApi.make("leuchtturm")
 		.annotateMerge(

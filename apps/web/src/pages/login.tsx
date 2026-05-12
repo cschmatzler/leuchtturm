@@ -45,6 +45,7 @@ function Page() {
 	const [submitError, setSubmitError] = useState<string>();
 	const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
 	const [showPassword, setShowPassword] = useState(false);
+
 	const callbackURL = new URL(redirect ?? "/app", window.location.origin).toString();
 	const form = useForm({
 		defaultValues: {

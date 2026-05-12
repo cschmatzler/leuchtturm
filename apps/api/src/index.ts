@@ -46,18 +46,18 @@ const apiRoutes = Layer.mergeAll(
 		scalar: {
 			sources: [
 				{
-					title: "Leuchtturm API",
-					slug: "api",
+					title: "Leuchtturm",
+					slug: "leuchtturm",
 					url: "/open-api",
 					default: true,
 				},
 				{
-					title: "Auth",
+					title: "Better Auth",
 					slug: "auth",
 					url: "/auth/open-api/generate-schema",
 				},
 			],
-		} as HttpApiScalar.ScalarConfig,
+		},
 	}),
 );
 
