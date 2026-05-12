@@ -17,10 +17,6 @@
 		"typescript": "6.0.3",
 		"vite-plus": "0.1.20"
 	},
-	"engines": {
-		"node": ">=25.0.0"
-	},
-	"packageManager": "pnpm@11.1.0",
 	"trustedDependencies": [
 		"@rocicorp/zero-sqlite3"
 	]

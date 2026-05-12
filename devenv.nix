@@ -12,7 +12,6 @@
 	# ---------
 
 	languages.javascript.enable = true;
-	languages.javascript.package = pkgs.nodejs_25;
 	languages.javascript.pnpm.enable = true;
 
 	# Formatting
