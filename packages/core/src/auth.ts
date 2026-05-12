@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { isAPIError } from "better-auth/api";
 import {
 	admin as adminPlugin,
 	multiSession,
@@ -13,7 +14,7 @@ import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Schema from "effect/Schema";
 import { AsyncLocalStorage } from "node:async_hooks";
-import { Resource } from "sst";
+import { Resource } from "sst/resource/cloudflare";
 import { ulid } from "ulid";
 
 import {
@@ -374,8 +375,27 @@ export namespace Auth {
 			const handle = Effect.fn("Auth.handle")(function* (request: Request) {
 				const currentContext = yield* Effect.context<never>();
 
-				return yield* Effect.promise(() =>
-					context.run(currentContext, () => auth.handler(request)),
+				return yield* Effect.tryPromise({
+					try: () => context.run(currentContext, () => auth.handler(request)),
+					catch: (cause) => cause,
+				}).pipe(
+					Effect.catchAll((error) => {
+						if (!isAPIError(error)) return Effect.fail(error);
+
+						const headers = new Headers(error.headers);
+						const body = error.body ?? { message: error.message };
+
+						if (!headers.has("content-type")) {
+							headers.set("content-type", "application/json");
+						}
+
+						return Effect.succeed(
+							new Response(JSON.stringify(body), {
+								headers,
+								status: error.statusCode ?? 500,
+							}),
+						);
+					}),
 				);
 			});
 

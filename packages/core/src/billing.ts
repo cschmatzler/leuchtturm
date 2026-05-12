@@ -13,7 +13,7 @@ import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Schema from "effect/Schema";
-import { Resource } from "sst";
+import { Resource } from "sst/resource/cloudflare";
 
 import { organizationTable } from "@leuchtturm/core/auth/auth.sql";
 import {

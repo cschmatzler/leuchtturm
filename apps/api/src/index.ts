@@ -126,9 +126,14 @@ export default wrapCloudflareHandler(
 	instrument(
 		{
 			fetch(request: Request, _env: unknown, ctx: ExecutionContext) {
-				return (apiRuntime ??= makeRuntime(Api.Service, Api.layer())).runPromise((api) =>
-					api.handle(request, ctx),
-				);
+				const runtime = (apiRuntime ??= makeRuntime(Api.Service, Api.layer()));
+
+				return runtime
+					.runPromise((api) => api.handle(request, ctx))
+					.catch((error: unknown) => {
+						if (apiRuntime === runtime) apiRuntime = undefined;
+						throw error;
+					});
 			},
 		},
 		() => ({
