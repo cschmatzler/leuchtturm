@@ -4,9 +4,8 @@
 	...
 }: {
 	packages = [
-		pkgs.readline
+		pkgs.aube
 		pkgs.treefmt
-		pkgs.wrangler
 		pkgs.cloudflared
 	];
 
@@ -15,10 +14,6 @@
 
 	languages.javascript.enable = true;
 	languages.javascript.package = pkgs.nodejs_25;
-	languages.javascript.pnpm.enable = true;
-	# Required for Zero native extension
-	languages.python.enable = true;
-	languages.cplusplus.enable = true;
 
 	# Formatting
 	# ----------
@@ -57,8 +52,6 @@
 	# Environment
 	# -----------
 
-	env.CFLAGS = "-D_GNU_SOURCE";
-	env.PORT = "3005";
 	env.SST_BUN_PATH = "${config.languages.javascript.bun.package}/bin/bun";
 
 	# Shell
