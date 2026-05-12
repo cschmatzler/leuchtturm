@@ -1,20 +1,19 @@
 import * as Schema from "effect/Schema";
 
+import { OrganizationSelect } from "@leuchtturm/core/auth/schema";
+import { SubscriptionSelect } from "@leuchtturm/core/billing/schema";
+
 export namespace BillingSchema {
 	export const OrganizationQuery = Schema.Struct({
-		organizationId: Schema.String,
-	});
-
-	export const SubscriptionOverview = Schema.Struct({
-		currentPeriodEnd: Schema.Date,
-		cancelAtPeriodEnd: Schema.Boolean,
+		organizationId: OrganizationSelect.fields.id,
 	});
 
 	export const OverviewResponse = Schema.Struct({
-		activeSubscription: Schema.NullOr(SubscriptionOverview),
-	});
-
-	export const UrlResponse = Schema.Struct({
-		url: Schema.String,
+		activeSubscription: Schema.NullOr(
+			Schema.Struct({
+				currentPeriodEnd: SubscriptionSelect.fields.currentPeriodEnd,
+				cancelAtPeriodEnd: SubscriptionSelect.fields.cancelAtPeriodEnd,
+			}),
+		),
 	});
 }

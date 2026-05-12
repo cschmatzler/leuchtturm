@@ -1,3 +1,4 @@
+import * as Schema from "effect/Schema";
 import * as HttpApi from "effect/unstable/httpapi/HttpApi";
 import * as HttpApiEndpoint from "effect/unstable/httpapi/HttpApiEndpoint";
 import * as HttpApiGroup from "effect/unstable/httpapi/HttpApiGroup";
@@ -43,14 +44,14 @@ export namespace Contract {
 		.add(
 			HttpApiEndpoint.post("checkout", "/billing/checkout", {
 				query: BillingSchema.OrganizationQuery,
-				success: BillingSchema.UrlResponse,
+				success: Schema.Struct({ url: Schema.String }),
 				error: [AuthError, BillingError, NotFoundError],
 			}),
 		)
 		.add(
 			HttpApiEndpoint.post("portal", "/billing/portal", {
 				query: BillingSchema.OrganizationQuery,
-				success: BillingSchema.UrlResponse,
+				success: Schema.Struct({ url: Schema.String }),
 				error: [AuthError, BillingError, NotFoundError],
 			}),
 		)
