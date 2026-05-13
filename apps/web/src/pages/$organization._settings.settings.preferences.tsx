@@ -46,8 +46,6 @@ export const Route = createFileRoute("/$organization/_settings/settings/preferen
 });
 
 function Page() {
-	const router = useRouter();
-
 	const [currentUser] = useZeroQuery(queries.currentUser());
 
 	const t = useGT();
@@ -63,104 +61,6 @@ function Page() {
 			toast.success(t("Preferences updated"));
 		},
 	});
-	const twoFactorForm = useForm({
-		defaultValues: {
-			action: "idle" as TwoFactorAction,
-			password: "",
-			code: "",
-			totpURI: "",
-			secret: "",
-			backupCodes: [] as string[],
-		},
-		validators: {
-			onSubmit: () => undefined as string | undefined,
-		},
-		onSubmit: async ({ value }) => {
-			if (value.action === "enable") await enableTwoFactor(value.password);
-			if (value.action === "setup") await verifyTwoFactor(value.code, value.backupCodes);
-			if (value.action === "disable") await disableTwoFactor(value.password);
-			if (value.action === "regenerate") await regenerateBackupCodes(value.password);
-		},
-	});
-
-	async function enableTwoFactor(password: string) {
-		twoFactorForm.setErrorMap({ onSubmit: undefined });
-		const { data, error } = await authClient.twoFactor.enable({
-			password,
-			issuer: "Leuchtturm",
-		});
-
-		if (error) {
-			twoFactorForm.setErrorMap({
-				onSubmit: error.message ?? t("Could not update two-factor authentication"),
-			});
-			return;
-		}
-
-		twoFactorForm.setFieldValue("action", "setup");
-		twoFactorForm.setFieldValue("password", "");
-		twoFactorForm.setFieldValue("code", "");
-		twoFactorForm.setFieldValue("totpURI", data.totpURI);
-		twoFactorForm.setFieldValue("secret", new URL(data.totpURI).searchParams.get("secret") ?? "");
-		twoFactorForm.setFieldValue("backupCodes", data.backupCodes);
-		toast.success(t("Scan the authenticator setup code to finish enabling 2FA"));
-	}
-
-	async function verifyTwoFactor(code: string, backupCodes: string[]) {
-		twoFactorForm.setErrorMap({ onSubmit: undefined });
-		const { error } = await authClient.twoFactor.verifyTotp({ code });
-
-		if (error) {
-			twoFactorForm.setErrorMap({
-				onSubmit: error.message ?? t("Could not update two-factor authentication"),
-			});
-			return;
-		}
-
-		twoFactorForm.setFieldValue("action", "idle");
-		twoFactorForm.setFieldValue("password", "");
-		twoFactorForm.setFieldValue("code", "");
-		twoFactorForm.setFieldValue("totpURI", "");
-		twoFactorForm.setFieldValue("secret", "");
-		twoFactorForm.setFieldValue("backupCodes", backupCodes);
-		await router.invalidate();
-		toast.success(t("Two-factor authentication enabled"));
-	}
-
-	async function disableTwoFactor(password: string) {
-		twoFactorForm.setErrorMap({ onSubmit: undefined });
-		const { error } = await authClient.twoFactor.disable({ password });
-
-		if (error) {
-			twoFactorForm.setErrorMap({
-				onSubmit: error.message ?? t("Could not update two-factor authentication"),
-			});
-			return;
-		}
-
-		twoFactorForm.setFieldValue("action", "idle");
-		twoFactorForm.setFieldValue("password", "");
-		twoFactorForm.setFieldValue("backupCodes", []);
-		await router.invalidate();
-		toast.success(t("Two-factor authentication disabled"));
-	}
-
-	async function regenerateBackupCodes(password: string) {
-		twoFactorForm.setErrorMap({ onSubmit: undefined });
-		const { data, error } = await authClient.twoFactor.generateBackupCodes({ password });
-
-		if (error) {
-			twoFactorForm.setErrorMap({
-				onSubmit: error.message ?? t("Could not update two-factor authentication"),
-			});
-			return;
-		}
-
-		twoFactorForm.setFieldValue("action", "idle");
-		twoFactorForm.setFieldValue("password", "");
-		twoFactorForm.setFieldValue("backupCodes", data.backupCodes);
-		toast.success(t("Backup codes regenerated"));
-	}
 
 	return (
 		<div className="mx-auto w-full max-w-3xl space-y-10">
@@ -232,254 +132,363 @@ function Page() {
 				</form>
 			</section>
 			{currentUser ? (
-				<section>
-					<div className="space-y-1">
-						<h2 className="text-lg font-semibold">
-							<T>Two-factor authentication</T>
-						</h2>
-						<p className="text-sm text-muted-foreground">
-							<T>Protect your account with an authenticator app and backup codes.</T>
-						</p>
-					</div>
-					<form action={() => twoFactorForm.handleSubmit()} className="mt-5 space-y-6">
-						<twoFactorForm.Subscribe
-							selector={(state) => ({
-								values: state.values,
-								error: state.errorMap.onSubmit,
-								isSubmitting: state.isSubmitting,
-							})}
-						>
-							{({ values, error, isSubmitting }) => (
-								<>
-									{values.action === "enable" ||
-									values.action === "disable" ||
-									values.action === "regenerate" ? (
-										<>
-											<div className="grid gap-x-10 gap-y-2 lg:grid-cols-[1fr_2fr]">
-												<div>
-													<FieldLabel htmlFor="two-factor-password">
-														<T>Password</T>
-													</FieldLabel>
-												</div>
-												<div>
-													<twoFactorForm.Field name="password">
-														{(field) => (
-															<Input
-																id="two-factor-password"
-																type="password"
-																autoComplete="current-password"
-																value={field.state.value}
-																onInput={(event) => {
-																	twoFactorForm.setErrorMap({ onSubmit: undefined });
-																	field.handleChange(event.currentTarget.value);
-																}}
-																className="max-w-sm"
-																disabled={!currentUser || isSubmitting}
-															/>
-														)}
-													</twoFactorForm.Field>
-													{error ? <FieldError className="mt-2">{String(error)}</FieldError> : null}
-												</div>
-											</div>
-											<div className="flex justify-end gap-2">
-												<Button
-													type="button"
-													variant="outline"
-													onClick={() => {
-														twoFactorForm.setErrorMap({ onSubmit: undefined });
-														twoFactorForm.setFieldValue("action", "idle");
-														twoFactorForm.setFieldValue("password", "");
-													}}
-													disabled={isSubmitting}
-												>
-													<T>Cancel</T>
-												</Button>
-												<Button
-													type="submit"
-													variant={values.action === "disable" ? "destructive" : "default"}
-													disabled={!currentUser || isSubmitting}
-												>
-													{isSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : null}
-													{values.action === "enable" ? <T>Continue</T> : null}
-													{values.action === "regenerate" ? <T>Regenerate backup codes</T> : null}
-													{values.action === "disable" ? <T>Disable 2FA</T> : null}
-												</Button>
-											</div>
-										</>
-									) : null}
-									{values.action === "setup" ? (
-										<>
-											<div className="grid gap-x-10 gap-y-2 lg:grid-cols-[1fr_2fr]">
-												<div>
-													<FieldLabel>
-														<T>Authenticator setup</T>
-													</FieldLabel>
-													<FieldDescription className="mt-1">
-														<T>
-															Scan this QR code with your authenticator app, then enter the code it
-															shows.
-														</T>
-													</FieldDescription>
-												</div>
-												<div className="space-y-3">
-													<div className="inline-flex rounded-md border bg-white p-3">
-														<QRCodeSVG value={values.totpURI} size={180} />
-													</div>
-													{values.secret ? (
-														<>
-															<div className="flex max-w-sm items-center gap-3 text-xs text-muted-foreground">
-																<Separator />
-																<span>
-																	<T>or</T>
-																</span>
-																<Separator />
-															</div>
-															<div className="flex max-w-sm gap-2">
-																<Input
-																	readOnly
-																	aria-label={t("Secret key")}
-																	value={values.secret}
-																	className="font-mono"
-																/>
-																<Button
-																	type="button"
-																	variant="outline"
-																	onClick={() => {
-																		void navigator.clipboard.writeText(values.secret);
-																		toast.success(t("Secret key copied"));
-																	}}
-																>
-																	<T>Copy</T>
-																</Button>
-															</div>
-														</>
-													) : null}
-													<twoFactorForm.Field name="code">
-														{(field) => (
-															<Input
-																id="two-factor-code"
-																inputMode="numeric"
-																autoComplete="one-time-code"
-																placeholder={t("Authentication code")}
-																value={field.state.value}
-																onInput={(event) => {
-																	twoFactorForm.setErrorMap({ onSubmit: undefined });
-																	field.handleChange(event.currentTarget.value);
-																}}
-																disabled={isSubmitting}
-																className="max-w-sm"
-															/>
-														)}
-													</twoFactorForm.Field>
-													{error ? <FieldError className="mt-2">{String(error)}</FieldError> : null}
-												</div>
-											</div>
-											<div className="flex justify-end gap-2">
-												<Button
-													type="button"
-													variant="outline"
-													onClick={() => {
-														twoFactorForm.setErrorMap({ onSubmit: undefined });
-														twoFactorForm.setFieldValue("action", "idle");
-														twoFactorForm.setFieldValue("code", "");
-														twoFactorForm.setFieldValue("totpURI", "");
-														twoFactorForm.setFieldValue("secret", "");
-														twoFactorForm.setFieldValue("backupCodes", []);
-													}}
-													disabled={isSubmitting}
-												>
-													<T>Cancel</T>
-												</Button>
-												<Button type="submit" disabled={!values.code || isSubmitting}>
-													{isSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : null}
-													<T>Verify and enable</T>
-												</Button>
-											</div>
-										</>
-									) : null}
-									{values.action === "idle" ? (
-										<>
-											<div className="grid gap-x-10 gap-y-2 lg:grid-cols-[1fr_2fr]">
-												<div>
-													<FieldLabel>
-														<T>Status</T>
-													</FieldLabel>
-													<FieldDescription className="mt-1">
-														{currentUser?.twoFactorEnabled ? (
-															<T>Two-factor authentication is enabled.</T>
-														) : (
-															<T>Two-factor authentication is disabled.</T>
-														)}
-													</FieldDescription>
-												</div>
-												<div className="flex flex-wrap justify-end gap-2">
-													{currentUser?.twoFactorEnabled ? (
-														<>
-															<Button
-																type="button"
-																variant="outline"
-																onClick={() => {
-																	twoFactorForm.setErrorMap({ onSubmit: undefined });
-																	twoFactorForm.setFieldValue("action", "regenerate");
-																}}
-																disabled={!currentUser || isSubmitting}
-															>
-																<T>Regenerate backup codes</T>
-															</Button>
-															<Button
-																type="button"
-																variant="destructive"
-																onClick={() => {
-																	twoFactorForm.setErrorMap({ onSubmit: undefined });
-																	twoFactorForm.setFieldValue("action", "disable");
-																}}
-																disabled={!currentUser || isSubmitting}
-															>
-																<T>Disable 2FA</T>
-															</Button>
-														</>
-													) : (
-														<Button
-															type="button"
-															onClick={() => {
-																twoFactorForm.setErrorMap({ onSubmit: undefined });
-																twoFactorForm.setFieldValue("action", "enable");
-															}}
-															disabled={!currentUser || isSubmitting}
-														>
-															<T>Enable 2FA</T>
-														</Button>
-													)}
-												</div>
-											</div>
-											{values.backupCodes.length > 0 ? (
-												<div className="grid gap-x-10 gap-y-2 lg:grid-cols-[1fr_2fr]">
-													<div>
-														<FieldLabel>
-															<T>Backup codes</T>
-														</FieldLabel>
-														<FieldDescription className="mt-1">
-															<T>
-																Save these codes now. Each code can be used once if you lose your
-																authenticator.
-															</T>
-														</FieldDescription>
-													</div>
-													<div className="grid max-w-sm grid-cols-2 gap-2 rounded-md border bg-muted/40 p-3 font-mono text-sm">
-														{values.backupCodes.map((code) => (
-															<div key={code}>{code}</div>
-														))}
-													</div>
-												</div>
-											) : null}
-										</>
-									) : null}
-								</>
-							)}
-						</twoFactorForm.Subscribe>
-					</form>
-				</section>
+				<TwoFactorAuthenticationForm enabled={currentUser.twoFactorEnabled ?? false} />
 			) : null}
 		</div>
+	);
+}
+
+function TwoFactorAuthenticationForm({ enabled }: { enabled: boolean }) {
+	const router = useRouter();
+
+	const t = useGT();
+
+	const form = useForm({
+		defaultValues: {
+			action: "idle" as TwoFactorAction,
+			password: "",
+			code: "",
+			totpURI: "",
+			secret: "",
+			backupCodes: [] as string[],
+		},
+		validators: {
+			onSubmit: () => undefined as string | undefined,
+		},
+		onSubmit: async ({ value }) => {
+			if (value.action === "enable") await enableTwoFactor(value.password);
+			if (value.action === "setup") await verifyTwoFactor(value.code, value.backupCodes);
+			if (value.action === "disable") await disableTwoFactor(value.password);
+			if (value.action === "regenerate") await regenerateBackupCodes(value.password);
+		},
+	});
+
+	async function enableTwoFactor(password: string) {
+		form.setErrorMap({ onSubmit: undefined });
+		const { data, error } = await authClient.twoFactor.enable({
+			password,
+			issuer: "Leuchtturm",
+		});
+
+		if (error) {
+			form.setErrorMap({
+				onSubmit: error.message ?? t("Could not update two-factor authentication"),
+			});
+			return;
+		}
+
+		form.setFieldValue("action", "setup");
+		form.setFieldValue("password", "");
+		form.setFieldValue("code", "");
+		form.setFieldValue("totpURI", data.totpURI);
+		form.setFieldValue("secret", new URL(data.totpURI).searchParams.get("secret") ?? "");
+		form.setFieldValue("backupCodes", data.backupCodes);
+		toast.success(t("Scan the authenticator setup code to finish enabling 2FA"));
+	}
+
+	async function verifyTwoFactor(code: string, backupCodes: string[]) {
+		form.setErrorMap({ onSubmit: undefined });
+		const { error } = await authClient.twoFactor.verifyTotp({ code });
+
+		if (error) {
+			form.setErrorMap({
+				onSubmit: error.message ?? t("Could not update two-factor authentication"),
+			});
+			return;
+		}
+
+		form.setFieldValue("action", "idle");
+		form.setFieldValue("password", "");
+		form.setFieldValue("code", "");
+		form.setFieldValue("totpURI", "");
+		form.setFieldValue("secret", "");
+		form.setFieldValue("backupCodes", backupCodes);
+		await router.invalidate();
+		toast.success(t("Two-factor authentication enabled"));
+	}
+
+	async function disableTwoFactor(password: string) {
+		form.setErrorMap({ onSubmit: undefined });
+		const { error } = await authClient.twoFactor.disable({ password });
+
+		if (error) {
+			form.setErrorMap({
+				onSubmit: error.message ?? t("Could not update two-factor authentication"),
+			});
+			return;
+		}
+
+		form.setFieldValue("action", "idle");
+		form.setFieldValue("password", "");
+		form.setFieldValue("backupCodes", []);
+		await router.invalidate();
+		toast.success(t("Two-factor authentication disabled"));
+	}
+
+	async function regenerateBackupCodes(password: string) {
+		form.setErrorMap({ onSubmit: undefined });
+		const { data, error } = await authClient.twoFactor.generateBackupCodes({ password });
+
+		if (error) {
+			form.setErrorMap({
+				onSubmit: error.message ?? t("Could not update two-factor authentication"),
+			});
+			return;
+		}
+
+		form.setFieldValue("action", "idle");
+		form.setFieldValue("password", "");
+		form.setFieldValue("backupCodes", data.backupCodes);
+		toast.success(t("Backup codes regenerated"));
+	}
+
+	return (
+		<section>
+			<div className="space-y-1">
+				<h2 className="text-lg font-semibold">
+					<T>Two-factor authentication</T>
+				</h2>
+				<p className="text-sm text-muted-foreground">
+					<T>Protect your account with an authenticator app and backup codes.</T>
+				</p>
+			</div>
+			<form action={() => form.handleSubmit()} className="mt-5 space-y-6">
+				<form.Subscribe
+					selector={(state) => ({
+						values: state.values,
+						error: state.errorMap.onSubmit,
+						isSubmitting: state.isSubmitting,
+					})}
+				>
+					{({ values, error, isSubmitting }) => (
+						<>
+							{values.action === "enable" ||
+							values.action === "disable" ||
+							values.action === "regenerate" ? (
+								<>
+									<div className="grid gap-x-10 gap-y-2 lg:grid-cols-[1fr_2fr]">
+										<div>
+											<FieldLabel htmlFor="two-factor-password">
+												<T>Password</T>
+											</FieldLabel>
+										</div>
+										<div>
+											<form.Field name="password">
+												{(field) => (
+													<Input
+														id="two-factor-password"
+														type="password"
+														autoComplete="current-password"
+														value={field.state.value}
+														onInput={(event) => {
+															form.setErrorMap({ onSubmit: undefined });
+															field.handleChange(event.currentTarget.value);
+														}}
+														className="max-w-sm"
+														disabled={isSubmitting}
+													/>
+												)}
+											</form.Field>
+											{error ? <FieldError className="mt-2">{String(error)}</FieldError> : null}
+										</div>
+									</div>
+									<div className="flex justify-end gap-2">
+										<Button
+											type="button"
+											variant="outline"
+											onClick={() => {
+												form.setErrorMap({ onSubmit: undefined });
+												form.setFieldValue("action", "idle");
+												form.setFieldValue("password", "");
+											}}
+											disabled={isSubmitting}
+										>
+											<T>Cancel</T>
+										</Button>
+										<Button
+											type="submit"
+											variant={values.action === "disable" ? "destructive" : "default"}
+											disabled={isSubmitting}
+										>
+											{isSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : null}
+											{values.action === "enable" ? <T>Continue</T> : null}
+											{values.action === "regenerate" ? <T>Regenerate backup codes</T> : null}
+											{values.action === "disable" ? <T>Disable 2FA</T> : null}
+										</Button>
+									</div>
+								</>
+							) : null}
+							{values.action === "setup" ? (
+								<>
+									<div className="grid gap-x-10 gap-y-2 lg:grid-cols-[1fr_2fr]">
+										<div>
+											<FieldLabel>
+												<T>Authenticator setup</T>
+											</FieldLabel>
+											<FieldDescription className="mt-1">
+												<T>
+													Scan this QR code with your authenticator app, then enter the code it
+													shows.
+												</T>
+											</FieldDescription>
+										</div>
+										<div className="space-y-3">
+											<div className="inline-flex rounded-md border bg-white p-3">
+												<QRCodeSVG value={values.totpURI} size={180} />
+											</div>
+											{values.secret ? (
+												<>
+													<div className="flex max-w-sm items-center gap-3 text-xs text-muted-foreground">
+														<Separator />
+														<span>
+															<T>or</T>
+														</span>
+														<Separator />
+													</div>
+													<div className="flex max-w-sm gap-2">
+														<Input
+															readOnly
+															aria-label={t("Secret key")}
+															value={values.secret}
+															className="font-mono"
+														/>
+														<Button
+															type="button"
+															variant="outline"
+															onClick={() => {
+																void navigator.clipboard.writeText(values.secret);
+																toast.success(t("Secret key copied"));
+															}}
+														>
+															<T>Copy</T>
+														</Button>
+													</div>
+												</>
+											) : null}
+											<form.Field name="code">
+												{(field) => (
+													<Input
+														id="two-factor-code"
+														inputMode="numeric"
+														autoComplete="one-time-code"
+														placeholder={t("Authentication code")}
+														value={field.state.value}
+														onInput={(event) => {
+															form.setErrorMap({ onSubmit: undefined });
+															field.handleChange(event.currentTarget.value);
+														}}
+														disabled={isSubmitting}
+														className="max-w-sm"
+													/>
+												)}
+											</form.Field>
+											{error ? <FieldError className="mt-2">{String(error)}</FieldError> : null}
+										</div>
+									</div>
+									<div className="flex justify-end gap-2">
+										<Button
+											type="button"
+											variant="outline"
+											onClick={() => {
+												form.setErrorMap({ onSubmit: undefined });
+												form.setFieldValue("action", "idle");
+												form.setFieldValue("code", "");
+												form.setFieldValue("totpURI", "");
+												form.setFieldValue("secret", "");
+												form.setFieldValue("backupCodes", []);
+											}}
+											disabled={isSubmitting}
+										>
+											<T>Cancel</T>
+										</Button>
+										<Button type="submit" disabled={!values.code || isSubmitting}>
+											{isSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : null}
+											<T>Verify and enable</T>
+										</Button>
+									</div>
+								</>
+							) : null}
+							{values.action === "idle" ? (
+								<>
+									<div className="grid gap-x-10 gap-y-2 lg:grid-cols-[1fr_2fr]">
+										<div>
+											<FieldLabel>
+												<T>Status</T>
+											</FieldLabel>
+											<FieldDescription className="mt-1">
+												{enabled ? (
+													<T>Two-factor authentication is enabled.</T>
+												) : (
+													<T>Two-factor authentication is disabled.</T>
+												)}
+											</FieldDescription>
+										</div>
+										<div className="flex flex-wrap justify-end gap-2">
+											{enabled ? (
+												<>
+													<Button
+														type="button"
+														variant="outline"
+														onClick={() => {
+															form.setErrorMap({ onSubmit: undefined });
+															form.setFieldValue("action", "regenerate");
+														}}
+														disabled={isSubmitting}
+													>
+														<T>Regenerate backup codes</T>
+													</Button>
+													<Button
+														type="button"
+														variant="destructive"
+														onClick={() => {
+															form.setErrorMap({ onSubmit: undefined });
+															form.setFieldValue("action", "disable");
+														}}
+														disabled={isSubmitting}
+													>
+														<T>Disable 2FA</T>
+													</Button>
+												</>
+											) : (
+												<Button
+													type="button"
+													onClick={() => {
+														form.setErrorMap({ onSubmit: undefined });
+														form.setFieldValue("action", "enable");
+													}}
+													disabled={isSubmitting}
+												>
+													<T>Enable 2FA</T>
+												</Button>
+											)}
+										</div>
+									</div>
+									{values.backupCodes.length > 0 ? (
+										<div className="grid gap-x-10 gap-y-2 lg:grid-cols-[1fr_2fr]">
+											<div>
+												<FieldLabel>
+													<T>Backup codes</T>
+												</FieldLabel>
+												<FieldDescription className="mt-1">
+													<T>
+														Save these codes now. Each code can be used once if you lose your
+														authenticator.
+													</T>
+												</FieldDescription>
+											</div>
+											<div className="grid max-w-sm grid-cols-2 gap-2 rounded-md border bg-muted/40 p-3 font-mono text-sm">
+												{values.backupCodes.map((code) => (
+													<div key={code}>{code}</div>
+												))}
+											</div>
+										</div>
+									) : null}
+								</>
+							) : null}
+						</>
+					)}
+				</form.Subscribe>
+			</form>
+		</section>
 	);
 }
