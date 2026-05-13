@@ -22,7 +22,7 @@ jobs:
         with:
           node-version: 24
 
-      - uses: endevco/aube-action@v1
+      - uses: endevco/aube-action@f82ca2f6c943dbde1904945d9f0ee1a0faf8e945 # v1
         with:
           version: 1.12.0
 
