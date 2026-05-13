@@ -362,7 +362,7 @@ function Page() {
 			<section className="py-6">
 				<div className="flex items-start justify-between gap-4">
 					<div className="space-y-1">
-						<h2 className="font-heading text-2xl font-semibold">
+						<h2 className="font-display text-2xl font-semibold">
 							<T>Members</T>
 						</h2>
 						<p className="text-sm text-muted-foreground">
@@ -388,7 +388,7 @@ function Page() {
 			{activeInvitations.length > 0 && (
 				<section className="border-t border-border py-6">
 					<div className="space-y-1">
-						<h2 className="font-heading text-2xl font-semibold">
+						<h2 className="font-display text-2xl font-semibold">
 							<T>Pending invitations</T>
 						</h2>
 						<p className="text-sm text-muted-foreground">
