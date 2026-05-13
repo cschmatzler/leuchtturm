@@ -33,30 +33,9 @@ export namespace Contract {
 		);
 
 	export const zero = HttpApiGroup.make("zero")
-		.annotateMerge(
-			OpenApi.annotations({
-				title: "Zero",
-				description: "Zero sync endpoints used by the client for reads and writes.",
-			}),
-		)
-		.add(
-			HttpApiEndpoint.post("query", "/query", { error: DatabaseError }).annotateMerge(
-				OpenApi.annotations({
-					summary: "Run a Zero query",
-					description:
-						"Executes a Zero query request for the authenticated user. The request and response bodies follow Zero's query protocol.",
-				}),
-			),
-		)
-		.add(
-			HttpApiEndpoint.post("mutate", "/mutate", { error: DatabaseError }).annotateMerge(
-				OpenApi.annotations({
-					summary: "Run a Zero mutation",
-					description:
-						"Executes a Zero mutation request for the authenticated user. The request and response bodies follow Zero's mutation protocol.",
-				}),
-			),
-		)
+		.annotateMerge(OpenApi.annotations({ exclude: true }))
+		.add(HttpApiEndpoint.post("query", "/query", { error: DatabaseError }))
+		.add(HttpApiEndpoint.post("mutate", "/mutate", { error: DatabaseError }))
 		.middleware(Session.Middleware);
 
 	export const billing = HttpApiGroup.make("billing")
