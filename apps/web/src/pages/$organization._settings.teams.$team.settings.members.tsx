@@ -29,15 +29,13 @@ import { Show } from "@leuchtturm/web/components/ui/flow";
 import { useDataTableFilters } from "@leuchtturm/web/hooks/use-data-table-filters";
 import { useSearchFilters } from "@leuchtturm/web/hooks/use-search-filters";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
+import { formatRole } from "@leuchtturm/web/lib/role";
 import { queries } from "@leuchtturm/zero/queries";
 
 const ROLE_OPTIONS = Role.literals.map((role) => ({
-	label: `${role.charAt(0).toUpperCase()}${role.slice(1)}`,
+	label: formatRole(role),
 	value: role,
 }));
-
-const formatRole = (role: string) => `${role.charAt(0).toUpperCase()}${role.slice(1)}`;
-const searchDefaults = { tmfilters: [], amfilters: [] };
 
 export const Route = createFileRoute("/$organization/_settings/teams/$team/settings/members")({
 	validateSearch: Schema.toStandardSchemaV1(
@@ -47,7 +45,7 @@ export const Route = createFileRoute("/$organization/_settings/teams/$team/setti
 		}),
 	),
 	search: {
-		middlewares: [stripSearchParams(searchDefaults)],
+		middlewares: [stripSearchParams({ tmfilters: [], amfilters: [] })],
 	},
 	loader: ({ context: { organizationId, zero }, params }) => {
 		zero?.preload(queries.organizationMembers({ organizationId }));

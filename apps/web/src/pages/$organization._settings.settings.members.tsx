@@ -43,6 +43,7 @@ import { Input } from "@leuchtturm/web/components/ui/input";
 import { useDataTableFilters } from "@leuchtturm/web/hooks/use-data-table-filters";
 import { useSearchFilters } from "@leuchtturm/web/hooks/use-search-filters";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
+import { formatRole } from "@leuchtturm/web/lib/role";
 import { queries } from "@leuchtturm/zero/queries";
 
 const searchDefaults = { invite: false, mfilters: [], ifilters: [] };
@@ -86,7 +87,7 @@ function Page() {
 	const roleOptions = useMemo(
 		() =>
 			Role.literals.map((role) => ({
-				label: `${role.charAt(0).toUpperCase()}${role.slice(1)}`,
+				label: formatRole(role),
 				value: role,
 			})),
 		[],
@@ -124,12 +125,7 @@ function Page() {
 				id: "role",
 				header: t("Role"),
 				accessorFn: (member) => member.role,
-				cell: ({ getValue }) => {
-					const role = getValue<string>();
-					return (
-						<Badge variant="outline">{`${role.charAt(0).toUpperCase()}${role.slice(1)}`}</Badge>
-					);
-				},
+				cell: ({ getValue }) => <Badge variant="outline">{formatRole(getValue<string>())}</Badge>,
 			},
 		],
 		[t],
@@ -200,12 +196,7 @@ function Page() {
 				id: "role",
 				header: t("Role"),
 				accessorFn: (invitation) => invitation.role ?? "",
-				cell: ({ getValue }) => {
-					const role = getValue<string>();
-					return (
-						<Badge variant="outline">{`${role.charAt(0).toUpperCase()}${role.slice(1)}`}</Badge>
-					);
-				},
+				cell: ({ getValue }) => <Badge variant="outline">{formatRole(getValue<string>())}</Badge>,
 			},
 			{
 				id: "expiresAt",
