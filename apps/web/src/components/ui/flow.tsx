@@ -10,16 +10,6 @@ type ShowProps<T> = {
 	children: FlowChildren<T>;
 };
 
-type SwitchProps = {
-	fallback?: ReactNode;
-	children: ReactNode;
-};
-
-type MatchProps<T> = {
-	when: T | false | null | undefined;
-	children: FlowChildren<T>;
-};
-
 function Show<T>(props: ShowProps<T>) {
 	if (!props.when) {
 		return props.fallback ?? null;
@@ -31,6 +21,16 @@ function Show<T>(props: ShowProps<T>) {
 
 	return props.children;
 }
+
+type SwitchProps = {
+	fallback?: ReactNode;
+	children: ReactNode;
+};
+
+type MatchProps<T> = {
+	when: T | false | null | undefined;
+	children: FlowChildren<T>;
+};
 
 function Switch(props: SwitchProps) {
 	const match = resolveMatch(props.children);
