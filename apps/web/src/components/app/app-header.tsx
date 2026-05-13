@@ -58,10 +58,18 @@ export function AppHeader({
 	const { session, deviceSessions, signOutCurrent, signOutAll, setActiveSession } = useAuth();
 
 	const teams = currentOrganization?.teams ?? [];
-	const activeTeam = team ? teams.find((item) => item.slug === team) : undefined;
+	const teamSettingsMatch = matchRoute({
+		to: "/$organization/teams/$team/settings",
+		fuzzy: true,
+	});
+	const activeTeam = teamSettingsMatch
+		? teams.find((item) => item.slug === teamSettingsMatch.team)
+		: team
+			? teams.find((item) => item.slug === team)
+			: undefined;
 	const settingsActive = Boolean(
 		matchRoute({ to: "/$organization/settings", params: { organization }, fuzzy: true }) ||
-		matchRoute({ to: "/$organization/teams/$team/settings", fuzzy: true }),
+		teamSettingsMatch,
 	);
 
 	return (

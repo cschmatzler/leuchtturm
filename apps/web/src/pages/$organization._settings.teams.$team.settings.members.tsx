@@ -3,7 +3,7 @@ import { PlusIcon } from "@phosphor-icons/react/Plus";
 import { ShieldIcon } from "@phosphor-icons/react/Shield";
 import { TrashIcon } from "@phosphor-icons/react/Trash";
 import { UserIcon } from "@phosphor-icons/react/User";
-import { createFileRoute, redirect, stripSearchParams } from "@tanstack/react-router";
+import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
 import {
 	getCoreRowModel,
 	getFilteredRowModel,
@@ -49,21 +49,9 @@ export const Route = createFileRoute("/$organization/_settings/teams/$team/setti
 	search: {
 		middlewares: [stripSearchParams(searchDefaults)],
 	},
-	loader: async ({ context: { organizationId, zero }, params }) => {
-		if (!zero) return;
-
-		zero.preload(queries.team({ organizationId, team: params.team }));
-		zero.preload(queries.organizationMembers({ organizationId }));
-		zero.preload(queries.teamMembersByTeam({ organizationId, team: params.team }));
-
-		const team = await zero.run(queries.team({ organizationId, team: params.team }));
-
-		if (!team) {
-			throw redirect({
-				to: "/$organization/settings/teams",
-				params: { organization: params.organization },
-			});
-		}
+	loader: ({ context: { organizationId, zero }, params }) => {
+		zero?.preload(queries.organizationMembers({ organizationId }));
+		zero?.preload(queries.teamMembersByTeam({ organizationId, team: params.team }));
 	},
 	component: Page,
 });

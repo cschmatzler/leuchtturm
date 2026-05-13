@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, useMatchRoute } from "@tanstack/react-router";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { useGT } from "gt-react";
 import type { CSSProperties } from "react";
 
@@ -17,19 +17,11 @@ export const Route = createFileRoute("/$organization/_settings")({
 function Layout() {
 	const { organization } = Route.useParams();
 
-	const matchRoute = useMatchRoute();
-
 	const t = useGT();
-
-	const teamMatch = matchRoute({ to: "/$organization/teams/$team/settings", fuzzy: true });
 
 	return (
 		<div className="flex h-svh flex-col">
-			<AppHeader
-				breadcrumbs={[t("Settings")]}
-				organization={organization}
-				team={teamMatch ? teamMatch.team : undefined}
-			/>
+			<AppHeader breadcrumbs={[t("Settings")]} organization={organization} />
 			<main id="main-content" className="min-h-0 grow bg-background">
 				<SidebarProvider
 					className="relative h-full min-h-0"
