@@ -14,6 +14,9 @@ export default defineConfig({
 	server: {
 		allowedHosts: [".leuchtturm.dev", ".ts.net"],
 	},
+	resolve: {
+		dedupe: ["@rocicorp/zero"],
+	},
 	build: {
 		rollupOptions: {
 			output: {
