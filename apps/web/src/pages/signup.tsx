@@ -46,7 +46,7 @@ function Page() {
 					name,
 					email,
 					password: value.password,
-					callbackURL: new URL(router.history.createHref("/app"), window.location.origin).href,
+					callbackURL: router.history.createHref("/app"),
 				});
 
 				if (error) return error.message;

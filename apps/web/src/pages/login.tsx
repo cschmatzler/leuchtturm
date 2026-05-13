@@ -54,7 +54,7 @@ function Page() {
 		const { error } = await authClient.signIn.email({
 			email,
 			password,
-			callbackURL: new URL(router.history.createHref("/app"), window.location.origin).href,
+			callbackURL: router.history.createHref("/app"),
 		});
 
 		if (error) return error.message;

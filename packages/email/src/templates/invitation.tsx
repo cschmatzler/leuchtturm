@@ -15,7 +15,7 @@ export interface InvitationEmailParams {
 	readonly organizationName: string;
 }
 
-const InvitationEmail = ({ acceptUrl, inviterName, organizationName }: InvitationEmailParams) => {
+function InvitationEmail({ acceptUrl, inviterName, organizationName }: InvitationEmailParams) {
 	return (
 		<EmailFrame
 			preheader={preheaderText}
@@ -29,7 +29,7 @@ const InvitationEmail = ({ acceptUrl, inviterName, organizationName }: Invitatio
 			/>
 		</EmailFrame>
 	);
-};
+}
 
 export async function renderInvitationEmail({
 	acceptUrl,

@@ -6,17 +6,14 @@ import { type EmailRenderError } from "@leuchtturm/email/errors";
 import { ActionEmailContent, sendRenderedEmail } from "@leuchtturm/email/templates/action-email";
 import { EmailFrame } from "@leuchtturm/email/templates/email-frame";
 
-const preheaderText = "Verify your Leuchtturm email address.";
-const defaultSubject = "Verify your Leuchtturm email address";
-
 export interface EmailVerificationEmailParams {
 	readonly verificationUrl: string;
 }
 
-const EmailVerificationEmail = ({ verificationUrl }: EmailVerificationEmailParams) => {
+function EmailVerificationEmail({ verificationUrl }: EmailVerificationEmailParams) {
 	return (
 		<EmailFrame
-			preheader={preheaderText}
+			preheader="Verify your Leuchtturm email address."
 			footer="If you did not create a Leuchtturm account, you can safely ignore this email."
 		>
 			<ActionEmailContent
@@ -27,7 +24,7 @@ const EmailVerificationEmail = ({ verificationUrl }: EmailVerificationEmailParam
 			/>
 		</EmailFrame>
 	);
-};
+}
 
 export async function renderEmailVerificationEmail({
 	verificationUrl,
@@ -60,7 +57,7 @@ export function sendEmailVerificationEmail<Success, SendError>(params: {
 		from: params.from,
 		send: params.send,
 		subject: params.subject,
-		defaultSubject,
+		defaultSubject: "Verify your Leuchtturm email address",
 		template: "email-verification",
 		render: () =>
 			renderEmailVerificationEmail({
