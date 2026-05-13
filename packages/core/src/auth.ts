@@ -5,7 +5,7 @@ import * as Layer from "effect/Layer";
 import * as Schema from "effect/Schema";
 import { AsyncLocalStorage } from "node:async_hooks";
 
-import { createBetterAuth } from "@leuchtturm/core/auth/better-auth";
+import { BetterAuth } from "@leuchtturm/core/auth/better-auth";
 import {
 	AuthError,
 	AuthInvalidOrganizationPayloadError,
@@ -37,7 +37,7 @@ export namespace Auth {
 	export const layer = Layer.effect(Service)(
 		Effect.gen(function* () {
 			const context = new AsyncLocalStorage<Context.Context<never>>();
-			const auth = yield* createBetterAuth(context);
+			const auth = yield* BetterAuth.create(context);
 
 			const handle = Effect.fn("Auth.handle")(function* (request: Request) {
 				const currentContext = yield* Effect.context<never>();
