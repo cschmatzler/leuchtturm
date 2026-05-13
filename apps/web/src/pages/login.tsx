@@ -38,12 +38,24 @@ function Page() {
 			password: "",
 		},
 		validators: {
-			onSubmitAsync: async ({ value }) => {
-				const email = Schema.decodeSync(UserInsert.fields.email)(value.email);
-				return await signInWithPassword({ email, password: value.password });
+			onSubmit: ({ value }) => {
+				Schema.decodeSync(UserInsert.fields.email)(value.email);
+				return null as string | null;
 			},
 		},
-		onSubmit: async () => {
+		onSubmit: async ({ value }) => {
+			const email = Schema.decodeSync(UserInsert.fields.email)(value.email);
+			const { error } = await authClient.signIn.email({
+				email,
+				password: value.password,
+				callbackURL: location.href,
+			});
+
+			if (error) {
+				form.setErrorMap({ onSubmit: error.message });
+				return;
+			}
+
 			await queryClient.invalidateQueries({ queryKey: ["session"] });
 			await queryClient.invalidateQueries({ queryKey: ["deviceSessions"] });
 			await queryClient.invalidateQueries({ queryKey: ["organizations"] });
@@ -51,17 +63,6 @@ function Page() {
 			await navigate({ to: "/app" });
 		},
 	});
-
-	async function signInWithPassword({ email, password }: { email: string; password: string }) {
-		const { error } = await authClient.signIn.email({
-			email,
-			password,
-			callbackURL: location.href,
-		});
-
-		if (error) return error.message;
-		return null;
-	}
 
 	async function signInWithGoogle() {
 		setIsGoogleSubmitting(true);
