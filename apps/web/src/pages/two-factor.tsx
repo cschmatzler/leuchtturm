@@ -34,23 +34,22 @@ function Page() {
 			code: "",
 			trustDevice: false,
 		},
-		validators: {
-			onSubmitAsync: async ({ value }) => {
-				const { error } = useBackupCode
-					? await authClient.twoFactor.verifyBackupCode({
-							code: value.code,
-							trustDevice: value.trustDevice,
-						})
-					: await authClient.twoFactor.verifyTotp({
-							code: value.code,
-							trustDevice: value.trustDevice,
-						});
+		onSubmit: async ({ value }) => {
+			const { error } = useBackupCode
+				? await authClient.twoFactor.verifyBackupCode({
+						code: value.code,
+						trustDevice: value.trustDevice,
+					})
+				: await authClient.twoFactor.verifyTotp({
+						code: value.code,
+						trustDevice: value.trustDevice,
+					});
 
-				if (error) return error.message;
-				return null;
-			},
-		},
-		onSubmit: async () => {
+			if (error) {
+				form.setErrorMap({ onSubmit: { form: error.message, fields: {} } });
+				return;
+			}
+
 			await queryClient.invalidateQueries({ queryKey: ["session"] });
 			await queryClient.invalidateQueries({ queryKey: ["deviceSessions"] });
 			await queryClient.invalidateQueries({ queryKey: ["organizations"] });
@@ -93,7 +92,6 @@ function Page() {
 										value={field.state.value}
 										onBlur={field.handleBlur}
 										onInput={(event) => {
-											form.setErrorMap({ onSubmit: undefined });
 											field.handleChange(event.currentTarget.value);
 										}}
 										required
