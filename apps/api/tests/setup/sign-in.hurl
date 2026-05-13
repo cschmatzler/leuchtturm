@@ -1,4 +1,4 @@
-# Authenticate authenticated API tests with Better Auth.
+# Authenticate subsequent API contract tests with Better Auth.
 POST {{BASE_URL}}/auth/sign-in/email
 Content-Type: application/json
 {
