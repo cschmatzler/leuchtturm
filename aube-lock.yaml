@@ -85,6 +85,7 @@ time:
   "@clack/core@1.0.0-alpha.6": 2025-10-03T15:34:29.109Z
   "@clack/prompts@1.0.0-alpha.6": 2025-10-03T15:34:29.734Z
   "@cloudflare/workers-types@4.20260511.1": 2026-05-11T01:30:08.043Z
+  "@cloudyskysoftware/pulumi-render@0.5.5": 2025-09-21T20:02:00.138Z
   "@databases/escape-identifier@1.0.3": 2022-02-07T12:59:08.470Z
   "@databases/sql@3.3.0": 2023-01-12T16:40:10.655Z
   "@databases/validate-unicode@1.0.0": 2020-11-13T16:41:20.435Z
@@ -1431,6 +1432,9 @@ importers:
         specifier: ^2.4.2
         version: 2.9.0
     devDependencies:
+      "@cloudyskysoftware/pulumi-render":
+        specifier: 0.5.5
+        version: 0.5.5
       "@effect/language-service":
         specifier: 0.86.1
         version: 0.86.1
@@ -2492,6 +2496,12 @@ packages:
     resolution:
       {
         integrity: sha512-FA+si7cOq9i/gtCHhIc0XJL0l1F/ApF+m00752Aj7WZFJrj3ZulT2T8/+rT3BabMT0QEnqFEGIqCgrmqhgEfMg==,
+      }
+
+  "@cloudyskysoftware/pulumi-render@0.5.5":
+    resolution:
+      {
+        integrity: sha512-DdF6nsPzrMCN7an/anR4qGqtmKmbHlWaTv0SLvyItluWF45byxwSOISOcwaFZKYCmURdHZkAqyXK4qegTRzP0g==,
       }
 
   "@databases/escape-identifier@1.0.3":
@@ -13307,6 +13317,10 @@ snapshots:
       sisteransi: 1.0.5
 
   "@cloudflare/workers-types@4.20260511.1": {}
+
+  "@cloudyskysoftware/pulumi-render@0.5.5":
+    dependencies:
+      "@pulumi/pulumi": 3.237.0(typescript@6.0.3)
 
   "@databases/escape-identifier@1.0.3":
     dependencies:

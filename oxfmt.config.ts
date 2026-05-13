@@ -2,7 +2,7 @@ import { defineConfig } from "oxfmt";
 
 export default defineConfig({
 	$schema: "./node_modules/oxfmt/configuration_schema.json",
-	ignorePatterns: ["**/*.gen.ts", "**/sst-env.d.ts"],
+	ignorePatterns: ["aube-lock.yaml", "**/*.gen.ts", "**/sst-env.d.ts"],
 	useTabs: true,
 	experimentalSortImports: {
 		internalPattern: ["@leuchtturm/"],

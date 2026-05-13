@@ -14,6 +14,7 @@
 		"check": "oxfmt --check && oxlint"
 	},
 	"devDependencies": {
+		"@cloudyskysoftware/pulumi-render": "0.5.5",
 		"@effect/language-service": "0.86.1",
 		"@leuchtturm/infra": "workspace:*",
 		"@pulumi/pulumi": "3.237.0",
