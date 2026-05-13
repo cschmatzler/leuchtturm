@@ -1,6 +1,5 @@
 import { CaretDownIcon } from "@phosphor-icons/react/CaretDown";
 import { SparkleIcon } from "@phosphor-icons/react/Sparkle";
-import { SpinnerIcon } from "@phosphor-icons/react/Spinner";
 import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, redirect, useNavigate, useRouter } from "@tanstack/react-router";
@@ -208,8 +207,12 @@ function Page() {
 								{submitError ? <FieldError>{submitError}</FieldError> : null}
 								<form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
 									{([canSubmit, isSubmitting]) => (
-										<Button type="submit" className="w-full" disabled={!canSubmit || isSubmitting}>
-											{isSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : null}
+										<Button
+											type="submit"
+											className="w-full"
+											loading={isSubmitting}
+											disabled={!canSubmit}
+										>
 											<T>Create organization</T>
 										</Button>
 									)}

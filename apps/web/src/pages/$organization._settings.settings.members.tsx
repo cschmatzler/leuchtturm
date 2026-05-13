@@ -2,7 +2,6 @@ import { CalendarIcon } from "@phosphor-icons/react/Calendar";
 import { EnvelopeIcon } from "@phosphor-icons/react/Envelope";
 import { EnvelopeSimpleIcon } from "@phosphor-icons/react/EnvelopeSimple";
 import { ShieldIcon } from "@phosphor-icons/react/Shield";
-import { SpinnerIcon } from "@phosphor-icons/react/Spinner";
 import { UserIcon } from "@phosphor-icons/react/User";
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, stripSearchParams, useNavigate } from "@tanstack/react-router";
@@ -349,12 +348,8 @@ function Page() {
 						<form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
 							{([canSubmit, isSubmitting]) => (
 								<DialogFooter>
-									<Button type="submit" disabled={!canSubmit || isSubmitting}>
-										{isSubmitting ? (
-											<SpinnerIcon className="size-4 animate-spin" />
-										) : (
-											<EnvelopeSimpleIcon className="size-4" />
-										)}
+									<Button type="submit" loading={isSubmitting} disabled={!canSubmit}>
+										{isSubmitting ? null : <EnvelopeSimpleIcon className="size-4" />}
 										<T>Invite member</T>
 									</Button>
 								</DialogFooter>

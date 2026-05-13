@@ -2,7 +2,6 @@ import { ArrowRightIcon } from "@phosphor-icons/react/ArrowRight";
 import { DotsThreeIcon } from "@phosphor-icons/react/DotsThree";
 import { EnvelopeIcon } from "@phosphor-icons/react/Envelope";
 import { ShieldCheckIcon } from "@phosphor-icons/react/ShieldCheck";
-import { SpinnerIcon } from "@phosphor-icons/react/Spinner";
 import { TrashIcon } from "@phosphor-icons/react/Trash";
 import { UserCircleGearIcon } from "@phosphor-icons/react/UserCircleGear";
 import { UsersThreeIcon } from "@phosphor-icons/react/UsersThree";
@@ -396,12 +395,8 @@ function UserActions({
 
 	return (
 		<DropdownMenu>
-			<DropdownMenuTrigger render={<Button variant="ghost" size="icon" disabled={isPending} />}>
-				{isPending ? (
-					<SpinnerIcon className="size-4 animate-spin" />
-				) : (
-					<DotsThreeIcon className="size-4" />
-				)}
+			<DropdownMenuTrigger render={<Button variant="ghost" size="icon" loading={isPending} />}>
+				{isPending ? null : <DotsThreeIcon className="size-4" />}
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" className="w-48">
 				<DropdownMenuLabel>

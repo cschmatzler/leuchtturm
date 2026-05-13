@@ -1,5 +1,4 @@
 import { CaretLeftIcon } from "@phosphor-icons/react/CaretLeft";
-import { SpinnerIcon } from "@phosphor-icons/react/Spinner";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { T, useGT, Var } from "gt-react";
@@ -151,10 +150,9 @@ function Page() {
 							<Button
 								type="button"
 								onClick={handleAccept}
-								disabled={isSubmitting}
+								loading={isSubmitting}
 								className="flex-1"
 							>
-								{isSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : null}
 								<T>Accept</T>
 							</Button>
 							<Button type="button" variant="outline" onClick={handleReject} className="flex-1">

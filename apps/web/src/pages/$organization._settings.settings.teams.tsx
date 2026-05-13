@@ -1,6 +1,5 @@
 import { GearIcon } from "@phosphor-icons/react/Gear";
 import { PlusIcon } from "@phosphor-icons/react/Plus";
-import { SpinnerIcon } from "@phosphor-icons/react/Spinner";
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, stripSearchParams, useNavigate } from "@tanstack/react-router";
 import * as Effect from "effect/Effect";
@@ -162,12 +161,8 @@ function Page() {
 						<form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
 							{([canSubmit, isSubmitting]) => (
 								<DialogFooter>
-									<Button type="submit" disabled={!canSubmit || isSubmitting}>
-										{isSubmitting ? (
-											<SpinnerIcon className="size-4 animate-spin" />
-										) : (
-											<PlusIcon className="size-4" />
-										)}
+									<Button type="submit" loading={isSubmitting} disabled={!canSubmit}>
+										{isSubmitting ? null : <PlusIcon className="size-4" />}
 										<T>Create team</T>
 									</Button>
 								</DialogFooter>

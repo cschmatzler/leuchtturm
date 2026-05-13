@@ -1,4 +1,3 @@
-import { SpinnerIcon } from "@phosphor-icons/react/Spinner";
 import { TrashIcon } from "@phosphor-icons/react/Trash";
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, stripSearchParams, useNavigate } from "@tanstack/react-router";
@@ -185,8 +184,7 @@ function GeneralSettings(props: { readonly organization: string; readonly team: 
 					<form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
 						{([canSubmit, isSubmitting]) => (
 							<div className="flex justify-end">
-								<Button type="submit" disabled={!canSubmit || isSubmitting}>
-									{isSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : null}
+								<Button type="submit" loading={isSubmitting} disabled={!canSubmit}>
 									<T>Save</T>
 								</Button>
 							</div>
@@ -246,10 +244,10 @@ function GeneralSettings(props: { readonly organization: string; readonly team: 
 							</AlertDialogCancel>
 							<AlertDialogAction
 								variant="destructive"
-								disabled={isDeletingTeam || !team || deleteTeamConfirmation !== team.name}
+								loading={isDeletingTeam}
+								disabled={!team || deleteTeamConfirmation !== team.name}
 								onClick={() => void removeTeam()}
 							>
-								{isDeletingTeam ? <SpinnerIcon className="size-4 animate-spin" /> : null}
 								<T>Delete</T>
 							</AlertDialogAction>
 						</AlertDialogFooter>

@@ -1,4 +1,3 @@
-import { SpinnerIcon } from "@phosphor-icons/react/Spinner";
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute } from "@tanstack/react-router";
 import * as Schema from "effect/Schema";
@@ -97,9 +96,9 @@ function Page() {
 							<div className="flex justify-end">
 								<Button
 									type="submit"
-									disabled={!currentUser || !state.canSubmit || state.isSubmitting}
+									loading={state.isSubmitting}
+									disabled={!currentUser || !state.canSubmit}
 								>
-									{state.isSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : null}
 									<T>Save</T>
 								</Button>
 							</div>
