@@ -13,6 +13,13 @@ export function useAuth() {
 	const { data: session } = useQuery(sessionQuery());
 	const { data: deviceSessions } = useQuery(deviceSessionsQuery());
 
+	const invalidateSessions = async () => {
+		await queryClient.invalidateQueries({ queryKey: ["session"] });
+		await queryClient.invalidateQueries({ queryKey: ["deviceSessions"] });
+		await queryClient.invalidateQueries({ queryKey: ["organizations"] });
+		await router.invalidate();
+	};
+
 	const signOutCurrent = async () => {
 		if (!session) return;
 
@@ -27,10 +34,7 @@ export function useAuth() {
 			await authClient.multiSession.revoke({
 				sessionToken: session.session.token,
 			});
-			await queryClient.invalidateQueries({ queryKey: ["session"] });
-			await queryClient.invalidateQueries({ queryKey: ["deviceSessions"] });
-			await queryClient.invalidateQueries({ queryKey: ["organizations"] });
-			await router.invalidate();
+			await invalidateSessions();
 			await navigate({ to: "/app" });
 			return;
 		}
@@ -62,10 +66,7 @@ export function useAuth() {
 
 	const setActiveSession = async (sessionToken: string) => {
 		await authClient.multiSession.setActive({ sessionToken });
-		await queryClient.invalidateQueries({ queryKey: ["session"] });
-		await queryClient.invalidateQueries({ queryKey: ["deviceSessions"] });
-		await queryClient.invalidateQueries({ queryKey: ["organizations"] });
-		await router.invalidate();
+		await invalidateSessions();
 	};
 
 	const invalidateDeviceSessions = async () => {
@@ -79,6 +80,7 @@ export function useAuth() {
 		signOutCurrent,
 		signOutAll,
 		setActiveSession,
+		invalidateSessions,
 		invalidateDeviceSessions,
 	};
 }

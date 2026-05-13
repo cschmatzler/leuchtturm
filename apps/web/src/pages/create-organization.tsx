@@ -2,7 +2,7 @@ import { CaretDownIcon } from "@phosphor-icons/react/CaretDown";
 import { SparkleIcon } from "@phosphor-icons/react/Sparkle";
 import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, Link, redirect, useNavigate, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import * as Schema from "effect/Schema";
 import { T, useGT } from "gt-react";
 import { useState } from "react";
@@ -39,12 +39,11 @@ export const Route = createFileRoute("/create-organization")({
 function Page() {
 	const { session } = Route.useRouteContext();
 	const navigate = useNavigate();
-	const router = useRouter();
 
 	const queryClient = useQueryClient();
 
 	const t = useGT();
-	const { deviceSessions, setActiveSession, signOutCurrent } = useAuth();
+	const { deviceSessions, invalidateSessions, setActiveSession, signOutCurrent } = useAuth();
 
 	const [accountMenuOpen, setAccountMenuOpen] = useState(false);
 	const [submitError, setSubmitError] = useState<string>();
@@ -96,11 +95,8 @@ function Page() {
 				return;
 			}
 
-			await queryClient.invalidateQueries({ queryKey: ["session"] });
-			await queryClient.invalidateQueries({ queryKey: ["deviceSessions"] });
-			await queryClient.invalidateQueries({ queryKey: organizationsQuery().queryKey });
+			await invalidateSessions();
 			await queryClient.fetchQuery(organizationsQuery());
-			await router.invalidate();
 			await navigate({
 				to: "/$organization/settings",
 				params: { organization: data.slug },

@@ -1,6 +1,5 @@
 import { useForm } from "@tanstack/react-form";
-import { useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, stripSearchParams, useNavigate, useRouter } from "@tanstack/react-router";
+import { createFileRoute, stripSearchParams, useNavigate } from "@tanstack/react-router";
 import * as Effect from "effect/Effect";
 import * as Schema from "effect/Schema";
 import { T } from "gt-react";
@@ -17,6 +16,8 @@ import {
 } from "@leuchtturm/web/components/ui/field";
 import { Show } from "@leuchtturm/web/components/ui/flow";
 import { Input } from "@leuchtturm/web/components/ui/input";
+import { Toggle } from "@leuchtturm/web/components/ui/toggle";
+import { useAuth } from "@leuchtturm/web/hooks/use-auth";
 
 export const Route = createFileRoute("/two-factor")({
 	validateSearch: Schema.toStandardSchemaV1(
@@ -34,40 +35,7 @@ export const Route = createFileRoute("/two-factor")({
 });
 
 function Page() {
-	const navigate = useNavigate();
-	const router = useRouter();
-	const { backup: useBackupCode } = Route.useSearch();
-
-	const queryClient = useQueryClient();
-
-	const form = useForm({
-		defaultValues: {
-			code: "",
-			trustDevice: false,
-		},
-		onSubmit: async ({ value }) => {
-			const { error } = useBackupCode
-				? await authClient.twoFactor.verifyBackupCode({
-						code: value.code,
-						trustDevice: value.trustDevice,
-					})
-				: await authClient.twoFactor.verifyTotp({
-						code: value.code,
-						trustDevice: value.trustDevice,
-					});
-
-			if (error) {
-				form.setErrorMap({ onSubmit: { form: error.message, fields: {} } });
-				return;
-			}
-
-			await queryClient.invalidateQueries({ queryKey: ["session"] });
-			await queryClient.invalidateQueries({ queryKey: ["deviceSessions"] });
-			await queryClient.invalidateQueries({ queryKey: ["organizations"] });
-			await router.invalidate();
-			await navigate({ to: "/app" });
-		},
-	});
+	const search = Route.useSearch();
 
 	return (
 		<AuthPageLayout>
@@ -80,89 +48,202 @@ function Page() {
 						<T>Enter the code from your authenticator app to finish signing in.</T>
 					</p>
 				</div>
-				<form action={() => form.handleSubmit()}>
-					<FieldGroup>
-						<form.Subscribe selector={(state) => state.errorMap.onSubmit}>
-							{(formError) => (
-								<Show when={formError}>{(error) => <FieldError>{String(error)}</FieldError>}</Show>
-							)}
-						</form.Subscribe>
-						<form.Field name="code">
-							{(field) => (
-								<Field>
-									<FieldLabel htmlFor={field.name}>
-										<Show when={useBackupCode} fallback={<T>Authentication code</T>}>
-											<T>Backup code</T>
-										</Show>
-									</FieldLabel>
-									<Input
-										id={field.name}
-										name={field.name}
-										inputMode={useBackupCode ? "text" : "numeric"}
-										autoComplete="one-time-code"
-										value={field.state.value}
-										onBlur={field.handleBlur}
-										onInput={(event) => {
-											field.handleChange(event.currentTarget.value);
-										}}
-										required
-									/>
-								</Field>
-							)}
-						</form.Field>
-						<form.Field name="trustDevice">
-							{(field) => (
-								<Field className="flex-row items-start gap-3">
-									<Input
-										id={field.name}
-										name={field.name}
-										type="checkbox"
-										checked={field.state.value}
-										onChange={(event) => field.handleChange(event.currentTarget.checked)}
-										className="mt-1 size-4"
-									/>
-									<div className="space-y-1">
-										<FieldLabel htmlFor={field.name}>
-											<T>Trust this device</T>
-										</FieldLabel>
-										<FieldDescription>
-											<T>Skip two-factor prompts on this device for 30 days.</T>
-										</FieldDescription>
-									</div>
-								</Field>
-							)}
-						</form.Field>
-						<form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
-							{([canSubmit, isSubmitting]) => (
-								<Button
-									type="submit"
-									className="w-full"
-									loading={isSubmitting}
-									disabled={!canSubmit}
-								>
-									<T>Verify</T>
-								</Button>
-							)}
-						</form.Subscribe>
-						<Button
-							type="button"
-							variant="outline"
-							className="w-full"
-							onClick={() => {
-								form.setErrorMap({ onSubmit: undefined });
-								void navigate({
-									to: "/two-factor",
-									search: { backup: !useBackupCode },
-								});
-							}}
-						>
-							<Show when={useBackupCode} fallback={<T>Use backup code</T>}>
-								<T>Use authenticator code</T>
-							</Show>
-						</Button>
-					</FieldGroup>
-				</form>
+				<Show when={search.backup} fallback={<TotpForm />}>
+					<BackupCodeForm />
+				</Show>
 			</div>
 		</AuthPageLayout>
+	);
+}
+
+function TotpForm() {
+	const navigate = useNavigate();
+
+	const { invalidateSessions } = useAuth();
+
+	const form = useForm({
+		defaultValues: {
+			code: "",
+			trustDevice: false,
+		},
+		onSubmit: async ({ value }) => {
+			const { error } = await authClient.twoFactor.verifyTotp({
+				code: value.code,
+				trustDevice: value.trustDevice,
+			});
+
+			if (error) {
+				form.setErrorMap({ onSubmit: { form: error.message, fields: {} } });
+				return;
+			}
+
+			await invalidateSessions();
+			await navigate({ to: "/app" });
+		},
+	});
+
+	return (
+		<form action={() => form.handleSubmit()}>
+			<FieldGroup>
+				<form.Subscribe selector={(state) => state.errorMap.onSubmit}>
+					{(formError) => (
+						<Show when={formError}>{(error) => <FieldError>{String(error)}</FieldError>}</Show>
+					)}
+				</form.Subscribe>
+				<form.Field name="code">
+					{(field) => (
+						<Field>
+							<FieldLabel htmlFor={field.name}>
+								<T>Authentication code</T>
+							</FieldLabel>
+							<Input
+								id={field.name}
+								name={field.name}
+								inputMode="numeric"
+								autoComplete="one-time-code"
+								value={field.state.value}
+								onBlur={field.handleBlur}
+								onInput={(event) => {
+									field.handleChange(event.currentTarget.value);
+								}}
+								required
+							/>
+						</Field>
+					)}
+				</form.Field>
+				<form.Field name="trustDevice">
+					{(field) => (
+						<Field>
+							<Toggle
+								id={field.name}
+								pressed={field.state.value}
+								onPressedChange={field.handleChange}
+								variant="outline"
+								className="w-fit"
+							>
+								<T>Trust this device</T>
+							</Toggle>
+							<FieldDescription>
+								<T>Skip two-factor prompts on this device for 30 days.</T>
+							</FieldDescription>
+						</Field>
+					)}
+				</form.Field>
+				<form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
+					{([canSubmit, isSubmitting]) => (
+						<Button type="submit" className="w-full" loading={isSubmitting} disabled={!canSubmit}>
+							<T>Verify</T>
+						</Button>
+					)}
+				</form.Subscribe>
+				<Button
+					type="button"
+					variant="outline"
+					className="w-full"
+					onClick={() => {
+						form.setErrorMap({ onSubmit: undefined });
+						void navigate({ to: "/two-factor", search: { backup: true } });
+					}}
+				>
+					<T>Use backup code</T>
+				</Button>
+			</FieldGroup>
+		</form>
+	);
+}
+
+function BackupCodeForm() {
+	const navigate = useNavigate();
+
+	const { invalidateSessions } = useAuth();
+
+	const form = useForm({
+		defaultValues: {
+			code: "",
+			trustDevice: false,
+		},
+		onSubmit: async ({ value }) => {
+			const { error } = await authClient.twoFactor.verifyBackupCode({
+				code: value.code,
+				trustDevice: value.trustDevice,
+			});
+
+			if (error) {
+				form.setErrorMap({ onSubmit: { form: error.message, fields: {} } });
+				return;
+			}
+
+			await invalidateSessions();
+			await navigate({ to: "/app" });
+		},
+	});
+
+	return (
+		<form action={() => form.handleSubmit()}>
+			<FieldGroup>
+				<form.Subscribe selector={(state) => state.errorMap.onSubmit}>
+					{(formError) => (
+						<Show when={formError}>{(error) => <FieldError>{String(error)}</FieldError>}</Show>
+					)}
+				</form.Subscribe>
+				<form.Field name="code">
+					{(field) => (
+						<Field>
+							<FieldLabel htmlFor={field.name}>
+								<T>Backup code</T>
+							</FieldLabel>
+							<Input
+								id={field.name}
+								name={field.name}
+								inputMode="text"
+								autoComplete="one-time-code"
+								value={field.state.value}
+								onBlur={field.handleBlur}
+								onInput={(event) => {
+									field.handleChange(event.currentTarget.value);
+								}}
+								required
+							/>
+						</Field>
+					)}
+				</form.Field>
+				<form.Field name="trustDevice">
+					{(field) => (
+						<Field>
+							<Toggle
+								id={field.name}
+								pressed={field.state.value}
+								onPressedChange={field.handleChange}
+								variant="outline"
+								className="w-fit"
+							>
+								<T>Trust this device</T>
+							</Toggle>
+							<FieldDescription>
+								<T>Skip two-factor prompts on this device for 30 days.</T>
+							</FieldDescription>
+						</Field>
+					)}
+				</form.Field>
+				<form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
+					{([canSubmit, isSubmitting]) => (
+						<Button type="submit" className="w-full" loading={isSubmitting} disabled={!canSubmit}>
+							<T>Verify</T>
+						</Button>
+					)}
+				</form.Subscribe>
+				<Button
+					type="button"
+					variant="outline"
+					className="w-full"
+					onClick={() => {
+						form.setErrorMap({ onSubmit: undefined });
+						void navigate({ to: "/two-factor", search: { backup: false } });
+					}}
+				>
+					<T>Use authenticator code</T>
+				</Button>
+			</FieldGroup>
+		</form>
 	);
 }

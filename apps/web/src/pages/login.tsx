@@ -1,6 +1,5 @@
 import { useForm } from "@tanstack/react-form";
-import { useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, Link, useLocation, useNavigate, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, useLocation, useNavigate } from "@tanstack/react-router";
 import * as Schema from "effect/Schema";
 import { T } from "gt-react";
 import { useState } from "react";
@@ -19,6 +18,7 @@ import {
 } from "@leuchtturm/web/components/ui/field";
 import { Show } from "@leuchtturm/web/components/ui/flow";
 import { Input } from "@leuchtturm/web/components/ui/input";
+import { useAuth } from "@leuchtturm/web/hooks/use-auth";
 
 export const Route = createFileRoute("/login")({
 	component: Page,
@@ -26,10 +26,9 @@ export const Route = createFileRoute("/login")({
 
 function Page() {
 	const navigate = useNavigate();
-	const router = useRouter();
 	const location = useLocation();
 
-	const queryClient = useQueryClient();
+	const { invalidateSessions } = useAuth();
 
 	const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
 
@@ -50,10 +49,7 @@ function Page() {
 				return;
 			}
 
-			await queryClient.invalidateQueries({ queryKey: ["session"] });
-			await queryClient.invalidateQueries({ queryKey: ["deviceSessions"] });
-			await queryClient.invalidateQueries({ queryKey: ["organizations"] });
-			await router.invalidate();
+			await invalidateSessions();
 			await navigate({ to: "/app" });
 		},
 	});
