@@ -1,5 +1,9 @@
 {
 	"mcpServers": {
+		"executor": {
+			"url": "https://executor.sh/mcp",
+			"lifecycle": "eager"
+		},
 		"cloudflare": {
 			"url": "https://mcp.cloudflare.com/mcp",
 			"auth": "oauth",
