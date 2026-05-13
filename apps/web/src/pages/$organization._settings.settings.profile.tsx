@@ -46,7 +46,7 @@ function Page() {
 		<div className="mx-auto w-full max-w-3xl">
 			<section>
 				<div className="space-y-1">
-					<h2 className="font-heading text-xl font-semibold">
+					<h2 className="font-heading text-2xl font-semibold">
 						<T>Profile</T>
 					</h2>
 					<p className="text-sm text-muted-foreground">
