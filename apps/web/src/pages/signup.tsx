@@ -1,6 +1,6 @@
 import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, useLocation, useNavigate, useRouter } from "@tanstack/react-router";
 import * as Schema from "effect/Schema";
 import { T, useGT } from "gt-react";
 import { useState } from "react";
@@ -25,6 +25,7 @@ export const Route = createFileRoute("/signup")({
 function Page() {
 	const navigate = useNavigate();
 	const router = useRouter();
+	const location = useLocation();
 
 	const queryClient = useQueryClient();
 
@@ -46,7 +47,7 @@ function Page() {
 					name,
 					email,
 					password: value.password,
-					callbackURL: router.history.createHref("/app"),
+					callbackURL: location.href,
 				});
 
 				if (error) return error.message;
@@ -66,7 +67,7 @@ function Page() {
 		setIsGoogleSubmitting(true);
 		const { error } = await authClient.signIn.social({
 			provider: "google",
-			callbackURL: router.history.createHref("/app"),
+			callbackURL: location.href,
 		});
 		setIsGoogleSubmitting(false);
 
