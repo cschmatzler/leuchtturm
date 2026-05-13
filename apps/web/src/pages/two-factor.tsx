@@ -1,8 +1,9 @@
 import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
+import { createFileRoute, stripSearchParams, useNavigate, useRouter } from "@tanstack/react-router";
+import * as Effect from "effect/Effect";
+import * as Schema from "effect/Schema";
 import { T } from "gt-react";
-import { useState } from "react";
 
 import { authClient } from "@leuchtturm/web/clients/auth";
 import { AuthPageLayout } from "@leuchtturm/web/components/app/auth-page-layout";
@@ -18,16 +19,26 @@ import { Show } from "@leuchtturm/web/components/ui/flow";
 import { Input } from "@leuchtturm/web/components/ui/input";
 
 export const Route = createFileRoute("/two-factor")({
+	validateSearch: Schema.toStandardSchemaV1(
+		Schema.Struct({
+			backup: Schema.Boolean.pipe(
+				Schema.optional,
+				Schema.withDecodingDefault(Effect.succeed(false)),
+			),
+		}),
+	),
+	search: {
+		middlewares: [stripSearchParams({ backup: false })],
+	},
 	component: Page,
 });
 
 function Page() {
 	const navigate = useNavigate();
 	const router = useRouter();
+	const { backup: useBackupCode } = Route.useSearch();
 
 	const queryClient = useQueryClient();
-
-	const [useBackupCode, setUseBackupCode] = useState(false);
 
 	const form = useForm({
 		defaultValues: {
@@ -139,7 +150,10 @@ function Page() {
 							className="w-full"
 							onClick={() => {
 								form.setErrorMap({ onSubmit: undefined });
-								setUseBackupCode((value) => !value);
+								void navigate({
+									to: "/two-factor",
+									search: { backup: !useBackupCode },
+								});
 							}}
 						>
 							<Show when={useBackupCode} fallback={<T>Use backup code</T>}>
