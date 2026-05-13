@@ -112,7 +112,7 @@ export namespace Contract {
 			OpenApi.annotations({
 				title: "Auth",
 				description:
-					"Authentication passthrough; select the Better Auth API document to view endpoints.",
+					"Authentication passthrough; view endpoint details in the [Better Auth API document](/docs#auth).",
 			}),
 		)
 		.add(HttpApiEndpoint.get("authGet", "/auth/*", { error: AuthError }))
