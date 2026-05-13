@@ -15,40 +15,6 @@
 
 	languages.javascript.enable = true;
 
-	# Formatting
-	# ----------
-
-	treefmt = {
-		enable = true;
-		config = {
-			programs = {
-				alejandra.enable = true;
-			};
-			settings = {
-				formatter = {
-					oxfmt = {
-						command = "oxfmt";
-						includes = [
-							"*.js"
-							"*.jsx"
-							"*.ts"
-							"*.tsx"
-							"*.mjs"
-							"*.mts"
-							"*.cjs"
-							"*.cts"
-							"*.css"
-							"*.json"
-							"*.jsonc"
-							"*.md"
-						];
-						options = ["--write"];
-					};
-				};
-			};
-		};
-	};
-
 	# Environment
 	# -----------
 
