@@ -95,7 +95,7 @@ type FilterValueCodec = {
 	decode: (value: string) => FilterModel["values"];
 };
 
-const FILTER_VALUE_CODECS: Record<ColumnDataType, FilterValueCodec> = {
+const filterValueCodecs = {
 	text: {
 		encode: encodeStringValues,
 		decode: splitValues,
@@ -116,7 +116,7 @@ const FILTER_VALUE_CODECS: Record<ColumnDataType, FilterValueCodec> = {
 		encode: encodeStringValues,
 		decode: splitValues,
 	},
-};
+} as const satisfies Record<ColumnDataType, FilterValueCodec>;
 
 function encodeType(type: ColumnDataType): string {
 	return TYPE_CODES[type];
@@ -154,6 +154,25 @@ const filterParamKey = {
 	},
 };
 
+function encodeFilterValues(values: FilterModel["values"], type: ColumnDataType): string {
+	return filterValueCodecs[type].encode(values);
+}
+
+function decodeFilterValues(value: string, type: ColumnDataType): FilterModel["values"] {
+	return filterValueCodecs[type].decode(value);
+}
+
+function encodeStringValues(values: FilterModel["values"]): string {
+	return values.map((value) => escapeValue(String(value))).join(",");
+}
+
+function encodeDateValue(value: FilterModel["values"][number]): string {
+	if (Object.prototype.toString.call(value) === "[object Date]") {
+		return value.toISOString().split("T")[0];
+	}
+	return escapeValue(String(value));
+}
+
 function escapeValue(value: string): string {
 	return value.replace(/\\/g, "\\\\").replace(/,/g, "\\,").replace(/\./g, "\\.");
 }
@@ -183,25 +202,6 @@ function splitValues(value: string): string[] {
 	}
 	result.push(unescapeValue(current));
 	return result;
-}
-
-function encodeStringValues(values: FilterModel["values"]): string {
-	return values.map((value) => escapeValue(String(value))).join(",");
-}
-
-function encodeDateValue(value: FilterModel["values"][number]): string {
-	if (Object.prototype.toString.call(value) === "[object Date]") {
-		return value.toISOString().split("T")[0];
-	}
-	return escapeValue(String(value));
-}
-
-function encodeFilterValues(values: FilterModel["values"], type: ColumnDataType): string {
-	return FILTER_VALUE_CODECS[type].encode(values);
-}
-
-function decodeFilterValues(value: string, type: ColumnDataType): FilterModel["values"] {
-	return FILTER_VALUE_CODECS[type].decode(value);
 }
 
 export function isFiltersState(value: unknown): value is FiltersState {
