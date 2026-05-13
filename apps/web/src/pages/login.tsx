@@ -39,9 +39,8 @@ function Page() {
 			password: "",
 		},
 		onSubmit: async ({ value }) => {
-			const email = Schema.decodeSync(UserInsert.fields.email)(value.email);
 			const { error } = await authClient.signIn.email({
-				email,
+				email: value.email,
 				password: value.password,
 				callbackURL: location.href,
 			});
