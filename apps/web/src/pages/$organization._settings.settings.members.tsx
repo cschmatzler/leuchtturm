@@ -40,10 +40,12 @@ import { FieldError, FieldLabel } from "@leuchtturm/web/components/ui/field";
 import { Show } from "@leuchtturm/web/components/ui/flow";
 import { Input } from "@leuchtturm/web/components/ui/input";
 import { useDataTableFilters } from "@leuchtturm/web/hooks/use-data-table-filters";
+import { useSearchFilters } from "@leuchtturm/web/hooks/use-search-filters";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
+import { filtersStateSchema } from "@leuchtturm/web/lib/search-params";
 import { queries } from "@leuchtturm/zero/queries";
 
-const searchDefaults = { invite: false };
+const searchDefaults = { invite: false, mfilters: [], ifilters: [] };
 
 export const Route = createFileRoute("/$organization/_settings/settings/members")({
 	validateSearch: Schema.toStandardSchemaV1(
@@ -52,6 +54,8 @@ export const Route = createFileRoute("/$organization/_settings/settings/members"
 				Schema.optional,
 				Schema.withDecodingDefault(Effect.succeed(false)),
 			),
+			mfilters: filtersStateSchema,
+			ifilters: filtersStateSchema,
 		}),
 	),
 	search: {
@@ -87,6 +91,14 @@ function Page() {
 			})),
 		[],
 	);
+	const [memberSearchFilters, setMemberSearchFilters] = useSearchFilters({
+		route: Route,
+		key: "mfilters",
+	});
+	const [invitationSearchFilters, setInvitationSearchFilters] = useSearchFilters({
+		route: Route,
+		key: "ifilters",
+	});
 
 	const memberColumns = useMemo<ColumnDef<(typeof members)[number]>[]>(
 		() => [
@@ -153,6 +165,8 @@ function Page() {
 	const memberFilters = useDataTableFilters({
 		data: members,
 		filterDefinitions: memberFilterDefinitions,
+		filters: memberSearchFilters,
+		onFiltersChange: setMemberSearchFilters,
 	});
 	const memberTableColumns = useMemo(
 		() =>
@@ -235,6 +249,8 @@ function Page() {
 	const invitationFilters = useDataTableFilters({
 		data: activeInvitations,
 		filterDefinitions: invitationFilterDefinitions,
+		filters: invitationSearchFilters,
+		onFiltersChange: setInvitationSearchFilters,
 	});
 	const invitationTableColumns = useMemo(
 		() =>
