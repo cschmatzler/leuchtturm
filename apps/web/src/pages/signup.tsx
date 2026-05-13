@@ -3,6 +3,7 @@ import { createFileRoute, Link, useLocation } from "@tanstack/react-router";
 import * as Schema from "effect/Schema";
 import { T, useGT } from "gt-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { UserInsert } from "@leuchtturm/core/auth/schema";
 import { authClient } from "@leuchtturm/web/clients/auth";
@@ -36,25 +37,20 @@ function Page() {
 			email: "",
 			password: "",
 		},
-		validators: {
-			onSubmitAsync: async ({ value }) => {
-				const name = Schema.decodeSync(UserInsert.fields.name)(value.name);
-				const email = Schema.decodeSync(UserInsert.fields.email)(value.email);
-
-				const { error } = await authClient.signUp.email({
-					name,
-					email,
-					password: value.password,
-					callbackURL: location.href,
-				});
-
-				if (error) return error.message;
-				return null;
-			},
-		},
 		onSubmit: async ({ value }) => {
-			const email = Schema.decodeSync(UserInsert.fields.email)(value.email);
-			setPendingVerificationEmail(email);
+			const { error } = await authClient.signUp.email({
+				name: value.name,
+				email: value.email,
+				password: value.password,
+				callbackURL: location.href,
+			});
+
+			if (error) {
+				form.setErrorMap({ onSubmit: { form: error.message, fields: {} } });
+				return;
+			}
+
+			setPendingVerificationEmail(value.email);
 		},
 	});
 
@@ -67,7 +63,7 @@ function Page() {
 		setIsGoogleSubmitting(false);
 
 		if (error) {
-			form.setErrorMap({ onSubmit: error.message });
+			toast.error(error.message);
 		}
 	}
 
@@ -124,13 +120,12 @@ function Page() {
 												value={field.state.value}
 												onBlur={field.handleBlur}
 												onInput={(event) => {
-													form.setErrorMap({ onSubmit: undefined });
 													field.handleChange(event.currentTarget.value);
 												}}
 												disabled={isGoogleSubmitting}
 												required
 											/>
-											<Show when={field.state.meta.errors.length > 0}>
+											<Show when={field.state.meta.isDirty && field.state.meta.errors.length > 0}>
 												<FieldError>{field.state.meta.errors[0]?.message}</FieldError>
 											</Show>
 										</Field>
@@ -156,13 +151,12 @@ function Page() {
 												value={field.state.value}
 												onBlur={field.handleBlur}
 												onInput={(event) => {
-													form.setErrorMap({ onSubmit: undefined });
 													field.handleChange(event.currentTarget.value);
 												}}
 												disabled={isGoogleSubmitting}
 												required
 											/>
-											<Show when={field.state.meta.errors.length > 0}>
+											<Show when={field.state.meta.isDirty && field.state.meta.errors.length > 0}>
 												<FieldError>{field.state.meta.errors[0]?.message}</FieldError>
 											</Show>
 										</Field>
@@ -182,7 +176,6 @@ function Page() {
 												value={field.state.value}
 												onBlur={field.handleBlur}
 												onInput={(event) => {
-													form.setErrorMap({ onSubmit: undefined });
 													field.handleChange(event.currentTarget.value);
 												}}
 												required
