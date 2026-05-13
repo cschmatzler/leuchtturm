@@ -15,7 +15,7 @@ import {
 	FieldLabel,
 	FieldSeparator,
 } from "@leuchtturm/web/components/ui/field";
-import { Show } from "@leuchtturm/web/components/ui/flow";
+import { Match, Show, Switch } from "@leuchtturm/web/components/ui/flow";
 import { Input } from "@leuchtturm/web/components/ui/input";
 
 export const Route = createFileRoute("/signup")({
@@ -73,9 +73,8 @@ function Page() {
 
 	return (
 		<AuthPageLayout>
-			<Show
-				when={pendingVerificationEmail}
-				fallback={
+			<Switch>
+				<Match when={!pendingVerificationEmail}>
 					<div className="flex flex-col gap-6">
 						<div className="flex flex-col gap-2 text-center">
 							<h1 className="font-display text-3xl">
@@ -212,21 +211,22 @@ function Page() {
 							</Link>
 						</div>
 					</div>
-				}
-			>
-				{(email) => (
-					<div className="flex flex-col gap-6 text-center">
-						<div className="flex flex-col gap-2">
-							<h1 className="font-display text-3xl">
-								<T>Check your inbox</T>
-							</h1>
-							<p className="text-balance text-muted-foreground">
-								<T>We created your account. Please verify {email} before signing in.</T>
-							</p>
+				</Match>
+				<Match when={pendingVerificationEmail}>
+					{(email) => (
+						<div className="flex flex-col gap-6 text-center">
+							<div className="flex flex-col gap-2">
+								<h1 className="font-display text-3xl">
+									<T>Check your inbox</T>
+								</h1>
+								<p className="text-balance text-muted-foreground">
+									<T>We created your account. Please verify {email} before signing in.</T>
+								</p>
+							</div>
 						</div>
-					</div>
-				)}
-			</Show>
+					)}
+				</Match>
+			</Switch>
 		</AuthPageLayout>
 	);
 }

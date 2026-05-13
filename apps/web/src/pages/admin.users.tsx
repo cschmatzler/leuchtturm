@@ -185,7 +185,9 @@ function AdminUsersPage() {
 					const status = getValue<string>();
 					return (
 						<Badge variant={status === "banned" ? "destructive" : "outline"}>
-							{status === "banned" ? t("Banned") : t("Active")}
+							<Show when={status === "banned"} fallback={t("Active")}>
+								{t("Banned")}
+							</Show>
 						</Badge>
 					);
 				},

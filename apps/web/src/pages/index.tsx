@@ -8,7 +8,7 @@ import type { ReactNode } from "react";
 
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { Card, CardContent } from "@leuchtturm/web/components/ui/card";
-import { Show } from "@leuchtturm/web/components/ui/flow";
+import { Match, Show, Switch } from "@leuchtturm/web/components/ui/flow";
 import { useReactQuery } from "@leuchtturm/web/lib/query";
 import { sessionQuery } from "@leuchtturm/web/queries/session";
 
@@ -49,39 +49,37 @@ function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
 			<header className="relative mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-5">
 				<BrandLink />
 				<div className="flex items-center gap-2">
-					<Show
-						when={isAuthenticated}
-						fallback={
-							<>
-								<Button
-									variant="ghost"
-									size="sm"
-									className="text-background/70 hover:bg-background/10 hover:text-background"
-									nativeButton={false}
-									render={<Link to="/login" role={undefined} />}
-								>
-									<T>Login</T>
-								</Button>
-								<Button
-									size="sm"
-									className="bg-background text-foreground hover:bg-background/90"
-									nativeButton={false}
-									render={<Link to="/signup" role={undefined} />}
-								>
-									<T>Sign Up</T>
-								</Button>
-							</>
-						}
-					>
-						<Button
-							size="sm"
-							className="bg-background text-foreground hover:bg-background/90"
-							nativeButton={false}
-							render={<Link to="/app" role={undefined} />}
-						>
-							<T>Dashboard</T>
-						</Button>
-					</Show>
+					<Switch>
+						<Match when={isAuthenticated}>
+							<Button
+								size="sm"
+								className="bg-background text-foreground hover:bg-background/90"
+								nativeButton={false}
+								render={<Link to="/app" role={undefined} />}
+							>
+								<T>Dashboard</T>
+							</Button>
+						</Match>
+						<Match when={!isAuthenticated}>
+							<Button
+								variant="ghost"
+								size="sm"
+								className="text-background/70 hover:bg-background/10 hover:text-background"
+								nativeButton={false}
+								render={<Link to="/login" role={undefined} />}
+							>
+								<T>Login</T>
+							</Button>
+							<Button
+								size="sm"
+								className="bg-background text-foreground hover:bg-background/90"
+								nativeButton={false}
+								render={<Link to="/signup" role={undefined} />}
+							>
+								<T>Sign Up</T>
+							</Button>
+						</Match>
+					</Switch>
 				</div>
 			</header>
 
@@ -110,41 +108,39 @@ function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
 						className="animate-hero mt-11 flex justify-center gap-3"
 						style={{ animationDelay: "0.24s" }}
 					>
-						<Show
-							when={isAuthenticated}
-							fallback={
-								<>
-									<Button
-										size="lg"
-										className="bg-background text-foreground hover:bg-background/90"
-										nativeButton={false}
-										render={<Link to="/signup" role={undefined} />}
-									>
-										<T>Get Started</T>
-										<ArrowRightIcon data-icon="inline-end" />
-									</Button>
-									<Button
-										variant="outline"
-										size="lg"
-										className="border-background/20 text-background hover:bg-background/10 hover:text-background"
-										nativeButton={false}
-										render={<Link to="/login" role={undefined} />}
-									>
-										<T>Login</T>
-									</Button>
-								</>
-							}
-						>
-							<Button
-								size="lg"
-								className="bg-background text-foreground hover:bg-background/90"
-								nativeButton={false}
-								render={<Link to="/app" role={undefined} />}
-							>
-								<T>Go to Dashboard</T>
-								<ArrowRightIcon data-icon="inline-end" />
-							</Button>
-						</Show>
+						<Switch>
+							<Match when={isAuthenticated}>
+								<Button
+									size="lg"
+									className="bg-background text-foreground hover:bg-background/90"
+									nativeButton={false}
+									render={<Link to="/app" role={undefined} />}
+								>
+									<T>Go to Dashboard</T>
+									<ArrowRightIcon data-icon="inline-end" />
+								</Button>
+							</Match>
+							<Match when={!isAuthenticated}>
+								<Button
+									size="lg"
+									className="bg-background text-foreground hover:bg-background/90"
+									nativeButton={false}
+									render={<Link to="/signup" role={undefined} />}
+								>
+									<T>Get Started</T>
+									<ArrowRightIcon data-icon="inline-end" />
+								</Button>
+								<Button
+									variant="outline"
+									size="lg"
+									className="border-background/20 text-background hover:bg-background/10 hover:text-background"
+									nativeButton={false}
+									render={<Link to="/login" role={undefined} />}
+								>
+									<T>Login</T>
+								</Button>
+							</Match>
+						</Switch>
 					</div>
 				</div>
 			</section>
@@ -235,41 +231,39 @@ function CallToActionSection({ isAuthenticated }: { isAuthenticated: boolean }) 
 						</Show>
 					</p>
 					<div className="mt-9 flex justify-center gap-3">
-						<Show
-							when={isAuthenticated}
-							fallback={
-								<>
-									<Button
-										size="lg"
-										className="bg-background text-foreground hover:bg-background/90"
-										nativeButton={false}
-										render={<Link to="/signup" role={undefined} />}
-									>
-										<T>Sign Up</T>
-										<ArrowRightIcon data-icon="inline-end" />
-									</Button>
-									<Button
-										variant="outline"
-										size="lg"
-										className="border-background/20 text-background hover:bg-background/10 hover:text-background"
-										nativeButton={false}
-										render={<Link to="/login" role={undefined} />}
-									>
-										<T>Login</T>
-									</Button>
-								</>
-							}
-						>
-							<Button
-								size="lg"
-								className="bg-background text-foreground hover:bg-background/90"
-								nativeButton={false}
-								render={<Link to="/app" role={undefined} />}
-							>
-								<T>Go to Dashboard</T>
-								<ArrowRightIcon data-icon="inline-end" />
-							</Button>
-						</Show>
+						<Switch>
+							<Match when={isAuthenticated}>
+								<Button
+									size="lg"
+									className="bg-background text-foreground hover:bg-background/90"
+									nativeButton={false}
+									render={<Link to="/app" role={undefined} />}
+								>
+									<T>Go to Dashboard</T>
+									<ArrowRightIcon data-icon="inline-end" />
+								</Button>
+							</Match>
+							<Match when={!isAuthenticated}>
+								<Button
+									size="lg"
+									className="bg-background text-foreground hover:bg-background/90"
+									nativeButton={false}
+									render={<Link to="/signup" role={undefined} />}
+								>
+									<T>Sign Up</T>
+									<ArrowRightIcon data-icon="inline-end" />
+								</Button>
+								<Button
+									variant="outline"
+									size="lg"
+									className="border-background/20 text-background hover:bg-background/10 hover:text-background"
+									nativeButton={false}
+									render={<Link to="/login" role={undefined} />}
+								>
+									<T>Login</T>
+								</Button>
+							</Match>
+						</Switch>
 					</div>
 				</div>
 			</div>
@@ -312,32 +306,30 @@ function MarketingFooter({ isAuthenticated }: { isAuthenticated: boolean }) {
 							<T>Account</T>
 						</h3>
 						<nav className="mt-4 flex flex-col gap-2.5">
-							<Show
-								when={isAuthenticated}
-								fallback={
-									<>
-										<Link
-											to="/signup"
-											className="text-sm text-foreground/70 transition-colors hover:text-foreground"
-										>
-											<T>Sign Up</T>
-										</Link>
-										<Link
-											to="/login"
-											className="text-sm text-foreground/70 transition-colors hover:text-foreground"
-										>
-											<T>Login</T>
-										</Link>
-									</>
-								}
-							>
-								<Link
-									to="/app"
-									className="text-sm text-foreground/70 transition-colors hover:text-foreground"
-								>
-									<T>Dashboard</T>
-								</Link>
-							</Show>
+							<Switch>
+								<Match when={isAuthenticated}>
+									<Link
+										to="/app"
+										className="text-sm text-foreground/70 transition-colors hover:text-foreground"
+									>
+										<T>Dashboard</T>
+									</Link>
+								</Match>
+								<Match when={!isAuthenticated}>
+									<Link
+										to="/signup"
+										className="text-sm text-foreground/70 transition-colors hover:text-foreground"
+									>
+										<T>Sign Up</T>
+									</Link>
+									<Link
+										to="/login"
+										className="text-sm text-foreground/70 transition-colors hover:text-foreground"
+									>
+										<T>Login</T>
+									</Link>
+								</Match>
+							</Switch>
 						</nav>
 					</div>
 				</div>
