@@ -1,5 +1,5 @@
 import { useForm } from "@tanstack/react-form";
-import { createFileRoute, stripSearchParams, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, stripSearchParams, useNavigate } from "@tanstack/react-router";
 import * as Effect from "effect/Effect";
 import * as Schema from "effect/Schema";
 import { T } from "gt-react";
@@ -84,11 +84,11 @@ function Page() {
 	return (
 		<AuthPageLayout>
 			<div className="flex flex-col gap-6">
-				<div className="flex flex-col gap-2 text-center">
+				<div className="flex flex-col gap-2">
 					<h1 className="font-display text-3xl">
 						<T>Two-factor authentication</T>
 					</h1>
-					<p className="text-balance text-muted-foreground">
+					<p className="text-sm text-muted-foreground">
 						<T>Enter the code from your authenticator app to finish signing in.</T>
 					</p>
 				</div>
@@ -158,17 +158,15 @@ function Page() {
 										</Button>
 									)}
 								</totpForm.Subscribe>
-								<Button
-									type="button"
-									variant="outline"
-									className="w-full"
-									onClick={() => {
-										totpForm.setErrorMap({ onSubmit: undefined });
-										void navigate({ to: "/two-factor", search: { backup: true } });
-									}}
-								>
-									<T>Use backup code</T>
-								</Button>
+								<div className="text-center text-sm">
+									<Link
+										to="/two-factor"
+										search={{ backup: true }}
+										className="underline underline-offset-4 hover:text-primary"
+									>
+										<T>Use backup code</T>
+									</Link>
+								</div>
 							</FieldGroup>
 						</form>
 					}
@@ -236,17 +234,15 @@ function Page() {
 									</Button>
 								)}
 							</backupCodeForm.Subscribe>
-							<Button
-								type="button"
-								variant="outline"
-								className="w-full"
-								onClick={() => {
-									backupCodeForm.setErrorMap({ onSubmit: undefined });
-									void navigate({ to: "/two-factor", search: { backup: false } });
-								}}
-							>
-								<T>Use authenticator code</T>
-							</Button>
+							<div className="text-center text-sm">
+								<Link
+									to="/two-factor"
+									search={{ backup: false }}
+									className="underline underline-offset-4 hover:text-primary"
+								>
+									<T>Use authenticator code</T>
+								</Link>
+							</div>
 						</FieldGroup>
 					</form>
 				</Show>
