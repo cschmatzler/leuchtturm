@@ -328,7 +328,7 @@ function MembersSettings(props: { readonly team: string }) {
 		<div className="mx-auto w-full max-w-3xl">
 			<section className="py-6">
 				<div className="space-y-1">
-					<h2 className="text-lg font-semibold">
+					<h2 className="font-heading text-xl font-semibold">
 						<T>Team members</T>
 					</h2>
 					<p className="text-sm text-muted-foreground">
@@ -352,7 +352,7 @@ function MembersSettings(props: { readonly team: string }) {
 
 					<section className="py-6">
 						<div className="space-y-1">
-							<h2 className="text-lg font-semibold">
+							<h2 className="font-heading text-xl font-semibold">
 								<T>Add organization members</T>
 							</h2>
 							<p className="text-sm text-muted-foreground">

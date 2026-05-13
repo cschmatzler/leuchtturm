@@ -175,7 +175,7 @@ function Page() {
 			<section className="py-6">
 				<div className="flex items-start justify-between gap-4">
 					<div className="space-y-1">
-						<h2 className="text-lg font-semibold">
+						<h2 className="font-heading text-xl font-semibold">
 							<T>Teams</T>
 						</h2>
 						<p className="text-sm text-muted-foreground">
