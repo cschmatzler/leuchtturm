@@ -7,7 +7,6 @@ import { toast } from "sonner";
 
 import { DEFAULT_LANGUAGE, resolveLanguage, SupportedLanguage } from "@leuchtturm/core/i18n";
 import { authClient } from "@leuchtturm/web/clients/auth";
-import { Loading } from "@leuchtturm/web/components/app/loading";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { FieldDescription, FieldError, FieldLabel } from "@leuchtturm/web/components/ui/field";
 import { Input } from "@leuchtturm/web/components/ui/input";
@@ -20,6 +19,7 @@ import {
 	SelectValue,
 } from "@leuchtturm/web/components/ui/select";
 import { Separator } from "@leuchtturm/web/components/ui/separator";
+import { Skeleton } from "@leuchtturm/web/components/ui/skeleton";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { queries } from "@leuchtturm/zero/queries";
 
@@ -72,7 +72,23 @@ function PreferencesSection() {
 		},
 	});
 
-	if (!currentUser) return <Loading />;
+	if (!currentUser) {
+		return (
+			<section className="space-y-5">
+				<div className="space-y-2">
+					<Skeleton className="h-5 w-32" />
+					<Skeleton className="h-4 w-44" />
+				</div>
+				<div className="grid gap-x-10 gap-y-2 lg:grid-cols-[1fr_2fr]">
+					<div className="space-y-2">
+						<Skeleton className="h-4 w-20" />
+						<Skeleton className="h-4 w-56" />
+					</div>
+					<Skeleton className="h-7 w-[200px]" />
+				</div>
+			</section>
+		);
+	}
 
 	return (
 		<section>
@@ -251,7 +267,25 @@ function TwoFactorAuthenticationSection() {
 		},
 	});
 
-	if (!currentUser) return <Loading />;
+	if (!currentUser) {
+		return (
+			<section className="space-y-5">
+				<div className="space-y-2">
+					<Skeleton className="h-5 w-48" />
+					<Skeleton className="h-4 w-80" />
+				</div>
+				<div className="grid gap-x-10 gap-y-2 lg:grid-cols-[1fr_2fr]">
+					<div className="space-y-2">
+						<Skeleton className="h-4 w-16" />
+						<Skeleton className="h-4 w-56" />
+					</div>
+					<div className="flex justify-end">
+						<Skeleton className="h-7 w-20" />
+					</div>
+				</div>
+			</section>
+		);
+	}
 
 	return (
 		<section>
