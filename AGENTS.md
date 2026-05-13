@@ -10,7 +10,9 @@
 
 # Resources
 
-- Use the Executor MCP wherever you can. It gives you access to infrastructure such as Cloudflare and PlanetScale and analytics such as Grafana and PostHog.
+- Use the Executor MCP wherever you can.
+- Through Executor, you have access to Context7 for documentation for libraries, and to Exa for web search.
+- It also gives you access to infrastructure such as Cloudflare and PlanetScale and analytics such as Grafana and PostHog.
 
 # Style
 
