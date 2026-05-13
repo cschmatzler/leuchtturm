@@ -202,7 +202,7 @@ function Page() {
 									className="w-full"
 									onClick={() => navigate({ to: "/login", search: { password: false } })}
 								>
-									<T>Send me a link</T>
+									<T>Use magic link</T>
 								</Button>
 							</>
 						) : (
