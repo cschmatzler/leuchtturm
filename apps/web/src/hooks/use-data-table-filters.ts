@@ -1,20 +1,12 @@
 import { useMemo, useState, type Dispatch, type SetStateAction } from "react";
 
-import {
-	createDateFilterValue,
-	createNumberFilterValue,
-} from "@leuchtturm/web/components/data-table-filter/filter-values";
+import { updateFilters } from "@leuchtturm/web/components/data-table-filter/filter-state";
 import { createFilterColumns } from "@leuchtturm/web/components/data-table-filter/filters";
 import {
 	isColumnOptionArray,
 	isColumnOptionMap,
 	isMinMaxTuple,
 } from "@leuchtturm/web/components/data-table-filter/guards";
-import {
-	dateFilterOperators,
-	DEFAULT_OPERATORS,
-	determineNewOperator,
-} from "@leuchtturm/web/components/data-table-filter/operators";
 import type {
 	ColumnConfig,
 	ColumnDataType,
@@ -27,7 +19,6 @@ import type {
 	OptionBasedColumnDataType,
 	OptionColumnIds,
 } from "@leuchtturm/web/components/data-table-filter/types";
-import { addUniq, removeUniq, uniq } from "@leuchtturm/web/lib/array";
 
 export interface DataTableFiltersOptions<
 	TData,
@@ -45,84 +36,6 @@ export interface DataTableFiltersOptions<
 		| Record<OptionColumnIds<TColumns>, Map<string, number> | undefined>
 		| Record<NumberColumnIds<TColumns>, [number, number] | undefined>
 	>;
-}
-
-function normalizeFilterModelValues<TType extends ColumnDataType>(
-	type: TType,
-	values: FilterModel<TType>["values"],
-): FilterModel<TType>["values"] {
-	if (type === "number") {
-		return createNumberFilterValue(
-			values as FilterModel<"number">["values"],
-		) as FilterModel<TType>["values"];
-	}
-
-	if (type === "date") {
-		return createDateFilterValue(
-			values as Parameters<typeof createDateFilterValue>[0],
-		) as FilterModel<TType>["values"];
-	}
-
-	return uniq(values) as FilterModel<TType>["values"];
-}
-
-function updateOptionFilterValues<TData, TType extends OptionBasedColumnDataType>({
-	previousFilters,
-	column,
-	values,
-	mode,
-}: {
-	previousFilters: FiltersState;
-	column: ColumnConfig<TData, TType>;
-	values: FilterModel<TType>["values"];
-	mode: "add" | "remove";
-}) {
-	const filter = previousFilters.find((currentFilter) => currentFilter.columnId === column.id);
-
-	if (!filter) {
-		if (mode === "remove") {
-			return [...previousFilters];
-		}
-
-		return [
-			...previousFilters,
-			{
-				columnId: column.id,
-				type: column.type,
-				operator:
-					values.length > 1
-						? DEFAULT_OPERATORS[column.type].multiple
-						: DEFAULT_OPERATORS[column.type].single,
-				values,
-			},
-		];
-	}
-
-	const previousValues = filter.values;
-	const nextValues =
-		mode === "add" ? addUniq(filter.values, values) : removeUniq(filter.values, values);
-
-	if (nextValues.length === 0) {
-		return previousFilters.filter((currentFilter) => currentFilter.columnId !== column.id);
-	}
-
-	const nextOperator = determineNewOperator(
-		column.type,
-		previousValues,
-		nextValues,
-		filter.operator,
-	);
-
-	return previousFilters.map((currentFilter) =>
-		currentFilter.columnId === column.id
-			? {
-					columnId: column.id,
-					type: column.type,
-					operator: nextOperator,
-					values: nextValues,
-				}
-			: currentFilter,
-	);
 }
 
 export function useDataTableFilters<
@@ -195,108 +108,33 @@ export function useDataTableFilters<
 				column: ColumnConfig<TData, TType>,
 				values: FilterModel<TType>["values"],
 			) {
-				if (column.type === "option" || column.type === "multiOption") {
-					setFilters((prev) => {
-						return updateOptionFilterValues({
-							previousFilters: prev,
-							column,
-							values,
-							mode: "add",
-						});
-					});
-					return;
-				}
-				throw new Error(
-					"[data-table-filter] addFilterValue() is only supported for option columns",
-				);
+				setFilters((prev) => updateFilters(prev, { type: "addFilterValue", column, values }));
 			},
 			removeFilterValue<TData, TType extends OptionBasedColumnDataType>(
 				column: ColumnConfig<TData, TType>,
-				value: FilterModel<TType>["values"],
+				values: FilterModel<TType>["values"],
 			) {
-				if (column.type === "option" || column.type === "multiOption") {
-					setFilters((prev) => {
-						return updateOptionFilterValues({
-							previousFilters: prev,
-							column,
-							values: value,
-							mode: "remove",
-						});
-					});
-					return;
-				}
-				throw new Error(
-					"[data-table-filter] removeFilterValue() is only supported for option columns",
-				);
+				setFilters((prev) => updateFilters(prev, { type: "removeFilterValue", column, values }));
 			},
 			setFilterValue<TData, TType extends ColumnDataType>(
 				column: ColumnConfig<TData, TType>,
 				values: FilterModel<TType>["values"],
 			) {
-				setFilters((prev) => {
-					const filter = prev.find((f) => f.columnId === column.id);
-					const isColumnFiltered = filter && filter.values.length > 0;
-					const newValues = normalizeFilterModelValues(column.type, values);
-					if (newValues.length === 0) return prev;
-					if (!isColumnFiltered) {
-						return [
-							...prev,
-							{
-								columnId: column.id,
-								type: column.type,
-								operator:
-									values.length > 1
-										? DEFAULT_OPERATORS[column.type].multiple
-										: DEFAULT_OPERATORS[column.type].single,
-								values: newValues,
-							},
-						];
-					}
-					const oldValues = filter.values;
-					const newOperator = determineNewOperator(
-						column.type,
-						oldValues,
-						newValues,
-						filter.operator,
-					);
-					const newFilter = {
-						columnId: column.id,
-						type: column.type,
-						operator: newOperator,
-						values: newValues,
-					} satisfies FilterModel<TType>;
-					return prev.map((f) => (f.columnId === column.id ? newFilter : f));
-				});
+				setFilters((prev) => updateFilters(prev, { type: "setFilterValue", column, values }));
 			},
 			setFilterOperator<TType extends ColumnDataType>(
 				columnId: string,
 				operator: FilterModel<TType>["operator"],
 			) {
 				setFilters((prev) =>
-					prev.map((f) => {
-						if (f.columnId !== columnId) return f;
-
-						if (f.type === "date") {
-							const target =
-								dateFilterOperators[operator as FilterModel<"date">["operator"]].target;
-							const nextValues =
-								target === "single" && f.values.length > 1 ? f.values.slice(0, 1) : f.values;
-							return {
-								...f,
-								operator,
-								values: nextValues as FilterModel<TType>["values"],
-							};
-						}
-
-						return { ...f, operator };
-					}),
+					updateFilters(prev, { type: "setFilterOperator", columnId, operator }),
 				);
 			},
 			removeFilter(columnId: string) {
-				setFilters((prev) => prev.filter((f) => f.columnId !== columnId));
+				setFilters((prev) => updateFilters(prev, { type: "removeFilter", columnId }));
 			},
 			removeAllFilters() {
-				setFilters([]);
+				setFilters((prev) => updateFilters(prev, { type: "removeAllFilters" }));
 			},
 		}),
 		[setFilters],
