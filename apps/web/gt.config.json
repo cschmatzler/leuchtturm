@@ -1,14 +1,22 @@
 {
-	"$schema": "https://assets.gtx.dev/config-schema.json",
-	"defaultLocale": "en",
-	"locales": ["de", "es", "fr", "it", "sq"],
-	"framework": "react",
-	"skipVersionCheck": true,
-	"src": ["src/**/*.{ts,tsx}"],
-	"files": {
-		"gt": {
-			"output": "src/_gt/[locale].json"
-		}
-	},
-	"_versionId": "114638a2f86e5e23e8cb05baa68fe69f838f6c5049d3e840082013cff9698590"
+  "$schema": "https://assets.gtx.dev/config-schema.json",
+  "defaultLocale": "en",
+  "locales": [
+    "de",
+    "es",
+    "fr",
+    "it",
+    "sq"
+  ],
+  "framework": "react",
+  "skipVersionCheck": true,
+  "src": [
+    "src/**/*.{ts,tsx}"
+  ],
+  "files": {
+    "gt": {
+      "output": "src/_gt/[locale].json"
+    }
+  },
+  "_versionId": "44edc2603f46d835a0ef0a40bb8995430081915c1b49a94793b28a1068a94576"
 }

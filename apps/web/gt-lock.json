@@ -1,39 +1,39 @@
 {
-	"version": 2,
-	"branchId": "",
-	"entries": [
-		{
-			"fileId": "879f3a5f954ee8b75bf1e91f4ea9916b41c933e5beba7eb6362647a637c9c66d",
-			"versionId": "114638a2f86e5e23e8cb05baa68fe69f838f6c5049d3e840082013cff9698590",
-			"translations": {
-				"it": {
-					"updatedAt": "2026-05-09T07:59:05.894Z",
-					"fileName": "/home/cschmatzler/Projects/Personal/leuchtturm/apps/web/src/_gt/it.json",
-					"postProcessHash": "a35231966349b6b6062fbec8eb4920c4491f0f575f8137a457bfcde0420d3036"
-				},
-				"de": {
-					"updatedAt": "2026-05-09T07:59:05.897Z",
-					"fileName": "/home/cschmatzler/Projects/Personal/leuchtturm/apps/web/src/_gt/de.json",
-					"postProcessHash": "44ff5dd0d1bf02b28c6866a9fd0100bc3f1c9f79426d1485d6d2ceec6045c264"
-				},
-				"es": {
-					"updatedAt": "2026-05-09T07:59:05.900Z",
-					"fileName": "/home/cschmatzler/Projects/Personal/leuchtturm/apps/web/src/_gt/es.json",
-					"postProcessHash": "4fbe209f6b89a91f34eac8b1a84c24146a593adad3eb4582221ecef12a7d5586"
-				},
-				"fr": {
-					"updatedAt": "2026-05-09T07:59:05.901Z",
-					"fileName": "/home/cschmatzler/Projects/Personal/leuchtturm/apps/web/src/_gt/fr.json",
-					"postProcessHash": "e7f1d067337932150381375678368bdf4e88984aca9eb6b12dbeb94efb9636d8"
-				},
-				"sq": {
-					"updatedAt": "2026-05-09T07:59:05.904Z",
-					"fileName": "/home/cschmatzler/Projects/Personal/leuchtturm/apps/web/src/_gt/sq.json",
-					"postProcessHash": "93490fc00d69f3f91396c59e979d7b06d0182ae0561d3df0f40c798c8667a606"
-				}
-			},
-			"fileName": "__INTERNAL_GT_TEMPLATE_NAME__",
-			"staged": false
-		}
-	]
+  "version": 2,
+  "branchId": "",
+  "entries": [
+    {
+      "fileId": "879f3a5f954ee8b75bf1e91f4ea9916b41c933e5beba7eb6362647a637c9c66d",
+      "versionId": "44edc2603f46d835a0ef0a40bb8995430081915c1b49a94793b28a1068a94576",
+      "translations": {
+        "it": {
+          "updatedAt": "2026-05-13T09:40:37.280Z",
+          "fileName": "/home/cschmatzler/Projects/Personal/leuchtturm/apps/web/src/_gt/it.json",
+          "postProcessHash": "f48a276f6497d53aadf586c2b2e26cf3f520bf9c98d7d317b38585906d88c61c"
+        },
+        "es": {
+          "updatedAt": "2026-05-13T09:40:37.281Z",
+          "fileName": "/home/cschmatzler/Projects/Personal/leuchtturm/apps/web/src/_gt/es.json",
+          "postProcessHash": "6aaa61d5e9bfd4b734712c44ceabb520dfbffcc0bfdb7a5395cf36e6dae2aa07"
+        },
+        "sq": {
+          "updatedAt": "2026-05-13T09:40:37.285Z",
+          "fileName": "/home/cschmatzler/Projects/Personal/leuchtturm/apps/web/src/_gt/sq.json",
+          "postProcessHash": "3124dd9e673614481085a891188f03e8f881db5805ba625a8f8437ab710989a6"
+        },
+        "fr": {
+          "updatedAt": "2026-05-13T09:40:37.287Z",
+          "fileName": "/home/cschmatzler/Projects/Personal/leuchtturm/apps/web/src/_gt/fr.json",
+          "postProcessHash": "3a9eca0780b7d68a11dac099266804a33e9659c2895fa3d5fc719f0fdcdc9fc3"
+        },
+        "de": {
+          "updatedAt": "2026-05-13T09:40:37.290Z",
+          "fileName": "/home/cschmatzler/Projects/Personal/leuchtturm/apps/web/src/_gt/de.json",
+          "postProcessHash": "74ce4fdb118fb07e303251dbf5c6f0b7a4b2c1530c45b582acbf00c18f7abfc0"
+        }
+      },
+      "fileName": "__INTERNAL_GT_TEMPLATE_NAME__",
+      "staged": false
+    }
+  ]
 }
