@@ -4,7 +4,18 @@
 	...
 }: {
 	packages = [
-		pkgs.aube
+		(pkgs.rustPlatform.buildRustPackage rec {
+			pname = "aube";
+			version = "1.12.0";
+
+			src = pkgs.fetchCrate {
+				inherit pname version;
+				hash = "sha256-kfq1qRjSXtSyUK6z6UNQnQiDpDTrZ12kmm5wrReEe8Q=";
+			};
+
+			cargoHash = "sha256-ytJ6LIz165g7g+rwRZldIyDcTfwdiVGDrNPDAQyWwc0=";
+			nativeBuildInputs = [pkgs.cmake pkgs.pkg-config];
+		})
 		pkgs.hurl
 		pkgs.treefmt
 		pkgs.cloudflared
