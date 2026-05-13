@@ -9,9 +9,9 @@ if set -q STAGE
 end
 
 set base_url https://api.$stage.leuchtturm.dev
-set auth_email api-test@leuchtturm.dev
+set auth_email hurl@leuchtturm.dev
 set auth_password api-test-password
-set organization_id org_01KQCM8F5VKQW180D65BWXDN8N
+set organization_id org_01KRGY2EF40Y4QAG4MGQ9B9YMP
 set cookie_jar (mktemp)
 set authenticated_tests tests/api/authenticated/*.hurl
 set authenticated_tests (string match --invert tests/api/authenticated/sign-in.hurl $authenticated_tests)
