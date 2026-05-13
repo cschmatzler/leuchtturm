@@ -140,17 +140,10 @@ function Page() {
 											value={field.state.value}
 											onBlur={field.handleBlur}
 											onInput={(event) => {
-												form.setFieldMeta("name", (previous) => ({
-													...previous,
-													errorMap: {
-														...previous.errorMap,
-														onSubmit: undefined,
-													},
-												}));
 												field.handleChange(event.currentTarget.value);
 											}}
 										/>
-										<Show when={field.state.meta.errors.length > 0}>
+										<Show when={field.state.meta.isDirty && field.state.meta.errors.length > 0}>
 											<FieldError className="mt-2">
 												{field.state.meta.errors[0]?.message}
 											</FieldError>
