@@ -20,6 +20,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@leuchtturm/web/components/ui/select";
+import { Separator } from "@leuchtturm/web/components/ui/separator";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { queries } from "@leuchtturm/zero/queries";
 
@@ -64,6 +65,7 @@ function Page() {
 	const [twoFactorPassword, setTwoFactorPassword] = useState("");
 	const [twoFactorCode, setTwoFactorCode] = useState("");
 	const [twoFactorError, setTwoFactorError] = useState<string>();
+	const [twoFactorAction, setTwoFactorAction] = useState<"enable" | "disable" | "regenerate">();
 	const [isTwoFactorSubmitting, setIsTwoFactorSubmitting] = useState(false);
 	const [totpURI, setTotpURI] = useState<string>();
 	const [pendingBackupCodes, setPendingBackupCodes] = useState<string[]>();
@@ -102,6 +104,7 @@ function Page() {
 		}
 
 		setTotpURI(data.totpURI);
+		setTwoFactorPassword("");
 		setPendingBackupCodes(data.backupCodes);
 		setBackupCodes(undefined);
 		toast.success(t("Scan the authenticator setup code to finish enabling 2FA"));
@@ -119,6 +122,7 @@ function Page() {
 		}
 
 		setTwoFactorEnabled(true);
+		setTwoFactorAction(undefined);
 		setTwoFactorPassword("");
 		setTwoFactorCode("");
 		setTotpURI(undefined);
@@ -142,6 +146,7 @@ function Page() {
 		}
 
 		setTwoFactorEnabled(false);
+		setTwoFactorAction(undefined);
 		setTwoFactorPassword("");
 		setPendingBackupCodes(undefined);
 		setBackupCodes(undefined);
@@ -163,6 +168,7 @@ function Page() {
 		}
 
 		setBackupCodes(data.backupCodes);
+		setTwoFactorAction(undefined);
 		setTwoFactorPassword("");
 		toast.success(t("Backup codes regenerated"));
 	};
@@ -247,25 +253,82 @@ function Page() {
 						</p>
 					</div>
 					<div className="mt-5 space-y-6">
-						<div className="grid gap-x-10 gap-y-2 lg:grid-cols-[1fr_2fr]">
-							<div>
-								<FieldLabel htmlFor="two-factor-password">
-									<T>Password</T>
-								</FieldLabel>
-							</div>
-							<div>
-								<Input
-									id="two-factor-password"
-									type="password"
-									autoComplete="current-password"
-									value={twoFactorPassword}
-									onInput={(event) => setTwoFactorPassword(event.currentTarget.value)}
-									className="max-w-sm"
-									disabled={!currentUser || isTwoFactorSubmitting}
-								/>
-								{twoFactorError ? <FieldError className="mt-2">{twoFactorError}</FieldError> : null}
-							</div>
-						</div>
+						{twoFactorAction && !totpURI ? (
+							<>
+								<div className="grid gap-x-10 gap-y-2 lg:grid-cols-[1fr_2fr]">
+									<div>
+										<FieldLabel htmlFor="two-factor-password">
+											<T>Password</T>
+										</FieldLabel>
+									</div>
+									<div>
+										<Input
+											id="two-factor-password"
+											type="password"
+											autoComplete="current-password"
+											value={twoFactorPassword}
+											onInput={(event) => setTwoFactorPassword(event.currentTarget.value)}
+											className="max-w-sm"
+											disabled={!currentUser || isTwoFactorSubmitting}
+										/>
+										{twoFactorError ? (
+											<FieldError className="mt-2">{twoFactorError}</FieldError>
+										) : null}
+									</div>
+								</div>
+								<div className="flex justify-end gap-2">
+									<Button
+										type="button"
+										variant="outline"
+										onClick={() => {
+											setTwoFactorAction(undefined);
+											setTwoFactorPassword("");
+											setTwoFactorError(undefined);
+										}}
+										disabled={isTwoFactorSubmitting}
+									>
+										<T>Cancel</T>
+									</Button>
+									{twoFactorAction === "enable" ? (
+										<Button
+											type="button"
+											onClick={enableTwoFactor}
+											disabled={!currentUser || isTwoFactorSubmitting}
+										>
+											{isTwoFactorSubmitting ? (
+												<SpinnerIcon className="size-4 animate-spin" />
+											) : null}
+											<T>Continue</T>
+										</Button>
+									) : null}
+									{twoFactorAction === "regenerate" ? (
+										<Button
+											type="button"
+											onClick={regenerateBackupCodes}
+											disabled={!currentUser || isTwoFactorSubmitting}
+										>
+											{isTwoFactorSubmitting ? (
+												<SpinnerIcon className="size-4 animate-spin" />
+											) : null}
+											<T>Regenerate backup codes</T>
+										</Button>
+									) : null}
+									{twoFactorAction === "disable" ? (
+										<Button
+											type="button"
+											variant="destructive"
+											onClick={disableTwoFactor}
+											disabled={!currentUser || isTwoFactorSubmitting}
+										>
+											{isTwoFactorSubmitting ? (
+												<SpinnerIcon className="size-4 animate-spin" />
+											) : null}
+											<T>Disable 2FA</T>
+										</Button>
+									) : null}
+								</div>
+							</>
+						) : null}
 						{totpURI ? (
 							<>
 								<div className="grid gap-x-10 gap-y-2 lg:grid-cols-[1fr_2fr]">
@@ -284,24 +347,33 @@ function Page() {
 											<QRCodeSVG value={totpURI} size={180} />
 										</div>
 										{totpSecret ? (
-											<div className="flex max-w-sm gap-2">
-												<Input
-													readOnly
-													aria-label={t("Secret key")}
-													value={totpSecret}
-													className="font-mono"
-												/>
-												<Button
-													type="button"
-													variant="outline"
-													onClick={() => {
-														void navigator.clipboard.writeText(totpSecret);
-														toast.success(t("Secret key copied"));
-													}}
-												>
-													<T>Copy</T>
-												</Button>
-											</div>
+											<>
+												<div className="flex max-w-sm items-center gap-3 text-xs text-muted-foreground">
+													<Separator />
+													<span>
+														<T>or</T>
+													</span>
+													<Separator />
+												</div>
+												<div className="flex max-w-sm gap-2">
+													<Input
+														readOnly
+														aria-label={t("Secret key")}
+														value={totpSecret}
+														className="font-mono"
+													/>
+													<Button
+														type="button"
+														variant="outline"
+														onClick={() => {
+															void navigator.clipboard.writeText(totpSecret);
+															toast.success(t("Secret key copied"));
+														}}
+													>
+														<T>Copy</T>
+													</Button>
+												</div>
+											</>
 										) : null}
 										<Input
 											id="two-factor-code"
@@ -309,10 +381,16 @@ function Page() {
 											autoComplete="one-time-code"
 											placeholder={t("Authentication code")}
 											value={twoFactorCode}
-											onInput={(event) => setTwoFactorCode(event.currentTarget.value)}
+											onInput={(event) => {
+												setTwoFactorError(undefined);
+												setTwoFactorCode(event.currentTarget.value);
+											}}
 											disabled={isTwoFactorSubmitting}
 											className="max-w-sm"
 										/>
+										{twoFactorError ? (
+											<FieldError className="mt-2">{twoFactorError}</FieldError>
+										) : null}
 									</div>
 								</div>
 								<div className="flex justify-end gap-2">
@@ -320,6 +398,9 @@ function Page() {
 										type="button"
 										variant="outline"
 										onClick={() => {
+											setTwoFactorAction(undefined);
+											setTwoFactorCode("");
+											setTwoFactorError(undefined);
 											setTotpURI(undefined);
 											setPendingBackupCodes(undefined);
 										}}
@@ -327,13 +408,17 @@ function Page() {
 									>
 										<T>Cancel</T>
 									</Button>
-									<Button type="button" onClick={verifyTwoFactor} disabled={!twoFactorCode}>
+									<Button
+										type="button"
+										onClick={verifyTwoFactor}
+										disabled={!twoFactorCode || isTwoFactorSubmitting}
+									>
 										{isTwoFactorSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : null}
 										<T>Verify and enable</T>
 									</Button>
 								</div>
 							</>
-						) : (
+						) : !twoFactorAction ? (
 							<div className="grid gap-x-10 gap-y-2 lg:grid-cols-[1fr_2fr]">
 								<div>
 									<FieldLabel>
@@ -347,13 +432,16 @@ function Page() {
 										)}
 									</FieldDescription>
 								</div>
-								<div className="flex flex-wrap gap-2">
+								<div className="flex flex-wrap justify-end gap-2">
 									{isTwoFactorEnabled ? (
 										<>
 											<Button
 												type="button"
 												variant="outline"
-												onClick={regenerateBackupCodes}
+												onClick={() => {
+													setTwoFactorAction("regenerate");
+													setTwoFactorError(undefined);
+												}}
 												disabled={!currentUser || isTwoFactorSubmitting}
 											>
 												<T>Regenerate backup codes</T>
@@ -361,7 +449,10 @@ function Page() {
 											<Button
 												type="button"
 												variant="destructive"
-												onClick={disableTwoFactor}
+												onClick={() => {
+													setTwoFactorAction("disable");
+													setTwoFactorError(undefined);
+												}}
 												disabled={!currentUser || isTwoFactorSubmitting}
 											>
 												<T>Disable 2FA</T>
@@ -370,19 +461,19 @@ function Page() {
 									) : (
 										<Button
 											type="button"
-											onClick={enableTwoFactor}
+											onClick={() => {
+												setTwoFactorAction("enable");
+												setTwoFactorError(undefined);
+											}}
 											disabled={!currentUser || isTwoFactorSubmitting}
 										>
-											{isTwoFactorSubmitting ? (
-												<SpinnerIcon className="size-4 animate-spin" />
-											) : null}
 											<T>Enable 2FA</T>
 										</Button>
 									)}
 								</div>
 							</div>
-						)}
-						{backupCodes ? (
+						) : null}
+						{backupCodes && !twoFactorAction && !totpURI ? (
 							<div className="grid gap-x-10 gap-y-2 lg:grid-cols-[1fr_2fr]">
 								<div>
 									<FieldLabel>
