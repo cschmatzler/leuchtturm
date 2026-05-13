@@ -7,13 +7,14 @@ import { UserCircleGearIcon } from "@phosphor-icons/react/UserCircleGear";
 import { UsersThreeIcon } from "@phosphor-icons/react/UsersThree";
 import { XCircleIcon } from "@phosphor-icons/react/XCircle";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, stripSearchParams } from "@tanstack/react-router";
 import {
 	getCoreRowModel,
 	getFilteredRowModel,
 	useReactTable,
 	type ColumnDef,
 } from "@tanstack/react-table";
+import * as Schema from "effect/Schema";
 import { T, useGT, Var } from "gt-react";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -56,10 +57,20 @@ import {
 import { Show } from "@leuchtturm/web/components/ui/flow";
 import { ZeroProvider } from "@leuchtturm/web/contexts/zero";
 import { useDataTableFilters } from "@leuchtturm/web/hooks/use-data-table-filters";
+import { useSearchFilters } from "@leuchtturm/web/hooks/use-search-filters";
+import { filtersStateSchema } from "@leuchtturm/web/lib/search-params";
 import { adminUsersQuery, type AdminUser } from "@leuchtturm/web/queries/admin-users";
 import { sessionQuery } from "@leuchtturm/web/queries/session";
 
 export const Route = createFileRoute("/admin/users")({
+	validateSearch: Schema.toStandardSchemaV1(
+		Schema.Struct({
+			filters: filtersStateSchema,
+		}),
+	),
+	search: {
+		middlewares: [stripSearchParams({ filters: [] })],
+	},
 	beforeLoad: async ({ context: { queryClient } }) => {
 		const session = await queryClient.ensureQueryData(sessionQuery());
 		if (!session) {
@@ -88,6 +99,7 @@ function AdminUsersPage() {
 	const queryClient = useQueryClient();
 	const { data: session } = useQuery(sessionQuery());
 	const { data: users = [] } = useQuery(adminUsersQuery());
+	const [searchFilters, setSearchFilters] = useSearchFilters({ route: Route });
 
 	const t = useGT();
 
@@ -264,6 +276,8 @@ function AdminUsersPage() {
 	const filters = useDataTableFilters({
 		data: users,
 		filterDefinitions,
+		filters: searchFilters,
+		onFiltersChange: setSearchFilters,
 	});
 	const tableColumns = useMemo(
 		() => createTanStackColumns({ columns, filterColumns: filters.filterColumns }),

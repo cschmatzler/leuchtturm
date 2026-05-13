@@ -1,8 +1,20 @@
+import * as Effect from "effect/Effect";
+import * as Schema from "effect/Schema";
+
 import type {
 	ColumnDataType,
 	FilterModel,
 	FiltersState,
 } from "@leuchtturm/web/components/data-table-filter/types";
+
+export const filtersStateSchema = Schema.Array(
+	Schema.Struct({
+		columnId: Schema.String,
+		type: Schema.Literals(["text", "number", "date", "option", "multiOption"]),
+		operator: Schema.String,
+		values: Schema.Array(Schema.Any),
+	}),
+).pipe(Schema.optional, Schema.withDecodingDefault(Effect.succeed([])));
 
 const TYPE_CODES = {
 	text: "t",
