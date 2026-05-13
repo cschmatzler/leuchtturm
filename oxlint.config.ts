@@ -21,10 +21,6 @@ const localRules = [
 	"no-vi-mock",
 ] as const;
 
-const rootLocalRules = localRules.filter(
-	(rule) => rule !== "no-direct-fetch" && rule !== "no-namespace-imports",
-);
-
 export default defineConfig({
 	plugins: ["eslint", "typescript", "unicorn", "react", "react-perf", "oxc", "import"],
 	options: {
@@ -42,7 +38,22 @@ export default defineConfig({
 		"packages/oxlint-plugins/**",
 	],
 	rules: {
-		...Object.fromEntries(rootLocalRules.map((rule) => [`${rule}/${rule}`, "error"] as const)),
+		"consistent-component-hook-groups/consistent-component-hook-groups": "error",
+		"namespace-filename-match/namespace-filename-match": "error",
+		"no-api-response-schema-in-core/no-api-response-schema-in-core": "error",
+		"no-effect-try-helper/no-effect-try-helper": "error",
+		"no-generic-domain-error-class/no-generic-domain-error-class": "error",
+		"no-live-suffix/no-live-suffix": "error",
+		"no-local-effect-callback-wrapper/no-local-effect-callback-wrapper": "error",
+		"no-local-web-schema/no-local-web-schema": "error",
+		"no-non-exact-package-json-versions/no-non-exact-package-json-versions": "error",
+		"no-phosphor-top-level-import/no-phosphor-top-level-import": "error",
+		"no-relative-imports/no-relative-imports": "error",
+		"no-row-suffix/no-row-suffix": "error",
+		"no-schema-type-alias/no-schema-type-alias": "error",
+		"no-use-params-strict-false/no-use-params-strict-false": "error",
+		"no-variable-alias/no-variable-alias": "error",
+		"no-vi-mock/no-vi-mock": "error",
 		"@typescript-eslint/no-floating-promises": "off",
 		"@typescript-eslint/unbound-method": "off",
 		"eslint/no-unused-vars": "off",
