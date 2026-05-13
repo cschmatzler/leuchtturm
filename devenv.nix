@@ -3,19 +3,21 @@
 	config,
 	...
 }: {
+	# Use nixpkgs aube once > 1.10
 	packages = [
 		(pkgs.rustPlatform.buildRustPackage rec {
-			pname = "aube";
-			version = "1.12.0";
+				pname = "aube";
+				version = "1.12.0";
 
-			src = pkgs.fetchCrate {
-				inherit pname version;
-				hash = "sha256-kfq1qRjSXtSyUK6z6UNQnQiDpDTrZ12kmm5wrReEe8Q=";
-			};
+				src =
+					pkgs.fetchCrate {
+						inherit pname version;
+						hash = "sha256-kfq1qRjSXtSyUK6z6UNQnQiDpDTrZ12kmm5wrReEe8Q=";
+					};
 
-			cargoHash = "sha256-ytJ6LIz165g7g+rwRZldIyDcTfwdiVGDrNPDAQyWwc0=";
-			nativeBuildInputs = [pkgs.cmake pkgs.pkg-config];
-		})
+				cargoHash = "sha256-ytJ6LIz165g7g+rwRZldIyDcTfwdiVGDrNPDAQyWwc0=";
+				nativeBuildInputs = [pkgs.cmake pkgs.pkg-config];
+			})
 		pkgs.hurl
 		pkgs.treefmt
 		pkgs.cloudflared
