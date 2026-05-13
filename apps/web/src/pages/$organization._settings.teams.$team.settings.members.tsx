@@ -3,13 +3,14 @@ import { PlusIcon } from "@phosphor-icons/react/Plus";
 import { ShieldIcon } from "@phosphor-icons/react/Shield";
 import { TrashIcon } from "@phosphor-icons/react/Trash";
 import { UserIcon } from "@phosphor-icons/react/User";
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, stripSearchParams } from "@tanstack/react-router";
 import {
 	getCoreRowModel,
 	getFilteredRowModel,
 	useReactTable,
 	type ColumnDef,
 } from "@tanstack/react-table";
+import * as Schema from "effect/Schema";
 import { T, useGT } from "gt-react";
 import { toast } from "sonner";
 
@@ -25,7 +26,9 @@ import { Badge } from "@leuchtturm/web/components/ui/badge";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { Show } from "@leuchtturm/web/components/ui/flow";
 import { useDataTableFilters } from "@leuchtturm/web/hooks/use-data-table-filters";
+import { useSearchFilters } from "@leuchtturm/web/hooks/use-search-filters";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
+import { filtersStateSchema } from "@leuchtturm/web/lib/search-params";
 import { queries } from "@leuchtturm/zero/queries";
 
 const ROLE_OPTIONS = Role.literals.map((role) => ({
@@ -34,8 +37,18 @@ const ROLE_OPTIONS = Role.literals.map((role) => ({
 }));
 
 const formatRole = (role: string) => `${role.charAt(0).toUpperCase()}${role.slice(1)}`;
+const searchDefaults = { tmfilters: [], amfilters: [] };
 
 export const Route = createFileRoute("/$organization/_settings/teams/$team/settings/members")({
+	validateSearch: Schema.toStandardSchemaV1(
+		Schema.Struct({
+			tmfilters: filtersStateSchema,
+			amfilters: filtersStateSchema,
+		}),
+	),
+	search: {
+		middlewares: [stripSearchParams(searchDefaults)],
+	},
 	loader: async ({ context: { organizationId, zero }, params }) => {
 		if (!zero) return;
 
@@ -73,6 +86,11 @@ function TeamMembersSection() {
 	const [teamMembers] = useZeroQuery(queries.teamMembersByTeam({ organizationId, team }));
 
 	const t = useGT();
+
+	const [searchFilters, setSearchFilters] = useSearchFilters({
+		route: Route,
+		key: "tmfilters",
+	});
 
 	const teamMemberFilters = useDataTableFilters({
 		data: teamMembers,
@@ -113,6 +131,8 @@ function TeamMembersSection() {
 				options: ROLE_OPTIONS,
 			},
 		] satisfies ColumnConfig<(typeof teamMembers)[number]>[],
+		filters: searchFilters,
+		onFiltersChange: setSearchFilters,
 	});
 
 	const teamMemberTable = useReactTable({
@@ -259,6 +279,11 @@ function AddOrganizationMembersSection() {
 
 	const t = useGT();
 
+	const [searchFilters, setSearchFilters] = useSearchFilters({
+		route: Route,
+		key: "amfilters",
+	});
+
 	const availableMembers = organizationMembers.filter(
 		(member) => !teamMembers.some((teamMember) => teamMember.userId === member.userId),
 	);
@@ -289,6 +314,8 @@ function AddOrganizationMembersSection() {
 				options: ROLE_OPTIONS,
 			},
 		] satisfies ColumnConfig<(typeof availableMembers)[number]>[],
+		filters: searchFilters,
+		onFiltersChange: setSearchFilters,
 	});
 
 	const availableMemberTable = useReactTable({
