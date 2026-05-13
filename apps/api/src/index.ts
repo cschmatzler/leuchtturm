@@ -44,20 +44,17 @@ const apiRoutes = Layer.mergeAll(
 	HttpApiScalar.layerCdn(Contract.Api, {
 		path: "/docs",
 		scalar: {
-			// @ts-expect-error: Scalar supports sources, but Effect's wrapper type does not include it.
 			sources: [
 				{
 					title: "Leuchtturm",
 					slug: "leuchtturm",
 					url: "/open-api",
-					content: null,
 					default: true,
 				},
 				{
 					title: "Better Auth",
 					slug: "auth",
 					url: "/auth/open-api/generate-schema",
-					content: null,
 				},
 			],
 		},
