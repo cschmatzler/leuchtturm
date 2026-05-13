@@ -4,32 +4,32 @@
 	"entries": [
 		{
 			"fileId": "879f3a5f954ee8b75bf1e91f4ea9916b41c933e5beba7eb6362647a637c9c66d",
-			"versionId": "44edc2603f46d835a0ef0a40bb8995430081915c1b49a94793b28a1068a94576",
+			"versionId": "3ecbb34c3ba26c6850d361766ffeca8c77a2c831c15ec95af9592ed621009237",
 			"translations": {
 				"it": {
-					"updatedAt": "2026-05-13T09:40:37.280Z",
+					"updatedAt": "2026-05-13T16:16:25.296Z",
 					"fileName": "/home/cschmatzler/Projects/Personal/leuchtturm/apps/web/src/_gt/it.json",
-					"postProcessHash": "f48a276f6497d53aadf586c2b2e26cf3f520bf9c98d7d317b38585906d88c61c"
-				},
-				"es": {
-					"updatedAt": "2026-05-13T09:40:37.281Z",
-					"fileName": "/home/cschmatzler/Projects/Personal/leuchtturm/apps/web/src/_gt/es.json",
-					"postProcessHash": "6aaa61d5e9bfd4b734712c44ceabb520dfbffcc0bfdb7a5395cf36e6dae2aa07"
-				},
-				"sq": {
-					"updatedAt": "2026-05-13T09:40:37.285Z",
-					"fileName": "/home/cschmatzler/Projects/Personal/leuchtturm/apps/web/src/_gt/sq.json",
-					"postProcessHash": "3124dd9e673614481085a891188f03e8f881db5805ba625a8f8437ab710989a6"
+					"postProcessHash": "9910788395c7319167c54328c3a3ce572347d1f318c14ca0dd6909e572de52f3"
 				},
 				"fr": {
-					"updatedAt": "2026-05-13T09:40:37.287Z",
+					"updatedAt": "2026-05-13T16:16:25.298Z",
 					"fileName": "/home/cschmatzler/Projects/Personal/leuchtturm/apps/web/src/_gt/fr.json",
-					"postProcessHash": "3a9eca0780b7d68a11dac099266804a33e9659c2895fa3d5fc719f0fdcdc9fc3"
+					"postProcessHash": "03d50f4946bcfb0501f7f2fcf06e1777786f11d92de5701d83ac404daabe0228"
+				},
+				"es": {
+					"updatedAt": "2026-05-13T16:16:25.301Z",
+					"fileName": "/home/cschmatzler/Projects/Personal/leuchtturm/apps/web/src/_gt/es.json",
+					"postProcessHash": "439a7d0a1ab725fff1b9ee72ba8fcc69dcdf90669c47498cda91cb0c4b5d8f72"
 				},
 				"de": {
-					"updatedAt": "2026-05-13T09:40:37.290Z",
+					"updatedAt": "2026-05-13T16:16:25.302Z",
 					"fileName": "/home/cschmatzler/Projects/Personal/leuchtturm/apps/web/src/_gt/de.json",
-					"postProcessHash": "74ce4fdb118fb07e303251dbf5c6f0b7a4b2c1530c45b582acbf00c18f7abfc0"
+					"postProcessHash": "7ddbae43c902f061836524f5c8d5d8d0c635ec9162157c8b051543a5f3ab5b1f"
+				},
+				"sq": {
+					"updatedAt": "2026-05-13T16:16:25.305Z",
+					"fileName": "/home/cschmatzler/Projects/Personal/leuchtturm/apps/web/src/_gt/sq.json",
+					"postProcessHash": "4241501536f5236db4b43ff2f1f0704fff603b11517dd37c75653563169cd01d"
 				}
 			},
 			"fileName": "__INTERNAL_GT_TEMPLATE_NAME__",
