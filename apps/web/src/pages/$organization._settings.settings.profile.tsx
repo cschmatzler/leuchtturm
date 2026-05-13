@@ -31,10 +31,14 @@ function Page() {
 		},
 		onSubmit: async ({ value }) => {
 			if (!currentUser) return;
-			const { error } = await authClient.updateUser({
-				name: Schema.decodeSync(UserInsert.fields.name)(value.name),
-			});
-			if (error) throw error;
+
+			const { error } = await authClient.updateUser({ name: value.name });
+
+			if (error) {
+				toast.error(error.message);
+				return;
+			}
+
 			toast.success(t("Profile updated"));
 		},
 	});
@@ -80,7 +84,7 @@ function Page() {
 										onInput={(e) => field.handleChange(e.currentTarget.value)}
 										className="max-w-sm"
 									/>
-									<Show when={!field.state.meta.isValid}>
+									<Show when={field.state.meta.isDirty && !field.state.meta.isValid}>
 										<FieldError className="mt-2">{field.state.meta.errors[0]?.message}</FieldError>
 									</Show>
 								</div>
