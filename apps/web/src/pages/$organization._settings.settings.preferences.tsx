@@ -48,25 +48,45 @@ export const Route = createFileRoute("/$organization/_settings/settings/preferen
 function Page() {
 	const [currentUser] = useZeroQuery(queries.currentUser());
 
-	const currentLanguage = resolveLanguage(currentUser?.language, DEFAULT_LANGUAGE);
+	if (!currentUser) {
+		return (
+			<div className="mx-auto flex w-full max-w-3xl justify-center py-10">
+				<SpinnerIcon className="size-5 animate-spin" />
+			</div>
+		);
+	}
+
+	const currentLanguage = resolveLanguage(currentUser.language, DEFAULT_LANGUAGE);
 
 	return (
 		<div className="mx-auto w-full max-w-3xl space-y-10">
-			<PreferencesForm currentLanguage={currentLanguage} disabled={!currentUser} />
-			{currentUser ? (
-				<TwoFactorAuthenticationForm enabled={currentUser.twoFactorEnabled ?? false} />
-			) : null}
+			<PreferencesSection currentLanguage={currentLanguage} />
+			<TwoFactorAuthenticationForm enabled={currentUser.twoFactorEnabled ?? false} />
 		</div>
 	);
 }
 
-function PreferencesForm({
+function PreferencesSection({
 	currentLanguage,
-	disabled,
 }: {
 	currentLanguage: typeof SupportedLanguage.Type;
-	disabled: boolean;
 }) {
+	return (
+		<section>
+			<div className="space-y-1">
+				<h2 className="text-lg font-semibold">
+					<T>Preferences</T>
+				</h2>
+				<p className="text-sm text-muted-foreground">
+					<T>Customize your experience.</T>
+				</p>
+			</div>
+			<PreferencesForm currentLanguage={currentLanguage} />
+		</section>
+	);
+}
+
+function PreferencesForm({ currentLanguage }: { currentLanguage: typeof SupportedLanguage.Type }) {
 	const t = useGT();
 
 	const form = useForm({
@@ -81,70 +101,60 @@ function PreferencesForm({
 	});
 
 	return (
-		<section>
-			<div className="space-y-1">
-				<h2 className="text-lg font-semibold">
-					<T>Preferences</T>
-				</h2>
-				<p className="text-sm text-muted-foreground">
-					<T>Customize your experience.</T>
-				</p>
-			</div>
-			<form action={() => form.handleSubmit()} className="mt-5 space-y-6">
-				<form.Field name="language">
-					{(field) => (
-						<div className="grid gap-x-10 gap-y-2 lg:grid-cols-[1fr_2fr]">
-							<div>
-								<FieldLabel htmlFor={field.name}>
-									<T>Language</T>
-								</FieldLabel>
-								<FieldDescription className="mt-1">
-									<T>Select your preferred language for the interface.</T>
-								</FieldDescription>
-							</div>
-							<div>
-								<Select
-									name={field.name}
-									onValueChange={(value) => {
-										if (value !== null) field.handleChange(value);
-									}}
-									value={field.state.value}
-									items={LANGUAGE_ITEMS}
-								>
-									<SelectTrigger id={field.name} className="w-[200px]">
-										<SelectValue />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectGroup>
-											{LANGUAGE_ITEMS.map((item) => (
-												<SelectItem key={item.value} value={item.value}>
-													{item.label}
-												</SelectItem>
-											))}
-										</SelectGroup>
-									</SelectContent>
-								</Select>
-							</div>
+		<form action={() => form.handleSubmit()} className="mt-5 space-y-6">
+			<form.Field name="language">
+				{(field) => (
+					<div className="grid gap-x-10 gap-y-2 lg:grid-cols-[1fr_2fr]">
+						<div>
+							<FieldLabel htmlFor={field.name}>
+								<T>Language</T>
+							</FieldLabel>
+							<FieldDescription className="mt-1">
+								<T>Select your preferred language for the interface.</T>
+							</FieldDescription>
 						</div>
-					)}
-				</form.Field>
-				<form.Subscribe
-					selector={(state) => ({
-						canSubmit: state.canSubmit,
-						isSubmitting: state.isSubmitting,
-					})}
-				>
-					{(state) => (
-						<div className="flex justify-end">
-							<Button type="submit" disabled={disabled || !state.canSubmit || state.isSubmitting}>
-								{state.isSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : null}
-								<T>Save</T>
-							</Button>
+						<div>
+							<Select
+								name={field.name}
+								onValueChange={(value) => {
+									if (value !== null) field.handleChange(value);
+								}}
+								value={field.state.value}
+								items={LANGUAGE_ITEMS}
+							>
+								<SelectTrigger id={field.name} className="w-[200px]">
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectGroup>
+										{LANGUAGE_ITEMS.map((item) => (
+											<SelectItem key={item.value} value={item.value}>
+												{item.label}
+											</SelectItem>
+										))}
+									</SelectGroup>
+								</SelectContent>
+							</Select>
 						</div>
-					)}
-				</form.Subscribe>
-			</form>
-		</section>
+					</div>
+				)}
+			</form.Field>
+			<form.Subscribe
+				selector={(state) => ({
+					canSubmit: state.canSubmit,
+					isSubmitting: state.isSubmitting,
+				})}
+			>
+				{(state) => (
+					<div className="flex justify-end">
+						<Button type="submit" disabled={!state.canSubmit || state.isSubmitting}>
+							{state.isSubmitting ? <SpinnerIcon className="size-4 animate-spin" /> : null}
+							<T>Save</T>
+						</Button>
+					</div>
+				)}
+			</form.Subscribe>
+		</form>
 	);
 }
 
