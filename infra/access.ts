@@ -44,7 +44,7 @@ if ($dev) {
 		autoRedirectToIdentity: true,
 		destinations: [
 			{ type: "public", uri: appDomain },
-			{ type: "public", uri: apiDomain },
+			// { type: "public", uri: apiDomain },
 		],
 		corsHeaders: {
 			allowCredentials: true,
