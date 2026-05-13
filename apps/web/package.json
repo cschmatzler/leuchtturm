@@ -5,6 +5,7 @@
 		"./*": "./src/*"
 	},
 	"scripts": {
+		"build": "vite build",
 		"dev": "vite dev"
 	},
 	"dependencies": {

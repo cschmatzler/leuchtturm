@@ -14,10 +14,10 @@ export const web = new sst.cloudflare.StaticSiteV2("Web", {
 	},
 	dev: {
 		url: $interpolate`https://${appDomain}`,
-		command: "aube run vite dev --host 127.0.0.1 --strictPort",
+		command: "aube run dev -- --host 127.0.0.1 --strictPort",
 	},
 	build: {
-		command: "aube run vite build",
+		command: "aube run build",
 		output: "dist",
 	},
 });
