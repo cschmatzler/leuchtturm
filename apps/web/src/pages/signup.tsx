@@ -245,7 +245,7 @@ function Page() {
 									className="w-full"
 									onClick={() => navigate({ to: "/signup", search: { password: false } })}
 								>
-									<T>Use magic link</T>
+									<T>Login with magic code</T>
 								</Button>
 							</>
 						) : (
@@ -258,7 +258,7 @@ function Page() {
 											loading={isSubmitting}
 											disabled={!canSubmit}
 										>
-											<T>Send sign-up link</T>
+											<T>Send one-time code</T>
 										</Button>
 									)}
 								</form.Subscribe>
