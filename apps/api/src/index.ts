@@ -8,12 +8,12 @@ import * as HttpMiddleware from "effect/unstable/http/HttpMiddleware";
 import * as HttpRouter from "effect/unstable/http/HttpRouter";
 import * as HttpServer from "effect/unstable/http/HttpServer";
 import * as HttpApiBuilder from "effect/unstable/httpapi/HttpApiBuilder";
-import * as HttpApiScalar from "effect/unstable/httpapi/HttpApiScalar";
 import { Resource, wrapCloudflareHandler } from "sst/resource/cloudflare";
 
 import { Contract } from "@leuchtturm/api/contract";
 import { AuthHandler } from "@leuchtturm/api/handlers/auth/index";
 import { BillingHandler } from "@leuchtturm/api/handlers/billing/index";
+import { DocsHandler } from "@leuchtturm/api/handlers/docs/index";
 import { HealthHandler } from "@leuchtturm/api/handlers/health/index";
 import { ZeroHandler } from "@leuchtturm/api/handlers/zero/index";
 import { AuthMiddleware } from "@leuchtturm/api/middleware/auth-middleware";
@@ -41,24 +41,7 @@ const apiRoutes = Layer.mergeAll(
 		),
 		Layer.provide(AuthMiddleware.layer),
 	),
-	HttpApiScalar.layerCdn(Contract.Api, {
-		path: "/docs",
-		scalar: {
-			sources: [
-				{
-					title: "Leuchtturm",
-					slug: "leuchtturm",
-					url: "/open-api",
-					default: true,
-				},
-				{
-					title: "Better Auth",
-					slug: "auth",
-					url: "/auth/open-api/generate-schema",
-				},
-			],
-		},
-	}),
+	DocsHandler.layer,
 );
 
 const { handler } = HttpEffect.toWebHandlerLayer(
