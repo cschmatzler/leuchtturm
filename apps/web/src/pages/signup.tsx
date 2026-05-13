@@ -116,7 +116,7 @@ function Page() {
 				</div>
 				<Button
 					type="button"
-					variant="outline"
+					variant="secondary"
 					className="w-full"
 					loading={isGoogleSubmitting}
 					onClick={signUpWithGoogle}
