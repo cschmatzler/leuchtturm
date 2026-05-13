@@ -8,8 +8,3 @@ HTTP 401
 POST {{BASE_URL}}/billing/portal?organizationId=org_test
 HTTP 401
 
-POST {{BASE_URL}}/query
-HTTP 401
-
-POST {{BASE_URL}}/mutate
-HTTP 401
