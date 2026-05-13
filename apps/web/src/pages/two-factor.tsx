@@ -127,19 +127,23 @@ function Page() {
 								</totpForm.Field>
 								<totpForm.Field name="trustDevice">
 									{(field) => (
-										<Field>
+										<Field className="flex-row items-start gap-3">
 											<Toggle
 												id={field.name}
+												aria-labelledby={`${field.name}-label`}
 												pressed={field.state.value}
 												onPressedChange={field.handleChange}
 												variant="outline"
-												className="w-fit"
-											>
-												<T>Trust this device</T>
-											</Toggle>
-											<FieldDescription>
-												<T>Skip two-factor prompts on this device for 30 days.</T>
-											</FieldDescription>
+												className="mt-1"
+											/>
+											<div className="space-y-1">
+												<FieldLabel id={`${field.name}-label`}>
+													<T>Trust this device</T>
+												</FieldLabel>
+												<FieldDescription>
+													<T>Skip two-factor prompts on this device for 30 days.</T>
+												</FieldDescription>
+											</div>
 										</Field>
 									)}
 								</totpForm.Field>
@@ -202,19 +206,23 @@ function Page() {
 							</backupCodeForm.Field>
 							<backupCodeForm.Field name="trustDevice">
 								{(field) => (
-									<Field>
+									<Field className="flex-row items-start gap-3">
 										<Toggle
 											id={field.name}
+											aria-labelledby={`${field.name}-label`}
 											pressed={field.state.value}
 											onPressedChange={field.handleChange}
 											variant="outline"
-											className="w-fit"
-										>
-											<T>Trust this device</T>
-										</Toggle>
-										<FieldDescription>
-											<T>Skip two-factor prompts on this device for 30 days.</T>
-										</FieldDescription>
+											className="mt-1"
+										/>
+										<div className="space-y-1">
+											<FieldLabel id={`${field.name}-label`}>
+												<T>Trust this device</T>
+											</FieldLabel>
+											<FieldDescription>
+												<T>Skip two-factor prompts on this device for 30 days.</T>
+											</FieldDescription>
+										</div>
 									</Field>
 								)}
 							</backupCodeForm.Field>
