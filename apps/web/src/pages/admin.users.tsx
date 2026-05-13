@@ -21,6 +21,7 @@ import { toast } from "sonner";
 
 import { authClient } from "@leuchtturm/web/clients/auth";
 import { DataTable } from "@leuchtturm/web/components/data-table";
+import { filtersStateSchema } from "@leuchtturm/web/components/data-table-filter/search-params";
 import {
 	createTanStackColumns,
 	createTanStackFilters,
@@ -58,7 +59,6 @@ import { Show } from "@leuchtturm/web/components/ui/flow";
 import { ZeroProvider } from "@leuchtturm/web/contexts/zero";
 import { useDataTableFilters } from "@leuchtturm/web/hooks/use-data-table-filters";
 import { useSearchFilters } from "@leuchtturm/web/hooks/use-search-filters";
-import { filtersStateSchema } from "@leuchtturm/web/lib/search-params";
 import { adminUsersQuery, type AdminUser } from "@leuchtturm/web/queries/admin-users";
 import { sessionQuery } from "@leuchtturm/web/queries/session";
 

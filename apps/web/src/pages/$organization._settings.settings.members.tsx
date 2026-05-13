@@ -21,6 +21,7 @@ import { Role } from "@leuchtturm/core/auth/schema";
 import { Email } from "@leuchtturm/core/schema";
 import { authClient } from "@leuchtturm/web/clients/auth";
 import { DataTable } from "@leuchtturm/web/components/data-table";
+import { filtersStateSchema } from "@leuchtturm/web/components/data-table-filter/search-params";
 import {
 	createTanStackColumns,
 	createTanStackFilters,
@@ -42,7 +43,6 @@ import { Input } from "@leuchtturm/web/components/ui/input";
 import { useDataTableFilters } from "@leuchtturm/web/hooks/use-data-table-filters";
 import { useSearchFilters } from "@leuchtturm/web/hooks/use-search-filters";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
-import { filtersStateSchema } from "@leuchtturm/web/lib/search-params";
 import { queries } from "@leuchtturm/zero/queries";
 
 const searchDefaults = { invite: false, mfilters: [], ifilters: [] };

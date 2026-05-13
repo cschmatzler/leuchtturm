@@ -1,12 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import type { FiltersState } from "@leuchtturm/web/components/data-table-filter/types";
 import {
 	parseFilters,
-	parseSearch,
 	stringifyFilters,
-	stringifySearch,
-} from "@leuchtturm/web/lib/search-params";
+} from "@leuchtturm/web/components/data-table-filter/search-params";
+import type { FiltersState } from "@leuchtturm/web/components/data-table-filter/types";
+import { parseSearch, stringifySearch } from "@leuchtturm/web/lib/search-params";
 
 describe("stringifyFilters", () => {
 	it("encodes text filter with contains operator", () => {
@@ -338,5 +337,16 @@ describe("router search roundtrip", () => {
 		const parsed = parseSearch(str);
 
 		expect(parsed).toEqual(search);
+	});
+
+	it("leaves arrays with non-filter items as scalar search params", () => {
+		const items = [
+			{ columnId: "lastName", type: "text", operator: "contains", values: ["r"] },
+			{ columnId: "status", type: "unknown", operator: "contains", values: ["active"] },
+		];
+
+		const str = stringifySearch({ items });
+
+		expect(new URLSearchParams(str).get("items")).toBe(JSON.stringify(items));
 	});
 });
