@@ -17,13 +17,13 @@
 # Toolchain
 
 ```bash
-pnpm lint       # Lint code with Oxlint
-pnpm test       # Run tests with Vitest
-pnpm fmt        # Format code with Oxfmt
-pnpm check      # Check formatting with Oxfmt, then lint + type check with Oxlint
+aube run lint       # Lint code with Oxlint
+aube run test       # Run tests with Vitest
+aube run fmt        # Format code with Oxfmt
+aube run check      # Check formatting with Oxfmt, then lint + type check with Oxlint
 ```
 
-- `pnpm lint` and the Oxlint part of `pnpm check` include type checking. Never run `tsc` directly.
+- `aube run lint` and the Oxlint part of `aube run check` include type checking. Never run `tsc` directly.
 - Import test utilities from `vitest` and Vite utilities from `vite`:
 
 ```typescript
@@ -31,4 +31,4 @@ import { describe, it, expect, vi } from "vitest";
 import { defineConfig } from "vite";
 ```
 
-- After changes, always run `pnpm check` and `pnpm test`.
+- After changes, always run `aube run check` and `aube run test`.
