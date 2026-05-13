@@ -1,6 +1,5 @@
 import { SpinnerIcon } from "@phosphor-icons/react/Spinner";
 import { useForm } from "@tanstack/react-form";
-import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { T, useGT } from "gt-react";
 import { QRCodeSVG } from "qrcode.react";
@@ -21,7 +20,6 @@ import {
 } from "@leuchtturm/web/components/ui/select";
 import { Separator } from "@leuchtturm/web/components/ui/separator";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
-import { authAccountsQuery } from "@leuchtturm/web/queries/auth-accounts";
 import { queries } from "@leuchtturm/zero/queries";
 
 const LANGUAGE_LABELS = {
@@ -51,11 +49,9 @@ function Page() {
 	const router = useRouter();
 
 	const [currentUser] = useZeroQuery(queries.currentUser());
-	const { data: accounts } = useQuery(authAccountsQuery());
 
 	const t = useGT();
 	const currentLanguage = resolveLanguage(currentUser?.language, DEFAULT_LANGUAGE);
-	const credentialAccount = accounts?.find((account) => account.providerId === "credential");
 	const form = useForm({
 		defaultValues: {
 			language: currentLanguage,
@@ -235,7 +231,7 @@ function Page() {
 					</form.Subscribe>
 				</form>
 			</section>
-			{credentialAccount ? (
+			{currentUser ? (
 				<section>
 					<div className="space-y-1">
 						<h2 className="text-lg font-semibold">
