@@ -36,6 +36,15 @@ export class AuthInvitationEmailError extends Schema.TaggedErrorClass<AuthInvita
 	}
 }
 
+export class AuthVerificationEmailError extends Schema.TaggedErrorClass<AuthVerificationEmailError>()(
+	"AuthVerificationEmailError",
+	{ message: Schema.String },
+) {
+	constructor() {
+		super({ message: "Failed to send verification email" });
+	}
+}
+
 export class AuthInvalidSessionPayloadError extends Schema.TaggedErrorClass<AuthInvalidSessionPayloadError>()(
 	"AuthInvalidSessionPayloadError",
 	{ message: Schema.String },
@@ -116,6 +125,7 @@ export const AuthError = Schema.Union([
 	AuthSessionLookupError,
 	AuthDeviceSessionsListError,
 	AuthInvitationEmailError,
+	AuthVerificationEmailError,
 	AuthInvalidSessionPayloadError,
 	AuthInvalidDeviceSessionsPayloadError,
 	AuthOrganizationLookupError,

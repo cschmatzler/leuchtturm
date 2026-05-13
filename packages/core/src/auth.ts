@@ -28,6 +28,7 @@ import {
 	AuthDuplicateTeamNameError,
 	AuthInvitationEmailError,
 	AuthError,
+	AuthVerificationEmailError,
 	AuthInvalidSessionPayloadError,
 	AuthInvalidOrganizationPayloadError,
 	AuthOrganizationLookupError,
@@ -51,6 +52,7 @@ import {
 import { Billing } from "@leuchtturm/core/billing";
 import { Database } from "@leuchtturm/core/database";
 import { Email } from "@leuchtturm/email";
+import { sendEmailVerificationEmail } from "@leuchtturm/email/templates/email-verification";
 import { sendInvitationEmail } from "@leuchtturm/email/templates/invitation";
 
 export namespace Auth {
@@ -110,6 +112,29 @@ export namespace Auth {
 				},
 				emailAndPassword: {
 					enabled: true,
+					requireEmailVerification: true,
+				},
+				emailVerification: {
+					sendOnSignUp: true,
+					sendOnSignIn: true,
+					autoSignInAfterVerification: true,
+					sendVerificationEmail: (params) =>
+						Effect.runPromiseWith(context.getStore() ?? Context.empty())(
+							sendEmailVerificationEmail({
+								verificationUrl: params.url,
+								email: params.user.email,
+								send: (params) => email.send(params),
+							}).pipe(
+								Effect.catchCause((cause) =>
+									Effect.gen(function* () {
+										yield* Effect.annotateCurrentSpan({
+											"error.original_cause": Cause.pretty(cause),
+										});
+										return yield* Effect.fail(new AuthVerificationEmailError());
+									}),
+								),
+							),
+						),
 				},
 				socialProviders: {
 					google: {

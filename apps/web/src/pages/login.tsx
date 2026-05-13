@@ -51,7 +51,11 @@ function Page() {
 	});
 
 	async function signInWithPassword({ email, password }: { email: string; password: string }) {
-		const { error } = await authClient.signIn.email({ email, password });
+		const { error } = await authClient.signIn.email({
+			email,
+			password,
+			callbackURL: new URL(router.history.createHref("/app"), window.location.origin).href,
+		});
 
 		if (error) return error.message;
 		return null;
