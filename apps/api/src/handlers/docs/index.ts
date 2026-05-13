@@ -28,10 +28,10 @@ export namespace DocsHandler {
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 	</head>
 	<body>
-		<div id="api-reference"></div>
+		<div id="scalar-api-reference"></div>
 		<script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference/dist/browser/standalone.min.js" crossorigin></script>
 		<script>
-			Scalar.createApiReference("#api-reference", ${JSON.stringify(scalarConfig)});
+			Scalar.createApiReference("#scalar-api-reference", ${JSON.stringify(scalarConfig)});
 		</script>
 	</body>
 </html>`;
