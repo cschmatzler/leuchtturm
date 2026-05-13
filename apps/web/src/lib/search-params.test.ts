@@ -249,6 +249,28 @@ describe("parseFilters", () => {
 		]);
 	});
 
+	it("documents that dotted column IDs are outside the positional key protocol", () => {
+		const filters: FiltersState = [
+			{ columnId: "user.name", type: "text", operator: "contains", values: ["John"] },
+		];
+
+		const params = stringifyFilters(filters, "filters");
+		const result = parseFilters(params, "filters");
+
+		expect(params).toEqual({ "filters.user.name.t.c": "John" });
+		expect(result).toEqual([]);
+	});
+
+	it("preserves unknown operator codes", () => {
+		const params = { "filters.name.t.custom": "John" };
+
+		const result = parseFilters(params, "filters");
+
+		expect(result).toEqual([
+			{ columnId: "name", type: "text", operator: "custom", values: ["John"] },
+		]);
+	});
+
 	it("unescapes commas in values", () => {
 		const params = { "filters.name.t.c": "a\\,b" };
 

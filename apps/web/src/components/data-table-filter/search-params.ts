@@ -35,11 +35,11 @@ const isFiltersStateArray = isSchema(filtersStateArraySchema);
 
 type FilterOperator = FilterOperators[ColumnDataType];
 
-type ParsedFilterParamKey = {
+type FilterParamKey = {
 	prefix: string;
 	columnId: string;
 	type: ColumnDataType;
-	operator: FilterOperator;
+	operator: string;
 };
 
 type ParsedFilterParam = {
@@ -84,9 +84,11 @@ const OPERATOR_CODES = {
 	"exclude if all": "excAll",
 } as const satisfies Record<FilterOperator, string>;
 
+type OperatorCode = (typeof OPERATOR_CODES)[FilterOperator];
+
 const CODE_TO_OPERATOR = Object.fromEntries(
 	Object.entries(OPERATOR_CODES).map(([operator, code]) => [code, operator]),
-) as Record<string, FilterOperator>;
+) as Record<OperatorCode, FilterOperator>;
 
 type FilterValueCodec = {
 	encode: (values: FilterModel["values"]) => string;
@@ -124,37 +126,33 @@ function decodeType(code: string): ColumnDataType | null {
 	return CODE_TO_TYPE[code] ?? null;
 }
 
-function encodeOperator(operator: FilterOperator): string {
-	return OPERATOR_CODES[operator] ?? operator;
+function encodeOperator(operator: string): string {
+	return OPERATOR_CODES[operator as FilterOperator] ?? operator;
 }
 
-function decodeOperator(code: string): FilterOperator {
-	return (CODE_TO_OPERATOR[code] ?? code) as FilterOperator;
+function decodeOperator(code: string): string {
+	return CODE_TO_OPERATOR[code as OperatorCode] ?? code;
 }
 
-function stringifyFilterParamKey({
-	prefix,
-	columnId,
-	type,
-	operator,
-}: ParsedFilterParamKey): string {
-	return `${prefix}.${columnId}.${encodeType(type)}.${encodeOperator(operator)}`;
-}
+const filterParamKey = {
+	stringify({ prefix, columnId, type, operator }: FilterParamKey): string {
+		return `${prefix}.${columnId}.${encodeType(type)}.${encodeOperator(operator)}`;
+	},
+	parse(paramKey: string): FilterParamKey | null {
+		const parts = paramKey.split(".");
+		if (parts.length < 4) return null;
 
-function parseFilterParamKey(paramKey: string): ParsedFilterParamKey | null {
-	const parts = paramKey.split(".");
-	if (parts.length < 4) return null;
+		const type = decodeType(parts[2]);
+		if (!type) return null;
 
-	const type = decodeType(parts[2]);
-	if (!type) return null;
-
-	return {
-		prefix: parts[0],
-		columnId: parts[1],
-		type,
-		operator: decodeOperator(parts.slice(3).join(".")),
-	};
-}
+		return {
+			prefix: parts[0],
+			columnId: parts[1],
+			type,
+			operator: decodeOperator(parts.slice(3).join(".")),
+		};
+	},
+};
 
 function escapeValue(value: string): string {
 	return value.replace(/\\/g, "\\\\").replace(/,/g, "\\,").replace(/\./g, "\\.");
@@ -215,7 +213,7 @@ export function stringifyFilters(filters: FiltersState, prefix: string): Record<
 
 	for (const filter of filters) {
 		const type = filter.type as ColumnDataType;
-		const paramKey = stringifyFilterParamKey({
+		const paramKey = filterParamKey.stringify({
 			prefix,
 			columnId: filter.columnId,
 			type,
@@ -228,7 +226,7 @@ export function stringifyFilters(filters: FiltersState, prefix: string): Record<
 }
 
 export function parseFilterParam(paramKey: string, value: string): ParsedFilterParam | null {
-	const key = parseFilterParamKey(paramKey);
+	const key = filterParamKey.parse(paramKey);
 	if (!key) return null;
 
 	return {
@@ -236,7 +234,7 @@ export function parseFilterParam(paramKey: string, value: string): ParsedFilterP
 		filter: {
 			columnId: key.columnId,
 			type: key.type,
-			operator: key.operator,
+			operator: key.operator as FilterModel["operator"],
 			values: decodeFilterValues(value, key.type),
 		},
 	};
