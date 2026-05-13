@@ -118,10 +118,7 @@ function FilterableColumn<TData, TType extends ColumnDataType, TVal>({
 	setProperty: (value: string) => void;
 }) {
 	const prefetch = useCallback(() => {
-		column.prefetchOptions();
-		column.prefetchValues();
-		column.prefetchFacetedUniqueValues();
-		column.prefetchFacetedMinMaxValues();
+		column.prefetch();
 	}, [column]);
 
 	return (

@@ -151,7 +151,6 @@ function Page() {
 		[roleOptions, t],
 	);
 	const memberFilters = useDataTableFilters({
-		strategy: "client",
 		data: members,
 		filterDefinitions: memberFilterDefinitions,
 	});
@@ -234,7 +233,6 @@ function Page() {
 		[roleOptions, t],
 	);
 	const invitationFilters = useDataTableFilters({
-		strategy: "client",
 		data: activeInvitations,
 		filterDefinitions: invitationFilterDefinitions,
 	});

@@ -212,7 +212,6 @@ function MembersSettings(props: { readonly team: string }) {
 		[roleOptions, t],
 	);
 	const teamMemberFilters = useDataTableFilters({
-		strategy: "client",
 		data: teamMemberRows,
 		filterDefinitions: teamMemberFilterDefinitions,
 	});
@@ -310,7 +309,6 @@ function MembersSettings(props: { readonly team: string }) {
 		[roleOptions, t],
 	);
 	const availableMemberFilters = useDataTableFilters({
-		strategy: "client",
 		data: availableMembers,
 		filterDefinitions: availableMemberFilterDefinitions,
 	});

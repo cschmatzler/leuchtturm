@@ -86,7 +86,6 @@ describe("useDataTableFilters", () => {
 		expect(() =>
 			renderHook(() =>
 				useDataTableFilters({
-					strategy: "client",
 					data,
 					filterDefinitions,
 					filters: [],
@@ -98,7 +97,6 @@ describe("useDataTableFilters", () => {
 		expect(() =>
 			renderHook(() =>
 				useDataTableFilters({
-					strategy: "client",
 					data,
 					filterDefinitions,
 					onFiltersChange,
@@ -107,34 +105,9 @@ describe("useDataTableFilters", () => {
 		).toThrow("If using controlled state, you must specify both filters and onFiltersChange.");
 	});
 
-	it("merges provided options and faceted metadata", () => {
-		const overrideOptions: ColumnOption[] = [{ value: "pending", label: "Pending" }];
-		const facetedOptions = new Map([["pending", 3]]);
-		const facetedRange: [number, number] = [4, 18];
-
-		const { result } = renderHook(() =>
-			useDataTableFilters({
-				strategy: "server",
-				data,
-				filterDefinitions,
-				options: { status: overrideOptions },
-				faceted: { status: facetedOptions, score: facetedRange },
-			}),
-		);
-
-		const statusColumn = result.current.filterColumns.find((column) => column.id === "status");
-		const scoreColumn = result.current.filterColumns.find((column) => column.id === "score");
-
-		expect(statusColumn?.options).toEqual(overrideOptions);
-		expect(statusColumn?.facetedOptions).toBe(facetedOptions);
-		expect(scoreColumn?.min).toBe(4);
-		expect(scoreColumn?.max).toBe(18);
-	});
-
 	it("adds and removes option filters while updating operators", () => {
 		const { result } = renderHook(() =>
 			useDataTableFilters({
-				strategy: "client",
 				data,
 				filterDefinitions,
 			}),
@@ -189,7 +162,6 @@ describe("useDataTableFilters", () => {
 
 		const { result } = renderHook(() =>
 			useDataTableFilters({
-				strategy: "client",
 				data,
 				filterDefinitions,
 				defaultFilters,
@@ -208,7 +180,6 @@ describe("useDataTableFilters", () => {
 	it("normalizes number ranges when setting filter values", () => {
 		const { result } = renderHook(() =>
 			useDataTableFilters({
-				strategy: "client",
 				data,
 				filterDefinitions,
 			}),
@@ -231,7 +202,6 @@ describe("useDataTableFilters", () => {
 	it("clears filters with removeAllFilters", () => {
 		const { result } = renderHook(() =>
 			useDataTableFilters({
-				strategy: "client",
 				data,
 				filterDefinitions,
 				defaultFilters: [

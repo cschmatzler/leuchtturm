@@ -216,15 +216,8 @@ describe("getColumnOptions", () => {
 		];
 		const column = createOptionColumn(options);
 
-		const result = getColumnOptions(column, [], "client");
+		const result = getColumnOptions(column, []);
 		expect(result).toEqual(options);
-	});
-
-	it("throws for server strategy without static options", () => {
-		const column = createOptionColumn();
-		expect(() => getColumnOptions(column, [], "server")).toThrow(
-			"column options are required for server-side filtering",
-		);
 	});
 
 	it("extracts unique options from data when no static options", () => {
@@ -242,7 +235,7 @@ describe("getColumnOptions", () => {
 			{ id: "3", name: "C", age: 35, status: "active", tags: [], createdAt: new Date() },
 		];
 
-		const result = getColumnOptions(column, data, "client");
+		const result = getColumnOptions(column, data);
 		expect(result).toEqual([
 			{ value: "active", label: "active" },
 			{ value: "inactive", label: "inactive" },
@@ -258,7 +251,7 @@ describe("getColumnOptions", () => {
 			icon: testIcon,
 		};
 
-		expect(() => getColumnOptions(column, [], "client")).toThrow(
+		expect(() => getColumnOptions(column, [])).toThrow(
 			"Column options can only be retrieved for option and multiOption columns",
 		);
 	});
@@ -314,7 +307,7 @@ describe("getFacetedUniqueValues", () => {
 		const column = createOptionColumn();
 		const values = ["active", "active", "inactive", "active"];
 
-		const result = getFacetedUniqueValues(column, values, "client");
+		const result = getFacetedUniqueValues(column, values);
 
 		expect(result?.get("active")).toBe(3);
 		expect(result?.get("inactive")).toBe(1);
@@ -328,28 +321,10 @@ describe("getFacetedUniqueValues", () => {
 			{ value: "inactive", label: "Inactive" },
 		];
 
-		const result = getFacetedUniqueValues(column, values, "client");
+		const result = getFacetedUniqueValues(column, values);
 
 		expect(result?.get("active")).toBe(2);
 		expect(result?.get("inactive")).toBe(1);
-	});
-
-	it("returns facetedOptions for server strategy", () => {
-		const facetedOptions = new Map([
-			["active", 10],
-			["inactive", 5],
-		]);
-		const column: ColumnConfig<TestData, "option", string> = {
-			id: "status",
-			type: "option",
-			accessor: (d) => d.status,
-			displayName: "Status",
-			icon: testIcon,
-			facetedOptions,
-		};
-
-		const result = getFacetedUniqueValues(column, [], "server");
-		expect(result).toBe(facetedOptions);
 	});
 
 	it("throws for non-option column types", () => {
@@ -361,7 +336,7 @@ describe("getFacetedUniqueValues", () => {
 			icon: testIcon,
 		};
 
-		expect(() => getFacetedUniqueValues(column, [], "client")).toThrow(
+		expect(() => getFacetedUniqueValues(column, [])).toThrow(
 			"Faceted unique values can only be retrieved for option and multiOption columns",
 		);
 	});
@@ -383,7 +358,7 @@ describe("getFacetedMinMaxValues", () => {
 
 	it("returns static min/max when both provided", () => {
 		const column = createNumberColumn(0, 100);
-		const result = getFacetedMinMaxValues(column, [], "client");
+		const result = getFacetedMinMaxValues(column, []);
 		expect(result).toEqual([0, 100]);
 	});
 
@@ -395,20 +370,14 @@ describe("getFacetedMinMaxValues", () => {
 			{ id: "3", name: "C", age: 50, status: "active", tags: [], createdAt: new Date() },
 		];
 
-		const result = getFacetedMinMaxValues(column, data, "client");
+		const result = getFacetedMinMaxValues(column, data);
 		expect(result).toEqual([10, 50]);
 	});
 
 	it("returns [0, 0] for empty data", () => {
 		const column = createNumberColumn();
-		const result = getFacetedMinMaxValues(column, [], "client");
+		const result = getFacetedMinMaxValues(column, []);
 		expect(result).toEqual([0, 0]);
-	});
-
-	it("returns undefined for server strategy without static min/max", () => {
-		const column = createNumberColumn();
-		const result = getFacetedMinMaxValues(column, [], "server");
-		expect(result).toBeUndefined();
 	});
 
 	it("returns undefined for non-number column types", () => {
@@ -420,7 +389,7 @@ describe("getFacetedMinMaxValues", () => {
 			icon: testIcon,
 		};
 
-		const result = getFacetedMinMaxValues(column, [], "client");
+		const result = getFacetedMinMaxValues(column, []);
 		expect(result).toBeUndefined();
 	});
 
@@ -438,7 +407,7 @@ describe("getFacetedMinMaxValues", () => {
 			{ id: "3", name: "C", age: 50, status: "active", tags: [], createdAt: new Date() },
 		];
 
-		const result = getFacetedMinMaxValues(column, data, "client");
+		const result = getFacetedMinMaxValues(column, data);
 		expect(result).toEqual([25, 50]);
 	});
 });
@@ -465,17 +434,19 @@ describe("createFilterColumns", () => {
 			{ id: "2", name: "B", age: 30, status: "inactive", tags: [], createdAt: new Date() },
 		];
 
-		const columns = createFilterColumns(data, filterDefinitions, "client");
+		const columns = createFilterColumns(data, filterDefinitions);
 
 		expect(columns).toHaveLength(1);
 		expect(columns[0].id).toBe("status");
 		expect(typeof columns[0].getOptions).toBe("function");
-		expect(typeof columns[0].getValues).toBe("function");
 		expect(typeof columns[0].getFacetedUniqueValues).toBe("function");
 		expect(typeof columns[0].getFacetedMinMaxValues).toBe("function");
+		expect(typeof columns[0].prefetch).toBe("function");
+		expect("getValues" in columns[0]).toBe(false);
+		expect("_prefetchedOptionsCache" in columns[0]).toBe(false);
 	});
 
-	it("creates columns with prefetch functions for client strategy", () => {
+	it("prefetches safely for every column type", async () => {
 		const builder = createFilterBuilder<TestData>();
 		const filterDefinitions = [
 			builder
@@ -486,13 +457,36 @@ describe("createFilterColumns", () => {
 				.icon(testIcon)
 				.options([{ value: "active", label: "Active" }])
 				.build(),
+			builder
+				.number()
+				.id("age")
+				.accessor((d) => d.age)
+				.displayName("Age")
+				.icon(testIcon)
+				.build(),
+			builder
+				.text()
+				.id("name")
+				.accessor((d) => d.name)
+				.displayName("Name")
+				.icon(testIcon)
+				.build(),
+			builder
+				.date()
+				.id("createdAt")
+				.accessor((d) => d.createdAt)
+				.displayName("Created")
+				.icon(testIcon)
+				.build(),
 		];
 
-		const columns = createFilterColumns([], filterDefinitions, "client");
+		const columns = createFilterColumns([], filterDefinitions);
 
-		expect(typeof columns[0].prefetchOptions).toBe("function");
-		expect(typeof columns[0].prefetchValues).toBe("function");
-		expect(typeof columns[0].prefetchFacetedUniqueValues).toBe("function");
-		expect(typeof columns[0].prefetchFacetedMinMaxValues).toBe("function");
+		await expect(Promise.all(columns.map((column) => column.prefetch()))).resolves.toEqual([
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+		]);
 	});
 });

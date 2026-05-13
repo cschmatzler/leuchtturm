@@ -7,7 +7,6 @@ import type {
 	ColumnDataType,
 	ColumnOption,
 	ElementType,
-	FilterStrategy,
 	Nullable,
 	TAccessorFn,
 	TOrderFn,
@@ -160,14 +159,9 @@ export function createFilterBuilder<TData>(): FluentColumnConfigHelper<TData> {
 export function getColumnOptions<TData, TType extends ColumnDataType, TVal>(
 	column: ColumnConfig<TData, TType, TVal>,
 	data: TData[],
-	strategy: FilterStrategy,
 ): ColumnOption[] {
 	if (!isAnyOf(column.type, ["option", "multiOption"])) {
 		throw new Error("Column options can only be retrieved for option and multiOption columns");
-	}
-
-	if (strategy === "server" && !column.options) {
-		throw new Error("column options are required for server-side filtering");
 	}
 
 	if (column.options) {
@@ -251,16 +245,11 @@ export function getColumnValues<TData, TType extends ColumnDataType, TVal>(
 export function getFacetedUniqueValues<TData, TType extends ColumnDataType, TVal>(
 	column: ColumnConfig<TData, TType, TVal>,
 	values: string[] | ColumnOption[],
-	strategy: FilterStrategy,
 ): Map<string, number> | undefined {
 	if (!isAnyOf(column.type, ["option", "multiOption"])) {
 		throw new Error(
 			"Faceted unique values can only be retrieved for option and multiOption columns",
 		);
-	}
-
-	if (strategy === "server") {
-		return column.facetedOptions;
 	}
 
 	const acc = new Map<string, number>();
@@ -277,16 +266,11 @@ export function getFacetedUniqueValues<TData, TType extends ColumnDataType, TVal
 export function getFacetedMinMaxValues<TData, TType extends ColumnDataType, TVal>(
 	column: ColumnConfig<TData, TType, TVal>,
 	data: TData[],
-	strategy: FilterStrategy,
 ): [number, number] | undefined {
 	if (column.type !== "number") return undefined;
 
 	if (typeof column.min === "number" && typeof column.max === "number") {
 		return [column.min, column.max];
-	}
-
-	if (strategy === "server") {
-		return undefined;
 	}
 
 	const values = data
@@ -306,103 +290,55 @@ export function getFacetedMinMaxValues<TData, TType extends ColumnDataType, TVal
 export function createFilterColumns<TData>(
 	data: TData[],
 	filterDefinitions: ReadonlyArray<ColumnConfig<TData, any, any, any>>,
-	strategy: FilterStrategy,
 ): Column<TData>[] {
 	return filterDefinitions.map((columnConfig) => {
 		const getOptions: () => ColumnOption[] = memo(
-			() => [data, strategy, columnConfig.options] as const,
-			([data, strategy]) => getColumnOptions(columnConfig, data, strategy),
+			() => [data, columnConfig.options] as const,
+			([data]) => getColumnOptions(columnConfig, data),
 		);
 
 		const getValues: () => ElementType<NonNullable<any>>[] = memo(
-			() => [data, strategy],
-			() =>
-				strategy === "client"
-					? getColumnValues(columnConfig, data)
-					: ([] as ElementType<NonNullable<any>>[]),
+			() => [data],
+			([data]) => getColumnValues(columnConfig, data),
 		);
 
 		const getUniqueValues: () => Map<string, number> | undefined = memo(
-			() => [getValues(), strategy] as const,
-			([values, strategy]) => getFacetedUniqueValues(columnConfig, values, strategy),
+			() => [getValues()] as const,
+			([values]) => getFacetedUniqueValues(columnConfig, values),
 		);
 
 		const getMinMaxValues: () => [number, number] | undefined = memo(
-			() => [data, strategy],
-			() => getFacetedMinMaxValues(columnConfig, data, strategy),
+			() => [data, columnConfig.min, columnConfig.max] as const,
+			([data]) => getFacetedMinMaxValues(columnConfig, data),
 		);
 
-		const column: Column<TData> = {
+		let prefetched = false;
+
+		return {
 			...columnConfig,
 			getOptions,
-			getValues,
 			getFacetedUniqueValues: getUniqueValues,
 			getFacetedMinMaxValues: getMinMaxValues,
+			prefetch: async (): Promise<void> => {
+				if (prefetched) return;
 
-			prefetchOptions: async () => {},
-			prefetchValues: async () => {},
-			prefetchFacetedUniqueValues: async () => {},
-			prefetchFacetedMinMaxValues: async () => {},
-			_prefetchedOptionsCache: null,
-			_prefetchedValuesCache: null,
-			_prefetchedFacetedUniqueValuesCache: null,
-			_prefetchedFacetedMinMaxValuesCache: null,
+				await new Promise((resolve) =>
+					setTimeout(() => {
+						if (isAnyOf(columnConfig.type, ["option", "multiOption"])) {
+							getOptions();
+							getValues();
+							getUniqueValues();
+						}
+
+						if (columnConfig.type === "number") {
+							getMinMaxValues();
+						}
+
+						prefetched = true;
+						resolve(undefined);
+					}, 0),
+				);
+			},
 		};
-
-		if (strategy === "client") {
-			column.prefetchOptions = async (): Promise<void> => {
-				if (!column._prefetchedOptionsCache) {
-					await new Promise((resolve) =>
-						setTimeout(() => {
-							const options = getOptions();
-							column._prefetchedOptionsCache = options;
-
-							resolve(undefined);
-						}, 0),
-					);
-				}
-			};
-
-			column.prefetchValues = async (): Promise<void> => {
-				if (!column._prefetchedValuesCache) {
-					await new Promise((resolve) =>
-						setTimeout(() => {
-							const values = getValues();
-							column._prefetchedValuesCache = values;
-
-							resolve(undefined);
-						}, 0),
-					);
-				}
-			};
-
-			column.prefetchFacetedUniqueValues = async (): Promise<void> => {
-				if (!column._prefetchedFacetedUniqueValuesCache) {
-					await new Promise((resolve) =>
-						setTimeout(() => {
-							const facetedMap = getUniqueValues();
-							column._prefetchedFacetedUniqueValuesCache = facetedMap ?? null;
-
-							resolve(undefined);
-						}, 0),
-					);
-				}
-			};
-
-			column.prefetchFacetedMinMaxValues = async (): Promise<void> => {
-				if (!column._prefetchedFacetedMinMaxValuesCache) {
-					await new Promise((resolve) =>
-						setTimeout(() => {
-							const value = getMinMaxValues();
-							column._prefetchedFacetedMinMaxValuesCache = value ?? null;
-
-							resolve(undefined);
-						}, 0),
-					);
-				}
-			};
-		}
-
-		return column;
 	});
 }

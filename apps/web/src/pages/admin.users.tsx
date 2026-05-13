@@ -262,7 +262,6 @@ function AdminUsersPage() {
 		[roleOptions, statusOptions, t],
 	);
 	const filters = useDataTableFilters({
-		strategy: "client",
 		data: users,
 		filterDefinitions,
 	});

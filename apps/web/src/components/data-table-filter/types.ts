@@ -102,42 +102,17 @@ export type ColumnConfig<
 	icon: Icon;
 	type: TType;
 	options?: TType extends OptionBasedColumnDataType ? ColumnOption[] : never;
-	facetedOptions?: TType extends OptionBasedColumnDataType ? Map<string, number> : never;
 	min?: TType extends "number" ? number : never;
 	max?: TType extends "number" ? number : never;
 	transformOptionFn?: TType extends OptionBasedColumnDataType ? TTransformOptionFn<TVal> : never;
 	orderFn?: TType extends OptionBasedColumnDataType ? TOrderFn<TVal> : never;
 };
 
-export type OptionColumnId<T> =
-	T extends ColumnConfig<any, "option" | "multiOption", any, infer TId> ? TId : never;
-
-export type OptionColumnIds<T extends ReadonlyArray<ColumnConfig<any, any, any, any>>> = {
-	[K in keyof T]: OptionColumnId<T[K]>;
-}[number];
-
-export type NumberColumnId<T> = T extends ColumnConfig<any, "number", any, infer TId> ? TId : never;
-
-export type NumberColumnIds<T extends ReadonlyArray<ColumnConfig<any, any, any, any>>> = {
-	[K in keyof T]: NumberColumnId<T[K]>;
-}[number];
-
-export type ColumnProperties<_TData, TVal> = {
+export type ColumnProperties = {
 	getOptions: () => ColumnOption[];
-	getValues: () => ElementType<NonNullable<TVal>>[];
 	getFacetedUniqueValues: () => Map<string, number> | undefined;
 	getFacetedMinMaxValues: () => [number, number] | undefined;
-	prefetchOptions: () => Promise<void>;
-	prefetchValues: () => Promise<void>;
-	prefetchFacetedUniqueValues: () => Promise<void>;
-	prefetchFacetedMinMaxValues: () => Promise<void>;
-};
-
-export type ColumnPrivateProperties<_TData, TVal> = {
-	_prefetchedOptionsCache: ColumnOption[] | null;
-	_prefetchedValuesCache: ElementType<NonNullable<TVal>>[] | null;
-	_prefetchedFacetedUniqueValuesCache: Map<string, number> | null;
-	_prefetchedFacetedMinMaxValuesCache: [number, number] | null;
+	prefetch: () => Promise<void>;
 };
 
 export type Column<TData, TType extends ColumnDataType = any, TVal = unknown> = ColumnConfig<
@@ -145,8 +120,7 @@ export type Column<TData, TType extends ColumnDataType = any, TVal = unknown> = 
 	TType,
 	TVal
 > &
-	ColumnProperties<TData, TVal> &
-	ColumnPrivateProperties<TData, TVal>;
+	ColumnProperties;
 
 /*
  * Describes the available actions on column filters.
@@ -177,8 +151,6 @@ export interface DataTableFilterActions {
 
 	removeAllFilters: () => void;
 }
-
-export type FilterStrategy = "client" | "server";
 
 /* Operators for text data */
 export type TextFilterOperator = "contains" | "does not contain";

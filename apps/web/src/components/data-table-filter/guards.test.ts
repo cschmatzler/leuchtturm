@@ -3,8 +3,6 @@ import { describe, expect, it } from "vitest";
 import {
 	isColumnOption,
 	isColumnOptionArray,
-	isColumnOptionMap,
-	isMinMaxTuple,
 	isStringArray,
 } from "@leuchtturm/web/components/data-table-filter/guards";
 
@@ -39,35 +37,5 @@ describe("isStringArray", () => {
 	it("rejects non-string arrays", () => {
 		expect(isStringArray(["active", 1])).toBe(false);
 		expect(isStringArray("active")).toBe(false);
-	});
-});
-
-describe("isColumnOptionMap", () => {
-	it("accepts maps with string keys and number values", () => {
-		expect(isColumnOptionMap(new Map([["active", 2]]))).toBe(true);
-	});
-
-	it("rejects maps with non-string keys", () => {
-		expect(isColumnOptionMap(new Map([[1, 2]]))).toBe(false);
-	});
-
-	it("rejects maps with non-number values", () => {
-		expect(isColumnOptionMap(new Map([["active", "2"]]))).toBe(false);
-	});
-
-	it("rejects non-maps", () => {
-		expect(isColumnOptionMap({ active: 2 })).toBe(false);
-	});
-});
-
-describe("isMinMaxTuple", () => {
-	it("accepts two-number tuples", () => {
-		expect(isMinMaxTuple([1, 2])).toBe(true);
-	});
-
-	it("rejects invalid tuples", () => {
-		expect(isMinMaxTuple([1])).toBe(false);
-		expect(isMinMaxTuple([1, "2"])).toBe(false);
-		expect(isMinMaxTuple("1,2")).toBe(false);
 	});
 });
