@@ -31,9 +31,21 @@ function Page() {
 	const queryClient = useQueryClient();
 
 	const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
-	const [submitError, setSubmitError] = useState<string>();
 
-	const form = useForm({
+	const form = useForm<
+		{ email: string; password: string },
+		undefined,
+		undefined,
+		undefined,
+		undefined,
+		undefined,
+		() => string | null,
+		undefined,
+		undefined,
+		undefined,
+		undefined,
+		undefined
+	>({
 		defaultValues: {
 			email: "",
 			password: "",
@@ -47,7 +59,7 @@ function Page() {
 			});
 
 			if (error) {
-				setSubmitError(error.message);
+				form.setErrorMap({ onSubmit: error.message });
 				return;
 			}
 
@@ -68,7 +80,7 @@ function Page() {
 		setIsGoogleSubmitting(false);
 
 		if (error) {
-			setSubmitError(error.message);
+			form.setErrorMap({ onSubmit: error.message });
 		}
 	}
 
@@ -92,7 +104,11 @@ function Page() {
 				</FieldSeparator>
 				<form action={() => form.handleSubmit()}>
 					<FieldGroup>
-						<Show when={submitError}>{(error) => <FieldError>{error}</FieldError>}</Show>
+						<form.Subscribe selector={(state) => state.errorMap.onSubmit}>
+							{(formError) => (
+								<Show when={formError}>{(error) => <FieldError>{String(error)}</FieldError>}</Show>
+							)}
+						</form.Subscribe>
 						<form.Field
 							name="email"
 							validators={{
@@ -113,7 +129,7 @@ function Page() {
 										value={field.state.value}
 										onBlur={field.handleBlur}
 										onInput={(event) => {
-											setSubmitError(undefined);
+											form.setErrorMap({ onSubmit: undefined });
 											field.handleChange(event.currentTarget.value);
 										}}
 										required
@@ -138,7 +154,7 @@ function Page() {
 										value={field.state.value}
 										onBlur={field.handleBlur}
 										onInput={(event) => {
-											setSubmitError(undefined);
+											form.setErrorMap({ onSubmit: undefined });
 											field.handleChange(event.currentTarget.value);
 										}}
 										required
