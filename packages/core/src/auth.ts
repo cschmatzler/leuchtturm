@@ -123,7 +123,6 @@ export namespace Auth {
 					openAPI(),
 					twoFactor({
 						issuer: "Leuchtturm",
-						allowPasswordless: true,
 					}),
 					organization({
 						sendInvitationEmail: (params) =>
