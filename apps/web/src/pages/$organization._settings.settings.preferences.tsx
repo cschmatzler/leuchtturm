@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import { DEFAULT_LANGUAGE, resolveLanguage, SupportedLanguage } from "@leuchtturm/core/i18n";
 import { authClient } from "@leuchtturm/web/clients/auth";
+import { Loading } from "@leuchtturm/web/components/app/loading";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { FieldDescription, FieldError, FieldLabel } from "@leuchtturm/web/components/ui/field";
 import { Input } from "@leuchtturm/web/components/ui/input";
@@ -48,13 +49,7 @@ export const Route = createFileRoute("/$organization/_settings/settings/preferen
 function Page() {
 	const [currentUser] = useZeroQuery(queries.currentUser());
 
-	if (!currentUser) {
-		return (
-			<div className="mx-auto flex w-full max-w-3xl justify-center py-10">
-				<SpinnerIcon className="size-5 animate-spin" />
-			</div>
-		);
-	}
+	if (!currentUser) return <Loading />;
 
 	const currentLanguage = resolveLanguage(currentUser.language, DEFAULT_LANGUAGE);
 
