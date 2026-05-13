@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import { DEFAULT_LANGUAGE, resolveLanguage, SupportedLanguage } from "@leuchtturm/core/i18n";
 import { authClient } from "@leuchtturm/web/clients/auth";
+import { Loading } from "@leuchtturm/web/components/app/loading";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { FieldDescription, FieldError, FieldLabel } from "@leuchtturm/web/components/ui/field";
 import { Input } from "@leuchtturm/web/components/ui/input";
@@ -19,7 +20,6 @@ import {
 	SelectValue,
 } from "@leuchtturm/web/components/ui/select";
 import { Separator } from "@leuchtturm/web/components/ui/separator";
-import { Skeleton } from "@leuchtturm/web/components/ui/skeleton";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { queries } from "@leuchtturm/zero/queries";
 
@@ -72,7 +72,7 @@ function PreferencesSection() {
 		},
 	});
 
-	if (!currentUser) return <PreferencesSkeleton />;
+	if (!currentUser) return <Loading />;
 
 	return (
 		<section>
@@ -251,7 +251,7 @@ function TwoFactorAuthenticationSection() {
 		},
 	});
 
-	if (!currentUser) return <TwoFactorSkeleton />;
+	if (!currentUser) return <Loading />;
 
 	return (
 		<section>
@@ -265,12 +265,44 @@ function TwoFactorAuthenticationSection() {
 			</div>
 			<div className="mt-5 space-y-6">
 				{step === "status" && (
-					<TwoFactorStatus
-						enabled={currentUser.twoFactorEnabled}
-						onEnable={() => setStep("enable-password")}
-						onDisable={() => setStep("disable-password")}
-						onRegenerate={() => setStep("regenerate-password")}
-					/>
+					<div className="grid gap-x-10 gap-y-2 lg:grid-cols-[1fr_2fr]">
+						<div>
+							<FieldLabel>
+								<T>Status</T>
+							</FieldLabel>
+							<FieldDescription className="mt-1">
+								{currentUser.twoFactorEnabled ? (
+									<T>Two-factor authentication is enabled.</T>
+								) : (
+									<T>Two-factor authentication is disabled.</T>
+								)}
+							</FieldDescription>
+						</div>
+						<div className="flex flex-wrap justify-end gap-2">
+							{currentUser.twoFactorEnabled ? (
+								<>
+									<Button
+										type="button"
+										variant="outline"
+										onClick={() => setStep("regenerate-password")}
+									>
+										<T>Regenerate backup codes</T>
+									</Button>
+									<Button
+										type="button"
+										variant="destructive"
+										onClick={() => setStep("disable-password")}
+									>
+										<T>Disable 2FA</T>
+									</Button>
+								</>
+							) : (
+								<Button type="button" onClick={() => setStep("enable-password")}>
+									<T>Enable 2FA</T>
+								</Button>
+							)}
+						</div>
+					</div>
 				)}
 				{(step === "enable-password" ||
 					step === "disable-password" ||
@@ -466,112 +498,28 @@ function TwoFactorAuthenticationSection() {
 				)}
 				{step === "backup" && (
 					<setupForm.Subscribe selector={(state) => state.values.backupCodes}>
-						{(backupCodes) => <BackupCodes codes={backupCodes} />}
+						{(backupCodes) => (
+							<div className="grid gap-x-10 gap-y-2 lg:grid-cols-[1fr_2fr]">
+								<div>
+									<FieldLabel>
+										<T>Backup codes</T>
+									</FieldLabel>
+									<FieldDescription className="mt-1">
+										<T>
+											Save these codes now. Each code can be used once if you lose your
+											authenticator.
+										</T>
+									</FieldDescription>
+								</div>
+								<div className="grid max-w-sm grid-cols-2 gap-2 rounded-md border bg-muted/40 p-3 font-mono text-sm">
+									{backupCodes.map((code) => (
+										<div key={code}>{code}</div>
+									))}
+								</div>
+							</div>
+						)}
 					</setupForm.Subscribe>
 				)}
-			</div>
-		</section>
-	);
-}
-
-function TwoFactorStatus({
-	enabled,
-	onEnable,
-	onDisable,
-	onRegenerate,
-}: {
-	enabled: boolean;
-	onEnable: () => void;
-	onDisable: () => void;
-	onRegenerate: () => void;
-}) {
-	return (
-		<div className="grid gap-x-10 gap-y-2 lg:grid-cols-[1fr_2fr]">
-			<div>
-				<FieldLabel>
-					<T>Status</T>
-				</FieldLabel>
-				<FieldDescription className="mt-1">
-					{enabled ? (
-						<T>Two-factor authentication is enabled.</T>
-					) : (
-						<T>Two-factor authentication is disabled.</T>
-					)}
-				</FieldDescription>
-			</div>
-			<div className="flex flex-wrap justify-end gap-2">
-				{enabled ? (
-					<>
-						<Button type="button" variant="outline" onClick={onRegenerate}>
-							<T>Regenerate backup codes</T>
-						</Button>
-						<Button type="button" variant="destructive" onClick={onDisable}>
-							<T>Disable 2FA</T>
-						</Button>
-					</>
-				) : (
-					<Button type="button" onClick={onEnable}>
-						<T>Enable 2FA</T>
-					</Button>
-				)}
-			</div>
-		</div>
-	);
-}
-
-function BackupCodes({ codes }: { codes: string[] }) {
-	return (
-		<div className="grid gap-x-10 gap-y-2 lg:grid-cols-[1fr_2fr]">
-			<div>
-				<FieldLabel>
-					<T>Backup codes</T>
-				</FieldLabel>
-				<FieldDescription className="mt-1">
-					<T>Save these codes now. Each code can be used once if you lose your authenticator.</T>
-				</FieldDescription>
-			</div>
-			<div className="grid max-w-sm grid-cols-2 gap-2 rounded-md border bg-muted/40 p-3 font-mono text-sm">
-				{codes.map((code) => (
-					<div key={code}>{code}</div>
-				))}
-			</div>
-		</div>
-	);
-}
-
-function PreferencesSkeleton() {
-	return (
-		<section className="space-y-5">
-			<div className="space-y-2">
-				<Skeleton className="h-5 w-32" />
-				<Skeleton className="h-4 w-44" />
-			</div>
-			<div className="grid gap-x-10 gap-y-2 lg:grid-cols-[1fr_2fr]">
-				<div className="space-y-2">
-					<Skeleton className="h-4 w-20" />
-					<Skeleton className="h-4 w-56" />
-				</div>
-				<Skeleton className="h-7 w-[200px]" />
-			</div>
-		</section>
-	);
-}
-
-function TwoFactorSkeleton() {
-	return (
-		<section className="space-y-5">
-			<div className="space-y-2">
-				<Skeleton className="h-5 w-48" />
-				<Skeleton className="h-4 w-80" />
-			</div>
-			<div className="grid gap-x-10 gap-y-2 lg:grid-cols-[1fr_2fr]">
-				<div className="space-y-2">
-					<Skeleton className="h-4 w-16" />
-					<Skeleton className="h-4 w-56" />
-				</div>
-				<div className="flex justify-end">
-					<Skeleton className="h-7 w-20" />
-				</div>
 			</div>
 		</section>
 	);
