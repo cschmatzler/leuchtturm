@@ -32,20 +32,7 @@ function Page() {
 
 	const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
 
-	const form = useForm<
-		{ email: string; password: string },
-		undefined,
-		undefined,
-		undefined,
-		undefined,
-		undefined,
-		() => string | null,
-		undefined,
-		undefined,
-		undefined,
-		undefined,
-		undefined
-	>({
+	const form = useForm({
 		defaultValues: {
 			email: "",
 			password: "",
@@ -59,7 +46,7 @@ function Page() {
 			});
 
 			if (error) {
-				form.setErrorMap({ onSubmit: error.message });
+				form.setErrorMap({ onSubmit: { form: error.message, fields: {} } });
 				return;
 			}
 
@@ -80,7 +67,7 @@ function Page() {
 		setIsGoogleSubmitting(false);
 
 		if (error) {
-			form.setErrorMap({ onSubmit: error.message });
+			form.setErrorMap({ onSubmit: { form: error.message, fields: {} } });
 		}
 	}
 
