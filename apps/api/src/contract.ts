@@ -113,6 +113,7 @@ export namespace Contract {
 				title: "Auth",
 				description:
 					"Authentication passthrough; select the Better Auth API document to view endpoints.",
+				exclude: true,
 			}),
 		)
 		.add(HttpApiEndpoint.get("authGet", "/auth/*", { error: AuthError }))
