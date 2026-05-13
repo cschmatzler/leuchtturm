@@ -66,9 +66,11 @@ function Page() {
 	const [twoFactorError, setTwoFactorError] = useState<string>();
 	const [isTwoFactorSubmitting, setIsTwoFactorSubmitting] = useState(false);
 	const [totpURI, setTotpURI] = useState<string>();
+	const [pendingBackupCodes, setPendingBackupCodes] = useState<string[]>();
 	const [backupCodes, setBackupCodes] = useState<string[]>();
 	const isCredentialAccount = accounts?.some((account) => account.providerId === "credential");
 	const isTwoFactorEnabled = twoFactorEnabled ?? Boolean(currentUser?.twoFactorEnabled);
+	const totpSecret = totpURI ? new URL(totpURI).searchParams.get("secret") : undefined;
 	const form = useForm({
 		defaultValues: {
 			language: currentLanguage,
@@ -100,7 +102,8 @@ function Page() {
 		}
 
 		setTotpURI(data.totpURI);
-		setBackupCodes(data.backupCodes);
+		setPendingBackupCodes(data.backupCodes);
+		setBackupCodes(undefined);
 		toast.success(t("Scan the authenticator setup code to finish enabling 2FA"));
 	};
 
@@ -119,6 +122,8 @@ function Page() {
 		setTwoFactorPassword("");
 		setTwoFactorCode("");
 		setTotpURI(undefined);
+		setBackupCodes(pendingBackupCodes);
+		setPendingBackupCodes(undefined);
 		await router.invalidate();
 		toast.success(t("Two-factor authentication enabled"));
 	};
@@ -138,6 +143,7 @@ function Page() {
 
 		setTwoFactorEnabled(false);
 		setTwoFactorPassword("");
+		setPendingBackupCodes(undefined);
 		setBackupCodes(undefined);
 		await router.invalidate();
 		toast.success(t("Two-factor authentication disabled"));
@@ -246,9 +252,6 @@ function Page() {
 								<FieldLabel htmlFor="two-factor-password">
 									<T>Password</T>
 								</FieldLabel>
-								<FieldDescription className="mt-1">
-									<T>Required for accounts that sign in with a password.</T>
-								</FieldDescription>
 							</div>
 							<div>
 								<Input
@@ -280,6 +283,26 @@ function Page() {
 										<div className="inline-flex rounded-md border bg-white p-3">
 											<QRCodeSVG value={totpURI} size={180} />
 										</div>
+										{totpSecret ? (
+											<div className="flex max-w-sm gap-2">
+												<Input
+													readOnly
+													aria-label={t("Secret key")}
+													value={totpSecret}
+													className="font-mono"
+												/>
+												<Button
+													type="button"
+													variant="outline"
+													onClick={() => {
+														void navigator.clipboard.writeText(totpSecret);
+														toast.success(t("Secret key copied"));
+													}}
+												>
+													<T>Copy</T>
+												</Button>
+											</div>
+										) : null}
 										<Input
 											id="two-factor-code"
 											inputMode="numeric"
@@ -298,7 +321,7 @@ function Page() {
 										variant="outline"
 										onClick={() => {
 											setTotpURI(undefined);
-											setBackupCodes(undefined);
+											setPendingBackupCodes(undefined);
 										}}
 										disabled={isTwoFactorSubmitting}
 									>
