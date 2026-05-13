@@ -48,14 +48,12 @@ import { Email } from "@leuchtturm/email";
 import { sendEmailVerificationEmail } from "@leuchtturm/email/templates/email-verification";
 import { sendInvitationEmail } from "@leuchtturm/email/templates/invitation";
 
-export function createBetterAuth(params: {
-	readonly rawDatabase: Database.RawDatabase;
-	readonly database: Database.Database;
-	readonly billing: Billing.Interface;
-	readonly email: Email.Interface;
-	readonly context: AsyncLocalStorage<Context.Context<never>>;
-}) {
-	const { rawDatabase, database, billing, email, context } = params;
+export const createBetterAuth = Effect.fn("Auth.createBetterAuth")(function* (
+	context: AsyncLocalStorage<Context.Context<never>>,
+) {
+	const { database, rawDatabase } = yield* Database.Service;
+	const billing = yield* Billing.Service;
+	const email = yield* Email.Service;
 
 	return betterAuth({
 		baseURL: `https://${Resource.Dns.ApiDomain}/auth`,
@@ -349,4 +347,4 @@ export function createBetterAuth(params: {
 			},
 		},
 	});
-}
+});

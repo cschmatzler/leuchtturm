@@ -15,7 +15,6 @@ import {
 } from "@leuchtturm/core/auth/errors";
 import { OrganizationSelect, SessionData } from "@leuchtturm/core/auth/schema";
 import { Billing } from "@leuchtturm/core/billing";
-import { Database } from "@leuchtturm/core/database";
 import { Email } from "@leuchtturm/email";
 
 export namespace Auth {
@@ -37,17 +36,8 @@ export namespace Auth {
 
 	export const layer = Layer.effect(Service)(
 		Effect.gen(function* () {
-			const { database, rawDatabase } = yield* Database.Service;
-			const billing = yield* Billing.Service;
-			const email = yield* Email.Service;
 			const context = new AsyncLocalStorage<Context.Context<never>>();
-			const auth = createBetterAuth({
-				rawDatabase,
-				database,
-				billing,
-				email,
-				context,
-			});
+			const auth = yield* createBetterAuth(context);
 
 			const handle = Effect.fn("Auth.handle")(function* (request: Request) {
 				const currentContext = yield* Effect.context<never>();
