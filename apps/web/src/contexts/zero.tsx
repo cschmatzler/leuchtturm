@@ -6,6 +6,7 @@ import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { UserSelect } from "@leuchtturm/core/auth/schema";
 import { Loading } from "@leuchtturm/web/components/app/loading";
 import { mutators } from "@leuchtturm/zero/mutators";
+import { queries } from "@leuchtturm/zero/queries";
 import { ZeroProvider as ZeroProviderPrimitive } from "@leuchtturm/zero/react";
 import { schema, type Context, type Zero } from "@leuchtturm/zero/schema";
 
@@ -37,7 +38,7 @@ export function ZeroProvider({
 	const context = useMemo<Context>(() => ({ userId }), [userId]);
 
 	const init = useCallback(
-		(zero: Zero) => {
+		async (zero: Zero) => {
 			setReady(false);
 			router.update({
 				context: {
@@ -51,9 +52,13 @@ export function ZeroProvider({
 				router.invalidate();
 			}
 
+			await zero.preload(queries.currentUser()).complete;
+			if (organization) {
+				await zero.preload(queries.organization({ organization })).complete;
+			}
 			setReady(true);
 		},
-		[router],
+		[router, organization],
 	);
 
 	return (
