@@ -4,6 +4,7 @@ import { createFileRoute, Link, useLocation, useNavigate, useRouter } from "@tan
 import * as Schema from "effect/Schema";
 import { T } from "gt-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { UserInsert } from "@leuchtturm/core/auth/schema";
 import { authClient } from "@leuchtturm/web/clients/auth";
@@ -67,7 +68,7 @@ function Page() {
 		setIsGoogleSubmitting(false);
 
 		if (error) {
-			form.setErrorMap({ onSubmit: { form: error.message, fields: {} } });
+			toast.error(error.message);
 		}
 	}
 
