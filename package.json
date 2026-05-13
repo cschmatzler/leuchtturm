@@ -10,6 +10,7 @@
 	"devDependencies": {
 		"@effect/language-service": "0.86.1",
 		"@leuchtturm/infra": "workspace:*",
+		"@pulumi/pulumi": "3.237.0",
 		"@pulumiverse/grafana": "2.29.1",
 		"@types/node": "25.7.0",
 		"happy-dom": "20.9.0",
