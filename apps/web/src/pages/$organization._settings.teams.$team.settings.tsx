@@ -3,17 +3,14 @@ import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { queries } from "@leuchtturm/zero/queries";
 
 export const Route = createFileRoute("/$organization/_settings/teams/$team/settings")({
-	loader: async ({ context: { organizationId, zero }, params }) => {
+	loader: async ({ context: { organizationId, zero }, params: { organization, team } }) => {
 		if (!zero) return;
+		const currentTeam = await zero.run(queries.team({ organizationId, team: team }));
 
-		zero.preload(queries.organizationTeams({ organizationId }));
-
-		const team = await zero.run(queries.team({ organizationId, team: params.team }));
-
-		if (!team) {
+		if (!currentTeam) {
 			throw redirect({
 				to: "/$organization/settings/teams",
-				params: { organization: params.organization },
+				params: { organization: organization },
 			});
 		}
 	},

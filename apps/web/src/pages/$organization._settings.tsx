@@ -25,7 +25,7 @@ function Layout() {
 			<main id="main-content" className="min-h-0 grow bg-background">
 				<SidebarProvider
 					className="relative h-full min-h-0"
-					style={{ "--sidebar-width": "13rem" } as CSSProperties}
+					style={{ "--sidebar-width": "15rem" } as CSSProperties}
 				>
 					<SettingsSidebar organization={organization} />
 					<SidebarInset className="bg-background">
