@@ -20,6 +20,7 @@ import {
 	DropdownMenuTrigger,
 } from "@leuchtturm/web/components/ui/dropdown-menu";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@leuchtturm/web/components/ui/field";
+import { Show } from "@leuchtturm/web/components/ui/flow";
 import { Input } from "@leuchtturm/web/components/ui/input";
 import { useAuth } from "@leuchtturm/web/hooks/use-auth";
 import { organizationsQuery } from "@leuchtturm/web/queries/organizations";
@@ -198,13 +199,13 @@ function Page() {
 												}}
 												required
 											/>
-											{field.state.meta.errors.length > 0 && (
+											<Show when={field.state.meta.errors.length > 0}>
 												<FieldError>{field.state.meta.errors[0]?.message}</FieldError>
-											)}
+											</Show>
 										</Field>
 									)}
 								</form.Field>
-								{submitError ? <FieldError>{submitError}</FieldError> : null}
+								<Show when={submitError}>{(error) => <FieldError>{error}</FieldError>}</Show>
 								<form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
 									{([canSubmit, isSubmitting]) => (
 										<Button

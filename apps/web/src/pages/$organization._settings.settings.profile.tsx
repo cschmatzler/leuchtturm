@@ -8,6 +8,7 @@ import { UserInsert } from "@leuchtturm/core/auth/schema";
 import { authClient } from "@leuchtturm/web/clients/auth";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { FieldDescription, FieldError, FieldLabel } from "@leuchtturm/web/components/ui/field";
+import { Show } from "@leuchtturm/web/components/ui/flow";
 import { Input } from "@leuchtturm/web/components/ui/input";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { queries } from "@leuchtturm/zero/queries";
@@ -46,7 +47,7 @@ function Page() {
 		<div className="mx-auto w-full max-w-3xl">
 			<section>
 				<div className="space-y-1">
-					<h2 className="font-display text-2xl font-semibold">
+					<h2 className="font-display text-2xl">
 						<T>Profile</T>
 					</h2>
 					<p className="text-sm text-muted-foreground">
@@ -79,9 +80,9 @@ function Page() {
 										onInput={(e) => field.handleChange(e.currentTarget.value)}
 										className="max-w-sm"
 									/>
-									{!field.state.meta.isValid && (
+									<Show when={!field.state.meta.isValid}>
 										<FieldError className="mt-2">{field.state.meta.errors[0]?.message}</FieldError>
-									)}
+									</Show>
 								</div>
 							</div>
 						)}

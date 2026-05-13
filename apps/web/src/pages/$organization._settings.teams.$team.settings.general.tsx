@@ -21,6 +21,7 @@ import {
 } from "@leuchtturm/web/components/ui/alert-dialog";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { FieldError, FieldLabel } from "@leuchtturm/web/components/ui/field";
+import { Show } from "@leuchtturm/web/components/ui/flow";
 import { Input } from "@leuchtturm/web/components/ui/input";
 import { Separator } from "@leuchtturm/web/components/ui/separator";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
@@ -137,7 +138,7 @@ function GeneralSettings(props: { readonly organization: string; readonly team: 
 		<div className="mx-auto w-full max-w-3xl">
 			<section className="py-6">
 				<div className="space-y-1">
-					<h2 className="font-display text-2xl font-semibold">
+					<h2 className="font-display text-2xl">
 						<T>Team</T>
 					</h2>
 					<p className="text-sm text-muted-foreground">
@@ -174,9 +175,9 @@ function GeneralSettings(props: { readonly organization: string; readonly team: 
 										}}
 										className="max-w-sm"
 									/>
-									{field.state.meta.errors.length > 0 && (
+									<Show when={field.state.meta.errors.length > 0}>
 										<FieldError className="mt-2">{field.state.meta.errors[0]?.message}</FieldError>
-									)}
+									</Show>
 								</div>
 							</div>
 						)}
@@ -197,7 +198,7 @@ function GeneralSettings(props: { readonly organization: string; readonly team: 
 
 			<section className="py-6">
 				<div className="space-y-1">
-					<h2 className="font-display text-2xl font-semibold">
+					<h2 className="font-display text-2xl">
 						<T>Delete team</T>
 					</h2>
 					<p className="text-sm text-muted-foreground">

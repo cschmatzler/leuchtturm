@@ -53,6 +53,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@leuchtturm/web/components/ui/dropdown-menu";
+import { Show } from "@leuchtturm/web/components/ui/flow";
 import { ZeroProvider } from "@leuchtturm/web/contexts/zero";
 import { useDataTableFilters } from "@leuchtturm/web/hooks/use-data-table-filters";
 import { adminUsersQuery, type AdminUser } from "@leuchtturm/web/queries/admin-users";
@@ -286,7 +287,7 @@ function AdminUsersPage() {
 							<T>Admin</T>
 						</div>
 						<div>
-							<h1 className="font-display text-2xl font-semibold tracking-tight">
+							<h1 className="font-display text-2xl tracking-tight">
 								<T>User management</T>
 							</h1>
 							<p className="mt-1 max-w-2xl text-sm text-muted-foreground">
@@ -396,7 +397,9 @@ function UserActions({
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger render={<Button variant="ghost" size="icon" loading={isPending} />}>
-				{isPending ? null : <DotsThreeIcon className="size-4" />}
+				<Show when={!isPending}>
+					<DotsThreeIcon className="size-4" />
+				</Show>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" className="w-48">
 				<DropdownMenuLabel>
@@ -417,7 +420,9 @@ function UserActions({
 					}
 				>
 					<ShieldCheckIcon className="size-4" />
-					{role === "admin" ? <T>Make user</T> : <T>Make admin</T>}
+					<Show when={role === "admin"} fallback={<T>Make admin</T>}>
+						<T>Make user</T>
+					</Show>
 				</DropdownMenuItem>
 				<DropdownMenuItem
 					disabled={isCurrentUser}
@@ -436,7 +441,9 @@ function UserActions({
 					}
 				>
 					<XCircleIcon className="size-4" />
-					{isBanned ? <T>Unban user</T> : <T>Ban user</T>}
+					<Show when={isBanned} fallback={<T>Ban user</T>}>
+						<T>Unban user</T>
+					</Show>
 				</DropdownMenuItem>
 				<DropdownMenuItem
 					onClick={() =>

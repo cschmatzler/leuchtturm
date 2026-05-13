@@ -37,6 +37,7 @@ import {
 	DialogTitle,
 } from "@leuchtturm/web/components/ui/dialog";
 import { FieldError, FieldLabel } from "@leuchtturm/web/components/ui/field";
+import { Show } from "@leuchtturm/web/components/ui/flow";
 import { Input } from "@leuchtturm/web/components/ui/input";
 import { useDataTableFilters } from "@leuchtturm/web/hooks/use-data-table-filters";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
@@ -96,9 +97,9 @@ function Page() {
 				cell: ({ row }) => (
 					<div>
 						<p className="text-sm font-medium">{row.original.user?.name ?? row.original.userId}</p>
-						{row.original.user?.email && (
-							<p className="text-xs text-muted-foreground">{row.original.user.email}</p>
-						)}
+						<Show when={row.original.user?.email}>
+							{(email) => <p className="text-xs text-muted-foreground">{email}</p>}
+						</Show>
 					</div>
 				),
 			},
@@ -336,11 +337,11 @@ function Page() {
 												field.handleChange(event.currentTarget.value);
 											}}
 										/>
-										{field.state.meta.errors.length > 0 && (
+										<Show when={field.state.meta.errors.length > 0}>
 											<FieldError className="mt-2">
 												{field.state.meta.errors[0]?.message}
 											</FieldError>
-										)}
+										</Show>
 									</div>
 								</div>
 							)}
@@ -349,7 +350,9 @@ function Page() {
 							{([canSubmit, isSubmitting]) => (
 								<DialogFooter>
 									<Button type="submit" loading={isSubmitting} disabled={!canSubmit}>
-										{isSubmitting ? null : <EnvelopeSimpleIcon className="size-4" />}
+										<Show when={!isSubmitting}>
+											<EnvelopeSimpleIcon className="size-4" />
+										</Show>
 										<T>Invite member</T>
 									</Button>
 								</DialogFooter>
@@ -362,7 +365,7 @@ function Page() {
 			<section className="py-6">
 				<div className="flex items-start justify-between gap-4">
 					<div className="space-y-1">
-						<h2 className="font-display text-2xl font-semibold">
+						<h2 className="font-display text-2xl">
 							<T>Members</T>
 						</h2>
 						<p className="text-sm text-muted-foreground">
@@ -385,10 +388,10 @@ function Page() {
 				/>
 			</section>
 
-			{activeInvitations.length > 0 && (
+			<Show when={activeInvitations.length > 0}>
 				<section className="border-t border-border py-6">
 					<div className="space-y-1">
-						<h2 className="font-display text-2xl font-semibold">
+						<h2 className="font-display text-2xl">
 							<T>Pending invitations</T>
 						</h2>
 						<p className="text-sm text-muted-foreground">
@@ -405,7 +408,7 @@ function Page() {
 						emptyRowName={t("invitations")}
 					/>
 				</section>
-			)}
+			</Show>
 		</div>
 	);
 }

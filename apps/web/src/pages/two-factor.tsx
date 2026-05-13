@@ -14,6 +14,7 @@ import {
 	FieldGroup,
 	FieldLabel,
 } from "@leuchtturm/web/components/ui/field";
+import { Show } from "@leuchtturm/web/components/ui/flow";
 import { Input } from "@leuchtturm/web/components/ui/input";
 
 export const Route = createFileRoute("/two-factor")({
@@ -62,7 +63,7 @@ function Page() {
 		<AuthPageLayout>
 			<div className="flex flex-col gap-6">
 				<div className="flex flex-col gap-2 text-center">
-					<h1 className="text-2xl font-semibold tracking-tight">
+					<h1 className="font-display text-3xl">
 						<T>Two-factor authentication</T>
 					</h1>
 					<p className="text-balance text-muted-foreground">
@@ -72,13 +73,17 @@ function Page() {
 				<form action={() => form.handleSubmit()}>
 					<FieldGroup>
 						<form.Subscribe selector={(state) => state.errorMap.onSubmit}>
-							{(formError) => (formError ? <FieldError>{String(formError)}</FieldError> : null)}
+							{(formError) => (
+								<Show when={formError}>{(error) => <FieldError>{String(error)}</FieldError>}</Show>
+							)}
 						</form.Subscribe>
 						<form.Field name="code">
 							{(field) => (
 								<Field>
 									<FieldLabel htmlFor={field.name}>
-										{useBackupCode ? <T>Backup code</T> : <T>Authentication code</T>}
+										<Show when={useBackupCode} fallback={<T>Authentication code</T>}>
+											<T>Backup code</T>
+										</Show>
 									</FieldLabel>
 									<Input
 										id={field.name}
@@ -139,7 +144,9 @@ function Page() {
 								setUseBackupCode((value) => !value);
 							}}
 						>
-							{useBackupCode ? <T>Use authenticator code</T> : <T>Use backup code</T>}
+							<Show when={useBackupCode} fallback={<T>Use backup code</T>}>
+								<T>Use authenticator code</T>
+							</Show>
 						</Button>
 					</FieldGroup>
 				</form>

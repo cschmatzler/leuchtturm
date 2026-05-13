@@ -5,6 +5,7 @@ import { T, useGT, Var } from "gt-react";
 
 import { api } from "@leuchtturm/web/clients/api";
 import { Button } from "@leuchtturm/web/components/ui/button";
+import { Show } from "@leuchtturm/web/components/ui/flow";
 import { Separator } from "@leuchtturm/web/components/ui/separator";
 import { reportError } from "@leuchtturm/web/lib/report-error";
 import { billingOverviewQuery } from "@leuchtturm/web/queries/billing";
@@ -48,7 +49,7 @@ function Page() {
 		<div className="mx-auto w-full max-w-3xl">
 			<section className="py-6">
 				<div className="space-y-1">
-					<h2 className="font-display text-2xl font-semibold">
+					<h2 className="font-display text-2xl">
 						<T>Billing details</T>
 					</h2>
 					<p className="text-sm text-muted-foreground">
@@ -65,35 +66,44 @@ function Page() {
 			<Separator />
 			<section className="py-6">
 				<div className="space-y-1">
-					<h2 className="font-display text-2xl font-semibold">
+					<h2 className="font-display text-2xl">
 						<T>Leuchtturm Pro</T>
 					</h2>
 					<p className="text-sm text-muted-foreground">
-						{activeSubscription ? (
-							activeSubscription.cancelAtPeriodEnd ? (
-								<T>
-									Your subscription remains active until <Var>{renewalDate}</Var>.
-								</T>
-							) : (
-								<T>
-									Your subscription is active through <Var>{renewalDate}</Var>.
-								</T>
-							)
-						) : (
-							<T>You do not have an active subscription yet.</T>
-						)}
+						<Show
+							when={activeSubscription}
+							fallback={<T>You do not have an active subscription yet.</T>}
+						>
+							{(subscription) => (
+								<Show
+									when={subscription.cancelAtPeriodEnd}
+									fallback={
+										<T>
+											Your subscription is active through <Var>{renewalDate}</Var>.
+										</T>
+									}
+								>
+									<T>
+										Your subscription remains active until <Var>{renewalDate}</Var>.
+									</T>
+								</Show>
+							)}
+						</Show>
 					</p>
 				</div>
 				<div className="mt-5">
-					{activeSubscription ? (
+					<Show
+						when={activeSubscription}
+						fallback={
+							<Button onClick={() => void startCheckout()}>
+								<T>Open checkout</T>
+							</Button>
+						}
+					>
 						<Button variant="outline" onClick={() => void openPortal()}>
 							<T>Manage subscription in Polar</T>
 						</Button>
-					) : (
-						<Button onClick={() => void startCheckout()}>
-							<T>Open checkout</T>
-						</Button>
-					)}
+					</Show>
 				</div>
 			</section>
 		</div>

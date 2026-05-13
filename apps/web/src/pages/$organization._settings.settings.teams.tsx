@@ -19,6 +19,7 @@ import {
 	DialogTitle,
 } from "@leuchtturm/web/components/ui/dialog";
 import { FieldError, FieldLabel } from "@leuchtturm/web/components/ui/field";
+import { Show } from "@leuchtturm/web/components/ui/flow";
 import { Input } from "@leuchtturm/web/components/ui/input";
 import { Link } from "@leuchtturm/web/components/ui/link";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
@@ -149,11 +150,11 @@ function Page() {
 												field.handleChange(event.currentTarget.value);
 											}}
 										/>
-										{field.state.meta.errors.length > 0 && (
+										<Show when={field.state.meta.errors.length > 0}>
 											<FieldError className="mt-2">
 												{field.state.meta.errors[0]?.message}
 											</FieldError>
-										)}
+										</Show>
 									</div>
 								</div>
 							)}
@@ -162,7 +163,9 @@ function Page() {
 							{([canSubmit, isSubmitting]) => (
 								<DialogFooter>
 									<Button type="submit" loading={isSubmitting} disabled={!canSubmit}>
-										{isSubmitting ? null : <PlusIcon className="size-4" />}
+										<Show when={!isSubmitting}>
+											<PlusIcon className="size-4" />
+										</Show>
 										<T>Create team</T>
 									</Button>
 								</DialogFooter>
@@ -175,7 +178,7 @@ function Page() {
 			<section className="py-6">
 				<div className="flex items-start justify-between gap-4">
 					<div className="space-y-1">
-						<h2 className="font-display text-2xl font-semibold">
+						<h2 className="font-display text-2xl">
 							<T>Teams</T>
 						</h2>
 						<p className="text-sm text-muted-foreground">
@@ -188,39 +191,40 @@ function Page() {
 					</Button>
 				</div>
 				<div className="mt-5">
-					{teams.length ? (
-						<>
-							<ul className="divide-y divide-border">
-								{teams.map((team) => (
-									<li key={team.id} className="flex items-center justify-between gap-4 py-4">
-										<div>
-											<p className="text-sm font-medium">{team.name}</p>
-										</div>
-										<div className="flex items-center gap-2">
-											<Button
-												variant="outline"
-												size="sm"
-												nativeButton={false}
-												render={
-													<Link
-														to="/$organization/teams/$team/settings/general"
-														params={{ organization, team: team.slug }}
-													/>
-												}
-											>
-												<GearIcon className="size-4" />
-												<T>Settings</T>
-											</Button>
-										</div>
-									</li>
-								))}
-							</ul>
-						</>
-					) : (
-						<div className="py-10 text-center text-sm text-muted-foreground">
-							<T>Create your first team to start working in this organization.</T>
-						</div>
-					)}
+					<Show
+						when={teams.length > 0}
+						fallback={
+							<div className="py-10 text-center text-sm text-muted-foreground">
+								<T>Create your first team to start working in this organization.</T>
+							</div>
+						}
+					>
+						<ul className="divide-y divide-border">
+							{teams.map((team) => (
+								<li key={team.id} className="flex items-center justify-between gap-4 py-4">
+									<div>
+										<p className="text-sm font-medium">{team.name}</p>
+									</div>
+									<div className="flex items-center gap-2">
+										<Button
+											variant="outline"
+											size="sm"
+											nativeButton={false}
+											render={
+												<Link
+													to="/$organization/teams/$team/settings/general"
+													params={{ organization, team: team.slug }}
+												/>
+											}
+										>
+											<GearIcon className="size-4" />
+											<T>Settings</T>
+										</Button>
+									</div>
+								</li>
+							))}
+						</ul>
+					</Show>
 				</div>
 			</section>
 		</div>

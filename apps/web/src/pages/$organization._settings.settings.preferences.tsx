@@ -9,6 +9,7 @@ import { DEFAULT_LANGUAGE, resolveLanguage, SupportedLanguage } from "@leuchttur
 import { authClient } from "@leuchtturm/web/clients/auth";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { FieldDescription, FieldError, FieldLabel } from "@leuchtturm/web/components/ui/field";
+import { Show } from "@leuchtturm/web/components/ui/flow";
 import { Input } from "@leuchtturm/web/components/ui/input";
 import {
 	Select,
@@ -93,7 +94,7 @@ function PreferencesSection() {
 	return (
 		<section>
 			<div className="space-y-1">
-				<h2 className="font-display text-2xl font-semibold">
+				<h2 className="font-display text-2xl">
 					<T>Preferences</T>
 				</h2>
 				<p className="text-sm text-muted-foreground">
@@ -290,7 +291,7 @@ function TwoFactorAuthenticationSection() {
 	return (
 		<section>
 			<div className="space-y-1">
-				<h2 className="font-display text-2xl font-semibold">
+				<h2 className="font-display text-2xl">
 					<T>Two-factor authentication</T>
 				</h2>
 				<p className="text-sm text-muted-foreground">
@@ -298,49 +299,55 @@ function TwoFactorAuthenticationSection() {
 				</p>
 			</div>
 			<div className="mt-5 space-y-6">
-				{step === "status" && (
+				<Show when={step === "status"}>
 					<div className="grid gap-x-10 gap-y-2 lg:grid-cols-[1fr_2fr]">
 						<div>
 							<FieldLabel>
 								<T>Status</T>
 							</FieldLabel>
 							<FieldDescription className="mt-1">
-								{currentUser.twoFactorEnabled ? (
+								<Show
+									when={currentUser.twoFactorEnabled}
+									fallback={<T>Two-factor authentication is disabled.</T>}
+								>
 									<T>Two-factor authentication is enabled.</T>
-								) : (
-									<T>Two-factor authentication is disabled.</T>
-								)}
+								</Show>
 							</FieldDescription>
 						</div>
 						<div className="flex flex-wrap justify-end gap-2">
-							{currentUser.twoFactorEnabled ? (
-								<>
-									<Button
-										type="button"
-										variant="outline"
-										onClick={() => setStep("regenerate-password")}
-									>
-										<T>Regenerate backup codes</T>
+							<Show
+								when={currentUser.twoFactorEnabled}
+								fallback={
+									<Button type="button" onClick={() => setStep("enable-password")}>
+										<T>Enable 2FA</T>
 									</Button>
-									<Button
-										type="button"
-										variant="destructive"
-										onClick={() => setStep("disable-password")}
-									>
-										<T>Disable 2FA</T>
-									</Button>
-								</>
-							) : (
-								<Button type="button" onClick={() => setStep("enable-password")}>
-									<T>Enable 2FA</T>
+								}
+							>
+								<Button
+									type="button"
+									variant="outline"
+									onClick={() => setStep("regenerate-password")}
+								>
+									<T>Regenerate backup codes</T>
 								</Button>
-							)}
+								<Button
+									type="button"
+									variant="destructive"
+									onClick={() => setStep("disable-password")}
+								>
+									<T>Disable 2FA</T>
+								</Button>
+							</Show>
 						</div>
 					</div>
-				)}
-				{(step === "enable-password" ||
-					step === "disable-password" ||
-					step === "regenerate-password") && (
+				</Show>
+				<Show
+					when={
+						step === "enable-password" ||
+						step === "disable-password" ||
+						step === "regenerate-password"
+					}
+				>
 					<form action={() => passwordForm.handleSubmit()} className="space-y-6">
 						<div className="grid gap-x-10 gap-y-2 lg:grid-cols-[1fr_2fr]">
 							<div>
@@ -376,11 +383,11 @@ function TwoFactorAuthenticationSection() {
 												className="max-w-sm"
 												disabled={passwordForm.state.isSubmitting}
 											/>
-											{field.state.meta.errors.length > 0 ? (
+											<Show when={field.state.meta.errors.length > 0}>
 												<FieldError className="mt-2">
 													{field.state.meta.errors[0]?.message}
 												</FieldError>
-											) : null}
+											</Show>
 										</>
 									)}
 								</passwordForm.Field>
@@ -403,14 +410,20 @@ function TwoFactorAuthenticationSection() {
 								variant={step === "disable-password" ? "destructive" : "default"}
 								loading={passwordForm.state.isSubmitting}
 							>
-								{step === "enable-password" && <T>Continue</T>}
-								{step === "disable-password" && <T>Disable 2FA</T>}
-								{step === "regenerate-password" && <T>Regenerate backup codes</T>}
+								<Show when={step === "enable-password"}>
+									<T>Continue</T>
+								</Show>
+								<Show when={step === "disable-password"}>
+									<T>Disable 2FA</T>
+								</Show>
+								<Show when={step === "regenerate-password"}>
+									<T>Regenerate backup codes</T>
+								</Show>
 							</Button>
 						</div>
 					</form>
-				)}
-				{step === "setup" && (
+				</Show>
+				<Show when={step === "setup"}>
 					<form action={() => setupForm.handleSubmit()} className="space-y-6">
 						<div className="grid gap-x-10 gap-y-2 lg:grid-cols-[1fr_2fr]">
 							<div>
@@ -434,35 +447,37 @@ function TwoFactorAuthenticationSection() {
 										<div className="inline-flex rounded-md border bg-white p-3">
 											<QRCodeSVG value={totpURI} size={180} />
 										</div>
-										{secret && (
-											<>
-												<div className="flex max-w-sm items-center gap-3 text-xs text-muted-foreground">
-													<Separator />
-													<span>
-														<T>or</T>
-													</span>
-													<Separator />
-												</div>
-												<div className="flex max-w-sm gap-2">
-													<Input
-														readOnly
-														aria-label={t("Secret key")}
-														value={secret}
-														className="font-mono"
-													/>
-													<Button
-														type="button"
-														variant="outline"
-														onClick={() => {
-															void navigator.clipboard.writeText(secret);
-															toast.success(t("Secret key copied"));
-														}}
-													>
-														<T>Copy</T>
-													</Button>
-												</div>
-											</>
-										)}
+										<Show when={secret}>
+											{(value) => (
+												<>
+													<div className="flex max-w-sm items-center gap-3 text-xs text-muted-foreground">
+														<Separator />
+														<span>
+															<T>or</T>
+														</span>
+														<Separator />
+													</div>
+													<div className="flex max-w-sm gap-2">
+														<Input
+															readOnly
+															aria-label={t("Secret key")}
+															value={value}
+															className="font-mono"
+														/>
+														<Button
+															type="button"
+															variant="outline"
+															onClick={() => {
+																void navigator.clipboard.writeText(value);
+																toast.success(t("Secret key copied"));
+															}}
+														>
+															<T>Copy</T>
+														</Button>
+													</div>
+												</>
+											)}
+										</Show>
 										<setupForm.Field
 											name="code"
 											validators={{
@@ -491,11 +506,11 @@ function TwoFactorAuthenticationSection() {
 														disabled={setupForm.state.isSubmitting}
 														className="max-w-sm"
 													/>
-													{field.state.meta.errors.length > 0 ? (
+													<Show when={field.state.meta.errors.length > 0}>
 														<FieldError className="mt-2">
 															{field.state.meta.errors[0]?.message}
 														</FieldError>
-													) : null}
+													</Show>
 												</>
 											)}
 										</setupForm.Field>
@@ -529,8 +544,8 @@ function TwoFactorAuthenticationSection() {
 							</setupForm.Subscribe>
 						</div>
 					</form>
-				)}
-				{step === "backup" && (
+				</Show>
+				<Show when={step === "backup"}>
 					<setupForm.Subscribe selector={(state) => state.values.backupCodes}>
 						{(backupCodes) => (
 							<div className="grid gap-x-10 gap-y-2 lg:grid-cols-[1fr_2fr]">
@@ -553,7 +568,7 @@ function TwoFactorAuthenticationSection() {
 							</div>
 						)}
 					</setupForm.Subscribe>
-				)}
+				</Show>
 			</div>
 		</section>
 	);

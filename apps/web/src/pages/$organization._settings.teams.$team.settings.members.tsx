@@ -23,6 +23,7 @@ import {
 import type { ColumnConfig } from "@leuchtturm/web/components/data-table-filter/types";
 import { Badge } from "@leuchtturm/web/components/ui/badge";
 import { Button } from "@leuchtturm/web/components/ui/button";
+import { Show } from "@leuchtturm/web/components/ui/flow";
 import { Separator } from "@leuchtturm/web/components/ui/separator";
 import { useDataTableFilters } from "@leuchtturm/web/hooks/use-data-table-filters";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
@@ -131,9 +132,9 @@ function MembersSettings(props: { readonly team: string }) {
 				cell: ({ row }) => (
 					<div>
 						<p className="text-sm font-medium">{row.original.name}</p>
-						{row.original.email && (
-							<p className="text-xs text-muted-foreground">{row.original.email}</p>
-						)}
+						<Show when={row.original.email}>
+							{(email) => <p className="text-xs text-muted-foreground">{email}</p>}
+						</Show>
 					</div>
 				),
 			},
@@ -148,18 +149,26 @@ function MembersSettings(props: { readonly team: string }) {
 				accessorFn: (member) => member.role,
 				cell: ({ getValue }) => {
 					const role = getValue<string>();
-					return role ? (
-						<Badge variant="outline">{`${role.charAt(0).toUpperCase()}${role.slice(1)}`}</Badge>
-					) : null;
+					return (
+						<Show when={role}>
+							{(value) => (
+								<Badge variant="outline">{`${value.charAt(0).toUpperCase()}${value.slice(1)}`}</Badge>
+							)}
+						</Show>
+					);
 				},
 			},
 			{
 				id: "actions",
 				header: "",
 				size: 1,
-				cell: ({ row }) =>
-					row.original.userId !== session.user.id &&
-					row.original.organizationMember?.role !== "owner" ? (
+				cell: ({ row }) => (
+					<Show
+						when={
+							row.original.userId !== session.user.id &&
+							row.original.organizationMember?.role !== "owner"
+						}
+					>
 						<Button
 							variant="destructive"
 							size="sm"
@@ -168,7 +177,8 @@ function MembersSettings(props: { readonly team: string }) {
 							<TrashIcon className="size-4" />
 							<T>Remove</T>
 						</Button>
-					) : null,
+					</Show>
+				),
 			},
 		],
 		[removeMember, session.user.id, t],
@@ -235,9 +245,9 @@ function MembersSettings(props: { readonly team: string }) {
 				cell: ({ row }) => (
 					<div>
 						<p className="text-sm font-medium">{row.original.user?.name ?? row.original.userId}</p>
-						{row.original.user?.email && (
-							<p className="text-xs text-muted-foreground">{row.original.user.email}</p>
-						)}
+						<Show when={row.original.user?.email}>
+							{(email) => <p className="text-xs text-muted-foreground">{email}</p>}
+						</Show>
 					</div>
 				),
 			},
@@ -328,7 +338,7 @@ function MembersSettings(props: { readonly team: string }) {
 		<div className="mx-auto w-full max-w-3xl">
 			<section className="py-6">
 				<div className="space-y-1">
-					<h2 className="font-display text-2xl font-semibold">
+					<h2 className="font-display text-2xl">
 						<T>Team members</T>
 					</h2>
 					<p className="text-sm text-muted-foreground">
@@ -346,13 +356,13 @@ function MembersSettings(props: { readonly team: string }) {
 				/>
 			</section>
 
-			{availableMembers.length > 0 && (
+			<Show when={availableMembers.length > 0}>
 				<>
 					<Separator />
 
 					<section className="py-6">
 						<div className="space-y-1">
-							<h2 className="font-display text-2xl font-semibold">
+							<h2 className="font-display text-2xl">
 								<T>Add organization members</T>
 							</h2>
 							<p className="text-sm text-muted-foreground">
@@ -370,7 +380,7 @@ function MembersSettings(props: { readonly team: string }) {
 						/>
 					</section>
 				</>
-			)}
+			</Show>
 		</div>
 	);
 }
