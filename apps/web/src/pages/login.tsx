@@ -60,10 +60,12 @@ function Page() {
 
 	async function signInWithGoogle() {
 		setIsGoogleSubmitting(true);
+
 		const { error } = await authClient.signIn.social({
 			provider: "google",
 			callbackURL: location.href,
 		});
+
 		setIsGoogleSubmitting(false);
 
 		if (error) {
@@ -116,12 +118,11 @@ function Page() {
 										value={field.state.value}
 										onBlur={field.handleBlur}
 										onInput={(event) => {
-											form.setErrorMap({ onSubmit: undefined });
 											field.handleChange(event.currentTarget.value);
 										}}
 										required
 									/>
-									<Show when={field.state.meta.errors.length > 0}>
+									<Show when={field.state.meta.isDirty && field.state.meta.errors.length > 0}>
 										<FieldError>{field.state.meta.errors[0]?.message}</FieldError>
 									</Show>
 								</Field>
@@ -141,7 +142,6 @@ function Page() {
 										value={field.state.value}
 										onBlur={field.handleBlur}
 										onInput={(event) => {
-											form.setErrorMap({ onSubmit: undefined });
 											field.handleChange(event.currentTarget.value);
 										}}
 										required
