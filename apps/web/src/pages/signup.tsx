@@ -1,6 +1,5 @@
 import { useForm } from "@tanstack/react-form";
-import { useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, Link, useLocation, useNavigate, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, useLocation } from "@tanstack/react-router";
 import * as Schema from "effect/Schema";
 import { T, useGT } from "gt-react";
 import { useState } from "react";
@@ -23,15 +22,12 @@ export const Route = createFileRoute("/signup")({
 });
 
 function Page() {
-	const navigate = useNavigate();
-	const router = useRouter();
 	const location = useLocation();
-
-	const queryClient = useQueryClient();
 
 	const t = useGT();
 
 	const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
+	const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string>();
 
 	const form = useForm({
 		defaultValues: {
@@ -54,12 +50,9 @@ function Page() {
 				return null;
 			},
 		},
-		onSubmit: async () => {
-			await queryClient.invalidateQueries({ queryKey: ["session"] });
-			await queryClient.invalidateQueries({ queryKey: ["deviceSessions"] });
-			await queryClient.invalidateQueries({ queryKey: ["organizations"] });
-			await router.invalidate();
-			await navigate({ to: "/app" });
+		onSubmit: async ({ value }) => {
+			const email = Schema.decodeSync(UserInsert.fields.email)(value.email);
+			setPendingVerificationEmail(email);
 		},
 	});
 
@@ -74,6 +67,25 @@ function Page() {
 		if (error) {
 			form.setErrorMap({ onSubmit: error.message });
 		}
+	}
+
+	if (pendingVerificationEmail) {
+		return (
+			<AuthPageLayout>
+				<div className="flex flex-col gap-6 text-center">
+					<div className="flex flex-col gap-2">
+						<h1 className="text-2xl font-semibold tracking-tight">
+							<T>Check your inbox</T>
+						</h1>
+						<p className="text-balance text-muted-foreground">
+							<T>
+								We created your account. Please verify {pendingVerificationEmail} before signing in.
+							</T>
+						</p>
+					</div>
+				</div>
+			</AuthPageLayout>
+		);
 	}
 
 	return (
