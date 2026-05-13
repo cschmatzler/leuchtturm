@@ -16,7 +16,7 @@ import {
 } from "@leuchtturm/web/components/ui/field";
 import { Show } from "@leuchtturm/web/components/ui/flow";
 import { Input } from "@leuchtturm/web/components/ui/input";
-import { Toggle } from "@leuchtturm/web/components/ui/toggle";
+import { Switch } from "@leuchtturm/web/components/ui/switch";
 import { useAuth } from "@leuchtturm/web/hooks/use-auth";
 
 export const Route = createFileRoute("/two-factor")({
@@ -128,12 +128,11 @@ function Page() {
 								<totpForm.Field name="trustDevice">
 									{(field) => (
 										<Field className="flex-row items-start gap-3">
-											<Toggle
+											<Switch
 												id={field.name}
 												aria-labelledby={`${field.name}-label`}
-												pressed={field.state.value}
-												onPressedChange={field.handleChange}
-												variant="outline"
+												checked={field.state.value}
+												onCheckedChange={field.handleChange}
 												className="mt-1"
 											/>
 											<div className="space-y-1">
@@ -207,12 +206,11 @@ function Page() {
 							<backupCodeForm.Field name="trustDevice">
 								{(field) => (
 									<Field className="flex-row items-start gap-3">
-										<Toggle
+										<Switch
 											id={field.name}
 											aria-labelledby={`${field.name}-label`}
-											pressed={field.state.value}
-											onPressedChange={field.handleChange}
-											variant="outline"
+											checked={field.state.value}
+											onCheckedChange={field.handleChange}
 											className="mt-1"
 										/>
 										<div className="space-y-1">
