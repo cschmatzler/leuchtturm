@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vite-plus/test";
+import { describe, expect, it } from "vitest";
 
 import { addUniq, isAnyOf, removeUniq, uniq } from "@leuchtturm/web/lib/array";
 

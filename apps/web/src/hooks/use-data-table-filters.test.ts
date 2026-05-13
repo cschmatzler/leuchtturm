@@ -1,7 +1,7 @@
 import { Circle } from "@phosphor-icons/react/Circle";
 import { act, renderHook } from "@testing-library/react";
 import type { Dispatch, SetStateAction } from "react";
-import { describe, expect, it } from "vite-plus/test";
+import { describe, expect, it } from "vitest";
 
 import { createFilterBuilder } from "@leuchtturm/web/components/data-table-filter/filters";
 import type {

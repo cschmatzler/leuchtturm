@@ -1,5 +1,5 @@
 import * as Effect from "effect/Effect";
-import { describe, expect, it, vi } from "vite-plus/test";
+import { describe, expect, it, vi } from "vitest";
 
 import { sendInvitationEmail } from "@leuchtturm/email/templates/invitation";
 

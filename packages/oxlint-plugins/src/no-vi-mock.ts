@@ -17,7 +17,7 @@ const rule = {
 
 		return {
 			ImportDeclaration(node) {
-				if (node.source?.value !== "vite-plus/test" && node.source?.value !== "vitest") {
+				if (node.source?.value !== "vitest") {
 					return;
 				}
 

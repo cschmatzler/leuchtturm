@@ -9,7 +9,7 @@ import {
 } from "@tanstack/react-router";
 import { cleanup, render, screen } from "@testing-library/react";
 import { GTProvider } from "gt-react";
-import { afterEach, describe, expect, it } from "vite-plus/test";
+import { afterEach, describe, expect, it } from "vitest";
 
 import { MarketingHeader } from "@leuchtturm/web/components/app/marketing-header";
 

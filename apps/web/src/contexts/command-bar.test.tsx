@@ -1,7 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import type { FC, ReactNode } from "react";
 import { useContext } from "react";
-import { describe, expect, it, vi } from "vite-plus/test";
+import { describe, expect, it, vi } from "vitest";
 
 import type { Action } from "@leuchtturm/web/contexts/command-bar";
 import { CommandBarProvider, Context } from "@leuchtturm/web/contexts/command-bar";

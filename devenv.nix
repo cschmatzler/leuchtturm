@@ -4,6 +4,7 @@
 	...
 }: {
 	packages = [
+		pkgs.aube
 		pkgs.hurl
 		pkgs.treefmt
 		pkgs.cloudflared
@@ -26,8 +27,8 @@
 			};
 			settings = {
 				formatter = {
-					vp-fmt = {
-						command = "vp";
+					oxfmt = {
+						command = "oxfmt";
 						includes = [
 							"*.js"
 							"*.jsx"
@@ -42,7 +43,7 @@
 							"*.jsonc"
 							"*.md"
 						];
-						options = ["fmt" "--write"];
+						options = ["--write"];
 					};
 				};
 			};

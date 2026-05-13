@@ -1,5 +1,5 @@
 import { Circle } from "@phosphor-icons/react/Circle";
-import { describe, expect, it } from "vite-plus/test";
+import { describe, expect, it } from "vitest";
 
 import {
 	createFilterBuilder,

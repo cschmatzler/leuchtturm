@@ -7,6 +7,12 @@
 		"packages/*"
 	],
 	"type": "module",
+	"scripts": {
+		"lint": "oxlint",
+		"test": "vitest run",
+		"fmt": "oxfmt --write",
+		"check": "oxfmt --check && oxlint"
+	},
 	"devDependencies": {
 		"@effect/language-service": "0.86.1",
 		"@leuchtturm/infra": "workspace:*",
@@ -14,9 +20,13 @@
 		"@pulumiverse/grafana": "2.29.1",
 		"@types/node": "25.7.0",
 		"happy-dom": "20.9.0",
+		"oxfmt": "0.46.0",
+		"oxlint": "1.61.0",
+		"oxlint-tsgolint": "0.22.0",
 		"sst": "4.14.1",
 		"typescript": "6.0.3",
-		"vite-plus": "0.1.20"
+		"vite": "8.0.12",
+		"vitest": "4.1.5"
 	},
 	"packageManager": "pnpm@11.1.1",
 	"trustedDependencies": [

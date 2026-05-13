@@ -10,7 +10,7 @@ import {
 import { cleanup, render, screen } from "@testing-library/react";
 import { GTProvider } from "gt-react";
 import type { ReactElement } from "react";
-import { afterEach, describe, expect, it } from "vite-plus/test";
+import { afterEach, describe, expect, it } from "vitest";
 
 import { Route } from "@leuchtturm/web/pages/index";
 

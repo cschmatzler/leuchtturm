@@ -14,21 +14,21 @@
 - Prefer inline code over unnecessary helper functions.
 - Do not introduce constants for values that are only used to avoid repeating short literals or simple property accesses; inline them instead.
 
-# Vite+ Toolchain
+# Toolchain
 
 ```bash
-vp lint         # Lint code
-vp test         # Run tests
-vp fmt          # Format code
-vp check        # Lint + type check
+pnpm lint       # Lint code with Oxlint
+pnpm test       # Run tests with Vitest
+pnpm fmt        # Format code with Oxfmt
+pnpm check      # Check formatting with Oxfmt, then lint + type check with Oxlint
 ```
 
-- `vp lint` and `vp check` include type checking. Never run `tsc` directly.
-- Import all testing/build utilities from `vite-plus`:
+- `pnpm lint` and the Oxlint part of `pnpm check` include type checking. Never run `tsc` directly.
+- Import test utilities from `vitest` and Vite utilities from `vite`:
 
 ```typescript
-import { describe, it, expect, vi } from "vite-plus/test";
-import { defineConfig } from "vite-plus";
+import { describe, it, expect, vi } from "vitest";
+import { defineConfig } from "vite";
 ```
 
-- After changes, always run `vp check` and `vp test`.
+- After changes, always run `pnpm check` and `pnpm test`.
