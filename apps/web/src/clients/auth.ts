@@ -1,7 +1,6 @@
 import {
 	inferAdditionalFields,
 	adminClient,
-	magicLinkClient,
 	multiSessionClient,
 	organizationClient,
 	twoFactorClient,
@@ -16,7 +15,6 @@ export const authClient = createAuthClient({
 	plugins: [
 		adminClient(),
 		multiSessionClient(),
-		magicLinkClient(),
 		twoFactorClient({ twoFactorPage: "/two-factor" }),
 		inferAdditionalFields({
 			user: {

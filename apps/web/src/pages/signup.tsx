@@ -1,14 +1,8 @@
 import { useForm } from "@tanstack/react-form";
-import {
-	createFileRoute,
-	Link,
-	stripSearchParams,
-	useNavigate,
-	useRouter,
-} from "@tanstack/react-router";
-import * as Effect from "effect/Effect";
+import { useQueryClient } from "@tanstack/react-query";
+import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
 import * as Schema from "effect/Schema";
-import { T, useGT, Var } from "gt-react";
+import { T, useGT } from "gt-react";
 import { useState } from "react";
 
 import { UserInsert } from "@leuchtturm/core/auth/schema";
@@ -17,7 +11,6 @@ import { AuthPageLayout } from "@leuchtturm/web/components/app/auth-page-layout"
 import { Button } from "@leuchtturm/web/components/ui/button";
 import {
 	Field,
-	FieldDescription,
 	FieldError,
 	FieldGroup,
 	FieldLabel,
@@ -26,29 +19,19 @@ import {
 import { Input } from "@leuchtturm/web/components/ui/input";
 
 export const Route = createFileRoute("/signup")({
-	validateSearch: Schema.toStandardSchemaV1(
-		Schema.Struct({
-			password: Schema.Boolean.pipe(
-				Schema.optional,
-				Schema.withDecodingDefault(Effect.succeed(false)),
-			),
-		}),
-	),
-	search: {
-		middlewares: [stripSearchParams({ password: false })],
-	},
 	component: Page,
 });
 
 function Page() {
-	const { password } = Route.useSearch();
 	const navigate = useNavigate();
 	const router = useRouter();
 
+	const queryClient = useQueryClient();
+
 	const t = useGT();
 
-	const [magicLinkSentTo, setMagicLinkSentTo] = useState<string>();
 	const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
+
 	const form = useForm({
 		defaultValues: {
 			name: "",
@@ -57,40 +40,28 @@ function Page() {
 		},
 		validators: {
 			onSubmitAsync: async ({ value }) => {
-				const email = Schema.decodeSync(UserInsert.fields.email)(value.email);
 				const name = Schema.decodeSync(UserInsert.fields.name)(value.name);
-
-				if (password) {
-					const { error } = await authClient.signUp.email({
-						name,
-						email,
-						password: value.password,
-					});
-
-					if (error) return error.message;
-					return null;
-				}
-
-				const { error } = await authClient.signIn.magicLink({
-					email,
+				const email = Schema.decodeSync(UserInsert.fields.email)(value.email);
+				const { error } = await authClient.signUp.email({
 					name,
-					callbackURL: router.history.createHref("/app"),
+					email,
+					password: value.password,
 				});
 
 				if (error) return error.message;
 				return null;
 			},
 		},
-		onSubmit: async ({ value }) => {
-			if (password) return;
-
-			const email = Schema.decodeSync(UserInsert.fields.email)(value.email);
-			setMagicLinkSentTo(email);
+		onSubmit: async () => {
+			await queryClient.invalidateQueries({ queryKey: ["session"] });
+			await queryClient.invalidateQueries({ queryKey: ["deviceSessions"] });
+			await queryClient.invalidateQueries({ queryKey: ["organizations"] });
+			await router.invalidate();
+			await navigate({ to: "/app" });
 		},
 	});
 
 	async function signUpWithGoogle() {
-		setMagicLinkSentTo(undefined);
 		setIsGoogleSubmitting(true);
 		const { error } = await authClient.signIn.social({
 			provider: "google",
@@ -111,7 +82,7 @@ function Page() {
 						<T>Create an account</T>
 					</h1>
 					<p className="text-balance text-muted-foreground">
-						<T>Sign up with your email or Google to create your account</T>
+						<T>Sign up with your email and password or Google to create your account</T>
 					</p>
 				</div>
 				<Button
@@ -131,13 +102,6 @@ function Page() {
 						<form.Subscribe selector={(state) => state.errorMap.onSubmit}>
 							{(formError) => (formError ? <FieldError>{String(formError)}</FieldError> : null)}
 						</form.Subscribe>
-						{magicLinkSentTo ? (
-							<FieldDescription className="text-center">
-								<T>
-									Check your inbox for a sign-up link sent to <Var>{magicLinkSentTo}</Var>.
-								</T>
-							</FieldDescription>
-						) : null}
 						<form.Field
 							name="name"
 							validators={{
@@ -158,7 +122,6 @@ function Page() {
 										onBlur={field.handleBlur}
 										onInput={(event) => {
 											form.setErrorMap({ onSubmit: undefined });
-											setMagicLinkSentTo(undefined);
 											field.handleChange(event.currentTarget.value);
 										}}
 										disabled={isGoogleSubmitting}
@@ -191,7 +154,6 @@ function Page() {
 										onBlur={field.handleBlur}
 										onInput={(event) => {
 											form.setErrorMap({ onSubmit: undefined });
-											setMagicLinkSentTo(undefined);
 											field.handleChange(event.currentTarget.value);
 										}}
 										disabled={isGoogleSubmitting}
@@ -203,75 +165,40 @@ function Page() {
 								</Field>
 							)}
 						</form.Field>
-						{password ? (
-							<>
-								<form.Field name="password">
-									{(field) => (
-										<Field>
-											<FieldLabel htmlFor={field.name}>
-												<T>Password</T>
-											</FieldLabel>
-											<Input
-												id={field.name}
-												name={field.name}
-												type="password"
-												autoComplete="new-password"
-												value={field.state.value}
-												onBlur={field.handleBlur}
-												onInput={(event) => {
-													form.setErrorMap({ onSubmit: undefined });
-													field.handleChange(event.currentTarget.value);
-												}}
-												required
-											/>
-										</Field>
-									)}
-								</form.Field>
-								<form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
-									{([canSubmit, isSubmitting]) => (
-										<Button
-											type="submit"
-											className="w-full"
-											loading={isSubmitting}
-											disabled={!canSubmit}
-										>
-											<T>Create account</T>
-										</Button>
-									)}
-								</form.Subscribe>
+						<form.Field name="password">
+							{(field) => (
+								<Field>
+									<FieldLabel htmlFor={field.name}>
+										<T>Password</T>
+									</FieldLabel>
+									<Input
+										id={field.name}
+										name={field.name}
+										type="password"
+										autoComplete="new-password"
+										value={field.state.value}
+										onBlur={field.handleBlur}
+										onInput={(event) => {
+											form.setErrorMap({ onSubmit: undefined });
+											field.handleChange(event.currentTarget.value);
+										}}
+										required
+									/>
+								</Field>
+							)}
+						</form.Field>
+						<form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
+							{([canSubmit, isSubmitting]) => (
 								<Button
-									type="button"
-									variant="outline"
+									type="submit"
 									className="w-full"
-									onClick={() => navigate({ to: "/signup", search: { password: false } })}
+									loading={isSubmitting}
+									disabled={!canSubmit}
 								>
-									<T>Login with magic code</T>
+									<T>Create account</T>
 								</Button>
-							</>
-						) : (
-							<>
-								<form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
-									{([canSubmit, isSubmitting]) => (
-										<Button
-											type="submit"
-											className="w-full"
-											loading={isSubmitting}
-											disabled={!canSubmit}
-										>
-											<T>Send one-time code</T>
-										</Button>
-									)}
-								</form.Subscribe>
-								<Button
-									type="button"
-									variant="outline"
-									className="w-full"
-									onClick={() => navigate({ to: "/signup", search: { password: true } })}
-								>
-									<T>Sign up with password</T>
-								</Button>
-							</>
-						)}
+							)}
+						</form.Subscribe>
 					</FieldGroup>
 				</form>
 				<div className="text-center text-sm">

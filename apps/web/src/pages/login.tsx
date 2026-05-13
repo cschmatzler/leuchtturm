@@ -1,13 +1,6 @@
 import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-	createFileRoute,
-	Link,
-	stripSearchParams,
-	useNavigate,
-	useRouter,
-} from "@tanstack/react-router";
-import * as Effect from "effect/Effect";
+import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
 import * as Schema from "effect/Schema";
 import { T } from "gt-react";
 import { useState } from "react";
@@ -26,22 +19,10 @@ import {
 import { Input } from "@leuchtturm/web/components/ui/input";
 
 export const Route = createFileRoute("/login")({
-	validateSearch: Schema.toStandardSchemaV1(
-		Schema.Struct({
-			password: Schema.Boolean.pipe(
-				Schema.optional,
-				Schema.withDecodingDefault(Effect.succeed(false)),
-			),
-		}),
-	),
-	search: {
-		middlewares: [stripSearchParams({ password: false })],
-	},
 	component: Page,
 });
 
 function Page() {
-	const { password } = Route.useSearch();
 	const navigate = useNavigate();
 	const router = useRouter();
 
@@ -57,17 +38,10 @@ function Page() {
 		validators: {
 			onSubmitAsync: async ({ value }) => {
 				const email = Schema.decodeSync(UserInsert.fields.email)(value.email);
-
-				if (password) {
-					return await signInWithPassword({ email, password: value.password });
-				}
-
-				return await sendMagicLink({ email });
+				return await signInWithPassword({ email, password: value.password });
 			},
 		},
 		onSubmit: async () => {
-			if (!password) return;
-
 			await queryClient.invalidateQueries({ queryKey: ["session"] });
 			await queryClient.invalidateQueries({ queryKey: ["deviceSessions"] });
 			await queryClient.invalidateQueries({ queryKey: ["organizations"] });
@@ -76,18 +50,8 @@ function Page() {
 		},
 	});
 
-	async function sendMagicLink({ email }: { email: string }) {
-		const { error } = await authClient.signIn.magicLink({
-			email,
-			callbackURL: router.history.createHref("/app"),
-		});
-
-		if (error) return error.message;
-		return null;
-	}
-
-	async function signInWithPassword({ email, password: pw }: { email: string; password: string }) {
-		const { error } = await authClient.signIn.email({ email, password: pw });
+	async function signInWithPassword({ email, password }: { email: string; password: string }) {
+		const { error } = await authClient.signIn.email({ email, password });
 
 		if (error) return error.message;
 		return null;
@@ -160,75 +124,40 @@ function Page() {
 								</Field>
 							)}
 						</form.Field>
-						{password ? (
-							<>
-								<form.Field name="password">
-									{(field) => (
-										<Field>
-											<FieldLabel htmlFor={field.name}>
-												<T>Password</T>
-											</FieldLabel>
-											<Input
-												id={field.name}
-												name={field.name}
-												type="password"
-												autoComplete="current-password"
-												value={field.state.value}
-												onBlur={field.handleBlur}
-												onInput={(event) => {
-													form.setErrorMap({ onSubmit: undefined });
-													field.handleChange(event.currentTarget.value);
-												}}
-												required
-											/>
-										</Field>
-									)}
-								</form.Field>
-								<form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
-									{([canSubmit, isSubmitting]) => (
-										<Button
-											type="submit"
-											className="w-full"
-											loading={isSubmitting}
-											disabled={!canSubmit}
-										>
-											<T>Sign in</T>
-										</Button>
-									)}
-								</form.Subscribe>
+						<form.Field name="password">
+							{(field) => (
+								<Field>
+									<FieldLabel htmlFor={field.name}>
+										<T>Password</T>
+									</FieldLabel>
+									<Input
+										id={field.name}
+										name={field.name}
+										type="password"
+										autoComplete="current-password"
+										value={field.state.value}
+										onBlur={field.handleBlur}
+										onInput={(event) => {
+											form.setErrorMap({ onSubmit: undefined });
+											field.handleChange(event.currentTarget.value);
+										}}
+										required
+									/>
+								</Field>
+							)}
+						</form.Field>
+						<form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
+							{([canSubmit, isSubmitting]) => (
 								<Button
-									type="button"
-									variant="outline"
+									type="submit"
 									className="w-full"
-									onClick={() => navigate({ to: "/login", search: { password: false } })}
+									loading={isSubmitting}
+									disabled={!canSubmit}
 								>
-									<T>Login with magic code</T>
+									<T>Sign in</T>
 								</Button>
-							</>
-						) : (
-							<>
-								<form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
-									{([canSubmit, isSubmitting]) => (
-										<Button
-											type="submit"
-											className="w-full"
-											loading={isSubmitting}
-											disabled={!canSubmit}
-										>
-											<T>Send one-time code</T>
-										</Button>
-									)}
-								</form.Subscribe>
-								<Button
-									type="button"
-									variant="outline"
-									className="w-full"
-									onClick={() => navigate({ to: "/login", search: { password: true } })}
-								>
-									<T>Login with password</T>
-								</Button>
-							</>
-						)}
+							)}
+						</form.Subscribe>
 					</FieldGroup>
 				</form>
 				<div className="text-center text-sm">

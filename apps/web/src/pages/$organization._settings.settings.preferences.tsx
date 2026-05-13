@@ -234,7 +234,7 @@ function Page() {
 								<T>Password</T>
 							</FieldLabel>
 							<FieldDescription className="mt-1">
-								<T>Required for password accounts. Leave empty for passwordless accounts.</T>
+								<T>Required for accounts that sign in with a password.</T>
 							</FieldDescription>
 						</div>
 						<div>

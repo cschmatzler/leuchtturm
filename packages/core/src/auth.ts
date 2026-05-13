@@ -1,13 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import {
-	admin,
-	multiSession,
-	magicLink,
-	openAPI,
-	organization,
-	twoFactor,
-} from "better-auth/plugins";
+import { admin, multiSession, openAPI, organization, twoFactor } from "better-auth/plugins";
 import { and, eq, ne } from "drizzle-orm";
 import * as Cause from "effect/Cause";
 import * as Context from "effect/Context";
@@ -37,7 +30,6 @@ import {
 	AuthError,
 	AuthInvalidSessionPayloadError,
 	AuthInvalidOrganizationPayloadError,
-	AuthMagicLinkEmailError,
 	AuthOrganizationLookupError,
 	AuthSessionLookupError,
 } from "@leuchtturm/core/auth/errors";
@@ -60,7 +52,6 @@ import { Billing } from "@leuchtturm/core/billing";
 import { Database } from "@leuchtturm/core/database";
 import { Email } from "@leuchtturm/email";
 import { sendInvitationEmail } from "@leuchtturm/email/templates/invitation";
-import { sendMagicLinkEmail } from "@leuchtturm/email/templates/magic-link";
 
 export namespace Auth {
 	export interface Interface {
@@ -130,26 +121,6 @@ export namespace Auth {
 					admin(),
 					multiSession(),
 					openAPI(),
-					magicLink({
-						storeToken: "hashed",
-						sendMagicLink: ({ email: emailAddress, url }) =>
-							Effect.runPromiseWith(context.getStore() ?? Context.empty())(
-								sendMagicLinkEmail({
-									email: emailAddress,
-									signInUrl: url,
-									send: (params) => email.send(params),
-								}).pipe(
-									Effect.catchCause((cause) =>
-										Effect.gen(function* () {
-											yield* Effect.annotateCurrentSpan({
-												"error.original_cause": Cause.pretty(cause),
-											});
-											return yield* Effect.fail(new AuthMagicLinkEmailError());
-										}),
-									),
-								),
-							),
-					}),
 					twoFactor({
 						issuer: "Leuchtturm",
 						allowPasswordless: true,
