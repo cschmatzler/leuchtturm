@@ -31,17 +31,12 @@ function Page() {
 	const queryClient = useQueryClient();
 
 	const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
+	const [submitError, setSubmitError] = useState<string>();
 
 	const form = useForm({
 		defaultValues: {
 			email: "",
 			password: "",
-		},
-		validators: {
-			onSubmit: ({ value }) => {
-				Schema.decodeSync(UserInsert.fields.email)(value.email);
-				return null as string | null;
-			},
 		},
 		onSubmit: async ({ value }) => {
 			const email = Schema.decodeSync(UserInsert.fields.email)(value.email);
@@ -52,7 +47,7 @@ function Page() {
 			});
 
 			if (error) {
-				form.setErrorMap({ onSubmit: error.message });
+				setSubmitError(error.message);
 				return;
 			}
 
@@ -73,7 +68,7 @@ function Page() {
 		setIsGoogleSubmitting(false);
 
 		if (error) {
-			form.setErrorMap({ onSubmit: error.message });
+			setSubmitError(error.message);
 		}
 	}
 
@@ -97,11 +92,7 @@ function Page() {
 				</FieldSeparator>
 				<form action={() => form.handleSubmit()}>
 					<FieldGroup>
-						<form.Subscribe selector={(state) => state.errorMap.onSubmit}>
-							{(formError) => (
-								<Show when={formError}>{(error) => <FieldError>{String(error)}</FieldError>}</Show>
-							)}
-						</form.Subscribe>
+						<Show when={submitError}>{(error) => <FieldError>{error}</FieldError>}</Show>
 						<form.Field
 							name="email"
 							validators={{
@@ -122,7 +113,7 @@ function Page() {
 										value={field.state.value}
 										onBlur={field.handleBlur}
 										onInput={(event) => {
-											form.setErrorMap({ onSubmit: undefined });
+											setSubmitError(undefined);
 											field.handleChange(event.currentTarget.value);
 										}}
 										required
@@ -147,7 +138,7 @@ function Page() {
 										value={field.state.value}
 										onBlur={field.handleBlur}
 										onInput={(event) => {
-											form.setErrorMap({ onSubmit: undefined });
+											setSubmitError(undefined);
 											field.handleChange(event.currentTarget.value);
 										}}
 										required
