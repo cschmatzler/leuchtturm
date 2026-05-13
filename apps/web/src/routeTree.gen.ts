@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './pages/__root'
+import { Route as TwoFactorRouteImport } from './pages/two-factor'
 import { Route as TermsOfServiceRouteImport } from './pages/terms-of-service'
 import { Route as SignupRouteImport } from './pages/signup'
 import { Route as PrivacyPolicyRouteImport } from './pages/privacy-policy'
@@ -36,6 +37,11 @@ import { Route as OrganizationSettingsTeamsTeamSettingsIndexRouteImport } from '
 import { Route as OrganizationSettingsTeamsTeamSettingsMembersRouteImport } from './pages/$organization._settings.teams.$team.settings.members'
 import { Route as OrganizationSettingsTeamsTeamSettingsGeneralRouteImport } from './pages/$organization._settings.teams.$team.settings.general'
 
+const TwoFactorRoute = TwoFactorRouteImport.update({
+  id: '/two-factor',
+  path: '/two-factor',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TermsOfServiceRoute = TermsOfServiceRouteImport.update({
   id: '/terms-of-service',
   path: '/terms-of-service',
@@ -188,6 +194,7 @@ export interface FileRoutesByFullPath {
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/signup': typeof SignupRoute
   '/terms-of-service': typeof TermsOfServiceRoute
+  '/two-factor': typeof TwoFactorRoute
   '/accept-invitation/$id': typeof AcceptInvitationIdRoute
   '/admin/users': typeof AdminUsersRoute
   '/$organization/': typeof OrganizationIndexRoute
@@ -213,6 +220,7 @@ export interface FileRoutesByTo {
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/signup': typeof SignupRoute
   '/terms-of-service': typeof TermsOfServiceRoute
+  '/two-factor': typeof TwoFactorRoute
   '/$organization': typeof OrganizationIndexRoute
   '/accept-invitation/$id': typeof AcceptInvitationIdRoute
   '/admin/users': typeof AdminUsersRoute
@@ -237,6 +245,7 @@ export interface FileRoutesById {
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/signup': typeof SignupRoute
   '/terms-of-service': typeof TermsOfServiceRoute
+  '/two-factor': typeof TwoFactorRoute
   '/$organization/_settings': typeof OrganizationSettingsRouteWithChildren
   '/accept-invitation/$id': typeof AcceptInvitationIdRoute
   '/admin/users': typeof AdminUsersRoute
@@ -267,6 +276,7 @@ export interface FileRouteTypes {
     | '/privacy-policy'
     | '/signup'
     | '/terms-of-service'
+    | '/two-factor'
     | '/accept-invitation/$id'
     | '/admin/users'
     | '/$organization/'
@@ -292,6 +302,7 @@ export interface FileRouteTypes {
     | '/privacy-policy'
     | '/signup'
     | '/terms-of-service'
+    | '/two-factor'
     | '/$organization'
     | '/accept-invitation/$id'
     | '/admin/users'
@@ -315,6 +326,7 @@ export interface FileRouteTypes {
     | '/privacy-policy'
     | '/signup'
     | '/terms-of-service'
+    | '/two-factor'
     | '/$organization/_settings'
     | '/accept-invitation/$id'
     | '/admin/users'
@@ -344,12 +356,20 @@ export interface RootRouteChildren {
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   SignupRoute: typeof SignupRoute
   TermsOfServiceRoute: typeof TermsOfServiceRoute
+  TwoFactorRoute: typeof TwoFactorRoute
   AcceptInvitationIdRoute: typeof AcceptInvitationIdRoute
   AdminUsersRoute: typeof AdminUsersRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/two-factor': {
+      id: '/two-factor'
+      path: '/two-factor'
+      fullPath: '/two-factor'
+      preLoaderRoute: typeof TwoFactorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/terms-of-service': {
       id: '/terms-of-service'
       path: '/terms-of-service'
@@ -654,6 +674,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyPolicyRoute: PrivacyPolicyRoute,
   SignupRoute: SignupRoute,
   TermsOfServiceRoute: TermsOfServiceRoute,
+  TwoFactorRoute: TwoFactorRoute,
   AcceptInvitationIdRoute: AcceptInvitationIdRoute,
   AdminUsersRoute: AdminUsersRoute,
 }

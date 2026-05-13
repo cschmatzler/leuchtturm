@@ -10,6 +10,7 @@ import {
 	sessionTable,
 	teamMemberTable,
 	teamTable,
+	twoFactorTable,
 	userTable,
 	verificationTable,
 } from "@leuchtturm/core/auth/auth.sql";
@@ -101,6 +102,8 @@ export const SessionSelect = createSelectSchema(sessionTable);
 export const AccountSelect = createSelectSchema(accountTable);
 
 export const VerificationSelect = createSelectSchema(verificationTable);
+
+export const TwoFactorSelect = createSelectSchema(twoFactorTable);
 
 export const DeviceSessions = Schema.Array(
 	Schema.Struct({

@@ -4,6 +4,7 @@ import {
 	magicLinkClient,
 	multiSessionClient,
 	organizationClient,
+	twoFactorClient,
 } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 
@@ -16,12 +17,18 @@ export const authClient = createAuthClient({
 		adminClient(),
 		multiSessionClient(),
 		magicLinkClient(),
+		twoFactorClient({ twoFactorPage: "/two-factor" }),
 		inferAdditionalFields({
 			user: {
 				language: {
 					type: "string",
 					required: false,
 					defaultValue: "en",
+				},
+				twoFactorEnabled: {
+					type: "boolean",
+					required: false,
+					defaultValue: false,
 				},
 			},
 		}),

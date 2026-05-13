@@ -1,4 +1,5 @@
 import {
+	boolean,
 	createBuilder,
 	createSchema,
 	number,
@@ -31,6 +32,7 @@ const user = table("user")
 		name: string(),
 		email: string(),
 		language: string<typeof SupportedLanguage.Type>().optional(),
+		twoFactorEnabled: boolean().from("two_factor_enabled").optional(),
 		createdAt: number().from("created_at"),
 		updatedAt: number().from("updated_at"),
 	})

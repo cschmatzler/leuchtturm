@@ -1,6 +1,13 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { admin, multiSession, magicLink, openAPI, organization } from "better-auth/plugins";
+import {
+	admin,
+	multiSession,
+	magicLink,
+	openAPI,
+	organization,
+	twoFactor,
+} from "better-auth/plugins";
 import { and, eq, ne } from "drizzle-orm";
 import * as Cause from "effect/Cause";
 import * as Context from "effect/Context";
@@ -19,6 +26,7 @@ import {
 	sessionTable,
 	teamTable,
 	teamMemberTable,
+	twoFactorTable,
 	userTable,
 	verificationTable,
 } from "@leuchtturm/core/auth/auth.sql";
@@ -44,6 +52,7 @@ import {
 	TeamInsert,
 	TeamMemberSelect,
 	TeamSelect,
+	TwoFactorSelect,
 	UserSelect,
 	VerificationSelect,
 } from "@leuchtturm/core/auth/schema";
@@ -91,6 +100,7 @@ export namespace Auth {
 						session: sessionTable,
 						user: userTable,
 						verification: verificationTable,
+						twoFactor: twoFactorTable,
 						organization: organizationTable,
 						member: memberTable,
 						invitation: invitationTable,
@@ -139,6 +149,10 @@ export namespace Auth {
 									),
 								),
 							),
+					}),
+					twoFactor({
+						issuer: "Leuchtturm",
+						allowPasswordless: true,
 					}),
 					organization({
 						sendInvitationEmail: (params) =>
@@ -346,6 +360,8 @@ export namespace Auth {
 									return Schema.decodeSync(SessionSelect.fields.id)(`ses_${ulid()}`);
 								case "verification":
 									return Schema.decodeSync(VerificationSelect.fields.id)(`ver_${ulid()}`);
+								case "twoFactor":
+									return Schema.decodeSync(TwoFactorSelect.fields.id)(`tfa_${ulid()}`);
 								case "organization":
 									return Schema.decodeSync(OrganizationSelect.fields.id)(`org_${ulid()}`);
 								case "member":

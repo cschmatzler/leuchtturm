@@ -8,6 +8,7 @@ export const userTable = pgTable("user", {
 	image: text("image"),
 	language: text("language"),
 	role: text("role").default("user"),
+	twoFactorEnabled: boolean("two_factor_enabled").default(false).notNull(),
 	banned: boolean("banned").default(false),
 	banReason: text("ban_reason"),
 	banExpires: timestamp("ban_expires"),
@@ -89,6 +90,23 @@ export const verificationTable = pgTable(
 	(table) => [
 		index("verification_identifier_idx").on(table.identifier),
 		unique("verification_identifier_value_uniq").on(table.identifier, table.value),
+	],
+);
+
+export const twoFactorTable = pgTable(
+	"two_factor",
+	{
+		id: char("id", { length: 30 }).primaryKey(),
+		secret: text("secret").notNull(),
+		backupCodes: text("backup_codes").notNull(),
+		userId: char("user_id", { length: 30 })
+			.notNull()
+			.references(() => userTable.id, { onDelete: "cascade" }),
+		verified: boolean("verified").default(true).notNull(),
+	},
+	(table) => [
+		index("two_factor_user_id_idx").on(table.userId),
+		unique("two_factor_user_id_uniq").on(table.userId),
 	],
 );
 
@@ -191,6 +209,7 @@ export const authRelations = defineRelationsPart(
 		session: sessionTable,
 		account: accountTable,
 		verification: verificationTable,
+		twoFactor: twoFactorTable,
 		organization: organizationTable,
 		member: memberTable,
 		team: teamTable,
@@ -203,6 +222,7 @@ export const authRelations = defineRelationsPart(
 			accounts: r.many.account({ from: r.user.id, to: r.account.userId }),
 			memberships: r.many.member({ from: r.user.id, to: r.member.userId }),
 			invitationsSent: r.many.invitation({ from: r.user.id, to: r.invitation.inviterId }),
+			twoFactor: r.one.twoFactor({ from: r.user.id, to: r.twoFactor.userId }),
 		},
 		session: {
 			user: r.one.user({ from: r.session.userId, to: r.user.id }),
@@ -216,6 +236,9 @@ export const authRelations = defineRelationsPart(
 			user: r.one.user({ from: r.account.userId, to: r.user.id }),
 		},
 		verification: {},
+		twoFactor: {
+			user: r.one.user({ from: r.twoFactor.userId, to: r.user.id }),
+		},
 		organization: {
 			members: r.many.member({ from: r.organization.id, to: r.member.organizationId }),
 			teams: r.many.team({ from: r.organization.id, to: r.team.organizationId }),
