@@ -2,7 +2,7 @@ import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 
-import { RequestContext } from "@leuchtturm/api/middleware/request-context";
+import { ExecutionContext } from "@leuchtturm/api/execution-context";
 import { Posthog } from "@leuchtturm/api/posthog";
 
 export namespace ProductAnalytics {
@@ -11,7 +11,7 @@ export namespace ProductAnalytics {
 			distinctId: string,
 			event: string,
 			properties?: Record<string, unknown>,
-		) => Effect.Effect<void, never, RequestContext.Service>;
+		) => Effect.Effect<void, never, ExecutionContext.Service>;
 	}
 
 	export class Service extends Context.Service<Service, Interface>()(
@@ -25,10 +25,10 @@ export namespace ProductAnalytics {
 			return Service.of({
 				capture: (distinctId, event, properties = {}) =>
 					Effect.gen(function* () {
-						const context = yield* RequestContext.Service;
+						const executionContext = yield* ExecutionContext.Service;
 
 						yield* Effect.sync(() => {
-							context.waitUntil(
+							executionContext.waitUntil(
 								client.captureImmediate({
 									distinctId,
 									event,

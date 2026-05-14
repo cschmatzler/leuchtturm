@@ -11,14 +11,13 @@ export namespace RequestContext {
 		readonly method: string;
 		readonly path: string;
 		readonly requestId: string;
-		readonly waitUntil: ExecutionContext["waitUntil"];
 	}
 
 	export class Service extends Context.Service<Service, Interface>()(
 		"@leuchtturm/api/RequestContext",
 	) {}
 
-	export function make(request: Request, executionContext: Pick<ExecutionContext, "waitUntil">) {
+	export function make(request: Request) {
 		const requestId = Option.fromNullishOr(request.headers.get("x-request-id")).pipe(
 			Option.map((value) => value.trim()),
 			Option.flatMap(Schema.decodeUnknownOption(Schema.String.check(Schema.isUUID(4)))),
@@ -31,7 +30,6 @@ export namespace RequestContext {
 				method: request.method,
 				path: request.url,
 				requestId,
-				waitUntil: executionContext.waitUntil.bind(executionContext),
 			}),
 		);
 	}

@@ -9,6 +9,7 @@ import * as HttpApiBuilder from "effect/unstable/httpapi/HttpApiBuilder";
 import { Resource, wrapCloudflareHandler } from "sst/resource/cloudflare";
 
 import { Contract } from "@leuchtturm/api/contract";
+import { ExecutionContext } from "@leuchtturm/api/execution-context";
 import { AuthHandler } from "@leuchtturm/api/handlers/auth/index";
 import { BillingHandler } from "@leuchtturm/api/handlers/billing/index";
 import { DocsHandler } from "@leuchtturm/api/handlers/docs/index";
@@ -64,30 +65,29 @@ namespace Api {
 
 	export const handleRequest = Effect.fn("handleRequest")(function* (
 		request: Request,
-		executionContext: Pick<ExecutionContext, "waitUntil">,
+		executionContext: ExecutionContext.Interface,
 	) {
-		const requestContext = RequestContext.make(request, executionContext);
+		const context = Context.merge(
+			RequestContext.make(request),
+			ExecutionContext.make(executionContext),
+		);
 
-		return yield* Observability.withRequestContext(requestContext)((requestContext) =>
-			Effect.gen(function* () {
-				const services = yield* Layer.mergeAll(Auth.defaultLayer, ZeroDatabase.layer).pipe(
-					Layer.provideMerge(Database.layer(Resource.Database.connectionString)),
-					Layer.build,
-				);
-				const context = Context.merge(requestContext, services);
+		return yield* Effect.gen(function* () {
+			const services = yield* Layer.mergeAll(
+				Observability.layer,
+				Auth.defaultLayer,
+				ZeroDatabase.layer,
+			).pipe(Layer.provideMerge(Database.layer(Resource.Database.connectionString)), Layer.build);
+			const handlerContext = Context.merge(context, services);
 
-				return yield* Effect.tryPromise({
-					try: () => handler(request, context),
-					catch: (cause) => cause,
-				}).pipe(
-					Effect.tap((response) =>
-						Effect.annotateCurrentSpan({ "http.response.status_code": response.status }),
-					),
-					Effect.mapError(() => new InternalServerError()),
-					Effect.provideContext(context),
-				);
+			return yield* Effect.tryPromise({
+				try: () => handler(request, handlerContext),
+				catch: (cause) => cause,
 			}).pipe(
-				Effect.scoped,
+				Effect.tap((response) =>
+					Effect.annotateCurrentSpan({ "http.response.status_code": response.status }),
+				),
+				Effect.mapError(() => new InternalServerError()),
 				Effect.withSpan(`${request.method} ${request.url}`, {
 					attributes: {
 						"http.request.method": request.method,
@@ -96,13 +96,14 @@ namespace Api {
 					kind: "server",
 					root: true,
 				}),
-			),
-		);
+				Effect.provideContext(handlerContext),
+			);
+		}).pipe(Effect.scoped, Effect.provideContext(context));
 	});
 }
 
 export default wrapCloudflareHandler({
-	fetch(request: Request, _env: unknown, ctx: ExecutionContext) {
+	fetch(request: Request, _env: unknown, ctx: globalThis.ExecutionContext) {
 		return Effect.runPromise(Api.handleRequest(request, ctx));
 	},
 });

@@ -1,5 +1,4 @@
 import * as Clock from "effect/Clock";
-import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
 import * as Layer from "effect/Layer";
@@ -13,7 +12,7 @@ import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import * as Otlp from "effect/unstable/observability/Otlp";
 import { Resource } from "sst/resource/cloudflare";
 
-import { RequestContext } from "@leuchtturm/api/middleware/request-context";
+import { ExecutionContext } from "@leuchtturm/api/execution-context";
 
 export namespace Observability {
 	export const requestDurationBoundaries = Metric.exponentialBoundaries({
@@ -21,29 +20,6 @@ export namespace Observability {
 		factor: 2,
 		count: 35,
 	});
-
-	export function withRequestContext(requestContext: Context.Context<RequestContext.Service>) {
-		return <A, E, R>(
-			use: (context: Context.Context<RequestContext.Service>) => Effect.Effect<A, E, R>,
-		) =>
-			Effect.acquireUseRelease(
-				Scope.make(),
-				(observabilityScope) =>
-					Layer.buildWithScope(layer, observabilityScope).pipe(
-						Effect.flatMap((observabilityContext) => {
-							const context = Context.merge(requestContext, observabilityContext);
-
-							return use(context).pipe(Effect.provideContext(context));
-						}),
-					),
-				(observabilityScope) =>
-					Effect.sync(() => {
-						Context.get(requestContext, RequestContext.Service).waitUntil(
-							Effect.runPromise(Scope.close(observabilityScope, Exit.void)),
-						);
-					}),
-			);
-	}
 
 	export function recordAction(action: string, result: "success" | "failure") {
 		return Metric.update(
@@ -99,29 +75,47 @@ export namespace Observability {
 		}),
 	);
 
-	export const layer = Layer.mergeAll(
-		Otlp.layerProtobuf({
-			baseUrl: Resource.GrafanaOtlpConfig.url,
-			headers: { Authorization: Resource.GrafanaOtlpConfig.authorization },
-			loggerExcludeLogSpans: false,
-			loggerMergeWithExisting: true,
-			resource: {
-				serviceName: "leuchtturm-api",
-				attributes: {
-					"service.namespace": "leuchtturm",
-					app: "leuchtturm",
-					stage: Resource.App.stage,
-				},
+	export const otlpLayer = Otlp.layerProtobuf({
+		baseUrl: Resource.GrafanaOtlpConfig.url,
+		headers: { Authorization: Resource.GrafanaOtlpConfig.authorization },
+		loggerExcludeLogSpans: false,
+		loggerMergeWithExisting: true,
+		resource: {
+			serviceName: "leuchtturm-api",
+			attributes: {
+				"service.namespace": "leuchtturm",
+				app: "leuchtturm",
+				stage: Resource.App.stage,
 			},
-			shutdownTimeout: "3 seconds",
-		}).pipe(Layer.provide(FetchHttpClient.layer)),
-		Layer.succeed(
-			HttpMiddleware.SpanNameGenerator,
-			(request: HttpServerRequest.HttpServerRequest) =>
-				`${request.method} ${Option.getOrElse(
-					Option.map(HttpServerRequest.toURL(request), (url) => url.pathname),
-					() => request.url,
-				)}`,
-		),
+		},
+		shutdownTimeout: "3 seconds",
+	}).pipe(Layer.provide(FetchHttpClient.layer));
+
+	export const deferredOtlpShutdownLayer = Layer.effectContext(
+		Effect.gen(function* () {
+			const executionContext = yield* ExecutionContext.Service;
+			const scope = yield* Scope.Scope;
+			const observabilityScope = yield* Scope.make();
+
+			yield* Scope.addFinalizer(
+				scope,
+				Effect.sync(() => {
+					executionContext.waitUntil(Effect.runPromise(Scope.close(observabilityScope, Exit.void)));
+				}),
+			);
+
+			return yield* Layer.buildWithScope(otlpLayer, observabilityScope);
+		}),
 	);
+
+	export const spanNameGeneratorLayer = Layer.succeed(
+		HttpMiddleware.SpanNameGenerator,
+		(request: HttpServerRequest.HttpServerRequest) =>
+			`${request.method} ${Option.getOrElse(
+				Option.map(HttpServerRequest.toURL(request), (url) => url.pathname),
+				() => request.url,
+			)}`,
+	);
+
+	export const layer = Layer.mergeAll(deferredOtlpShutdownLayer, spanNameGeneratorLayer);
 }
