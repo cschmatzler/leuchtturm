@@ -5,7 +5,9 @@ import { queries } from "@leuchtturm/zero/queries";
 export const Route = createFileRoute("/$organization/_settings/teams/$team/settings")({
 	loader: async ({ context: { organizationId, zero }, params: { organization, team } }) => {
 		if (!zero) return;
-		const currentTeam = await zero.run(queries.team({ organizationId, team: team }));
+		const currentTeam = await zero.run(queries.team({ organizationId, team }), {
+			type: "complete",
+		});
 
 		if (!currentTeam) {
 			throw redirect({
