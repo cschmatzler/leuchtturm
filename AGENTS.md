@@ -37,3 +37,5 @@ import { defineConfig } from "vite";
 ```
 
 - After changes, always run `aube run check` and `aube run test`.
+
+NEVER run `sst deploy`.

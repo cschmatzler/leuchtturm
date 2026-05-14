@@ -1,4 +1,3 @@
-import { instrument } from "@microlabs/otel-cf-workers";
 import * as Cause from "effect/Cause";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
@@ -12,7 +11,7 @@ import { Resource, wrapCloudflareHandler } from "sst/resource/cloudflare";
 
 import { Contract } from "@leuchtturm/api/contract";
 import { AuthHandler } from "@leuchtturm/api/handlers/auth/index";
-import { AutumnHandler } from "@leuchtturm/api/handlers/autumn/index";
+import { BillingHandler } from "@leuchtturm/api/handlers/billing/index";
 import { DocsHandler } from "@leuchtturm/api/handlers/docs/index";
 import { HealthHandler } from "@leuchtturm/api/handlers/health/index";
 import { ZeroHandler } from "@leuchtturm/api/handlers/zero/index";
@@ -33,7 +32,7 @@ const apiRoutes = Layer.mergeAll(
 		Layer.provide(
 			Layer.mergeAll(
 				HealthHandler.layer(Contract.Api),
-				AutumnHandler.layer(Contract.Api),
+				BillingHandler.layer(Contract.Api),
 				ZeroHandler.layer(Contract.Api),
 				AuthHandler.layer(Contract.Api),
 			),
@@ -64,60 +63,58 @@ const handleRequest = Effect.fn("handleRequest")(function* (
 	request: Request,
 	executionContext: Pick<ExecutionContext, "waitUntil">,
 ) {
-	const activeContext = yield* Telemetry.withActiveSpan(
-		RequestContext.make(request, executionContext),
-	);
+	const baseContext = RequestContext.make(request, executionContext);
+	const url = new URL(request.url);
 
-	return yield* Effect.scoped(
-		Effect.gen(function* () {
-			const servicesContext = yield* Layer.build(
-				Layer.mergeAll(Auth.defaultLayer, ZeroDatabase.layer).pipe(
-					Layer.provideMerge(Database.layer(Resource.Database.connectionString)),
-				),
-			);
-			const requestContext = Context.merge(activeContext, servicesContext);
-
-			return yield* Effect.provideContext(
-				Effect.tryPromise({
-					try: () => handler(request, requestContext),
-					catch: (cause) => cause,
-				}).pipe(
-					Effect.tapCause((cause) =>
-						Effect.gen(function* () {
-							yield* Effect.annotateCurrentSpan({
-								"error.original_cause": Cause.pretty(cause),
-							});
-							yield* Effect.logError("API handler failed").pipe(
-								Effect.annotateLogs({ cause: Cause.pretty(cause), url: request.url }),
-							);
-						}),
+	return yield* Telemetry.withRequestContext(baseContext)(
+		Effect.scoped(
+			Effect.gen(function* () {
+				const telemetryContext = yield* Effect.context<never>();
+				const servicesContext = yield* Layer.build(
+					Layer.mergeAll(Auth.defaultLayer, ZeroDatabase.layer).pipe(
+						Layer.provideMerge(Database.layer(Resource.Database.connectionString)),
 					),
-					Effect.mapError(() => new InternalServerError()),
-				),
-				requestContext,
-			);
-		}),
+				);
+				const requestContext = Context.merge(
+					telemetryContext,
+					Context.merge(baseContext, servicesContext),
+				);
+
+				return yield* Effect.provideContext(
+					Effect.tryPromise({
+						try: () => handler(request, requestContext),
+						catch: (cause) => cause,
+					}).pipe(
+						Effect.tapCause((cause) =>
+							Effect.gen(function* () {
+								yield* Effect.annotateCurrentSpan({
+									"error.original_cause": Cause.pretty(cause),
+								});
+								yield* Effect.logError("API handler failed").pipe(
+									Effect.annotateLogs({ cause: Cause.pretty(cause), url: request.url }),
+								);
+							}),
+						),
+						Effect.mapError(() => new InternalServerError()),
+					),
+					requestContext,
+				);
+			}),
+		).pipe(
+			Effect.withSpan(`${request.method} ${url.pathname}`, {
+				attributes: {
+					"http.request.method": request.method,
+					"url.path": url.pathname,
+				},
+				kind: "server",
+				root: true,
+			}),
+		),
 	);
 });
 
-export default wrapCloudflareHandler(
-	instrument(
-		{
-			fetch(request: Request, _env: unknown, ctx: ExecutionContext) {
-				return Effect.runPromise(handleRequest(request, ctx));
-			},
-		},
-		() => ({
-			exporter: {
-				headers: {
-					Authorization: JSON.parse(Resource.GrafanaOtlpConfig.value).authorization,
-				},
-				url: `${JSON.parse(Resource.GrafanaOtlpConfig.value).url}/v1/traces`,
-			},
-			service: {
-				name: "leuchtturm-api",
-				namespace: "leuchtturm",
-			},
-		}),
-	),
-);
+export default wrapCloudflareHandler({
+	fetch(request: Request, _env: unknown, ctx: ExecutionContext) {
+		return Effect.runPromise(handleRequest(request, ctx));
+	},
+});

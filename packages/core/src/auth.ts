@@ -40,12 +40,25 @@ export namespace Auth {
 			const auth = yield* BetterAuth.create(context);
 
 			const handle = Effect.fn("Auth.handle")(function* (request: Request) {
-				const currentContext = yield* Effect.context();
+				return yield* Effect.gen(function* () {
+					const currentContext = yield* Effect.context();
 
-				return yield* Effect.tryPromise({
-					try: () => context.run(currentContext, () => auth.handler(request)),
-					catch: (cause) => cause,
-				});
+					return yield* Effect.tryPromise({
+						try: () => context.run(currentContext, () => auth.handler(request)),
+						catch: (cause) => cause,
+					}).pipe(
+						Effect.tap((response) =>
+							Effect.annotateCurrentSpan({ "http.response.status_code": response.status }),
+						),
+					);
+				}).pipe(
+					Effect.withSpan("better-auth.handler", {
+						attributes: {
+							"http.request.method": request.method,
+							"url.path": new URL(request.url).pathname,
+						},
+					}),
+				);
 			});
 
 			const getSession = Effect.fn("Auth.getSession")(function* (headers: Headers) {
