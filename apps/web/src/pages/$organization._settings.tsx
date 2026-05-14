@@ -14,6 +14,7 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@leuchtturm/web/components/ui/collapsible";
+import { Show } from "@leuchtturm/web/components/ui/flow";
 import { Link } from "@leuchtturm/web/components/ui/link";
 import {
 	Sidebar,
@@ -150,7 +151,7 @@ function Layout() {
 								</SidebarGroupContent>
 							</SidebarGroup>
 
-							{teams.length > 0 ? (
+							<Show when={teams.length > 0}>
 								<SidebarGroup>
 									<SidebarGroupLabel>
 										<T>Teams</T>
@@ -207,7 +208,7 @@ function Layout() {
 										</SidebarMenu>
 									</SidebarGroupContent>
 								</SidebarGroup>
-							) : null}
+							</Show>
 						</SidebarContent>
 						<SidebarRail />
 					</Sidebar>
