@@ -1652,7 +1652,7 @@ importers:
         specifier: '>=1.21.0'
         version: 2.7.0
       lucide-react:
-        specifier: ^1.14.0
+        specifier: 1.14.0
         version: 1.14.0(react@19.2.6)
       next-themes:
         specifier: 0.4.6

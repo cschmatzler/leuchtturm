@@ -1,6 +1,8 @@
 import { Select as SelectPrimitive } from "@base-ui/react/select";
-import { CaretDownIcon, CheckIcon, CaretUpIcon } from "@phosphor-icons/react";
-import * as React from "react";
+import { CaretDownIcon } from "@phosphor-icons/react/CaretDown";
+import { CaretUpIcon } from "@phosphor-icons/react/CaretUp";
+import { CheckIcon } from "@phosphor-icons/react/Check";
+import type { ComponentProps } from "react";
 
 import { cn } from "@leuchtturm/web/lib/utils";
 
@@ -141,7 +143,7 @@ function SelectSeparator({ className, ...props }: SelectPrimitive.Separator.Prop
 function SelectScrollUpButton({
 	className,
 	...props
-}: React.ComponentProps<typeof SelectPrimitive.ScrollUpArrow>) {
+}: ComponentProps<typeof SelectPrimitive.ScrollUpArrow>) {
 	return (
 		<SelectPrimitive.ScrollUpArrow
 			data-slot="select-scroll-up-button"
@@ -159,7 +161,7 @@ function SelectScrollUpButton({
 function SelectScrollDownButton({
 	className,
 	...props
-}: React.ComponentProps<typeof SelectPrimitive.ScrollDownArrow>) {
+}: ComponentProps<typeof SelectPrimitive.ScrollDownArrow>) {
 	return (
 		<SelectPrimitive.ScrollDownArrow
 			data-slot="select-scroll-down-button"

@@ -1,6 +1,8 @@
 import { Button as ButtonPrimitive } from "@base-ui/react/button";
+import { SpinnerIcon } from "@phosphor-icons/react/Spinner";
 import { cva, type VariantProps } from "class-variance-authority";
 
+import { Show } from "@leuchtturm/web/components/ui/flow";
 import { cn } from "@leuchtturm/web/lib/utils";
 
 const buttonVariants = cva(
@@ -44,14 +46,23 @@ function Button({
 	className,
 	variant = "default",
 	size = "default",
+	loading = false,
+	disabled,
+	children,
 	...props
-}: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
+}: ButtonPrimitive.Props & VariantProps<typeof buttonVariants> & { loading?: boolean }) {
 	return (
 		<ButtonPrimitive
 			data-slot="button"
 			className={cn(buttonVariants({ variant, size, className }))}
+			disabled={disabled || loading}
 			{...props}
-		/>
+		>
+			<Show when={loading}>
+				<SpinnerIcon className="size-4 animate-spin" />
+			</Show>
+			{children}
+		</ButtonPrimitive>
 	);
 }
 
