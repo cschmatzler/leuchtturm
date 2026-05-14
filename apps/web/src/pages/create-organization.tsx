@@ -157,7 +157,7 @@ function Page() {
 					<div className="w-full max-w-md">
 						<form action={() => form.handleSubmit()} className="flex flex-col gap-6">
 							<div className="flex flex-col gap-2 text-center">
-								<h1 className="text-2xl font-semibold tracking-tight">
+								<h1 className="text-2xl font-serif">
 									<T>Create an organization</T>
 								</h1>
 								<p className="text-balance text-muted-foreground">
