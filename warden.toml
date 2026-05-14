@@ -1,0 +1,21 @@
+version = 1
+
+[defaults]
+failOn = "high"
+reportOn = "medium"
+requestChanges = false
+failCheck = false
+
+[[skills]]
+name = "security-review"
+
+[[skills.triggers]]
+type = "pull_request"
+actions = ["opened", "synchronize", "reopened"]
+
+[[skills]]
+name = "code-review"
+
+[[skills.triggers]]
+type = "pull_request"
+actions = ["opened", "synchronize", "reopened"]
