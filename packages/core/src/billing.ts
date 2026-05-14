@@ -97,15 +97,14 @@ export namespace Billing {
 					...values,
 					syncedAt: new Date(),
 				}).pipe(
-					Effect.catchCause((cause) =>
-						Effect.gen(function* () {
-							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-							return yield* Effect.fail(
-								new BillingInvalidSnapshotError({
-									resource: "subscription",
-								}),
-							);
-						}),
+					Effect.tapCause((cause) =>
+						Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) }),
+					),
+					Effect.mapError(
+						() =>
+							new BillingInvalidSnapshotError({
+								resource: "subscription",
+							}),
 					),
 				);
 			});
@@ -128,15 +127,14 @@ export namespace Billing {
 						remoteModifiedAt: values.state.modifiedAt,
 						syncedAt: new Date(),
 					}).pipe(
-						Effect.catchCause((cause) =>
-							Effect.gen(function* () {
-								yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-								return yield* Effect.fail(
-									new BillingInvalidSnapshotError({
-										resource: "customer",
-									}),
-								);
-							}),
+						Effect.tapCause((cause) =>
+							Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) }),
+						),
+						Effect.mapError(
+							() =>
+								new BillingInvalidSnapshotError({
+									resource: "customer",
+								}),
 						),
 						Effect.flatMap((customerSnapshot) =>
 							tx.insert(billingCustomerTable).values(customerSnapshot).onConflictDoUpdate({
@@ -206,15 +204,14 @@ export namespace Billing {
 					try: () => polarClient.customers.getState({ id: customerId }),
 					catch: (cause) => cause,
 				}).pipe(
-					Effect.catchCause((cause) =>
-						Effect.gen(function* () {
-							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-							return yield* Effect.fail(
-								new BillingPolarRequestError({
-									operation: `Unable to load Polar customer state for ${customerId}`,
-								}),
-							);
-						}),
+					Effect.tapCause((cause) =>
+						Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) }),
+					),
+					Effect.mapError(
+						() =>
+							new BillingPolarRequestError({
+								operation: `Unable to load Polar customer state for ${customerId}`,
+							}),
 					),
 				);
 			});
@@ -226,15 +223,14 @@ export namespace Billing {
 					try: () => polarClient.customers.getStateExternal({ externalId: organizationId }),
 					catch: (cause) => cause,
 				}).pipe(
-					Effect.catchCause((cause) =>
-						Effect.gen(function* () {
-							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-							return yield* Effect.fail(
-								new BillingPolarRequestError({
-									operation: `Unable to load Polar customer state for organization ${organizationId}`,
-								}),
-							);
-						}),
+					Effect.tapCause((cause) =>
+						Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) }),
+					),
+					Effect.mapError(
+						() =>
+							new BillingPolarRequestError({
+								operation: `Unable to load Polar customer state for organization ${organizationId}`,
+							}),
 					),
 				);
 			});
@@ -250,15 +246,14 @@ export namespace Billing {
 					.where(eq(organizationTable.id, externalId))
 					.limit(1)
 					.pipe(
-						Effect.catchCause((cause) =>
-							Effect.gen(function* () {
-								yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-								return yield* Effect.fail(
-									new BillingOrganizationLookupError({
-										externalId,
-									}),
-								);
-							}),
+						Effect.tapCause((cause) =>
+							Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) }),
+						),
+						Effect.mapError(
+							() =>
+								new BillingOrganizationLookupError({
+									externalId,
+								}),
 						),
 					);
 
@@ -307,15 +302,14 @@ export namespace Billing {
 						}),
 					catch: (cause) => cause,
 				}).pipe(
-					Effect.catchCause((cause) =>
-						Effect.gen(function* () {
-							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-							return yield* Effect.fail(
-								new BillingPolarRequestError({
-									operation: `Failed to create billing customer for organization ${params.organizationId}`,
-								}),
-							);
-						}),
+					Effect.tapCause((cause) =>
+						Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) }),
+					),
+					Effect.mapError(
+						() =>
+							new BillingPolarRequestError({
+								operation: `Failed to create billing customer for organization ${params.organizationId}`,
+							}),
 					),
 				);
 
@@ -339,15 +333,14 @@ export namespace Billing {
 						}),
 					catch: (cause) => cause,
 				}).pipe(
-					Effect.catchCause((cause) =>
-						Effect.gen(function* () {
-							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-							return yield* Effect.fail(
-								new BillingPolarRequestError({
-									operation: `Failed to update billing customer for organization ${params.organizationId}`,
-								}),
-							);
-						}),
+					Effect.tapCause((cause) =>
+						Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) }),
+					),
+					Effect.mapError(
+						() =>
+							new BillingPolarRequestError({
+								operation: `Failed to update billing customer for organization ${params.organizationId}`,
+							}),
 					),
 				);
 
@@ -376,15 +369,14 @@ export namespace Billing {
 						}),
 					catch: (cause) => cause,
 				}).pipe(
-					Effect.catchCause((cause) =>
-						Effect.gen(function* () {
-							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-							return yield* Effect.fail(
-								new BillingPolarRequestError({
-									operation: `Failed to create checkout for organization ${params.organizationId}`,
-								}),
-							);
-						}),
+					Effect.tapCause((cause) =>
+						Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) }),
+					),
+					Effect.mapError(
+						() =>
+							new BillingPolarRequestError({
+								operation: `Failed to create checkout for organization ${params.organizationId}`,
+							}),
 					),
 				);
 
@@ -403,15 +395,14 @@ export namespace Billing {
 						}),
 					catch: (cause) => cause,
 				}).pipe(
-					Effect.catchCause((cause) =>
-						Effect.gen(function* () {
-							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-							return yield* Effect.fail(
-								new BillingPolarRequestError({
-									operation: `Failed to create billing portal for organization ${params.organizationId}`,
-								}),
-							);
-						}),
+					Effect.tapCause((cause) =>
+						Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) }),
+					),
+					Effect.mapError(
+						() =>
+							new BillingPolarRequestError({
+								operation: `Failed to create billing portal for organization ${params.organizationId}`,
+							}),
 					),
 				);
 
@@ -597,17 +588,16 @@ export namespace Billing {
 									remoteModifiedAt: order.modifiedAt,
 									syncedAt: new Date(),
 								}).pipe(
-									Effect.catchCause((cause) =>
-										Effect.gen(function* () {
-											yield* Effect.annotateCurrentSpan({
-												"error.original_cause": Cause.pretty(cause),
-											});
-											return yield* Effect.fail(
-												new BillingInvalidSnapshotError({
-													resource: "order",
-												}),
-											);
+									Effect.tapCause((cause) =>
+										Effect.annotateCurrentSpan({
+											"error.original_cause": Cause.pretty(cause),
 										}),
+									),
+									Effect.mapError(
+										() =>
+											new BillingInvalidSnapshotError({
+												resource: "order",
+											}),
 									),
 									Effect.flatMap((orderSnapshot) =>
 										tx.insert(billingOrderTable).values(orderSnapshot).onConflictDoUpdate({

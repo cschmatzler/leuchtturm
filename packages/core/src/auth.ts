@@ -40,7 +40,7 @@ export namespace Auth {
 			const auth = yield* BetterAuth.create(context);
 
 			const handle = Effect.fn("Auth.handle")(function* (request: Request) {
-				const currentContext = yield* Effect.context<never>();
+				const currentContext = yield* Effect.context();
 
 				return yield* Effect.tryPromise({
 					try: () => context.run(currentContext, () => auth.handler(request)),
@@ -53,24 +53,20 @@ export namespace Auth {
 					try: () => auth.api.getSession({ headers }),
 					catch: (cause) => cause,
 				}).pipe(
-					Effect.catchCause((cause) =>
-						Effect.gen(function* () {
-							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-							return yield* Effect.fail(new AuthSessionLookupError());
-						}),
+					Effect.tapCause((cause) =>
+						Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) }),
 					),
+					Effect.mapError(() => new AuthSessionLookupError()),
 					Effect.flatMap((session) => {
 						if (!session) return Effect.succeed(null);
 
 						return Schema.decodeUnknownEffect(SessionData)(session).pipe(
-							Effect.catchCause((cause) =>
-								Effect.gen(function* () {
-									yield* Effect.annotateCurrentSpan({
-										"error.original_cause": Cause.pretty(cause),
-									});
-									return yield* Effect.fail(new AuthInvalidSessionPayloadError());
+							Effect.tapCause((cause) =>
+								Effect.annotateCurrentSpan({
+									"error.original_cause": Cause.pretty(cause),
 								}),
 							),
+							Effect.mapError(() => new AuthInvalidSessionPayloadError()),
 						);
 					}),
 				);
@@ -88,22 +84,18 @@ export namespace Auth {
 						}),
 					catch: (cause) => cause,
 				}).pipe(
-					Effect.catchCause((cause) =>
-						Effect.gen(function* () {
-							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-							return yield* Effect.fail(new AuthOrganizationLookupError());
-						}),
+					Effect.tapCause((cause) =>
+						Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) }),
 					),
+					Effect.mapError(() => new AuthOrganizationLookupError()),
 					Effect.flatMap((organization) =>
 						Schema.decodeUnknownEffect(OrganizationSelect)(organization).pipe(
-							Effect.catchCause((cause) =>
-								Effect.gen(function* () {
-									yield* Effect.annotateCurrentSpan({
-										"error.original_cause": Cause.pretty(cause),
-									});
-									return yield* Effect.fail(new AuthInvalidOrganizationPayloadError());
+							Effect.tapCause((cause) =>
+								Effect.annotateCurrentSpan({
+									"error.original_cause": Cause.pretty(cause),
 								}),
 							),
+							Effect.mapError(() => new AuthInvalidOrganizationPayloadError()),
 						),
 					),
 					Effect.map(({ id, name, slug }) => ({ id, name, slug })),

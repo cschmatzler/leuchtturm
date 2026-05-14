@@ -101,14 +101,12 @@ export namespace BetterAuth {
 								email: params.user.email,
 								send: (params) => email.send(params),
 							}).pipe(
-								Effect.catchCause((cause) =>
-									Effect.gen(function* () {
-										yield* Effect.annotateCurrentSpan({
-											"error.original_cause": Cause.pretty(cause),
-										});
-										return yield* Effect.fail(new AuthVerificationEmailError());
+								Effect.tapCause((cause) =>
+									Effect.annotateCurrentSpan({
+										"error.original_cause": Cause.pretty(cause),
 									}),
 								),
+								Effect.mapError(() => new AuthVerificationEmailError()),
 							),
 						),
 				},
@@ -135,14 +133,12 @@ export namespace BetterAuth {
 									organizationName: params.organization.name,
 									send: (params) => email.send(params),
 								}).pipe(
-									Effect.catchCause((cause) =>
-										Effect.gen(function* () {
-											yield* Effect.annotateCurrentSpan({
-												"error.original_cause": Cause.pretty(cause),
-											});
-											return yield* Effect.fail(new AuthInvitationEmailError());
+									Effect.tapCause((cause) =>
+										Effect.annotateCurrentSpan({
+											"error.original_cause": Cause.pretty(cause),
 										}),
 									),
+									Effect.mapError(() => new AuthInvitationEmailError()),
 								),
 							),
 						teams: {

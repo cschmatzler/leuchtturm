@@ -67,13 +67,11 @@ export namespace Database {
 						},
 						catch: (cause) => cause,
 					}).pipe(
-						Effect.catchCause((cause) =>
-							Effect.gen(function* () {
-								yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-								return yield* Effect.fail(
-									new DatabaseError({ operation: "Failed to connect raw Postgres client" }),
-								);
-							}),
+						Effect.tapCause((cause) =>
+							Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) }),
+						),
+						Effect.mapError(
+							() => new DatabaseError({ operation: "Failed to connect raw Postgres client" }),
 						),
 					),
 					(client) => Effect.promise(() => client.end()),
@@ -84,13 +82,11 @@ export namespace Database {
 					types: drizzleTypes,
 				}).pipe(
 					Effect.provide(Reactivity.layer),
-					Effect.catchCause((cause) =>
-						Effect.gen(function* () {
-							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-							return yield* Effect.fail(
-								new DatabaseError({ operation: "Failed to connect Effect Postgres client" }),
-							);
-						}),
+					Effect.tapCause((cause) =>
+						Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) }),
+					),
+					Effect.mapError(
+						() => new DatabaseError({ operation: "Failed to connect Effect Postgres client" }),
 					),
 				);
 
