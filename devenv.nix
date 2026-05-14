@@ -7,15 +7,15 @@
 	packages = [
 		(pkgs.rustPlatform.buildRustPackage rec {
 				pname = "aube";
-				version = "1.12.0";
+				version = "1.13.1";
 
 				src =
 					pkgs.fetchCrate {
 						inherit pname version;
-						hash = "sha256-kfq1qRjSXtSyUK6z6UNQnQiDpDTrZ12kmm5wrReEe8Q=";
+						hash = "sha256-9OI1O5JnT4uY4vonosi/TJBhFIl8nhwFWeJ9TU0Y08Y=";
 					};
 
-				cargoHash = "sha256-ytJ6LIz165g7g+rwRZldIyDcTfwdiVGDrNPDAQyWwc0=";
+				cargoHash = "sha256-EA+QS5HT42jlcH+7WVj9+0GY9Mjry7mEjRBbOshwcws=";
 				nativeBuildInputs = [pkgs.cmake pkgs.pkg-config];
 			})
 		pkgs.hurl
