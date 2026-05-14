@@ -138,14 +138,14 @@ function Page() {
 							<DropdownMenuSeparator />
 							<DropdownMenuItem
 								onClick={() => {
-									void navigate({ to: "/login" });
+									navigate({ to: "/login" });
 								}}
 							>
 								<T>Add account</T>
 							</DropdownMenuItem>
 							<DropdownMenuItem
 								onClick={() => {
-									void signOutCurrent();
+									signOutCurrent();
 								}}
 							>
 								<T>Log out</T>

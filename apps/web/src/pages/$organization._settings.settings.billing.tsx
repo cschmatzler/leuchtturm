@@ -57,7 +57,7 @@ function Page() {
 					</p>
 				</div>
 				<div className="mt-5">
-					<Button variant="outline" onClick={() => void openPortal()}>
+					<Button variant="outline" onClick={() => openPortal()}>
 						<T>Manage billing</T>
 						<ArrowSquareOutIcon className="ml-2 size-4" />
 					</Button>
@@ -95,12 +95,12 @@ function Page() {
 					<Show
 						when={activeSubscription}
 						fallback={
-							<Button onClick={() => void startCheckout()}>
+							<Button onClick={() => startCheckout()}>
 								<T>Open checkout</T>
 							</Button>
 						}
 					>
-						<Button variant="outline" onClick={() => void openPortal()}>
+						<Button variant="outline" onClick={() => openPortal()}>
 							<T>Manage subscription in Polar</T>
 						</Button>
 					</Show>

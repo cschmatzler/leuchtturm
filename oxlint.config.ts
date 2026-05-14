@@ -19,6 +19,7 @@ const localRules = [
 	"no-use-client-server-directives",
 	"no-use-params-strict-false",
 	"no-variable-alias",
+	"no-void-operator",
 	"no-vi-mock",
 ] as const;
 
@@ -55,6 +56,7 @@ export default defineConfig({
 		"no-use-client-server-directives/no-use-client-server-directives": "error",
 		"no-use-params-strict-false/no-use-params-strict-false": "error",
 		"no-variable-alias/no-variable-alias": "error",
+		"no-void-operator/no-void-operator": "error",
 		"no-vi-mock/no-vi-mock": "error",
 		"@typescript-eslint/no-floating-promises": "off",
 		"@typescript-eslint/unbound-method": "off",

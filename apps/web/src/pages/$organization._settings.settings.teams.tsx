@@ -54,7 +54,7 @@ function Page() {
 	const t = useGT();
 
 	const setCreateDialogOpen = (value: boolean) => {
-		void navigate({
+		navigate({
 			to: "/$organization/settings/teams",
 			params: { organization },
 			search: (previous) => ({ ...previous, create: value }),

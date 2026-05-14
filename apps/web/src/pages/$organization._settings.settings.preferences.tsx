@@ -461,7 +461,7 @@ function TwoFactorAuthenticationSection() {
 															type="button"
 															variant="outline"
 															onClick={() => {
-																void navigator.clipboard.writeText(value);
+																navigator.clipboard.writeText(value);
 																toast.success(t("Secret key copied"));
 															}}
 														>

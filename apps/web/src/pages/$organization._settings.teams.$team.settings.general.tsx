@@ -67,7 +67,7 @@ function GeneralSettings(props: { readonly organization: string; readonly team: 
 	const [isDeletingTeam, setIsDeletingTeam] = useState(false);
 
 	const setDeleteDialogOpen = (value: boolean) => {
-		void navigate({
+		navigate({
 			to: "/$organization/teams/$team/settings/general",
 			params: { organization: props.organization, team: props.team },
 			search: (previous) => ({ ...previous, delete: value }),
@@ -247,7 +247,7 @@ function GeneralSettings(props: { readonly organization: string; readonly team: 
 								variant="destructive"
 								loading={isDeletingTeam}
 								disabled={!team || deleteTeamConfirmation !== team.name}
-								onClick={() => void removeTeam()}
+								onClick={() => removeTeam()}
 							>
 								<T>Delete</T>
 							</AlertDialogAction>

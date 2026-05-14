@@ -17,6 +17,7 @@ import noUseClientServerDirectives from "@leuchtturm/oxlint-plugins/no-use-clien
 import noUseParamsStrictFalse from "@leuchtturm/oxlint-plugins/no-use-params-strict-false";
 import noVariableAlias from "@leuchtturm/oxlint-plugins/no-variable-alias";
 import noViMock from "@leuchtturm/oxlint-plugins/no-vi-mock";
+import noVoidOperator from "@leuchtturm/oxlint-plugins/no-void-operator";
 
 const plugin = {
 	meta: {
@@ -41,6 +42,7 @@ const plugin = {
 		...noSchemaTypeAlias.rules,
 		...noUseClientServerDirectives.rules,
 		...noUseParamsStrictFalse.rules,
+		...noVoidOperator.rules,
 		...noViMock.rules,
 	},
 };

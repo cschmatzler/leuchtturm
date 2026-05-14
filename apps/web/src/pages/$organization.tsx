@@ -62,7 +62,7 @@ function Layout() {
 
 	useHotkey("Mod+K", () => commandBar.show(), { ignoreInputs: false });
 	useHotkey("Alt+Shift+Q", () => {
-		void signOutCurrent();
+		signOutCurrent();
 	});
 
 	useCommandProvider(

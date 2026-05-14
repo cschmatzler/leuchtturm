@@ -189,7 +189,7 @@ function TeamMembersSection() {
 							<Button
 								variant="destructive"
 								size="sm"
-								onClick={() => void removeMember(row.original.userId)}
+								onClick={() => removeMember(row.original.userId)}
 							>
 								<TrashIcon className="size-4" />
 								<T>Remove</T>
@@ -339,7 +339,7 @@ function AddOrganizationMembersSection() {
 					header: "",
 					size: 1,
 					cell: ({ row }) => (
-						<Button variant="outline" size="sm" onClick={() => void addMember(row.original.userId)}>
+						<Button variant="outline" size="sm" onClick={() => addMember(row.original.userId)}>
 							<PlusIcon className="size-4" />
 							<T>Add</T>
 						</Button>

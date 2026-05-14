@@ -264,7 +264,7 @@ function Page() {
 	});
 
 	const setInviteDialogOpen = (value: boolean) => {
-		void navigate({
+		navigate({
 			to: "/$organization/settings/members",
 			params: { organization },
 			search: (previous) => ({ ...previous, invite: value }),

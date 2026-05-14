@@ -31,6 +31,7 @@ import {
 	DropdownMenuSubTrigger,
 	DropdownMenuTrigger,
 } from "@leuchtturm/web/components/ui/dropdown-menu";
+import { Show } from "@leuchtturm/web/components/ui/flow";
 import { Kbd, KbdGroup } from "@leuchtturm/web/components/ui/kbd";
 import { Link } from "@leuchtturm/web/components/ui/link";
 import { useAuth } from "@leuchtturm/web/hooks/use-auth";
@@ -57,19 +58,19 @@ export function Header({
 	const t = useGT();
 	const { session, deviceSessions, signOutCurrent, signOutAll, setActiveSession } = useAuth();
 
-	const teams = currentOrganization?.teams ?? [];
-	const teamSettingsMatch = matchRoute({
-		to: "/$organization/teams/$team/settings",
-		fuzzy: true,
+	if (!currentOrganization) return null;
+
+	const activeTeam = currentOrganization.teams.find((item) => {
+		const match = matchRoute({
+			to: "/$organization/teams/$team/settings",
+			fuzzy: true,
+		});
+
+		return item.slug === (team ?? (match && match.team));
 	});
-	const activeTeam = teamSettingsMatch
-		? teams.find((item) => item.slug === teamSettingsMatch.team)
-		: team
-			? teams.find((item) => item.slug === team)
-			: undefined;
 	const settingsActive = Boolean(
 		matchRoute({ to: "/$organization/settings", params: { organization }, fuzzy: true }) ||
-		teamSettingsMatch,
+		matchRoute({ to: "/$organization/teams/$team/settings", fuzzy: true }),
 	);
 
 	return (
@@ -94,9 +95,7 @@ export function Header({
 										render={<button type="button" />}
 										className="inline-flex max-w-48 items-center gap-1 text-foreground"
 									>
-										<span className="truncate">
-											{currentOrganization?.name ?? <T>Organization</T>}
-										</span>
+										<span className="truncate">{currentOrganization.name}</span>
 										<CaretDownIcon className="size-3.5 shrink-0" />
 									</BreadcrumbLink>
 								}
@@ -107,7 +106,7 @@ export function Header({
 										key={item.id}
 										checked={item.slug === organization}
 										onClick={() => {
-											void navigate({
+											navigate({
 												to: "/$organization/settings",
 												params: { organization: item.slug },
 											});
@@ -119,7 +118,7 @@ export function Header({
 								<DropdownMenuSeparator />
 								<DropdownMenuItem
 									onClick={() => {
-										void navigate({ to: "/create-organization" });
+										navigate({ to: "/create-organization" });
 									}}
 								>
 									<PlusIcon />
@@ -131,58 +130,60 @@ export function Header({
 						</DropdownMenu>
 					</BreadcrumbItem>
 
-					{activeTeam && (
-						<>
-							<BreadcrumbSeparator />
+					<Show when={activeTeam}>
+						{(activeTeam) => (
+							<>
+								<BreadcrumbSeparator />
 
-							<BreadcrumbItem>
-								<DropdownMenu>
-									<DropdownMenuTrigger
-										render={
-											<BreadcrumbLink
-												render={<button type="button" />}
-												className="inline-flex max-w-48 items-center gap-1 text-foreground"
-											>
-												<span className="truncate">{activeTeam.name}</span>
-												<CaretDownIcon className="size-3.5 shrink-0" />
-											</BreadcrumbLink>
-										}
-									/>
-									<DropdownMenuContent align="start" className="min-w-56">
-										{teams.map((team) => (
-											<DropdownMenuCheckboxItem
-												key={team.id}
-												checked={team.id === activeTeam.id}
+								<BreadcrumbItem>
+									<DropdownMenu>
+										<DropdownMenuTrigger
+											render={
+												<BreadcrumbLink
+													render={<button type="button" />}
+													className="inline-flex max-w-48 items-center gap-1 text-foreground"
+												>
+													<span className="truncate">{activeTeam.name}</span>
+													<CaretDownIcon className="size-3.5 shrink-0" />
+												</BreadcrumbLink>
+											}
+										/>
+										<DropdownMenuContent align="start" className="min-w-56">
+											{currentOrganization.teams.map((team) => (
+												<DropdownMenuCheckboxItem
+													key={team.id}
+													checked={team.id === activeTeam.id}
+													onClick={() => {
+														navigate({
+															to: "/$organization/teams/$team",
+															params: { organization, team: team.slug },
+														});
+													}}
+												>
+													{team.name}
+												</DropdownMenuCheckboxItem>
+											))}
+											<DropdownMenuSeparator />
+											<DropdownMenuItem
 												onClick={() => {
-													void navigate({
-														to: "/$organization/teams/$team",
-														params: { organization, team: team.slug },
+													navigate({
+														to: "/$organization/settings/teams",
+														params: { organization },
+														search: { create: true },
 													});
 												}}
 											>
-												{team.name}
-											</DropdownMenuCheckboxItem>
-										))}
-										<DropdownMenuSeparator />
-										<DropdownMenuItem
-											onClick={() => {
-												void navigate({
-													to: "/$organization/settings/teams",
-													params: { organization },
-													search: { create: true },
-												});
-											}}
-										>
-											<PlusIcon />
-											<span>
-												<T>Create team</T>
-											</span>
-										</DropdownMenuItem>
-									</DropdownMenuContent>
-								</DropdownMenu>
-							</BreadcrumbItem>
-						</>
-					)}
+												<PlusIcon />
+												<span>
+													<T>Create team</T>
+												</span>
+											</DropdownMenuItem>
+										</DropdownMenuContent>
+									</DropdownMenu>
+								</BreadcrumbItem>
+							</>
+						)}
+					</Show>
 
 					{breadcrumbs?.map((breadcrumb, index) => (
 						<Fragment key={index}>
@@ -243,7 +244,7 @@ export function Header({
 												key={deviceSession.session.id}
 												checked={deviceSession.session.token === session?.session.token}
 												onClick={() => {
-													void setActiveSession(deviceSession.session.token);
+													setActiveSession(deviceSession.session.token);
 												}}
 											>
 												{deviceSession.user.email}
@@ -256,7 +257,7 @@ export function Header({
 						)}
 						<DropdownMenuItem
 							onClick={() => {
-								void navigate({ to: "/login" });
+								navigate({ to: "/login" });
 							}}
 						>
 							<PlusIcon />
@@ -267,7 +268,7 @@ export function Header({
 						<DropdownMenuSeparator />
 						<DropdownMenuItem
 							onClick={() => {
-								void signOutCurrent();
+								signOutCurrent();
 							}}
 						>
 							<SignOutIcon />
@@ -293,7 +294,7 @@ export function Header({
 						{deviceSessions && deviceSessions.length > 1 && (
 							<DropdownMenuItem
 								onClick={() => {
-									void signOutAll();
+									signOutAll();
 								}}
 							>
 								<SignOutIcon />

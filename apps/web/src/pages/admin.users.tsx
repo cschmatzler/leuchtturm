@@ -368,7 +368,7 @@ function AdminUsersPage() {
 									if (!deleteUser) return;
 									const userId = deleteUser.id;
 									setDeleteUser(null);
-									void runUserAction(
+									runUserAction(
 										`delete:${userId}`,
 										() => authClient.admin.removeUser({ userId }),
 										t("User deleted"),
@@ -423,7 +423,7 @@ function UserActions({
 				<DropdownMenuItem
 					disabled={isCurrentUser}
 					onClick={() =>
-						void runUserAction(
+						runUserAction(
 							`role:${user.id}`,
 							() =>
 								authClient.admin.setRole({
@@ -442,7 +442,7 @@ function UserActions({
 				<DropdownMenuItem
 					disabled={isCurrentUser}
 					onClick={() =>
-						void runUserAction(
+						runUserAction(
 							`ban:${user.id}`,
 							() =>
 								isBanned
@@ -462,7 +462,7 @@ function UserActions({
 				</DropdownMenuItem>
 				<DropdownMenuItem
 					onClick={() =>
-						void runUserAction(
+						runUserAction(
 							`sessions:${user.id}`,
 							() => authClient.admin.revokeUserSessions({ userId: user.id }),
 							t("Sessions revoked"),
