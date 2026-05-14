@@ -80,7 +80,10 @@ const handleRequest = Effect.fn("handleRequest")(function* (
 					Effect.tryPromise({
 						try: () => handler(request, requestContext),
 						catch: (cause) => cause,
-					}).pipe(Effect.mapError(() => new InternalServerError())),
+					}).pipe(
+						Effect.ensuring(Effect.yieldNow),
+						Effect.mapError(() => new InternalServerError()),
+					),
 					requestContext,
 				);
 			}),
