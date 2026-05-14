@@ -6,6 +6,10 @@ blockExoticSubdeps: true
 minimumReleaseAge: 720
 trustPolicy: no-downgrade
 trustPolicyIgnoreAfter: 3600
+trustPolicyExclude:
+  - effect
+  - "@effect/opentelemetry"
+  - "@effect/sql-pg"
 patchedDependencies:
   drizzle-orm@1.0.0-rc.2: patches/drizzle-orm@1.0.0-rc.2.patch
 allowBuilds:
