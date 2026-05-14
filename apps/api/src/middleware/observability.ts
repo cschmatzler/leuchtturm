@@ -51,10 +51,10 @@ export namespace Observability {
 			return yield* app.pipe(
 				HttpMiddleware.logger,
 				Effect.tap(record),
-				Effect.catchCause((cause) =>
+				Effect.tapCause((cause) =>
 					HttpServerError.causeResponse(cause).pipe(
 						Effect.tap(([response]) => record(response)),
-						Effect.andThen(Effect.failCause(cause)),
+						Effect.map(() => undefined),
 					),
 				),
 			);

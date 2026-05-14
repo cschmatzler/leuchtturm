@@ -34,12 +34,10 @@ export namespace ZeroHandler {
 				}),
 			catch: (cause) => cause,
 		}).pipe(
-			Effect.catchCause((cause) =>
-				Effect.gen(function* () {
-					yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-					return yield* Effect.fail(new DatabaseError({ operation: "Query execution failed" }));
-				}),
+			Effect.tapCause((cause) =>
+				Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) }),
 			),
+			Effect.mapError(() => new DatabaseError({ operation: "Query execution failed" })),
 		);
 
 		return yield* HttpServerResponse.json(result).pipe(Effect.orDie);
@@ -68,12 +66,10 @@ export namespace ZeroHandler {
 				}),
 			catch: (cause) => cause,
 		}).pipe(
-			Effect.catchCause((cause) =>
-				Effect.gen(function* () {
-					yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-					return yield* Effect.fail(new DatabaseError({ operation: "Mutation execution failed" }));
-				}),
+			Effect.tapCause((cause) =>
+				Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) }),
 			),
+			Effect.mapError(() => new DatabaseError({ operation: "Mutation execution failed" })),
 		);
 
 		return yield* HttpServerResponse.json(result).pipe(Effect.orDie);
@@ -85,19 +81,13 @@ export namespace ZeroHandler {
 				.handleRaw("query", () =>
 					handleQuery().pipe(
 						Effect.tap(() => Metrics.action("zero.query", "success")),
-						Effect.catchCause((cause) =>
-							Metrics.action("zero.query", "failure").pipe(Effect.andThen(Effect.failCause(cause))),
-						),
+						Effect.tapCause(() => Metrics.action("zero.query", "failure")),
 					),
 				)
 				.handleRaw("mutate", () =>
 					handleMutate().pipe(
 						Effect.tap(() => Metrics.action("zero.mutate", "success")),
-						Effect.catchCause((cause) =>
-							Metrics.action("zero.mutate", "failure").pipe(
-								Effect.andThen(Effect.failCause(cause)),
-							),
-						),
+						Effect.tapCause(() => Metrics.action("zero.mutate", "failure")),
 					),
 				),
 		);

@@ -32,12 +32,10 @@ export namespace Email {
 					try: (): Promise<EmailSendResult> => env.EMAIL.send(params),
 					catch: (cause) => cause,
 				}).pipe(
-					Effect.catchCause((cause) =>
-						Effect.gen(function* () {
-							yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-							return yield* Effect.fail(new EmailProviderRequestError());
-						}),
+					Effect.tapCause((cause) =>
+						Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) }),
 					),
+					Effect.mapError(() => new EmailProviderRequestError()),
 				);
 			});
 

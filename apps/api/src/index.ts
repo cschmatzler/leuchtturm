@@ -80,7 +80,7 @@ const handleRequest = Effect.fn("handleRequest")(function* (
 
 			return yield* Effect.provideContext(
 				Effect.promise(() => handler(request, requestContext)).pipe(
-					Effect.catchCause((cause) =>
+					Effect.tapCause((cause) =>
 						Effect.gen(function* () {
 							yield* Effect.annotateCurrentSpan({
 								"error.original_cause": Cause.pretty(cause),
@@ -88,10 +88,9 @@ const handleRequest = Effect.fn("handleRequest")(function* (
 							yield* Effect.logError("API handler failed").pipe(
 								Effect.annotateLogs({ cause: Cause.pretty(cause), url: request.url }),
 							);
-
-							return yield* Effect.fail(new InternalServerError());
 						}),
 					),
+					Effect.mapError(() => new InternalServerError()),
 				),
 				requestContext,
 			);

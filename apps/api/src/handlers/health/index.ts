@@ -15,19 +15,16 @@ export namespace HealthHandler {
 		const databaseStartedAt = performance.now();
 
 		yield* database.execute("select 1").pipe(
-			Effect.catchCause((cause) =>
+			Effect.tapCause((cause) =>
 				Effect.gen(function* () {
 					const prettyCause = Cause.pretty(cause);
 					yield* Effect.annotateCurrentSpan({ "error.original_cause": prettyCause });
 					yield* Effect.logError("Health database check failed").pipe(
 						Effect.annotateLogs({ cause: prettyCause }),
 					);
-
-					return yield* Effect.fail(
-						new DatabaseError({ operation: "Health database check failed" }),
-					);
 				}),
 			),
+			Effect.mapError(() => new DatabaseError({ operation: "Health database check failed" })),
 		);
 
 		return {

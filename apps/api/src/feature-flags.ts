@@ -33,17 +33,16 @@ export namespace FeatureFlags {
 							sendFeatureFlagEvents: false,
 						}),
 					).pipe(
-						Effect.catchCause((cause) =>
-							Effect.gen(function* () {
-								yield* Effect.annotateCurrentSpan({
-									"error.original_cause": Cause.pretty(cause),
-								});
-								return yield* Effect.fail(
-									new FeatureFlagProviderRequestError({
-										operation: `Evaluate feature flag ${key} for user ${userId}`,
-									}),
-								);
+						Effect.tapCause((cause) =>
+							Effect.annotateCurrentSpan({
+								"error.original_cause": Cause.pretty(cause),
 							}),
+						),
+						Effect.mapError(
+							() =>
+								new FeatureFlagProviderRequestError({
+									operation: `Evaluate feature flag ${key} for user ${userId}`,
+								}),
 						),
 						Effect.filterOrFail(
 							(result) => result !== undefined,

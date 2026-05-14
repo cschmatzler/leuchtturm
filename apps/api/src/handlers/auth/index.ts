@@ -18,18 +18,17 @@ export namespace AuthHandler {
 
 		return yield* auth.handle(request.source as Request).pipe(
 			Effect.map(HttpServerResponse.fromWeb),
-			Effect.catchCause((cause) =>
-				Effect.gen(function* () {
-					for (const reason of cause.reasons) {
-						if (Cause.isFailReason(reason) && Schema.is(AuthError)(reason.error)) {
-							return yield* Effect.fail(reason.error);
-						}
+			Effect.catchCause((cause) => {
+				for (const reason of cause.reasons) {
+					if (Cause.isFailReason(reason) && Schema.is(AuthError)(reason.error)) {
+						return Effect.fail(reason.error);
 					}
+				}
 
-					yield* Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) });
-					return yield* Effect.fail(new AuthHandlerError());
-				}),
-			),
+				return Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) }).pipe(
+					Effect.andThen(Effect.fail(new AuthHandlerError())),
+				);
+			}),
 		);
 	});
 
@@ -39,21 +38,13 @@ export namespace AuthHandler {
 				.handleRaw("authGet", ({ request }) =>
 					handlePassthrough(request).pipe(
 						Effect.tap(() => Metrics.action("auth.passthrough", "success")),
-						Effect.catchCause((cause) =>
-							Metrics.action("auth.passthrough", "failure").pipe(
-								Effect.andThen(Effect.failCause(cause)),
-							),
-						),
+						Effect.tapCause(() => Metrics.action("auth.passthrough", "failure")),
 					),
 				)
 				.handleRaw("authPost", ({ request }) =>
 					handlePassthrough(request).pipe(
 						Effect.tap(() => Metrics.action("auth.passthrough", "success")),
-						Effect.catchCause((cause) =>
-							Metrics.action("auth.passthrough", "failure").pipe(
-								Effect.andThen(Effect.failCause(cause)),
-							),
-						),
+						Effect.tapCause(() => Metrics.action("auth.passthrough", "failure")),
 					),
 				),
 		);
