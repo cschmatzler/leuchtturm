@@ -23,16 +23,18 @@ export namespace Observability {
 	});
 
 	export function withRequestContext(requestContext: Context.Context<RequestContext.Service>) {
-		return <A, E, R>(effect: Effect.Effect<A, E, R>) =>
+		return <A, E, R>(
+			use: (context: Context.Context<RequestContext.Service>) => Effect.Effect<A, E, R>,
+		) =>
 			Effect.acquireUseRelease(
 				Scope.make(),
 				(observabilityScope) =>
 					Layer.buildWithScope(layer, observabilityScope).pipe(
-						Effect.flatMap((observabilityContext) =>
-							effect.pipe(
-								Effect.provideContext(Context.merge(requestContext, observabilityContext)),
-							),
-						),
+						Effect.flatMap((observabilityContext) => {
+							const context = Context.merge(requestContext, observabilityContext);
+
+							return use(context).pipe(Effect.provideContext(context));
+						}),
 					),
 				(observabilityScope) =>
 					Effect.sync(() => {

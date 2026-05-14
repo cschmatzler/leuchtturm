@@ -68,7 +68,7 @@ namespace Api {
 	) {
 		const requestContext = RequestContext.make(request, executionContext);
 
-		return yield* Observability.withRequestContext(requestContext)(
+		return yield* Observability.withRequestContext(requestContext)((requestContext) =>
 			Effect.gen(function* () {
 				const services = yield* Layer.mergeAll(Auth.defaultLayer, ZeroDatabase.layer).pipe(
 					Layer.provideMerge(Database.layer(Resource.Database.connectionString)),
