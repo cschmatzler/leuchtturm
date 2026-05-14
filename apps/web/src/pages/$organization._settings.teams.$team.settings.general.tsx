@@ -137,7 +137,7 @@ function GeneralSettings(props: { readonly organization: string; readonly team: 
 
 	return (
 		<div className="mx-auto w-full max-w-3xl">
-			<section className="py-6">
+			<section>
 				<div className="space-y-1">
 					<h2 className="font-serif text-2xl">
 						<T>Team</T>
@@ -197,7 +197,7 @@ function GeneralSettings(props: { readonly organization: string; readonly team: 
 
 			<Separator />
 
-			<section className="py-6">
+			<section className="pt-6">
 				<div className="space-y-1">
 					<h2 className="font-serif text-2xl">
 						<T>Delete team</T>

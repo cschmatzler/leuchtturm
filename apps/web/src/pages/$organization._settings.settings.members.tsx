@@ -367,7 +367,7 @@ function Page() {
 				</DialogContent>
 			</Dialog>
 
-			<section className="py-6">
+			<section>
 				<div className="flex items-start justify-between gap-4">
 					<div className="space-y-1">
 						<h2 className="font-serif text-2xl">
@@ -394,7 +394,7 @@ function Page() {
 			</section>
 
 			<Show when={activeInvitations.length > 0}>
-				<section className="border-t border-border py-6">
+				<section className="border-t border-border pt-6">
 					<div className="space-y-1">
 						<h2 className="font-serif text-2xl">
 							<T>Pending invitations</T>

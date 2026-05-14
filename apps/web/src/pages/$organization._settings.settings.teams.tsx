@@ -168,7 +168,7 @@ function Page() {
 				</DialogContent>
 			</Dialog>
 
-			<section className="py-6">
+			<section>
 				<div className="flex items-start justify-between gap-4">
 					<div className="space-y-1">
 						<h2 className="font-serif text-2xl">
