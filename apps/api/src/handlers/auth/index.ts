@@ -40,10 +40,16 @@ export namespace AuthHandler {
 		HttpApiBuilder.group(api, "auth", (handlers) =>
 			handlers
 				.handleRaw("authGet", ({ request }) =>
-					handlePassthrough(request).pipe(Observability.withAction("auth.passthrough")),
+					handlePassthrough(request).pipe(
+						Effect.tap(() => Observability.recordAction("auth.passthrough", "success")),
+						Effect.tapCause(() => Observability.recordAction("auth.passthrough", "failure")),
+					),
 				)
 				.handleRaw("authPost", ({ request }) =>
-					handlePassthrough(request).pipe(Observability.withAction("auth.passthrough")),
+					handlePassthrough(request).pipe(
+						Effect.tap(() => Observability.recordAction("auth.passthrough", "success")),
+						Effect.tapCause(() => Observability.recordAction("auth.passthrough", "failure")),
+					),
 				),
 		);
 }

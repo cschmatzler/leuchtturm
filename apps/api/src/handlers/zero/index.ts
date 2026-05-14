@@ -78,7 +78,17 @@ export namespace ZeroHandler {
 	export const layer = (api: Contract.Api) =>
 		HttpApiBuilder.group(api, "zero", (handlers) =>
 			handlers
-				.handleRaw("query", () => handleQuery().pipe(Observability.withAction("zero.query")))
-				.handleRaw("mutate", () => handleMutate().pipe(Observability.withAction("zero.mutate"))),
+				.handleRaw("query", () =>
+					handleQuery().pipe(
+						Effect.tap(() => Observability.recordAction("zero.query", "success")),
+						Effect.tapCause(() => Observability.recordAction("zero.query", "failure")),
+					),
+				)
+				.handleRaw("mutate", () =>
+					handleMutate().pipe(
+						Effect.tap(() => Observability.recordAction("zero.mutate", "success")),
+						Effect.tapCause(() => Observability.recordAction("zero.mutate", "failure")),
+					),
+				),
 		);
 }

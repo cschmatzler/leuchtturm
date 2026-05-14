@@ -22,36 +22,6 @@ export namespace Observability {
 		count: 35,
 	});
 
-	const pathFromRequest = (request: HttpServerRequest.HttpServerRequest) =>
-		Option.getOrElse(
-			Option.map(HttpServerRequest.toURL(request), (url) => url.pathname),
-			() => request.url,
-		);
-
-	const spanNames = Layer.succeed(
-		HttpMiddleware.SpanNameGenerator,
-		(request: HttpServerRequest.HttpServerRequest) =>
-			`${request.method} ${pathFromRequest(request)}`,
-	);
-
-	const otlp = Otlp.layerProtobuf({
-		baseUrl: Resource.GrafanaOtlpConfig.url,
-		headers: { Authorization: Resource.GrafanaOtlpConfig.authorization },
-		loggerExcludeLogSpans: false,
-		loggerMergeWithExisting: true,
-		resource: {
-			serviceName: "leuchtturm-api",
-			attributes: {
-				"service.namespace": "leuchtturm",
-				app: "leuchtturm",
-				stage: Resource.App.stage,
-			},
-		},
-		shutdownTimeout: "3 seconds",
-	}).pipe(Layer.provide(FetchHttpClient.layer));
-
-	export const layer = Layer.mergeAll(otlp, spanNames);
-
 	export function withRequestContext(requestContext: Context.Context<RequestContext.Service>) {
 		return <A, E, R>(effect: Effect.Effect<A, E, R>) =>
 			Effect.acquireUseRelease(
@@ -73,8 +43,8 @@ export namespace Observability {
 			);
 	}
 
-	export const recordAction = (action: string, result: "success" | "failure") =>
-		Metric.update(
+	export function recordAction(action: string, result: "success" | "failure") {
+		return Metric.update(
 			Metric.counter("api_action_total", {
 				attributes: { action, result },
 				description: "API actions completed by action name and result.",
@@ -82,16 +52,9 @@ export namespace Observability {
 			}),
 			1,
 		);
+	}
 
-	export const withAction =
-		(action: string) =>
-		<A, E, R>(effect: Effect.Effect<A, E, R>) =>
-			effect.pipe(
-				Effect.tap(() => recordAction(action, "success")),
-				Effect.tapCause(() => recordAction(action, "failure")),
-			);
-
-	export const httpMiddleware = HttpMiddleware.make((app) =>
+	export const middleware = HttpMiddleware.make((app) =>
 		Effect.gen(function* () {
 			const startedAt = yield* Clock.currentTimeMillis;
 
@@ -100,7 +63,10 @@ export namespace Observability {
 					const durationMs = (yield* Clock.currentTimeMillis) - startedAt;
 					const attributes = {
 						method: request.method,
-						path: pathFromRequest(request),
+						path: Option.getOrElse(
+							Option.map(HttpServerRequest.toURL(request), (url) => url.pathname),
+							() => request.url,
+						),
 						status: String(response.status),
 					};
 
@@ -129,5 +95,31 @@ export namespace Observability {
 
 			return yield* app;
 		}),
+	);
+
+	export const layer = Layer.mergeAll(
+		Otlp.layerProtobuf({
+			baseUrl: Resource.GrafanaOtlpConfig.url,
+			headers: { Authorization: Resource.GrafanaOtlpConfig.authorization },
+			loggerExcludeLogSpans: false,
+			loggerMergeWithExisting: true,
+			resource: {
+				serviceName: "leuchtturm-api",
+				attributes: {
+					"service.namespace": "leuchtturm",
+					app: "leuchtturm",
+					stage: Resource.App.stage,
+				},
+			},
+			shutdownTimeout: "3 seconds",
+		}).pipe(Layer.provide(FetchHttpClient.layer)),
+		Layer.succeed(
+			HttpMiddleware.SpanNameGenerator,
+			(request: HttpServerRequest.HttpServerRequest) =>
+				`${request.method} ${Option.getOrElse(
+					Option.map(HttpServerRequest.toURL(request), (url) => url.pathname),
+					() => request.url,
+				)}`,
+		),
 	);
 }
