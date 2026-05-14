@@ -5,9 +5,6 @@
 }: {
 	# Use nixpkgs aube once > 1.10
 	packages = [
-		(pkgs.writeShellScriptBin "ar" ''
-			exec aube run "$@"
-		'')
 		(pkgs.rustPlatform.buildRustPackage rec {
 				pname = "aube";
 				version = "1.13.1";
@@ -35,6 +32,13 @@
 	# -----------
 
 	env.SST_BUN_PATH = "${config.languages.javascript.bun.package}/bin/bun";
+
+	# Scripts
+	# -------
+
+	scripts.ar.exec = ''
+		aube run "$@"
+	'';
 
 	# Shell
 	# -----
