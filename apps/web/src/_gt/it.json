@@ -106,7 +106,7 @@
 	"6939d310de8dfe5b": "Organizzazione",
 	"6d8e4ebc889bace9": "Aggiungi account",
 	"6e290d1a591e80c8": "Le tue informazioni personali",
-	"6ef5d56ba89f562d": "Gestisci l'abbonamento in Polar",
+	"6ef5d56ba89f562d": "Gestisci l'abbonamento",
 	"70dd4bce4281574d": "Aggiungi un altro account",
 	"71a03a3866c0b33f": "Codice di backup",
 	"72fcd24abd213e79": "Il tuo nome",
@@ -282,7 +282,7 @@
 		" per confermare l'eliminazione"
 	],
 	"f697db7706dd5b37": "Niente di superfluo.",
-	"f89001a43cbba4e4": "Le informazioni di pagamento e le fatture sono gestite in modo sicuro tramite Polar.",
+	"f89001a43cbba4e4": "Le informazioni di pagamento e le fatture sono gestite in modo sicuro tramite Stripe.",
 	"f9386094b028a865": "Inserisci il codice della tua app di autenticazione per completare l'accesso.",
 	"f93af118f0cc48b2": "Gestisci la fatturazione",
 	"f9ac6fa723f8090b": "Disconnettiti da tutti gli account",

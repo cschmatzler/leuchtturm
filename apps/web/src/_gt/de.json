@@ -106,7 +106,7 @@
 	"6939d310de8dfe5b": "Organisation",
 	"6d8e4ebc889bace9": "Konto hinzufügen",
 	"6e290d1a591e80c8": "Ihre persönlichen Daten",
-	"6ef5d56ba89f562d": "Abonnement in Polar verwalten",
+	"6ef5d56ba89f562d": "Abonnement verwalten",
 	"70dd4bce4281574d": "Weiteres Konto hinzufügen",
 	"71a03a3866c0b33f": "Backup-Code",
 	"72fcd24abd213e79": "Ihr Name",
@@ -283,7 +283,7 @@
 		" ein, um das Löschen zu bestätigen."
 	],
 	"f697db7706dd5b37": "Nichts, was Sie nicht brauchen.",
-	"f89001a43cbba4e4": "Zahlungsinformationen und Rechnungen werden sicher über Polar verwaltet.",
+	"f89001a43cbba4e4": "Zahlungsinformationen und Rechnungen werden sicher über Stripe verwaltet.",
 	"f9386094b028a865": "Gib den Code aus deiner Authenticator-App ein, um die Anmeldung abzuschließen.",
 	"f93af118f0cc48b2": "Abrechnung verwalten",
 	"f9ac6fa723f8090b": "Von allen Konten abmelden",

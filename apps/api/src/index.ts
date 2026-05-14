@@ -12,7 +12,7 @@ import { Resource, wrapCloudflareHandler } from "sst/resource/cloudflare";
 
 import { Contract } from "@leuchtturm/api/contract";
 import { AuthHandler } from "@leuchtturm/api/handlers/auth/index";
-import { BillingHandler } from "@leuchtturm/api/handlers/billing/index";
+import { AutumnHandler } from "@leuchtturm/api/handlers/autumn/index";
 import { DocsHandler } from "@leuchtturm/api/handlers/docs/index";
 import { HealthHandler } from "@leuchtturm/api/handlers/health/index";
 import { ZeroHandler } from "@leuchtturm/api/handlers/zero/index";
@@ -22,7 +22,6 @@ import { RequestContext } from "@leuchtturm/api/middleware/request-context";
 import { Metrics } from "@leuchtturm/api/observability/metrics";
 import { Telemetry } from "@leuchtturm/api/observability/telemetry";
 import { Auth } from "@leuchtturm/core/auth";
-import { Billing } from "@leuchtturm/core/billing";
 import { Database } from "@leuchtturm/core/database";
 import { InternalServerError } from "@leuchtturm/core/errors";
 import { ZeroDatabase } from "@leuchtturm/zero/zero-database";
@@ -34,7 +33,7 @@ const apiRoutes = Layer.mergeAll(
 		Layer.provide(
 			Layer.mergeAll(
 				HealthHandler.layer(Contract.Api),
-				BillingHandler.layer(Contract.Api),
+				AutumnHandler.layer(Contract.Api),
 				ZeroHandler.layer(Contract.Api),
 				AuthHandler.layer(Contract.Api),
 			),
@@ -72,7 +71,7 @@ const handleRequest = Effect.fn("handleRequest")(function* (
 	return yield* Effect.scoped(
 		Effect.gen(function* () {
 			const servicesContext = yield* Layer.build(
-				Layer.mergeAll(Auth.defaultLayer, Billing.defaultLayer, ZeroDatabase.layer).pipe(
+				Layer.mergeAll(Auth.defaultLayer, ZeroDatabase.layer).pipe(
 					Layer.provideMerge(Database.layer(Resource.Database.connectionString)),
 				),
 			);

@@ -107,7 +107,7 @@
 	"6939d310de8dfe5b": "Organizatë",
 	"6d8e4ebc889bace9": "Shto llogari",
 	"6e290d1a591e80c8": "Të dhënat tuaja personale.",
-	"6ef5d56ba89f562d": "Menaxho abonimin në Polar",
+	"6ef5d56ba89f562d": "Menaxho abonimin",
 	"70dd4bce4281574d": "Shto një llogari tjetër",
 	"71a03a3866c0b33f": "Kod rezervë",
 	"72fcd24abd213e79": "Emri juaj",
@@ -284,7 +284,7 @@
 		" për të konfirmuar fshirjen."
 	],
 	"f697db7706dd5b37": "Asgjë që nuk të duhet.",
-	"f89001a43cbba4e4": "Informacionet e pagesës dhe faturat menaxhohen në mënyrë të sigurt përmes Polar.",
+	"f89001a43cbba4e4": "Informacionet e pagesës dhe faturat menaxhohen në mënyrë të sigurt përmes Stripe.",
 	"f9386094b028a865": "Shkruaj kodin nga aplikacioni yt i autentikimit për të përfunduar hyrjen.",
 	"f93af118f0cc48b2": "Menaxho faturimin",
 	"f9ac6fa723f8090b": "Dil nga të gjitha llogaritë",

@@ -7,12 +7,14 @@ import { parseSearch, stringifySearch } from "@leuchtturm/web/lib/search-params"
 import { routeTree } from "@leuchtturm/web/routeTree.gen";
 import type { Zero } from "@leuchtturm/zero/schema";
 
+type OrganizationSession = Session & { activeOrganizationId?: string | null };
+
 export interface RouterContext {
 	queryClient: QueryClient;
 	zero: Zero | undefined;
 	session:
 		| {
-				session: Session;
+				session: OrganizationSession;
 				user: User;
 		  }
 		| null

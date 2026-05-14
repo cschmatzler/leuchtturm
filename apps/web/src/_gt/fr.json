@@ -106,7 +106,7 @@
 	"6939d310de8dfe5b": "Organisation",
 	"6d8e4ebc889bace9": "Ajouter un compte",
 	"6e290d1a591e80c8": "Vos informations personnelles",
-	"6ef5d56ba89f562d": "Gérer l’abonnement dans Polar",
+	"6ef5d56ba89f562d": "Gérer l’abonnement",
 	"70dd4bce4281574d": "Ajouter un autre compte",
 	"71a03a3866c0b33f": "Code de secours",
 	"72fcd24abd213e79": "Votre nom",
@@ -282,7 +282,7 @@
 		" pour confirmer la suppression."
 	],
 	"f697db7706dd5b37": "Rien de trop.",
-	"f89001a43cbba4e4": "Les informations de paiement et les factures sont gérées en toute sécurité via Polar.",
+	"f89001a43cbba4e4": "Les informations de paiement et les factures sont gérées en toute sécurité via Stripe.",
 	"f9386094b028a865": "Saisissez le code de votre application d’authentification pour finaliser la connexion.",
 	"f93af118f0cc48b2": "Gérer la facturation",
 	"f9ac6fa723f8090b": "Se déconnecter de tous les comptes",

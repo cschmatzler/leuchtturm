@@ -1,15 +1,12 @@
-import * as Schema from "effect/Schema";
 import * as HttpApi from "effect/unstable/httpapi/HttpApi";
 import * as HttpApiEndpoint from "effect/unstable/httpapi/HttpApiEndpoint";
 import * as HttpApiGroup from "effect/unstable/httpapi/HttpApiGroup";
 import * as OpenApi from "effect/unstable/httpapi/OpenApi";
 
-import { BillingSchema } from "@leuchtturm/api/handlers/billing/schema";
 import { HealthSchema } from "@leuchtturm/api/handlers/health/schema";
 import { Session } from "@leuchtturm/api/session";
 import { AuthError } from "@leuchtturm/core/auth/errors";
-import { BillingError } from "@leuchtturm/core/billing/errors";
-import { DatabaseError, NotFoundError } from "@leuchtturm/core/errors";
+import { DatabaseError } from "@leuchtturm/core/errors";
 
 export namespace Contract {
 	export const health = HttpApiGroup.make("health")
@@ -38,53 +35,10 @@ export namespace Contract {
 		.add(HttpApiEndpoint.post("mutate", "/mutate", { error: DatabaseError }))
 		.middleware(Session.Middleware);
 
-	export const billing = HttpApiGroup.make("billing")
-		.annotateMerge(
-			OpenApi.annotations({
-				title: "Billing",
-				description: "Billing, checkout, and customer portal endpoints for organizations.",
-			}),
-		)
-		.add(
-			HttpApiEndpoint.get("overview", "/billing/overview", {
-				query: BillingSchema.OrganizationQuery,
-				success: BillingSchema.OverviewResponse,
-				error: [AuthError, BillingError, NotFoundError],
-			}).annotateMerge(
-				OpenApi.annotations({
-					summary: "Get billing overview",
-					description:
-						"Returns the billing state for an organization, including the current active subscription when one exists.",
-				}),
-			),
-		)
-		.add(
-			HttpApiEndpoint.post("checkout", "/billing/checkout", {
-				query: BillingSchema.OrganizationQuery,
-				success: Schema.Struct({ url: Schema.String }),
-				error: [AuthError, BillingError, NotFoundError],
-			}).annotateMerge(
-				OpenApi.annotations({
-					summary: "Create checkout session",
-					description:
-						"Creates a hosted checkout URL for an organization so the user can start or change a subscription.",
-				}),
-			),
-		)
-		.add(
-			HttpApiEndpoint.post("portal", "/billing/portal", {
-				query: BillingSchema.OrganizationQuery,
-				success: Schema.Struct({ url: Schema.String }),
-				error: [AuthError, BillingError, NotFoundError],
-			}).annotateMerge(
-				OpenApi.annotations({
-					summary: "Create billing portal session",
-					description:
-						"Creates a hosted customer portal URL for an organization so the user can manage billing details and subscriptions.",
-				}),
-			),
-		)
-		.middleware(Session.Middleware);
+	export const autumn = HttpApiGroup.make("autumn")
+		.annotateMerge(OpenApi.annotations({ exclude: true }))
+		.add(HttpApiEndpoint.get("autumnGet", "/api/autumn/*", { error: AuthError }))
+		.add(HttpApiEndpoint.post("autumnPost", "/api/autumn/*", { error: AuthError }));
 
 	export const auth = HttpApiGroup.make("auth")
 		.annotateMerge(
@@ -106,7 +60,7 @@ export namespace Contract {
 		)
 		.add(health)
 		.add(zero)
-		.add(billing)
+		.add(autumn)
 		.add(auth);
 
 	export type Api = typeof Api;

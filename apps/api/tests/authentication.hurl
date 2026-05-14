@@ -1,10 +1,6 @@
 # Protected API endpoints must reject unauthenticated requests.
-GET {{BASE_URL}}/billing/overview?organizationId=org_test
+GET {{BASE_URL}}/api/autumn/products
 HTTP 401
 
-POST {{BASE_URL}}/billing/checkout?organizationId=org_test
+POST {{BASE_URL}}/api/autumn/checkout
 HTTP 401
-
-POST {{BASE_URL}}/billing/portal?organizationId=org_test
-HTTP 401
-

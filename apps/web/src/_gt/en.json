@@ -211,7 +211,7 @@
 	"53b9a6ba24deb0e7": "Navigation",
 	"66585cb4d9b078d1": "Could not open billing portal",
 	"1b7d977955913650": "Billing details",
-	"f89001a43cbba4e4": "Payment information and invoices are securely managed through Polar.",
+	"f89001a43cbba4e4": "Payment information and invoices are securely managed through Stripe.",
 	"f93af118f0cc48b2": "Manage billing",
 	"365bce7dba4855bb": "Preferences updated",
 	"8f334d620c25e754": "Customize your experience.",
@@ -241,7 +241,7 @@
 		"."
 	],
 	"e419502f84213e2c": "You do not have an active subscription yet.",
-	"6ef5d56ba89f562d": "Manage subscription in Polar",
+	"6ef5d56ba89f562d": "Manage subscription",
 	"e260b2155c342272": "Open checkout",
 	"73ddd6d4b164ca95": "Go to team",
 	"ab6e36fea92e0697": "Go to {team}",

@@ -7,6 +7,10 @@
 declare module "sst" {
   export interface Resource {
     "ApiWorker": import("@cloudflare/workers-types").Service
+    "AutumnSecretKey": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
     "BetterAuthSecret": {
       "type": "sst.sst.Secret"
       "value": string
@@ -47,22 +51,6 @@ declare module "sst" {
       "value": string
     }
     "PlanetScaleOrganization": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
-    "Polar": {
-      "Server": string
-      "type": "sst.sst.Linkable"
-    }
-    "PolarAccessToken": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
-    "PolarSuccessUrl": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
-    "PolarWebhookSecret": {
       "type": "sst.sst.Secret"
       "value": string
     }

@@ -10,7 +10,8 @@ import * as Schema from "effect/Schema";
 import { useGT } from "gt-react";
 
 import { OrganizationSelect } from "@leuchtturm/core/auth/schema";
-import { ZeroProvider } from "@leuchtturm/web/contexts/zero";
+import { authClient } from "@leuchtturm/web/clients/auth";
+import { OrganizationProvider } from "@leuchtturm/web/contexts/organization";
 import { useAuth } from "@leuchtturm/web/hooks/use-auth";
 import { useCommandBar } from "@leuchtturm/web/hooks/use-command-bar";
 import { useCommandProvider } from "@leuchtturm/web/hooks/use-command-provider";
@@ -41,17 +42,27 @@ export const Route = createFileRoute("/$organization")({
 			throw redirect({ to: "/create-organization" });
 		}
 
-		return {
-			session,
-			organizationId: Schema.decodeUnknownSync(OrganizationSelect.fields.id)(targetOrganization.id),
-		};
+		const organizationId = Schema.decodeUnknownSync(OrganizationSelect.fields.id)(
+			targetOrganization.id,
+		);
+		if (session.session.activeOrganizationId !== organizationId) {
+			await authClient.organization.setActive({ organizationId });
+			await queryClient.invalidateQueries({ queryKey: ["session"] });
+
+			const refreshedSession = await queryClient.fetchQuery(sessionQuery());
+			if (!refreshedSession) throw redirect({ to: "/login" });
+
+			return { session: refreshedSession, organizationId };
+		}
+
+		return { session, organizationId };
 	},
 	component: Layout,
 });
 
 function Layout() {
 	const { organization } = Route.useParams();
-	const { session } = Route.useRouteContext();
+	const { organizationId, session } = Route.useRouteContext();
 	const navigate = useNavigate();
 
 	const { data: organizations } = useQuery(organizationsQuery());
@@ -185,8 +196,12 @@ function Layout() {
 	);
 
 	return (
-		<ZeroProvider session={session} organization={organization}>
+		<OrganizationProvider
+			session={session}
+			organization={organization}
+			organizationId={organizationId}
+		>
 			<Outlet />
-		</ZeroProvider>
+		</OrganizationProvider>
 	);
 }

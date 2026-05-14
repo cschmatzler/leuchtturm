@@ -10,8 +10,10 @@ import { mutators } from "@leuchtturm/zero/mutators";
 import { queries } from "@leuchtturm/zero/queries";
 import { schema, type Context, type Zero } from "@leuchtturm/zero/schema";
 
+type OrganizationSession = Session & { activeOrganizationId?: string | null };
+
 export type SessionData = {
-	session: Session;
+	session: OrganizationSession;
 	user: BetterAuthUser;
 };
 

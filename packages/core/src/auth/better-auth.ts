@@ -302,7 +302,6 @@ export namespace BetterAuth {
 								),
 						},
 					}),
-					billing.authPlugin,
 				],
 				session: {
 					cookieCache: {

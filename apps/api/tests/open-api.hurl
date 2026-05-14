@@ -5,8 +5,8 @@ HTTP 200
 header "content-type" contains "application/json"
 jsonpath "$.info.title" == "Leuchtturm API"
 jsonpath "$.paths['/up'].get" exists
-jsonpath "$.paths['/billing/overview'].get" exists
-jsonpath "$.paths['/billing/checkout'].post" exists
-jsonpath "$.paths['/billing/portal'].post" exists
+jsonpath "$.paths['/auth/*'].get" exists
+jsonpath "$.paths['/auth/*'].post" exists
+jsonpath "$.paths['/api/autumn/*']" not exists
 jsonpath "$.paths['/query']" not exists
 jsonpath "$.paths['/mutate']" not exists

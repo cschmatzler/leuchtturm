@@ -88,16 +88,18 @@ export namespace Auth {
 						Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) }),
 					),
 					Effect.mapError(() => new AuthOrganizationLookupError()),
-					Effect.flatMap((organization) =>
-						Schema.decodeUnknownEffect(OrganizationSelect)(organization).pipe(
+					Effect.flatMap((organization) => {
+						if (!organization) return Effect.succeed(null);
+
+						return Schema.decodeUnknownEffect(OrganizationSelect)(organization).pipe(
 							Effect.tapCause((cause) =>
 								Effect.annotateCurrentSpan({
 									"error.original_cause": Cause.pretty(cause),
 								}),
 							),
 							Effect.mapError(() => new AuthInvalidOrganizationPayloadError()),
-						),
-					),
+						);
+					}),
 				);
 			});
 

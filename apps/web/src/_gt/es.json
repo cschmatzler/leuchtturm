@@ -107,7 +107,7 @@
 	"6939d310de8dfe5b": "Organización",
 	"6d8e4ebc889bace9": "Añadir cuenta",
 	"6e290d1a591e80c8": "Tu información personal.",
-	"6ef5d56ba89f562d": "Gestionar suscripción en Polar",
+	"6ef5d56ba89f562d": "Gestionar suscripción",
 	"70dd4bce4281574d": "Añadir otra cuenta",
 	"71a03a3866c0b33f": "Código de respaldo",
 	"72fcd24abd213e79": "Tu nombre",
@@ -284,7 +284,7 @@
 		" para confirmar la eliminación."
 	],
 	"f697db7706dd5b37": "Nada de lo que sobra.",
-	"f89001a43cbba4e4": "La información de pago y las facturas se gestionan de forma segura a través de Polar.",
+	"f89001a43cbba4e4": "La información de pago y las facturas se gestionan de forma segura a través de Stripe.",
 	"f9386094b028a865": "Introduce el código de tu aplicación de autenticación para completar el inicio de sesión.",
 	"f93af118f0cc48b2": "Gestionar la facturación",
 	"f9ac6fa723f8090b": "Cerrar sesión en todas las cuentas",

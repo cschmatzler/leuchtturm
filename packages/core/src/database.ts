@@ -10,7 +10,6 @@ import * as Reactivity from "effect/unstable/reactivity/Reactivity";
 import { Client, types, type CustomTypesConfig } from "pg";
 
 import { authRelations } from "@leuchtturm/core/auth/auth.sql";
-import { billingRelations } from "@leuchtturm/core/billing/billing.sql";
 import { DatabaseError } from "@leuchtturm/core/errors";
 
 const drizzleTypes: CustomTypesConfig = {
@@ -43,14 +42,6 @@ export namespace Database {
 
 	export const relations = {
 		...authRelations,
-		...billingRelations,
-		organization: {
-			...authRelations.organization,
-			relations: {
-				...authRelations.organization.relations,
-				...billingRelations.organization.relations,
-			},
-		},
 	};
 
 	export function layer(connectionString: string) {
