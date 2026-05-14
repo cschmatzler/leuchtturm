@@ -1,15 +1,14 @@
 import { CheckIcon } from "@phosphor-icons/react/Check";
 import { CopyIcon } from "@phosphor-icons/react/Copy";
-import { type ComponentProps, type ReactNode, type RefObject, useState } from "react";
+import { type ComponentProps, type RefObject, useState } from "react";
 
 import { Button } from "@leuchtturm/web/components/ui/button";
 import { cn } from "@leuchtturm/web/lib/utils";
 
-interface CopyButtonProps extends ComponentProps<typeof Button> {
+interface CopyButtonProps extends Omit<ComponentProps<typeof Button>, "children"> {
 	readonly text?: string;
 	readonly html?: string;
 	readonly htmlRef?: RefObject<HTMLElement | null>;
-	readonly copiedLabel?: ReactNode;
 	readonly onCopied?: () => void;
 	readonly onCopyError?: (error: unknown) => void;
 }
@@ -18,8 +17,6 @@ function CopyButton({
 	text,
 	html,
 	htmlRef,
-	copiedLabel = "Copied",
-	children = "Copy",
 	className,
 	onClick,
 	onCopied,
@@ -67,13 +64,12 @@ function CopyButton({
 		<Button
 			type="button"
 			variant="outline"
-			size="sm"
-			className={cn("gap-1.5", className)}
+			size="icon-sm"
+			className={cn(className)}
 			onClick={copyToClipboard}
 			{...props}
 		>
 			{copied ? <CheckIcon className="size-4" /> : <CopyIcon className="size-4" />}
-			{copied ? copiedLabel : children}
 		</Button>
 	);
 }

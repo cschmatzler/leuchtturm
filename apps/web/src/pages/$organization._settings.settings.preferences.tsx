@@ -458,9 +458,7 @@ function TwoFactorAuthenticationSection() {
 															value={value}
 															className="font-mono"
 														/>
-														<CopyButton text={value} copiedLabel={<T>Copied</T>}>
-															<T>Copy</T>
-														</CopyButton>
+														<CopyButton text={value} />
 													</div>
 												</>
 											)}

@@ -229,21 +229,19 @@ function GeneralSettings(props: { readonly organization: string; readonly team: 
 							</AlertDialogDescription>
 						</AlertDialogHeader>
 						<div className="space-y-2">
-							<div className="flex items-center justify-between gap-2">
-								<FieldLabel htmlFor="delete-team-confirmation">
-									<T>
-										Type <Var>{team?.name}</Var> to confirm deletion.
-									</T>
-								</FieldLabel>
-								<CopyButton
-									size="xs"
-									text={team?.name}
-									disabled={!team}
-									copiedLabel={<T>Copied</T>}
-								>
-									<T>Copy</T>
-								</CopyButton>
-							</div>
+							<FieldLabel
+								htmlFor="delete-team-confirmation"
+								className="flex-wrap items-center gap-1.5"
+							>
+								<T>Type</T>
+								<span className="inline-flex items-center gap-1">
+									<code className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm">
+										<Var>{team?.name}</Var>
+									</code>
+									<CopyButton size="icon-xs" text={team?.name} disabled={!team} />
+								</span>
+								<T>to confirm deletion.</T>
+							</FieldLabel>
 							<Input
 								id="delete-team-confirmation"
 								value={deleteTeamConfirmation}
