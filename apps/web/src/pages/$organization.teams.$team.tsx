@@ -1,6 +1,6 @@
 import { GearIcon } from "@phosphor-icons/react/Gear";
 import { StackIcon } from "@phosphor-icons/react/Stack";
-import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, useNavigate } from "@tanstack/react-router";
 import { useGT } from "gt-react";
 
 import { Header } from "@leuchtturm/web/components/header";
@@ -10,8 +10,18 @@ import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { queries } from "@leuchtturm/zero/queries";
 
 export const Route = createFileRoute("/$organization/teams/$team")({
-	loader: ({ context: { organizationId, zero }, params: { team } }) => {
-		zero?.preload(queries.team({ organizationId, team }));
+	loader: async ({ context: { organizationId, zero }, params: { organization, team } }) => {
+		if (!zero) return;
+		const currentTeam = await zero.run(queries.team({ organizationId, team }), {
+			type: "complete",
+		});
+
+		if (!currentTeam) {
+			throw redirect({
+				to: "/$organization/settings/teams",
+				params: { organization },
+			});
+		}
 	},
 	component: Layout,
 });
