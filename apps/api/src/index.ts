@@ -73,7 +73,7 @@ const handleRequest = Effect.fn("handleRequest")(function* (
 			Effect.gen(function* () {
 				const telemetryContext = yield* Effect.context<never>();
 				const servicesContext = yield* Layer.build(
-					Layer.mergeAll(Auth.defaultLayer, ZeroDatabase.layer).pipe(
+					Layer.mergeAll(Auth.defaultLayer, Metrics.layer, ZeroDatabase.layer).pipe(
 						Layer.provideMerge(Database.layer(Resource.Database.connectionString)),
 					),
 				);

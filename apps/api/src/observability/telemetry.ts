@@ -16,60 +16,64 @@ import { Resource } from "sst/resource/cloudflare";
 import { RequestContext } from "@leuchtturm/api/middleware/request-context";
 
 export namespace Telemetry {
-	const exportLayer = Layer.fresh(
-		Layer.suspend(() =>
-			Layer.mergeAll(
-				OtlpTracer.layer({
-					headers: { Authorization: Resource.GrafanaOtlpConfig.authorization },
-					resource: {
-						serviceName: "leuchtturm-api",
-						attributes: {
-							"service.namespace": "leuchtturm",
-							app: "leuchtturm",
-							stage: Resource.App.stage,
-						},
-					},
-					shutdownTimeout: "3 seconds",
-					url: `${Resource.GrafanaOtlpConfig.url}/v1/traces`,
-				}),
-				OtlpLogger.layer({
-					excludeLogSpans: false,
-					headers: { Authorization: Resource.GrafanaOtlpConfig.authorization },
-					mergeWithExisting: true,
-					resource: {
-						serviceName: "leuchtturm-api",
-						attributes: {
-							"service.namespace": "leuchtturm",
-							app: "leuchtturm",
-							stage: Resource.App.stage,
-						},
-					},
-					shutdownTimeout: "3 seconds",
-					url: `${Resource.GrafanaOtlpConfig.url}/v1/logs`,
-				}),
-				OtlpMetrics.layer({
-					headers: { Authorization: Resource.GrafanaOtlpConfig.authorization },
-					resource: {
-						serviceName: "leuchtturm-api",
-						attributes: {
-							"service.namespace": "leuchtturm",
-							app: "leuchtturm",
-							stage: Resource.App.stage,
-						},
-					},
-					shutdownTimeout: "3 seconds",
-					url: `${Resource.GrafanaOtlpConfig.url}/v1/metrics`,
-				}),
-			).pipe(Layer.provide(OtlpSerialization.layerProtobuf), Layer.provide(FetchHttpClient.layer)),
-		),
-	);
-
 	export function withRequestContext(requestContext: ReturnType<typeof RequestContext.make>) {
 		return <A, E, R>(effect: Effect.Effect<A, E, R>) =>
 			Effect.acquireUseRelease(
 				Scope.make(),
 				(telemetryScope) =>
-					Layer.buildWithScope(exportLayer, telemetryScope).pipe(
+					Layer.buildWithScope(
+						Layer.fresh(
+							Layer.suspend(() =>
+								Layer.mergeAll(
+									OtlpTracer.layer({
+										headers: { Authorization: Resource.GrafanaOtlpConfig.authorization },
+										resource: {
+											serviceName: "leuchtturm-api",
+											attributes: {
+												"service.namespace": "leuchtturm",
+												app: "leuchtturm",
+												stage: Resource.App.stage,
+											},
+										},
+										shutdownTimeout: "3 seconds",
+										url: `${Resource.GrafanaOtlpConfig.url}/v1/traces`,
+									}),
+									OtlpLogger.layer({
+										excludeLogSpans: false,
+										headers: { Authorization: Resource.GrafanaOtlpConfig.authorization },
+										mergeWithExisting: true,
+										resource: {
+											serviceName: "leuchtturm-api",
+											attributes: {
+												"service.namespace": "leuchtturm",
+												app: "leuchtturm",
+												stage: Resource.App.stage,
+											},
+										},
+										shutdownTimeout: "3 seconds",
+										url: `${Resource.GrafanaOtlpConfig.url}/v1/logs`,
+									}),
+									OtlpMetrics.layer({
+										headers: { Authorization: Resource.GrafanaOtlpConfig.authorization },
+										resource: {
+											serviceName: "leuchtturm-api",
+											attributes: {
+												"service.namespace": "leuchtturm",
+												app: "leuchtturm",
+												stage: Resource.App.stage,
+											},
+										},
+										shutdownTimeout: "3 seconds",
+										url: `${Resource.GrafanaOtlpConfig.url}/v1/metrics`,
+									}),
+								).pipe(
+									Layer.provide(OtlpSerialization.layerProtobuf),
+									Layer.provide(FetchHttpClient.layer),
+								),
+							),
+						),
+						telemetryScope,
+					).pipe(
 						Effect.flatMap((telemetryContext) =>
 							effect.pipe(Effect.provideContext(Context.merge(requestContext, telemetryContext))),
 						),
