@@ -4,7 +4,6 @@
 @import "@fontsource-variable/geist";
 @import "@fontsource/instrument-serif";
 
-
 @custom-variant dark (&:is(.dark *));
 
 :root {
