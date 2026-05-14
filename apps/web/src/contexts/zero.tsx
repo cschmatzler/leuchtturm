@@ -4,7 +4,7 @@ import * as Schema from "effect/Schema";
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { UserSelect } from "@leuchtturm/core/auth/schema";
-import { Loading } from "@leuchtturm/web/components/app/loading";
+import { Loading } from "@leuchtturm/web/components/loading";
 import { mutators } from "@leuchtturm/zero/mutators";
 import { queries } from "@leuchtturm/zero/queries";
 import { ZeroProvider as ZeroProviderPrimitive } from "@leuchtturm/zero/react";

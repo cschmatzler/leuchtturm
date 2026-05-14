@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { LegalPage, LegalSection } from "@leuchtturm/web/components/app/legal-page";
+import { LegalPage, LegalSection } from "@leuchtturm/web/components/legal-page";
 
 export const Route = createFileRoute("/privacy-policy")({
 	component: Page,

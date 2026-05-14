@@ -1,6 +1,6 @@
 import { type ReactNode } from "react";
 
-import { MarketingHeader } from "@leuchtturm/web/components/app/marketing-header";
+import { MarketingHeader } from "@leuchtturm/web/components/marketing-header";
 
 export function LegalPage(props: {
 	readonly title: string;

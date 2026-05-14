@@ -3,7 +3,7 @@ import { StackIcon } from "@phosphor-icons/react/Stack";
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useGT } from "gt-react";
 
-import { AppHeader } from "@leuchtturm/web/components/app/app-header";
+import { Header } from "@leuchtturm/web/components/header";
 import { useCommandBar } from "@leuchtturm/web/hooks/use-command-bar";
 import { useCommandProvider } from "@leuchtturm/web/hooks/use-command-provider";
 import { useZeroQuery } from "@leuchtturm/web/lib/query";
@@ -88,7 +88,7 @@ function Layout() {
 
 	return (
 		<div className="flex h-svh flex-col">
-			<AppHeader organization={organization} team={team} />
+			<Header organization={organization} team={team} />
 			<main id="main-content" className="min-h-0 grow bg-background">
 				<Outlet />
 			</main>

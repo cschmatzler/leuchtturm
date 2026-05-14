@@ -5,7 +5,7 @@ import * as Schema from "effect/Schema";
 import { T } from "gt-react";
 
 import { authClient } from "@leuchtturm/web/clients/auth";
-import { AuthPageLayout } from "@leuchtturm/web/components/app/auth-page-layout";
+import { AuthLayout } from "@leuchtturm/web/components/auth-layout";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import {
 	Field,
@@ -82,7 +82,7 @@ function Page() {
 	});
 
 	return (
-		<AuthPageLayout>
+		<AuthLayout>
 			<div className="flex flex-col gap-6">
 				<div className="flex flex-col gap-2">
 					<h1 className="font-display text-3xl">
@@ -247,6 +247,6 @@ function Page() {
 					</form>
 				</Show>
 			</div>
-		</AuthPageLayout>
+		</AuthLayout>
 	);
 }

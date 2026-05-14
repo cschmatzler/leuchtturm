@@ -7,7 +7,7 @@ import { toast } from "sonner";
 
 import { UserInsert } from "@leuchtturm/core/auth/schema";
 import { authClient } from "@leuchtturm/web/clients/auth";
-import { AuthPageLayout } from "@leuchtturm/web/components/app/auth-page-layout";
+import { AuthLayout } from "@leuchtturm/web/components/auth-layout";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import {
 	Field,
@@ -68,7 +68,7 @@ function Page() {
 	}
 
 	return (
-		<AuthPageLayout>
+		<AuthLayout>
 			<Switch>
 				<Match when={!pendingVerificationEmail}>
 					<div className="flex flex-col gap-6">
@@ -220,6 +220,6 @@ function Page() {
 					)}
 				</Match>
 			</Switch>
-		</AuthPageLayout>
+		</AuthLayout>
 	);
 }

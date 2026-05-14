@@ -2,8 +2,8 @@ import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { useGT } from "gt-react";
 import type { CSSProperties } from "react";
 
-import { AppHeader } from "@leuchtturm/web/components/app/app-header";
-import { SettingsSidebar } from "@leuchtturm/web/components/app/settings-sidebar";
+import { Header } from "@leuchtturm/web/components/header";
+import { SettingsSidebar } from "@leuchtturm/web/components/settings-sidebar";
 import {
 	SidebarInset,
 	SidebarProvider,
@@ -21,7 +21,7 @@ function Layout() {
 
 	return (
 		<div className="flex h-svh flex-col">
-			<AppHeader breadcrumbs={[t("Settings")]} organization={organization} />
+			<Header breadcrumbs={[t("Settings")]} organization={organization} />
 			<main id="main-content" className="min-h-0 grow bg-background">
 				<SidebarProvider
 					className="relative h-full min-h-0"

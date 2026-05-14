@@ -9,7 +9,6 @@ import { useState } from "react";
 
 import { OrganizationInsert } from "@leuchtturm/core/auth/schema";
 import { authClient } from "@leuchtturm/web/clients/auth";
-import { AuthSidePanel } from "@leuchtturm/web/components/app/auth-side-panel";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import {
 	DropdownMenu,
@@ -220,7 +219,25 @@ function Page() {
 					</div>
 				</div>
 			</div>
-			<AuthSidePanel />
+			<div className="relative hidden overflow-hidden bg-foreground text-background lg:block">
+				<div className="pointer-events-none absolute inset-0" aria-hidden="true">
+					<div className="animate-glow absolute left-1/2 top-1/2 size-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/[0.12] blur-[100px]" />
+					<div
+						className="absolute inset-0 opacity-[0.035]"
+						style={{
+							backgroundImage:
+								"linear-gradient(currentColor 1px, transparent 1px), linear-gradient(90deg, currentColor 1px, transparent 1px)",
+							backgroundSize: "64px 64px",
+						}}
+					/>
+				</div>
+				<div className="absolute inset-0 flex flex-col items-start justify-end p-10">
+					<p className="font-display text-2xl font-bold text-background/90">Focus, refined.</p>
+					<p className="mt-2 max-w-xs text-sm leading-relaxed text-background/45">
+						A fast, focused app built for people who value their time.
+					</p>
+				</div>
+			</div>
 		</div>
 	);
 }

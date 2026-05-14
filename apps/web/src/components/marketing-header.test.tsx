@@ -11,7 +11,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { GTProvider } from "gt-react";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { MarketingHeader } from "@leuchtturm/web/components/app/marketing-header";
+import { MarketingHeader } from "@leuchtturm/web/components/marketing-header";
 
 async function renderMarketingHeader(session: unknown) {
 	const queryClient = new QueryClient({

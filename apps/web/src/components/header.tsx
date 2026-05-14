@@ -38,7 +38,7 @@ import { useZeroQuery } from "@leuchtturm/web/lib/query";
 import { organizationsQuery } from "@leuchtturm/web/queries/organizations";
 import { queries } from "@leuchtturm/zero/queries";
 
-export function AppHeader({
+export function Header({
 	breadcrumbs,
 	organization,
 	team,

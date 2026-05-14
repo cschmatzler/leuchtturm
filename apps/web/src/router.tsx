@@ -2,7 +2,7 @@ import type { QueryClient } from "@tanstack/react-query";
 import { createRouter as createTanStackRouter } from "@tanstack/react-router";
 import type { Session, User } from "better-auth";
 
-import { NotFound } from "@leuchtturm/web/components/app/not-found";
+import { NotFound } from "@leuchtturm/web/components/not-found";
 import { parseSearch, stringifySearch } from "@leuchtturm/web/lib/search-params";
 import { routeTree } from "@leuchtturm/web/routeTree.gen";
 import type { Zero } from "@leuchtturm/zero/schema";
