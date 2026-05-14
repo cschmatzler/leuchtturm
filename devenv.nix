@@ -37,6 +37,8 @@
 	# -----
 
 	enterShell = ''
+		alias ar='aube run'
+
 		PATH=":''${PATH}:"
 		PATH="''${PATH//:node_modules\/.bin:/:}"
 		PATH="''${PATH#:}"
