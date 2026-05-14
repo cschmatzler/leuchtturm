@@ -50,6 +50,7 @@ import {
 import {
 	DropdownMenu,
 	DropdownMenuContent,
+	DropdownMenuGroup,
 	DropdownMenuItem,
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
@@ -417,61 +418,63 @@ function UserActions({
 				</Show>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" className="w-48">
-				<DropdownMenuLabel>
-					<T>Manage user</T>
-				</DropdownMenuLabel>
-				<DropdownMenuItem
-					disabled={isCurrentUser}
-					onClick={() =>
-						runUserAction(
-							`role:${user.id}`,
-							() =>
-								authClient.admin.setRole({
-									userId: user.id,
-									role: role === "admin" ? "user" : "admin",
-								}),
-							role === "admin" ? t("Admin role removed") : t("Admin role granted"),
-						)
-					}
-				>
-					<ShieldCheckIcon className="size-4" />
-					<Show when={role === "admin"} fallback={<T>Make admin</T>}>
-						<T>Make user</T>
-					</Show>
-				</DropdownMenuItem>
-				<DropdownMenuItem
-					disabled={isCurrentUser}
-					onClick={() =>
-						runUserAction(
-							`ban:${user.id}`,
-							() =>
-								isBanned
-									? authClient.admin.unbanUser({ userId: user.id })
-									: authClient.admin.banUser({
-											userId: user.id,
-											banReason: "Disabled by admin",
-										}),
-							isBanned ? t("User unbanned") : t("User banned"),
-						)
-					}
-				>
-					<XCircleIcon className="size-4" />
-					<Show when={isBanned} fallback={<T>Ban user</T>}>
-						<T>Unban user</T>
-					</Show>
-				</DropdownMenuItem>
-				<DropdownMenuItem
-					onClick={() =>
-						runUserAction(
-							`sessions:${user.id}`,
-							() => authClient.admin.revokeUserSessions({ userId: user.id }),
-							t("Sessions revoked"),
-						)
-					}
-				>
-					<XCircleIcon className="size-4" />
-					<T>Revoke sessions</T>
-				</DropdownMenuItem>
+				<DropdownMenuGroup>
+					<DropdownMenuLabel>
+						<T>Manage user</T>
+					</DropdownMenuLabel>
+					<DropdownMenuItem
+						disabled={isCurrentUser}
+						onClick={() =>
+							runUserAction(
+								`role:${user.id}`,
+								() =>
+									authClient.admin.setRole({
+										userId: user.id,
+										role: role === "admin" ? "user" : "admin",
+									}),
+								role === "admin" ? t("Admin role removed") : t("Admin role granted"),
+							)
+						}
+					>
+						<ShieldCheckIcon className="size-4" />
+						<Show when={role === "admin"} fallback={<T>Make admin</T>}>
+							<T>Make user</T>
+						</Show>
+					</DropdownMenuItem>
+					<DropdownMenuItem
+						disabled={isCurrentUser}
+						onClick={() =>
+							runUserAction(
+								`ban:${user.id}`,
+								() =>
+									isBanned
+										? authClient.admin.unbanUser({ userId: user.id })
+										: authClient.admin.banUser({
+												userId: user.id,
+												banReason: "Disabled by admin",
+											}),
+								isBanned ? t("User unbanned") : t("User banned"),
+							)
+						}
+					>
+						<XCircleIcon className="size-4" />
+						<Show when={isBanned} fallback={<T>Ban user</T>}>
+							<T>Unban user</T>
+						</Show>
+					</DropdownMenuItem>
+					<DropdownMenuItem
+						onClick={() =>
+							runUserAction(
+								`sessions:${user.id}`,
+								() => authClient.admin.revokeUserSessions({ userId: user.id }),
+								t("Sessions revoked"),
+							)
+						}
+					>
+						<XCircleIcon className="size-4" />
+						<T>Revoke sessions</T>
+					</DropdownMenuItem>
+				</DropdownMenuGroup>
 				<DropdownMenuSeparator />
 				<DropdownMenuItem
 					disabled={isCurrentUser}
