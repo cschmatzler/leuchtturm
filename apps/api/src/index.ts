@@ -79,7 +79,10 @@ const handleRequest = Effect.fn("handleRequest")(function* (
 			const requestContext = Context.merge(activeContext, servicesContext);
 
 			return yield* Effect.provideContext(
-				Effect.promise(() => handler(request, requestContext)).pipe(
+				Effect.tryPromise({
+					try: () => handler(request, requestContext),
+					catch: (cause) => cause,
+				}).pipe(
 					Effect.tapCause((cause) =>
 						Effect.gen(function* () {
 							yield* Effect.annotateCurrentSpan({

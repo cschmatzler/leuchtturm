@@ -28,11 +28,13 @@ export namespace FeatureFlags {
 
 			return Service.of({
 				isEnabled: (key, userId) =>
-					Effect.promise(() =>
-						client.getFeatureFlagResult(key, userId, {
-							sendFeatureFlagEvents: false,
-						}),
-					).pipe(
+					Effect.tryPromise({
+						try: () =>
+							client.getFeatureFlagResult(key, userId, {
+								sendFeatureFlagEvents: false,
+							}),
+						catch: (cause) => cause,
+					}).pipe(
 						Effect.tapCause((cause) =>
 							Effect.annotateCurrentSpan({
 								"error.original_cause": Cause.pretty(cause),
