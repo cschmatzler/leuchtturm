@@ -85,7 +85,7 @@ const rule = {
 				for (const violation of getViolations()) {
 					context.report({
 						node,
-						message: `Use an exact package version instead of a range or tag: ${violation}`,
+						message: `Use an exact package version instead of a range or tag: ${violation}.`,
 					});
 				}
 			},

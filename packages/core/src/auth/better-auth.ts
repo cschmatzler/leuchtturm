@@ -339,7 +339,7 @@ export namespace BetterAuth {
 								case "teamMember":
 									return Schema.decodeSync(TeamMemberSelect.fields.id)(`tmb_${ulid()}`);
 								default:
-									throw new Error(`Unknown auth model: ${model}`);
+									throw new Error(`Unknown auth model: ${model}.`);
 							}
 						},
 					},

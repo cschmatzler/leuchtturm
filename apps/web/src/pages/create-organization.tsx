@@ -67,7 +67,7 @@ function Page() {
 					error.code === "AuthDuplicateOrganizationNameError" ||
 					error.code === "ORGANIZATION_ALREADY_EXISTS" ||
 					error.code === "ORGANIZATION_SLUG_ALREADY_TAKEN" ||
-					error.message === "Organization name already exists"
+					error.message === "Organization name already exists."
 				) {
 					form.setFieldMeta("name", (previous) => ({
 						...previous,
@@ -80,7 +80,8 @@ function Page() {
 				}
 				if (
 					error.code === "AuthInvalidOrganizationPayloadError" ||
-					error.message === "Organization name must contain only ASCII letters, numbers, and dashes"
+					error.message ===
+						"Organization name must contain only ASCII letters, numbers, and dashes."
 				) {
 					form.setFieldMeta("name", (previous) => ({
 						...previous,

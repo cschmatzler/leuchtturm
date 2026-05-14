@@ -9,7 +9,7 @@ export class FeatureFlagProviderRequestError extends Schema.TaggedErrorClass<Fea
 	{ httpApiStatus: 500 },
 ) {
 	constructor(params: { readonly operation: string }) {
-		super({ ...params, message: `Feature flag provider request failed: ${params.operation}` });
+		super({ ...params, message: `Feature flag provider request failed: ${params.operation}.` });
 	}
 }
 
@@ -25,7 +25,7 @@ export class FeatureFlagEvaluationError extends Schema.TaggedErrorClass<FeatureF
 	constructor(params: { readonly key: string; readonly userId: string }) {
 		super({
 			...params,
-			message: `Feature flag ${params.key} could not be evaluated for user ${params.userId}`,
+			message: `Feature flag ${params.key} could not be evaluated for user ${params.userId}.`,
 		});
 	}
 }

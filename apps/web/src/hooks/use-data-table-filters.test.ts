@@ -116,7 +116,7 @@ describe("useDataTableFilters", () => {
 		const statusColumn = result.current.filterColumns.find((column) => column.id === "status");
 		const tagsColumn = result.current.filterColumns.find((column) => column.id === "tags");
 		if (!statusColumn || !tagsColumn) {
-			throw new Error("Expected status and tags columns to exist");
+			throw new Error("Expected status and tags columns to exist.");
 		}
 
 		act(() => {
@@ -187,7 +187,7 @@ describe("useDataTableFilters", () => {
 
 		const scoreColumn = result.current.filterColumns.find((column) => column.id === "score");
 		if (!scoreColumn) {
-			throw new Error("Expected score column to exist");
+			throw new Error("Expected score column to exist.");
 		}
 
 		act(() => {

@@ -23,7 +23,7 @@ export const adminUsersQuery = () =>
 			});
 
 			if (error) {
-				throw new Error(error.message ?? "Failed to load admin users");
+				throw new Error(error.message ?? "Failed to load admin users.");
 			}
 
 			return data.users.map((user) => ({

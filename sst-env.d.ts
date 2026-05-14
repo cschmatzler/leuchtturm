@@ -50,6 +50,10 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
+    "Polar": {
+      "Server": string
+      "type": "sst.sst.Linkable"
+    }
     "PolarAccessToken": {
       "type": "sst.sst.Secret"
       "value": string

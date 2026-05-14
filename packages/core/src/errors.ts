@@ -26,7 +26,7 @@ export class UnauthorizedError extends Schema.TaggedErrorClass<UnauthorizedError
 	{ httpApiStatus: 401 },
 ) {
 	constructor() {
-		super({ message: "Unauthorized" });
+		super({ message: "Unauthorized." });
 	}
 }
 
@@ -34,7 +34,7 @@ export class ForbiddenError extends Schema.TaggedErrorClass<ForbiddenError>()("F
 	message: Schema.String,
 }) {
 	constructor() {
-		super({ message: "Forbidden" });
+		super({ message: "Forbidden." });
 	}
 }
 
@@ -47,7 +47,7 @@ export class NotFoundError extends Schema.TaggedErrorClass<NotFoundError>()(
 	{ httpApiStatus: 404 },
 ) {
 	constructor(params: { readonly resource: string }) {
-		super({ ...params, message: `${params.resource} not found` });
+		super({ ...params, message: `${params.resource} not found.` });
 	}
 }
 
@@ -56,7 +56,7 @@ export class DatabaseError extends Schema.TaggedErrorClass<DatabaseError>()("Dat
 	message: Schema.String,
 }) {
 	constructor(params: { readonly operation: string }) {
-		super({ ...params, message: params.operation });
+		super({ ...params, message: `${params.operation}.` });
 	}
 }
 
@@ -65,7 +65,7 @@ export class InternalServerError extends Schema.TaggedErrorClass<InternalServerE
 	{ message: Schema.String },
 ) {
 	constructor() {
-		super({ message: "API handler failed" });
+		super({ message: "API handler failed." });
 	}
 }
 

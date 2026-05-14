@@ -166,7 +166,7 @@ export function updateFilters(
 		case "addFilterValue": {
 			if (action.column.type !== "option" && action.column.type !== "multiOption") {
 				throw new Error(
-					"[data-table-filter] addFilterValue() is only supported for option columns",
+					"[data-table-filter] addFilterValue() is only supported for option columns.",
 				);
 			}
 
@@ -180,7 +180,7 @@ export function updateFilters(
 		case "removeFilterValue": {
 			if (action.column.type !== "option" && action.column.type !== "multiOption") {
 				throw new Error(
-					"[data-table-filter] removeFilterValue() is only supported for option columns",
+					"[data-table-filter] removeFilterValue() is only supported for option columns.",
 				);
 			}
 

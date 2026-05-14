@@ -23,7 +23,7 @@ export const UserInsert = createInsertSchema(userTable, {
 	id: () => Schema.TemplateLiteral(["usr_", Ulid]).pipe(Schema.brand("UserId")),
 	name: () =>
 		Schema.String.pipe(
-			Schema.decodeTo(Schema.NonEmptyString.annotate({ message: "Name is required" }), {
+			Schema.decodeTo(Schema.NonEmptyString.annotate({ message: "Name is required." }), {
 				decode: SchemaGetter.transform((value: string) => value.trim()),
 				encode: SchemaGetter.transform((value: string) => value),
 			}),
@@ -40,10 +40,10 @@ export const OrganizationInsert = createInsertSchema(organizationTable, {
 			Schema.decodeTo(
 				Schema.String.check(Schema.isPattern(/^[A-Za-z0-9-]+$/))
 					.annotate({
-						message: "Organization name must contain only ASCII letters, numbers, and dashes",
+						message: "Organization name must contain only ASCII letters, numbers, and dashes.",
 					})
-					.check(Schema.isMinLength(4))
-					.annotate({ message: "Organization name must be more than 3 characters" }),
+					.check(Schema.isMinLength(2))
+					.annotate({ message: "Organization name must be at least two characters." }),
 				{
 					decode: SchemaGetter.transform((value: string) => value.trim()),
 					encode: SchemaGetter.transform((value: string) => value),
@@ -55,10 +55,10 @@ export const OrganizationInsert = createInsertSchema(organizationTable, {
 			Schema.decodeTo(
 				Schema.String.check(Schema.isPattern(/^[a-z0-9]+(?:-[a-z0-9]+)*$/))
 					.annotate({
-						message: "Slug must contain only lowercase letters, numbers, and dashes",
+						message: "Slug must contain only lowercase letters, numbers, and dashes.",
 					})
-					.check(Schema.isMinLength(4))
-					.annotate({ message: "Slug must be more than 3 characters" }),
+					.check(Schema.isMinLength(2))
+					.annotate({ message: "Slug must be at least two characters." }),
 				{
 					decode: SchemaGetter.transform((value: string) => value.trim().toLowerCase()),
 					encode: SchemaGetter.transform((value: string) => value),
@@ -73,9 +73,12 @@ export const TeamInsert = createInsertSchema(teamTable, {
 	name: () =>
 		Schema.String.pipe(
 			Schema.decodeTo(
-				Schema.String.check(Schema.isPattern(/^[A-Za-z0-9_-]+$/)).annotate({
-					message: "Team name must contain only ASCII letters, numbers, dashes, and underscores",
-				}),
+				Schema.String.check(Schema.isPattern(/^[A-Za-z0-9_-]+$/))
+					.annotate({
+						message: "Team name must contain only ASCII letters, numbers, dashes, and underscores.",
+					})
+					.check(Schema.isMinLength(2))
+					.annotate({ message: "Team name must be at least two characters." }),
 				{
 					decode: SchemaGetter.transform((value: string) => value.trim()),
 					encode: SchemaGetter.transform((value: string) => value),
@@ -83,10 +86,13 @@ export const TeamInsert = createInsertSchema(teamTable, {
 			),
 		),
 	slug: () =>
-		Schema.String.check(Schema.isPattern(/^[a-z0-9_-]+$/)).annotate({
-			message:
-				"Team slug must contain only lowercase ASCII letters, numbers, dashes, and underscores",
-		}),
+		Schema.String.check(Schema.isPattern(/^[a-z0-9_-]+$/))
+			.annotate({
+				message:
+					"Team slug must contain only lowercase ASCII letters, numbers, dashes, and underscores.",
+			})
+			.check(Schema.isMinLength(2))
+			.annotate({ message: "Team slug must be at least two characters." }),
 	organizationId: () => Schema.TemplateLiteral(["org_", Ulid]).pipe(Schema.brand("OrganizationId")),
 });
 export const TeamSelect = createSelectSchema(teamTable);

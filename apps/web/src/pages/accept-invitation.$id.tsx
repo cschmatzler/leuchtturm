@@ -95,7 +95,7 @@ function Page() {
 		});
 
 		if (error || !data) {
-			toast.error(t("Failed to accept invitation"));
+			toast.error(t("Failed to accept invitation."));
 			setIsSubmitting(false);
 			return;
 		}

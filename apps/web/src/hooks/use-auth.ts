@@ -13,14 +13,14 @@ export function useAuth() {
 	const { data: session } = useQuery(sessionQuery());
 	const { data: deviceSessions } = useQuery(deviceSessionsQuery());
 
-	const invalidateSessions = async () => {
+	async function invalidateSessions() {
 		await queryClient.invalidateQueries({ queryKey: ["session"] });
 		await queryClient.invalidateQueries({ queryKey: ["deviceSessions"] });
 		await queryClient.invalidateQueries({ queryKey: ["organizations"] });
 		await router.invalidate();
-	};
+	}
 
-	const signOutCurrent = async () => {
+	async function signOutCurrent() {
 		if (!session) return;
 
 		const nextSession = deviceSessions?.find(
@@ -47,9 +47,9 @@ export function useAuth() {
 		queryClient.removeQueries({ queryKey: ["organizations"] });
 		await router.invalidate();
 		await navigate({ to: "/login" });
-	};
+	}
 
-	const signOutAll = async () => {
+	async function signOutAll() {
 		const { data: sessions } = await authClient.multiSession.listDeviceSessions();
 		if (sessions) {
 			for (const deviceSession of sessions) {
@@ -62,17 +62,17 @@ export function useAuth() {
 		queryClient.removeQueries({ queryKey: ["organizations"] });
 		await router.invalidate();
 		await navigate({ to: "/login" });
-	};
+	}
 
-	const setActiveSession = async (sessionToken: string) => {
+	async function setActiveSession(sessionToken: string) {
 		await authClient.multiSession.setActive({ sessionToken });
 		await invalidateSessions();
-	};
+	}
 
-	const invalidateDeviceSessions = async () => {
+	async function invalidateDeviceSessions() {
 		await queryClient.invalidateQueries({ queryKey: ["deviceSessions"] });
 		await router.invalidate();
-	};
+	}
 
 	return {
 		session,

@@ -2,13 +2,13 @@ import * as Schema from "effect/Schema";
 import * as SchemaGetter from "effect/SchemaGetter";
 
 export const Ulid = Schema.String.check(Schema.isPattern(/^[0-9A-Z]{26}$/)).annotate({
-	message: "Invalid ID",
+	message: "Invalid ID.",
 });
 
 export const Email = Schema.String.pipe(
 	Schema.decodeTo(
 		Schema.String.check(Schema.isPattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)).annotate({
-			message: "Email is invalid",
+			message: "Email is invalid.",
 		}),
 		{
 			decode: SchemaGetter.transform((s: string) => s.trim().toLowerCase()),

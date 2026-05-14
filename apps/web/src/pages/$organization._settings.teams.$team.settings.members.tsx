@@ -214,7 +214,7 @@ function TeamMembersSection() {
 			userId === session.user.id ||
 			organizationMembers.find((member) => member.userId === userId)?.role === "owner"
 		) {
-			toast.error(t("This team member cannot be removed"));
+			toast.error(t("This team member cannot be removed."));
 			return;
 		}
 

@@ -360,7 +360,7 @@ function TwoFactorAuthenticationSection() {
 									name="password"
 									validators={{
 										onSubmit: ({ value }) =>
-											value ? undefined : { message: t("Password is required") },
+											value ? undefined : { message: t("Password is required.") },
 									}}
 								>
 									{(field) => (
@@ -475,7 +475,7 @@ function TwoFactorAuthenticationSection() {
 											name="code"
 											validators={{
 												onSubmit: ({ value }) =>
-													value ? undefined : { message: t("Authentication code is required") },
+													value ? undefined : { message: t("Authentication code is required.") },
 											}}
 										>
 											{(field) => (

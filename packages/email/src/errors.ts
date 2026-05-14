@@ -5,7 +5,7 @@ export class EmailProviderRequestError extends Schema.TaggedErrorClass<EmailProv
 	{ message: Schema.String },
 ) {
 	constructor() {
-		super({ message: "Cloudflare Email request failed" });
+		super({ message: "Cloudflare Email request failed." });
 	}
 }
 
@@ -17,7 +17,7 @@ export class EmailRenderError extends Schema.TaggedErrorClass<EmailRenderError>(
 	},
 ) {
 	constructor(params: { readonly template: string }) {
-		super({ ...params, message: `Failed to render ${params.template} email` });
+		super({ ...params, message: `Failed to render ${params.template} email.` });
 	}
 }
 

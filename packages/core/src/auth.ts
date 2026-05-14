@@ -98,7 +98,6 @@ export namespace Auth {
 							Effect.mapError(() => new AuthInvalidOrganizationPayloadError()),
 						),
 					),
-					Effect.map(({ id, name, slug }) => ({ id, name, slug })),
 				);
 			});
 

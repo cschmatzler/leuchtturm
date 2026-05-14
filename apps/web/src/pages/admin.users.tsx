@@ -122,7 +122,7 @@ function AdminUsersPage() {
 				const { error } = await action();
 
 				if (error) {
-					toast.error(error.message ?? t("Admin action failed"));
+					toast.error(error.message ?? t("Admin action failed."));
 					return;
 				}
 
@@ -132,7 +132,7 @@ function AdminUsersPage() {
 				const message =
 					typeof error === "object" && error !== null && "message" in error
 						? String(error.message)
-						: t("Admin action failed");
+						: t("Admin action failed.");
 
 				toast.error(message);
 			} finally {

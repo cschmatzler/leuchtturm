@@ -11,7 +11,7 @@ export function createDateFilterValue(values: [Date, Date] | [Date] | [] | undef
 	if (!values || values.length === 0) return [];
 	if (values.length === 1) return [values[0]];
 	if (values.length === 2) return createDateRange(values);
-	throw new Error("Cannot create date filter value from more than 2 values");
+	throw new Error("Cannot create date filter value from more than two values.");
 }
 
 export function normalizeDateValue(value: unknown): Date | undefined {

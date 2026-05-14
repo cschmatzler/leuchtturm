@@ -8,7 +8,7 @@ export class BillingPolarRequestError extends Schema.TaggedErrorClass<BillingPol
 	},
 ) {
 	constructor(params: { readonly operation: string }) {
-		super({ ...params, message: `Polar request failed: ${params.operation}` });
+		super({ ...params, message: `Polar request failed: ${params.operation}.` });
 	}
 }
 
@@ -20,7 +20,7 @@ export class BillingPersistenceError extends Schema.TaggedErrorClass<BillingPers
 	},
 ) {
 	constructor(params: { readonly operation: string }) {
-		super({ ...params, message: params.operation });
+		super({ ...params, message: `${params.operation}.` });
 	}
 }
 
@@ -32,7 +32,7 @@ export class BillingInvalidSnapshotError extends Schema.TaggedErrorClass<Billing
 	},
 ) {
 	constructor(params: { readonly resource: string }) {
-		super({ ...params, message: `Invalid billing ${params.resource} snapshot` });
+		super({ ...params, message: `Invalid billing ${params.resource} snapshot.` });
 	}
 }
 
@@ -46,7 +46,7 @@ export class BillingMissingExternalOrganizationError extends Schema.TaggedErrorC
 	constructor(params: { readonly resource: string }) {
 		super({
 			...params,
-			message: `Polar ${params.resource} webhook payload is missing an external organization id`,
+			message: `Polar ${params.resource} webhook payload is missing an external organization ID.`,
 		});
 	}
 }
@@ -62,7 +62,7 @@ export class BillingUnknownOrganizationError extends Schema.TaggedErrorClass<Bil
 	constructor(params: { readonly resource: string; readonly externalId: string }) {
 		super({
 			...params,
-			message: `Polar ${params.resource} webhook references unknown local organization: ${params.externalId}`,
+			message: `Polar ${params.resource} webhook references unknown local organization: ${params.externalId}.`,
 		});
 	}
 }
@@ -75,7 +75,7 @@ export class BillingOrganizationLookupError extends Schema.TaggedErrorClass<Bill
 	},
 ) {
 	constructor(params: { readonly externalId: string }) {
-		super({ ...params, message: `Failed to look up organization ${params.externalId}` });
+		super({ ...params, message: `Failed to look up organization ${params.externalId}.` });
 	}
 }
 
@@ -109,8 +109,8 @@ export class BillingSubscriptionOwnershipMismatchError extends Schema.TaggedErro
 			...fields,
 			message:
 				params.kind === "local"
-					? `Polar order ${params.orderId} references subscription ${params.subscriptionId} with mismatched local ownership`
-					: `Polar order ${params.orderId} subscription customer ${params.subscriptionCustomerId} does not match order customer ${params.orderCustomerId}`,
+					? `Polar order ${params.orderId} references subscription ${params.subscriptionId} with mismatched local ownership.`
+					: `Polar order ${params.orderId} subscription customer ${params.subscriptionCustomerId} does not match order customer ${params.orderCustomerId}.`,
 		});
 	}
 }
@@ -126,7 +126,7 @@ export class BillingMissingSubscriptionSnapshotError extends Schema.TaggedErrorC
 	constructor(params: { readonly orderId: string; readonly subscriptionId: string }) {
 		super({
 			...params,
-			message: `Polar order ${params.orderId} references subscription ${params.subscriptionId} before its snapshot is available`,
+			message: `Polar order ${params.orderId} references subscription ${params.subscriptionId} before its snapshot is available.`,
 		});
 	}
 }
@@ -147,7 +147,7 @@ export class BillingSubscriptionReferenceMismatchError extends Schema.TaggedErro
 	}) {
 		super({
 			...params,
-			message: `Polar order ${params.orderId} embeds subscription ${params.embeddedSubscriptionId} but references ${params.referencedSubscriptionId}`,
+			message: `Polar order ${params.orderId} embeds subscription ${params.embeddedSubscriptionId} but references ${params.referencedSubscriptionId}.`,
 		});
 	}
 }

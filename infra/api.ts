@@ -1,7 +1,8 @@
 import { hyperdrive } from "@leuchtturm/infra/database";
 import { apiDomain, dns } from "@leuchtturm/infra/dns";
 import { grafanaOtlpConfig } from "@leuchtturm/infra/grafana";
-import { apiSecrets, secrets } from "@leuchtturm/infra/secrets";
+import { polarConfig } from "@leuchtturm/infra/polar";
+import { apiSecrets } from "@leuchtturm/infra/secrets";
 import { storage } from "@leuchtturm/infra/storage";
 
 export const api = new sst.cloudflare.Worker("ApiWorker", {
@@ -11,7 +12,7 @@ export const api = new sst.cloudflare.Worker("ApiWorker", {
 	compatibility: {
 		date: "2026-04-21",
 	},
-	link: [dns, storage, hyperdrive, grafanaOtlpConfig, ...apiSecrets],
+	link: [dns, storage, hyperdrive, grafanaOtlpConfig, polarConfig, ...apiSecrets],
 	transform: {
 		worker: (args: WorkerScriptArgs) => {
 			args.bindings = $resolve(args.bindings!).apply((bindings) => [

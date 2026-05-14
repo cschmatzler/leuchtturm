@@ -42,7 +42,7 @@ export function useDataTableFilterContext<TData>() {
 	const context = useContext(DataTableFilterContext);
 
 	if (!context) {
-		throw new Error("useDataTableFilterContext must be used within <DataTableFilter />");
+		throw new Error("useDataTableFilterContext must be used within <DataTableFilter />.");
 	}
 
 	return {

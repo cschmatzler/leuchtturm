@@ -44,7 +44,7 @@ class FilterBuilder<
 	>(): FilterBuilder<TData, TNewType, TNewVal, TNewId> {
 		const columnType = this.config.type;
 		if (!columnType) {
-			throw new Error("type is required");
+			throw new Error("Type is required.");
 		}
 
 		const newInstance = new FilterBuilder<TData, TNewType, TNewVal, TNewId>(
@@ -84,7 +84,7 @@ class FilterBuilder<
 
 	min(value: number): FilterBuilder<TData, NumberColumnType<TType>, TVal, TId> {
 		if (this.config.type !== "number") {
-			throw new Error("min() is only applicable to number columns");
+			throw new Error("min() is only applicable to number columns.");
 		}
 		const newInstance = this.cloneWith<NumberColumnType<TType>, TVal, TId>();
 		newInstance.config.min = value;
@@ -93,7 +93,7 @@ class FilterBuilder<
 
 	max(value: number): FilterBuilder<TData, NumberColumnType<TType>, TVal, TId> {
 		if (this.config.type !== "number") {
-			throw new Error("max() is only applicable to number columns");
+			throw new Error("max() is only applicable to number columns.");
 		}
 		const newInstance = this.cloneWith<NumberColumnType<TType>, TVal, TId>();
 		newInstance.config.max = value;
@@ -102,7 +102,7 @@ class FilterBuilder<
 
 	options(value: ColumnOption[]): FilterBuilder<TData, OptionColumnType<TType>, TVal, TId> {
 		if (!isAnyOf(this.config.type, ["option", "multiOption"])) {
-			throw new Error("options() is only applicable to option or multiOption columns");
+			throw new Error("options() is only applicable to option or multiOption columns.");
 		}
 		const newInstance = this.cloneWith<OptionColumnType<TType>, TVal, TId>();
 		newInstance.config.options = value;
@@ -113,7 +113,7 @@ class FilterBuilder<
 		fn: TTransformOptionFn<TVal>,
 	): FilterBuilder<TData, OptionColumnType<TType>, TVal, TId> {
 		if (!isAnyOf(this.config.type, ["option", "multiOption"])) {
-			throw new Error("transformOptionFn() is only applicable to option or multiOption columns");
+			throw new Error("transformOptionFn() is only applicable to option or multiOption columns.");
 		}
 		const newInstance = this.cloneWith<OptionColumnType<TType>, TVal, TId>();
 		newInstance.config.transformOptionFn = fn;
@@ -122,7 +122,7 @@ class FilterBuilder<
 
 	orderFn(fn: TOrderFn<TVal>): FilterBuilder<TData, OptionColumnType<TType>, TVal, TId> {
 		if (!isAnyOf(this.config.type, ["option", "multiOption"])) {
-			throw new Error("orderFn() is only applicable to option or multiOption columns");
+			throw new Error("orderFn() is only applicable to option or multiOption columns.");
 		}
 		const newInstance = this.cloneWith<OptionColumnType<TType>, TVal, TId>();
 		newInstance.config.orderFn = fn;
@@ -130,10 +130,10 @@ class FilterBuilder<
 	}
 
 	build(): ColumnConfig<TData, TType, TVal, TId> {
-		if (!this.config.id) throw new Error("id is required");
-		if (!this.config.accessor) throw new Error("accessor is required");
-		if (!this.config.displayName) throw new Error("displayName is required");
-		if (!this.config.icon) throw new Error("icon is required");
+		if (!this.config.id) throw new Error("id is required.");
+		if (!this.config.accessor) throw new Error("accessor is required.");
+		if (!this.config.displayName) throw new Error("displayName is required.");
+		if (!this.config.icon) throw new Error("icon is required.");
 		return this.config as ColumnConfig<TData, TType, TVal, TId>;
 	}
 }
@@ -161,7 +161,7 @@ export function getColumnOptions<TData, TType extends ColumnDataType, TVal>(
 	data: TData[],
 ): ColumnOption[] {
 	if (!isAnyOf(column.type, ["option", "multiOption"])) {
-		throw new Error("Column options can only be retrieved for option and multiOption columns");
+		throw new Error("Column options can only be retrieved for option and multiOption columns.");
 	}
 
 	if (column.options) {
@@ -191,7 +191,7 @@ export function getColumnOptions<TData, TType extends ColumnDataType, TVal>(
 	if (isColumnOptionArray(models)) return models;
 
 	throw new Error(
-		`[data-table-filter] [${column.id}] Either provide static options, a transformOptionFn, or ensure the column data conforms to ColumnOption type`,
+		`[data-table-filter] [${column.id}] Either provide static options, a transformOptionFn, or ensure the column data conforms to ColumnOption type.`,
 	);
 }
 
@@ -238,7 +238,7 @@ export function getColumnValues<TData, TType extends ColumnDataType, TVal>(
 	}
 
 	throw new Error(
-		`[data-table-filter] [${column.id}] Either provide static options, a transformOptionFn, or ensure the column data conforms to ColumnOption type`,
+		`[data-table-filter] [${column.id}] Either provide static options, a transformOptionFn, or ensure the column data conforms to ColumnOption type.`,
 	);
 }
 
@@ -248,7 +248,7 @@ export function getFacetedUniqueValues<TData, TType extends ColumnDataType, TVal
 ): Map<string, number> | undefined {
 	if (!isAnyOf(column.type, ["option", "multiOption"])) {
 		throw new Error(
-			"Faceted unique values can only be retrieved for option and multiOption columns",
+			"Faceted unique values can only be retrieved for option and multiOption columns.",
 		);
 	}
 

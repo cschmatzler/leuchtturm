@@ -4,10 +4,6 @@ import type { CustomerState } from "@polar-sh/sdk/models/components/customerstat
 import type { Order } from "@polar-sh/sdk/models/components/order";
 import type { Subscription } from "@polar-sh/sdk/models/components/subscription";
 import { eq } from "drizzle-orm";
-import type {
-	EffectDrizzleQueryError,
-	EffectTransactionRollbackError,
-} from "drizzle-orm/effect-core/errors";
 import * as Cause from "effect/Cause";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
@@ -32,17 +28,15 @@ import {
 	BillingSubscriptionOwnershipMismatchError,
 	BillingSubscriptionReferenceMismatchError,
 	BillingUnknownOrganizationError,
-	type BillingErrorType,
 } from "@leuchtturm/core/billing/errors";
 import { POLAR_PRO_PRODUCT_ID } from "@leuchtturm/core/billing/products";
 import { CustomerSelect, OrderSelect, SubscriptionSelect } from "@leuchtturm/core/billing/schema";
 import { Database } from "@leuchtturm/core/database";
 
-type TransactionEffect<A> = Effect.Effect<
-	A,
-	EffectDrizzleQueryError | EffectTransactionRollbackError | BillingErrorType,
-	never
->;
+const polarClient = new Polar({
+	accessToken: Resource.PolarAccessToken.value,
+	server: Resource.Polar.Server as "production" | "sandbox",
+});
 
 export namespace Billing {
 	export interface Interface {
@@ -85,10 +79,6 @@ export namespace Billing {
 	export const layer = Layer.effect(Service)(
 		Effect.gen(function* () {
 			const { database } = yield* Database.Service;
-			const polarClient = new Polar({
-				accessToken: Resource.PolarAccessToken.value,
-				server: "sandbox",
-			});
 
 			const buildSubscriptionSnapshot = Effect.fn("Billing.buildSubscriptionSnapshot")(function* (
 				values: Record<string, unknown>,
@@ -112,7 +102,7 @@ export namespace Billing {
 			const syncCustomerState = (
 				tx: Database.Executor,
 				values: { organizationId: string; state: CustomerState },
-			): TransactionEffect<void> =>
+			) =>
 				Effect.gen(function* () {
 					yield* Schema.decodeUnknownEffect(CustomerSelect)({
 						organizationId: values.organizationId,
@@ -176,7 +166,7 @@ export namespace Billing {
 								set: subscriptionSnapshot,
 							});
 					}
-				}) as TransactionEffect<void>;
+				});
 
 			const assertCustomer = Effect.fn("Billing.assertCustomer")(function* (
 				resource: string,
@@ -420,45 +410,44 @@ export namespace Billing {
 				const customerState = yield* loadCustomerState(subscription.customerId);
 
 				yield* database
-					.transaction(
-						(tx) =>
-							Effect.gen(function* () {
-								yield* syncCustomerState(tx, {
-									organizationId,
-									state: customerState,
-								});
+					.transaction((tx) =>
+						Effect.gen(function* () {
+							yield* syncCustomerState(tx, {
+								organizationId,
+								state: customerState,
+							});
 
-								const subscriptionSnapshot = yield* buildSubscriptionSnapshot({
-									id: subscription.id,
-									organizationId,
-									polarCustomerId: subscription.customerId,
-									productId: subscription.productId,
-									status: subscription.status,
-									amount: subscription.amount,
-									currency: subscription.currency,
-									recurringInterval: subscription.recurringInterval,
-									currentPeriodStart: subscription.currentPeriodStart,
-									currentPeriodEnd: subscription.currentPeriodEnd,
-									trialStart: subscription.trialStart,
-									trialEnd: subscription.trialEnd,
-									cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
-									canceledAt: subscription.canceledAt,
-									startedAt: subscription.startedAt,
-									endsAt: subscription.endsAt,
-									endedAt: subscription.endedAt,
-									snapshotJson: JSON.stringify(subscription),
-									remoteCreatedAt: subscription.createdAt,
-									remoteModifiedAt: subscription.modifiedAt,
-								});
+							const subscriptionSnapshot = yield* buildSubscriptionSnapshot({
+								id: subscription.id,
+								organizationId,
+								polarCustomerId: subscription.customerId,
+								productId: subscription.productId,
+								status: subscription.status,
+								amount: subscription.amount,
+								currency: subscription.currency,
+								recurringInterval: subscription.recurringInterval,
+								currentPeriodStart: subscription.currentPeriodStart,
+								currentPeriodEnd: subscription.currentPeriodEnd,
+								trialStart: subscription.trialStart,
+								trialEnd: subscription.trialEnd,
+								cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+								canceledAt: subscription.canceledAt,
+								startedAt: subscription.startedAt,
+								endsAt: subscription.endsAt,
+								endedAt: subscription.endedAt,
+								snapshotJson: JSON.stringify(subscription),
+								remoteCreatedAt: subscription.createdAt,
+								remoteModifiedAt: subscription.modifiedAt,
+							});
 
-								yield* tx
-									.insert(billingSubscriptionTable)
-									.values(subscriptionSnapshot)
-									.onConflictDoUpdate({
-										target: billingSubscriptionTable.id,
-										set: subscriptionSnapshot,
-									});
-							}) as TransactionEffect<void>,
+							yield* tx
+								.insert(billingSubscriptionTable)
+								.values(subscriptionSnapshot)
+								.onConflictDoUpdate({
+									target: billingSubscriptionTable.id,
+									set: subscriptionSnapshot,
+								});
+						}),
 					)
 					.pipe(
 						Effect.catchTag("BillingInvalidSnapshotError", (error) => Effect.fail(error)),
@@ -475,138 +464,137 @@ export namespace Billing {
 				const customerState = organizationId ? yield* loadCustomerState(order.customerId) : null;
 
 				yield* database
-					.transaction(
-						(tx) =>
-							Effect.gen(function* () {
-								if (organizationId && customerState) {
-									yield* syncCustomerState(tx, {
-										organizationId,
-										state: customerState,
-									});
+					.transaction((tx) =>
+						Effect.gen(function* () {
+							if (organizationId && customerState) {
+								yield* syncCustomerState(tx, {
+									organizationId,
+									state: customerState,
+								});
 
-									if (order.subscriptionId) {
-										const [existingSubscription] = yield* tx
-											.select({
-												id: billingSubscriptionTable.id,
-												polarCustomerId: billingSubscriptionTable.polarCustomerId,
-												organizationId: billingSubscriptionTable.organizationId,
-											})
-											.from(billingSubscriptionTable)
-											.where(eq(billingSubscriptionTable.id, order.subscriptionId))
-											.limit(1);
+								if (order.subscriptionId) {
+									const [existingSubscription] = yield* tx
+										.select({
+											id: billingSubscriptionTable.id,
+											polarCustomerId: billingSubscriptionTable.polarCustomerId,
+											organizationId: billingSubscriptionTable.organizationId,
+										})
+										.from(billingSubscriptionTable)
+										.where(eq(billingSubscriptionTable.id, order.subscriptionId))
+										.limit(1);
 
-										if (existingSubscription) {
-											if (
-												existingSubscription.organizationId !== organizationId ||
-												existingSubscription.polarCustomerId !== order.customerId
-											) {
-												return yield* new BillingSubscriptionOwnershipMismatchError({
-													kind: "local",
-													orderId: order.id,
-													subscriptionId: order.subscriptionId,
-												});
-											}
-										} else {
-											if (!order.subscription) {
-												return yield* new BillingMissingSubscriptionSnapshotError({
-													orderId: order.id,
-													subscriptionId: order.subscriptionId,
-												});
-											}
-
-											if (order.subscription.id !== order.subscriptionId) {
-												return yield* new BillingSubscriptionReferenceMismatchError({
-													orderId: order.id,
-													embeddedSubscriptionId: order.subscription.id,
-													referencedSubscriptionId: order.subscriptionId,
-												});
-											}
-
-											if (order.subscription.customerId !== order.customerId) {
-												return yield* new BillingSubscriptionOwnershipMismatchError({
-													kind: "snapshot",
-													orderId: order.id,
-													subscriptionId: order.subscriptionId,
-													subscriptionCustomerId: order.subscription.customerId,
-													orderCustomerId: order.customerId,
-												});
-											}
-
-											const subscriptionSnapshot = yield* buildSubscriptionSnapshot({
-												id: order.subscription.id,
-												organizationId,
-												polarCustomerId: order.subscription.customerId,
-												productId: order.subscription.productId,
-												status: order.subscription.status,
-												amount: order.subscription.amount,
-												currency: order.subscription.currency,
-												recurringInterval: order.subscription.recurringInterval,
-												currentPeriodStart: order.subscription.currentPeriodStart,
-												currentPeriodEnd: order.subscription.currentPeriodEnd,
-												trialStart: order.subscription.trialStart,
-												trialEnd: order.subscription.trialEnd,
-												cancelAtPeriodEnd: order.subscription.cancelAtPeriodEnd,
-												canceledAt: order.subscription.canceledAt,
-												startedAt: order.subscription.startedAt,
-												endsAt: order.subscription.endsAt,
-												endedAt: order.subscription.endedAt,
-												snapshotJson: JSON.stringify(order.subscription),
-												remoteCreatedAt: order.subscription.createdAt,
-												remoteModifiedAt: order.subscription.modifiedAt,
+									if (existingSubscription) {
+										if (
+											existingSubscription.organizationId !== organizationId ||
+											existingSubscription.polarCustomerId !== order.customerId
+										) {
+											return yield* new BillingSubscriptionOwnershipMismatchError({
+												kind: "local",
+												orderId: order.id,
+												subscriptionId: order.subscriptionId,
 											});
-
-											yield* tx
-												.insert(billingSubscriptionTable)
-												.values(subscriptionSnapshot)
-												.onConflictDoUpdate({
-													target: billingSubscriptionTable.id,
-													set: subscriptionSnapshot,
-												});
 										}
+									} else {
+										if (!order.subscription) {
+											return yield* new BillingMissingSubscriptionSnapshotError({
+												orderId: order.id,
+												subscriptionId: order.subscriptionId,
+											});
+										}
+
+										if (order.subscription.id !== order.subscriptionId) {
+											return yield* new BillingSubscriptionReferenceMismatchError({
+												orderId: order.id,
+												embeddedSubscriptionId: order.subscription.id,
+												referencedSubscriptionId: order.subscriptionId,
+											});
+										}
+
+										if (order.subscription.customerId !== order.customerId) {
+											return yield* new BillingSubscriptionOwnershipMismatchError({
+												kind: "snapshot",
+												orderId: order.id,
+												subscriptionId: order.subscriptionId,
+												subscriptionCustomerId: order.subscription.customerId,
+												orderCustomerId: order.customerId,
+											});
+										}
+
+										const subscriptionSnapshot = yield* buildSubscriptionSnapshot({
+											id: order.subscription.id,
+											organizationId,
+											polarCustomerId: order.subscription.customerId,
+											productId: order.subscription.productId,
+											status: order.subscription.status,
+											amount: order.subscription.amount,
+											currency: order.subscription.currency,
+											recurringInterval: order.subscription.recurringInterval,
+											currentPeriodStart: order.subscription.currentPeriodStart,
+											currentPeriodEnd: order.subscription.currentPeriodEnd,
+											trialStart: order.subscription.trialStart,
+											trialEnd: order.subscription.trialEnd,
+											cancelAtPeriodEnd: order.subscription.cancelAtPeriodEnd,
+											canceledAt: order.subscription.canceledAt,
+											startedAt: order.subscription.startedAt,
+											endsAt: order.subscription.endsAt,
+											endedAt: order.subscription.endedAt,
+											snapshotJson: JSON.stringify(order.subscription),
+											remoteCreatedAt: order.subscription.createdAt,
+											remoteModifiedAt: order.subscription.modifiedAt,
+										});
+
+										yield* tx
+											.insert(billingSubscriptionTable)
+											.values(subscriptionSnapshot)
+											.onConflictDoUpdate({
+												target: billingSubscriptionTable.id,
+												set: subscriptionSnapshot,
+											});
 									}
 								}
+							}
 
-								yield* Schema.decodeUnknownEffect(OrderSelect)({
-									id: order.id,
-									organizationId,
-									polarCustomerId: order.customerId,
-									productId: order.productId,
-									subscriptionId: order.subscriptionId,
-									status: order.status,
-									billingReason: order.billingReason,
-									paid: order.paid,
-									currency: order.currency,
-									subtotalAmount: order.subtotalAmount,
-									discountAmount: order.discountAmount,
-									netAmount: order.netAmount,
-									taxAmount: order.taxAmount,
-									totalAmount: order.totalAmount,
-									refundedAmount: order.refundedAmount,
-									dueAmount: order.dueAmount,
-									snapshotJson: JSON.stringify(order),
-									remoteCreatedAt: order.createdAt,
-									remoteModifiedAt: order.modifiedAt,
-									syncedAt: new Date(),
-								}).pipe(
-									Effect.tapCause((cause) =>
-										Effect.annotateCurrentSpan({
-											"error.original_cause": Cause.pretty(cause),
+							yield* Schema.decodeUnknownEffect(OrderSelect)({
+								id: order.id,
+								organizationId,
+								polarCustomerId: order.customerId,
+								productId: order.productId,
+								subscriptionId: order.subscriptionId,
+								status: order.status,
+								billingReason: order.billingReason,
+								paid: order.paid,
+								currency: order.currency,
+								subtotalAmount: order.subtotalAmount,
+								discountAmount: order.discountAmount,
+								netAmount: order.netAmount,
+								taxAmount: order.taxAmount,
+								totalAmount: order.totalAmount,
+								refundedAmount: order.refundedAmount,
+								dueAmount: order.dueAmount,
+								snapshotJson: JSON.stringify(order),
+								remoteCreatedAt: order.createdAt,
+								remoteModifiedAt: order.modifiedAt,
+								syncedAt: new Date(),
+							}).pipe(
+								Effect.tapCause((cause) =>
+									Effect.annotateCurrentSpan({
+										"error.original_cause": Cause.pretty(cause),
+									}),
+								),
+								Effect.mapError(
+									() =>
+										new BillingInvalidSnapshotError({
+											resource: "order",
 										}),
-									),
-									Effect.mapError(
-										() =>
-											new BillingInvalidSnapshotError({
-												resource: "order",
-											}),
-									),
-									Effect.flatMap((orderSnapshot) =>
-										tx.insert(billingOrderTable).values(orderSnapshot).onConflictDoUpdate({
-											target: billingOrderTable.id,
-											set: orderSnapshot,
-										}),
-									),
-								);
-							}) as TransactionEffect<void>,
+								),
+								Effect.flatMap((orderSnapshot) =>
+									tx.insert(billingOrderTable).values(orderSnapshot).onConflictDoUpdate({
+										target: billingOrderTable.id,
+										set: orderSnapshot,
+									}),
+								),
+							);
+						}),
 					)
 					.pipe(
 						Effect.catchTags({

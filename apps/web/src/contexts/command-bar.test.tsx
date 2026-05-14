@@ -23,7 +23,7 @@ const createWrapper =
 const useCommandBarValue = () => {
 	const context = useContext(Context);
 	if (!context) {
-		throw new Error("Missing CommandBar context");
+		throw new Error("Missing CommandBar context.");
 	}
 	return context;
 };

@@ -28,7 +28,7 @@ function Page() {
 			const { url } = await api.billing.portal({ query: { organizationId } });
 			window.location.assign(url);
 		} catch (error) {
-			reportError(error, t("Could not open billing portal"), {
+			reportError(error, t("Could not open billing portal."), {
 				source: "billing-settings",
 			});
 		}
@@ -39,7 +39,7 @@ function Page() {
 			const { url } = await api.billing.checkout({ query: { organizationId } });
 			window.location.assign(url);
 		} catch (error) {
-			reportError(error, t("Could not open checkout"), {
+			reportError(error, t("Could not open checkout."), {
 				source: "billing-settings",
 			});
 		}
