@@ -16,47 +16,56 @@ import { Resource } from "sst/resource/cloudflare";
 import { RequestContext } from "@leuchtturm/api/middleware/request-context";
 
 export namespace Telemetry {
-	const otlpConfig = () => JSON.parse(Resource.GrafanaOtlpConfig.value);
-
-	const resource = {
-		serviceName: "leuchtturm-api",
-		attributes: {
-			"service.namespace": "leuchtturm",
-			app: "leuchtturm",
-			stage: Resource.App.stage,
-		},
-	};
-
 	const exportLayer = Layer.fresh(
 		Layer.suspend(() =>
 			Layer.mergeAll(
 				OtlpTracer.layer({
-					headers: { Authorization: otlpConfig().authorization },
-					resource,
+					headers: { Authorization: Resource.GrafanaOtlpConfig.authorization },
+					resource: {
+						serviceName: "leuchtturm-api",
+						attributes: {
+							"service.namespace": "leuchtturm",
+							app: "leuchtturm",
+							stage: Resource.App.stage,
+						},
+					},
 					shutdownTimeout: "3 seconds",
-					url: `${otlpConfig().url}/v1/traces`,
+					url: `${Resource.GrafanaOtlpConfig.url}/v1/traces`,
 				}),
 				OtlpLogger.layer({
 					excludeLogSpans: false,
-					headers: { Authorization: otlpConfig().authorization },
+					headers: { Authorization: Resource.GrafanaOtlpConfig.authorization },
 					mergeWithExisting: true,
-					resource,
+					resource: {
+						serviceName: "leuchtturm-api",
+						attributes: {
+							"service.namespace": "leuchtturm",
+							app: "leuchtturm",
+							stage: Resource.App.stage,
+						},
+					},
 					shutdownTimeout: "3 seconds",
-					url: `${otlpConfig().url}/v1/logs`,
+					url: `${Resource.GrafanaOtlpConfig.url}/v1/logs`,
 				}),
 				OtlpMetrics.layer({
-					headers: { Authorization: otlpConfig().authorization },
-					resource,
+					headers: { Authorization: Resource.GrafanaOtlpConfig.authorization },
+					resource: {
+						serviceName: "leuchtturm-api",
+						attributes: {
+							"service.namespace": "leuchtturm",
+							app: "leuchtturm",
+							stage: Resource.App.stage,
+						},
+					},
 					shutdownTimeout: "3 seconds",
-					url: `${otlpConfig().url}/v1/metrics`,
+					url: `${Resource.GrafanaOtlpConfig.url}/v1/metrics`,
 				}),
 			).pipe(Layer.provide(OtlpSerialization.layerProtobuf), Layer.provide(FetchHttpClient.layer)),
 		),
 	);
 
-	export const withRequestContext =
-		(requestContext: ReturnType<typeof RequestContext.make>) =>
-		<A, E, R>(effect: Effect.Effect<A, E, R>) =>
+	export function withRequestContext(requestContext: ReturnType<typeof RequestContext.make>) {
+		return <A, E, R>(effect: Effect.Effect<A, E, R>) =>
 			Effect.acquireUseRelease(
 				Scope.make(),
 				(telemetryScope) =>
@@ -72,6 +81,7 @@ export namespace Telemetry {
 						);
 					}),
 			);
+	}
 
 	export const layer = Layer.succeed(
 		HttpMiddleware.SpanNameGenerator,

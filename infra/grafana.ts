@@ -121,15 +121,13 @@ const telemetryAccessPolicyToken = new grafana.cloud.AccessPolicyToken(
 
 export const grafanaOtlpConfig = new sst.Linkable("GrafanaOtlpConfig", {
 	properties: {
-		value: all({
+		authorization: all({
 			username: grafanaStack.apply((stack) => stack.id),
 			token: telemetryAccessPolicyToken.token,
-			url: grafanaStack.apply((stack) => `${stack.otlpUrl}/otlp`),
-		}).apply(({ username, token, url }: { token: string; url: string; username: string }) =>
-			JSON.stringify({
-				authorization: `Basic ${Buffer.from(`${username}:${token}`).toString("base64")}`,
-				url,
-			}),
+		}).apply(
+			({ username, token }: { token: string; username: string }) =>
+				`Basic ${Buffer.from(`${username}:${token}`).toString("base64")}`,
 		),
+		url: $interpolate`${grafanaStack.otlpUrl}/otlp`,
 	},
 });

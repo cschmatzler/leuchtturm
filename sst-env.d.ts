@@ -43,8 +43,9 @@ declare module "sst" {
       "value": string
     }
     "GrafanaOtlpConfig": {
+      "authorization": string
       "type": "sst.sst.Linkable"
-      "value": string
+      "url": string
     }
     "PlanetScaleDatabaseId": {
       "type": "sst.sst.Secret"

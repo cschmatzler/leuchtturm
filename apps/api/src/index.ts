@@ -1,7 +1,9 @@
 import * as Cause from "effect/Cause";
+import * as Clock from "effect/Clock";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import * as Metric from "effect/Metric";
 import * as HttpEffect from "effect/unstable/http/HttpEffect";
 import * as HttpMiddleware from "effect/unstable/http/HttpMiddleware";
 import * as HttpRouter from "effect/unstable/http/HttpRouter";
@@ -16,7 +18,6 @@ import { DocsHandler } from "@leuchtturm/api/handlers/docs/index";
 import { HealthHandler } from "@leuchtturm/api/handlers/health/index";
 import { ZeroHandler } from "@leuchtturm/api/handlers/zero/index";
 import { AuthMiddleware } from "@leuchtturm/api/middleware/auth-middleware";
-import { Observability } from "@leuchtturm/api/middleware/observability";
 import { RequestContext } from "@leuchtturm/api/middleware/request-context";
 import { Metrics } from "@leuchtturm/api/observability/metrics";
 import { Telemetry } from "@leuchtturm/api/observability/telemetry";
@@ -55,7 +56,7 @@ const { handler } = HttpEffect.toWebHandlerLayer(
 					return origin === `https://${Resource.Dns.AppDomain}`;
 				},
 				credentials: true,
-			})(RequestContext.middleware(Observability.middleware(app))),
+			})(RequestContext.middleware(app)),
 	},
 );
 
@@ -63,6 +64,7 @@ const handleRequest = Effect.fn("handleRequest")(function* (
 	request: Request,
 	executionContext: Pick<ExecutionContext, "waitUntil">,
 ) {
+	const startedAt = yield* Clock.currentTimeMillis;
 	const baseContext = RequestContext.make(request, executionContext);
 	const url = new URL(request.url);
 
@@ -85,6 +87,38 @@ const handleRequest = Effect.fn("handleRequest")(function* (
 						try: () => handler(request, requestContext),
 						catch: (cause) => cause,
 					}).pipe(
+						Effect.tap((response) =>
+							Effect.gen(function* () {
+								const durationMs = (yield* Clock.currentTimeMillis) - startedAt;
+								const attributes = {
+									method: request.method,
+									path: url.pathname,
+									status: String(response.status),
+								};
+
+								yield* Effect.annotateCurrentSpan({
+									"http.response.status_code": response.status,
+								});
+								yield* Effect.all([
+									Metric.update(
+										Metric.counter("api_requests_total", {
+											attributes,
+											description: "Total number of API requests handled by the worker.",
+											incremental: true,
+										}),
+										1,
+									),
+									Metric.update(
+										Metric.histogram("api_request_duration_ms", {
+											attributes,
+											boundaries: Metrics.requestDurationBoundaries,
+											description: "End-to-end duration of API request handling in milliseconds.",
+										}),
+										durationMs,
+									),
+								]);
+							}),
+						),
 						Effect.tapCause((cause) =>
 							Effect.gen(function* () {
 								yield* Effect.annotateCurrentSpan({
