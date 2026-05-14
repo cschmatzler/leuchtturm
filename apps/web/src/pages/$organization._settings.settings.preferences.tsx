@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { DEFAULT_LANGUAGE, resolveLanguage, SupportedLanguage } from "@leuchtturm/core/i18n";
 import { authClient } from "@leuchtturm/web/clients/auth";
 import { Button } from "@leuchtturm/web/components/ui/button";
+import { CopyButton } from "@leuchtturm/web/components/ui/copy-button";
 import { FieldDescription, FieldError, FieldLabel } from "@leuchtturm/web/components/ui/field";
 import { Show } from "@leuchtturm/web/components/ui/flow";
 import { Input } from "@leuchtturm/web/components/ui/input";
@@ -457,16 +458,9 @@ function TwoFactorAuthenticationSection() {
 															value={value}
 															className="font-mono"
 														/>
-														<Button
-															type="button"
-															variant="outline"
-															onClick={() => {
-																navigator.clipboard.writeText(value);
-																toast.success(t("Secret key copied"));
-															}}
-														>
+														<CopyButton text={value} copiedLabel={<T>Copied</T>}>
 															<T>Copy</T>
-														</Button>
+														</CopyButton>
 													</div>
 												</>
 											)}

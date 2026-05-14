@@ -20,6 +20,7 @@ import {
 	AlertDialogTitle,
 } from "@leuchtturm/web/components/ui/alert-dialog";
 import { Button } from "@leuchtturm/web/components/ui/button";
+import { CopyButton } from "@leuchtturm/web/components/ui/copy-button";
 import { FieldError, FieldLabel } from "@leuchtturm/web/components/ui/field";
 import { Show } from "@leuchtturm/web/components/ui/flow";
 import { Input } from "@leuchtturm/web/components/ui/input";
@@ -234,19 +235,14 @@ function GeneralSettings(props: { readonly organization: string; readonly team: 
 										Type <Var>{team?.name}</Var> to confirm deletion.
 									</T>
 								</FieldLabel>
-								<Button
-									type="button"
-									variant="outline"
+								<CopyButton
 									size="xs"
+									text={team?.name}
 									disabled={!team}
-									onClick={() => {
-										if (!team) return;
-										navigator.clipboard.writeText(team.name);
-										toast.success(t("Team name copied"));
-									}}
+									copiedLabel={<T>Copied</T>}
 								>
 									<T>Copy</T>
-								</Button>
+								</CopyButton>
 							</div>
 							<Input
 								id="delete-team-confirmation"
