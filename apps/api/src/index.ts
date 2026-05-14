@@ -61,7 +61,6 @@ const handleRequest = Effect.fn("handleRequest")(function* (
 	executionContext: Pick<ExecutionContext, "waitUntil">,
 ) {
 	const baseContext = RequestContext.make(request, executionContext);
-	const url = new URL(request.url);
 
 	return yield* Observability.withRequestContext(baseContext)(
 		Effect.scoped(
@@ -91,10 +90,10 @@ const handleRequest = Effect.fn("handleRequest")(function* (
 				);
 			}),
 		).pipe(
-			Effect.withSpan(`${request.method} ${url.pathname}`, {
+			Effect.withSpan(`${request.method} ${new URL(request.url).pathname}`, {
 				attributes: {
 					"http.request.method": request.method,
-					"url.path": url.pathname,
+					"url.path": new URL(request.url).pathname,
 				},
 				kind: "server",
 				root: true,
