@@ -1,6 +1,5 @@
 import { CheckIcon } from "@phosphor-icons/react/Check";
-import type { Product, ProductItem } from "autumn-js";
-import { CheckoutDialog, useCustomer, usePricingTable, type ProductDetails } from "autumn-js/react";
+import { useCustomer, useListPlans } from "autumn-js/react";
 import { T, useGT } from "gt-react";
 import { useMemo, useState, type ComponentProps, type MouseEvent } from "react";
 
@@ -18,34 +17,33 @@ import { Switch } from "@leuchtturm/web/components/ui/switch";
 import { reportError } from "@leuchtturm/web/lib/report-error";
 import { cn } from "@leuchtturm/web/lib/utils";
 
+type Plan = NonNullable<ReturnType<typeof useListPlans>["data"]>[number];
+type PlanItem = Plan["items"][number];
 type PricingButtonProps = Omit<ComponentProps<"button">, "onClick"> & {
 	onClick?: (event: MouseEvent<HTMLButtonElement>) => Promise<void> | void;
 };
 
-export function PricingTable({ productDetails }: { readonly productDetails?: ProductDetails[] }) {
-	const { customer, checkout } = useCustomer({ errorOnNotFound: false });
-	const { products, isLoading, error } = usePricingTable({ productDetails });
+export function PricingTable() {
+	const { data: customer, attach } = useCustomer({ errorOnNotFound: false });
+	const { data: plans, isLoading, error } = useListPlans();
 
 	const t = useGT();
 
 	const [isAnnual, setIsAnnual] = useState(false);
 
 	const intervals = useMemo(
-		() =>
-			Array.from(
-				new Set(products?.map((product) => product.properties?.interval_group).filter(Boolean)),
-			),
-		[products],
+		() => Array.from(new Set(plans?.map((plan) => plan.price?.interval).filter(Boolean))),
+		[plans],
 	);
 
 	const hasMultipleIntervals = intervals.length > 1;
-	const visibleProducts = useMemo(
+	const visiblePlans = useMemo(
 		() =>
-			products?.filter((product) => {
-				if (!product.properties?.interval_group || !hasMultipleIntervals) return true;
-				return product.properties.interval_group === (isAnnual ? "year" : "month");
+			plans?.filter((plan) => {
+				if (!plan.price?.interval || !hasMultipleIntervals) return true;
+				return plan.price.interval === (isAnnual ? "year" : "month");
 			}) ?? [],
-		[hasMultipleIntervals, isAnnual, products],
+		[hasMultipleIntervals, isAnnual, plans],
 	);
 
 	if (isLoading) {
@@ -64,7 +62,7 @@ export function PricingTable({ productDetails }: { readonly productDetails?: Pro
 		);
 	}
 
-	if (visibleProducts.length === 0) {
+	if (visiblePlans.length === 0) {
 		return (
 			<p className="text-sm text-muted-foreground">
 				<T>No billing plans are available.</T>
@@ -86,30 +84,18 @@ export function PricingTable({ productDetails }: { readonly productDetails?: Pro
 				</div>
 			</Show>
 			<div className="grid gap-3 sm:grid-cols-2">
-				{visibleProducts.map((product) => (
+				{visiblePlans.map((plan) => (
 					<PricingCard
-						key={product.id}
-						product={product}
+						key={plan.id}
+						plan={plan}
 						buttonProps={{
 							disabled:
-								(product.scenario === "active" && !product.properties.updateable) ||
-								product.scenario === "scheduled",
+								plan.customerEligibility?.status === "active" ||
+								plan.customerEligibility?.status === "scheduled",
 							onClick: async () => {
-								if (product.id && customer) {
-									const { error } = await checkout({
-										productId: product.id,
-										dialog: CheckoutDialog,
-									});
-									if (error) throw error;
-									return;
-								}
+								if (!customer) throw new Error("Missing billing customer.");
 
-								if (product.display?.button_url) {
-									window.open(product.display.button_url, "_blank");
-									return;
-								}
-
-								throw new Error("Missing billing customer.");
+								await attach({ planId: plan.id });
 							},
 						}}
 						onError={(error) =>
@@ -123,11 +109,11 @@ export function PricingTable({ productDetails }: { readonly productDetails?: Pro
 }
 
 function PricingCard({
-	product,
+	plan,
 	buttonProps,
 	onError,
 }: {
-	readonly product: Product;
+	readonly plan: Plan;
 	readonly buttonProps?: PricingButtonProps;
 	readonly onError: (error: unknown) => void;
 }) {
@@ -135,14 +121,11 @@ function PricingCard({
 
 	const [isLoading, setIsLoading] = useState(false);
 
-	const productDisplay = product.display;
-	const isRecommended = Boolean(productDisplay?.recommend_text);
-	const mainPriceDisplay = product.properties?.is_free
-		? { primary_text: t("Free") }
-		: product.items[0]?.display;
-	const featureItems = product.properties?.is_free ? product.items : product.items.slice(1);
+	const isRecommended = plan.customerEligibility?.attachAction === "upgrade";
+	const mainPriceDisplay = plan.price?.display ?? { primaryText: t("Free") };
+	const featureItems = plan.price ? plan.items : plan.items.slice(1);
 
-	const handleClick = async (event: MouseEvent<HTMLButtonElement>) => {
+	async function handleClick(event: MouseEvent<HTMLButtonElement>) {
 		setIsLoading(true);
 		try {
 			await buttonProps?.onClick?.(event);
@@ -151,20 +134,18 @@ function PricingCard({
 		} finally {
 			setIsLoading(false);
 		}
-	};
+	}
 
 	return (
 		<Card className={cn("relative h-full", isRecommended && "ring-primary ring-2")}>
-			<Show when={productDisplay?.recommend_text}>
-				{(text) => (
-					<Badge className="absolute top-4 right-4" variant="secondary">
-						{text}
-					</Badge>
-				)}
+			<Show when={isRecommended}>
+				<Badge className="absolute top-4 right-4" variant="secondary">
+					<T>Recommended</T>
+				</Badge>
 			</Show>
 			<CardHeader>
-				<CardTitle>{productDisplay?.name || product.name}</CardTitle>
-				<Show when={productDisplay?.description}>
+				<CardTitle>{plan.name}</CardTitle>
+				<Show when={plan.description}>
 					{(description) => (
 						<p className="line-clamp-2 text-sm text-muted-foreground">{description}</p>
 					)}
@@ -172,8 +153,8 @@ function PricingCard({
 			</CardHeader>
 			<CardContent className="flex grow flex-col gap-6">
 				<div className="flex items-baseline gap-1">
-					<span className="text-3xl font-semibold">{mainPriceDisplay?.primary_text}</span>
-					<Show when={mainPriceDisplay?.secondary_text}>
+					<span className="text-3xl font-semibold">{mainPriceDisplay.primaryText}</span>
+					<Show when={mainPriceDisplay.secondaryText}>
 						{(text) => <span className="text-sm text-muted-foreground">{text}</span>}
 					</Show>
 				</div>
@@ -187,24 +168,24 @@ function PricingCard({
 					onClick={handleClick}
 					loading={isLoading}
 				>
-					{productDisplay?.button_text || getButtonText(product, t)}
+					{getButtonText(plan, t)}
 				</Button>
 			</CardFooter>
 		</Card>
 	);
 }
 
-function PricingFeatureList({ items }: { readonly items: ProductItem[] }) {
+function PricingFeatureList({ items }: { readonly items: PlanItem[] }) {
 	if (items.length === 0) return null;
 
 	return (
 		<ul className="space-y-2.5">
 			{items.map((item, index) => (
-				<li key={item.feature_id ?? index} className="flex items-start gap-2.5 text-sm">
+				<li key={item.featureId ?? index} className="flex items-start gap-2.5 text-sm">
 					<CheckIcon className="mt-0.5 size-4 shrink-0 text-primary" />
 					<div className="flex flex-col">
-						<span>{item.display?.primary_text}</span>
-						<Show when={item.display?.secondary_text}>
+						<span>{item.display?.primaryText ?? item.feature?.name ?? item.featureId}</span>
+						<Show when={item.display?.secondaryText}>
 							{(text) => <span className="text-sm text-muted-foreground">{text}</span>}
 						</Show>
 					</div>
@@ -214,23 +195,19 @@ function PricingFeatureList({ items }: { readonly items: ProductItem[] }) {
 	);
 }
 
-function getButtonText(product: Product, t: (key: string) => string) {
-	if (product.properties.has_trial) return t("Start free trial");
+function getButtonText(plan: Plan, t: (key: string) => string) {
+	if (plan.freeTrial) return t("Start free trial");
 
-	switch (product.scenario) {
-		case "scheduled":
-			return t("Plan scheduled");
-		case "active":
-			return product.properties.updateable ? t("Update plan") : t("Current plan");
-		case "renew":
-			return t("Renew");
+	switch (plan.customerEligibility?.attachAction) {
+		case "none":
+			return t("Current plan");
 		case "upgrade":
 			return t("Upgrade");
 		case "downgrade":
 			return t("Downgrade");
-		case "cancel":
-			return t("Cancel plan");
+		case "purchase":
+			return t("Purchase");
 		default:
-			return product.properties.is_one_off ? t("Purchase") : t("Get started");
+			return t("Get started");
 	}
 }

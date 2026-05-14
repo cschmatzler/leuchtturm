@@ -2,6 +2,7 @@ import { ArrowSquareOutIcon } from "@phosphor-icons/react/ArrowSquareOut";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCustomer } from "autumn-js/react";
 import { T, useGT } from "gt-react";
+import { toast } from "sonner";
 
 import { PricingTable } from "@leuchtturm/web/components/billing/pricing-table";
 import { Button } from "@leuchtturm/web/components/ui/button";
@@ -19,19 +20,19 @@ export const Route = createFileRoute("/$organization/_settings/settings/billing"
 });
 
 function Page() {
-	const { openBillingPortal } = useCustomer();
+	const { openCustomerPortal } = useCustomer();
 	const t = useGT();
 
-	const openPortal = async () => {
+	async function openPortal() {
 		try {
-			const { error } = await openBillingPortal({ returnUrl: window.location.href });
-			if (error) throw error;
+			await openCustomerPortal({ returnUrl: window.location.href });
 		} catch (error) {
+			toast.error(t("Could not open billing portal."));
 			reportError(error, t("Could not open billing portal."), {
 				source: "billing-settings",
 			});
 		}
-	};
+	}
 
 	return (
 		<div className="mx-auto w-full max-w-3xl space-y-6 py-6">

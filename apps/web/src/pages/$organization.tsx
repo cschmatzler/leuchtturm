@@ -6,12 +6,10 @@ import { StackIcon } from "@phosphor-icons/react/Stack";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Outlet, redirect, useNavigate } from "@tanstack/react-router";
-import * as Schema from "effect/Schema";
+import { AutumnProvider } from "autumn-js/react";
 import { useGT } from "gt-react";
 
-import { OrganizationSelect } from "@leuchtturm/core/auth/schema";
-import { authClient } from "@leuchtturm/web/clients/auth";
-import { OrganizationProvider } from "@leuchtturm/web/contexts/organization";
+import { ZeroProvider } from "@leuchtturm/web/contexts/zero";
 import { useAuth } from "@leuchtturm/web/hooks/use-auth";
 import { useCommandBar } from "@leuchtturm/web/hooks/use-command-bar";
 import { useCommandProvider } from "@leuchtturm/web/hooks/use-command-provider";
@@ -42,20 +40,7 @@ export const Route = createFileRoute("/$organization")({
 			throw redirect({ to: "/create-organization" });
 		}
 
-		const organizationId = Schema.decodeUnknownSync(OrganizationSelect.fields.id)(
-			targetOrganization.id,
-		);
-		if (session.session.activeOrganizationId !== organizationId) {
-			await authClient.organization.setActive({ organizationId });
-			await queryClient.invalidateQueries({ queryKey: ["session"] });
-
-			const refreshedSession = await queryClient.fetchQuery(sessionQuery());
-			if (!refreshedSession) throw redirect({ to: "/login" });
-
-			return { session: refreshedSession, organizationId };
-		}
-
-		return { session, organizationId };
+		return { session, organizationId: targetOrganization.id };
 	},
 	component: Layout,
 });
@@ -196,12 +181,16 @@ function Layout() {
 	);
 
 	return (
-		<OrganizationProvider
-			session={session}
-			organization={organization}
-			organizationId={organizationId}
+		<AutumnProvider
+			key={organizationId}
+			backendUrl={import.meta.env.VITE_API_URL}
+			pathPrefix="/api/autumn"
+			includeCredentials
+			headers={{ "x-organization-id": organizationId }}
 		>
-			<Outlet />
-		</OrganizationProvider>
+			<ZeroProvider session={session} organization={organization}>
+				<Outlet />
+			</ZeroProvider>
+		</AutumnProvider>
 	);
 }

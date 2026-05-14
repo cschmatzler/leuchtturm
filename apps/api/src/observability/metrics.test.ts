@@ -10,16 +10,16 @@ describe("Metrics", () => {
 			Effect.gen(function* () {
 				const metrics = yield* Metrics.Service;
 
-				yield* metrics.action("autumn.request", "success");
+				yield* metrics.action("billing.passthrough", "success");
 				yield* Metrics.action("zero.query", "success");
 				yield* Metrics.action("zero.mutate", "failure");
-				yield* Metrics.action("autumn.request", "failure");
+				yield* Metrics.action("billing.passthrough", "failure");
 				yield* Metrics.setGauge("api_queue_depth", 7, {
 					attributes: { queue: "email" },
 					description: "Current API queue depth.",
 				});
 				yield* Metrics.observe("api_action_duration_ms", 125, {
-					attributes: { action: "autumn.request" },
+					attributes: { action: "billing.passthrough" },
 					boundaries: [100, 250],
 					description: "API action duration in milliseconds.",
 				});
@@ -32,15 +32,19 @@ describe("Metrics", () => {
 			"# HELP api_action_total API actions completed by action name and result.",
 		);
 		expect(output).toContain("# TYPE api_action_total counter");
-		expect(output).toContain('api_action_total{action="autumn.request",result="success"} 1');
-		expect(output).toContain('api_action_total{action="autumn.request",result="failure"} 1');
+		expect(output).toContain('api_action_total{action="billing.passthrough",result="success"} 1');
+		expect(output).toContain('api_action_total{action="billing.passthrough",result="failure"} 1');
 		expect(output).toContain('api_action_total{action="zero.query",result="success"} 1');
 		expect(output).toContain('api_action_total{action="zero.mutate",result="failure"} 1');
 		expect(output).toContain("# TYPE api_queue_depth gauge");
 		expect(output).toContain('api_queue_depth{queue="email"} 7');
 		expect(output).toContain("# TYPE api_action_duration_ms histogram");
-		expect(output).toContain('api_action_duration_ms_bucket{action="autumn.request",le="100"} 0');
-		expect(output).toContain('api_action_duration_ms_bucket{action="autumn.request",le="250"} 1');
-		expect(output).toContain('api_action_duration_ms_count{action="autumn.request"} 1');
+		expect(output).toContain(
+			'api_action_duration_ms_bucket{action="billing.passthrough",le="100"} 0',
+		);
+		expect(output).toContain(
+			'api_action_duration_ms_bucket{action="billing.passthrough",le="250"} 1',
+		);
+		expect(output).toContain('api_action_duration_ms_count{action="billing.passthrough"} 1');
 	});
 });

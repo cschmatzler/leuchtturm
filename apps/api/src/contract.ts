@@ -35,10 +35,10 @@ export namespace Contract {
 		.add(HttpApiEndpoint.post("mutate", "/mutate", { error: DatabaseError }))
 		.middleware(Session.Middleware);
 
-	export const autumn = HttpApiGroup.make("autumn")
+	export const billing = HttpApiGroup.make("billing")
 		.annotateMerge(OpenApi.annotations({ exclude: true }))
-		.add(HttpApiEndpoint.get("autumnGet", "/api/autumn/*", { error: AuthError }))
-		.add(HttpApiEndpoint.post("autumnPost", "/api/autumn/*", { error: AuthError }));
+		.add(HttpApiEndpoint.get("billingGet", "/api/autumn/*", { error: AuthError }))
+		.add(HttpApiEndpoint.post("billingPost", "/api/autumn/*", { error: AuthError }));
 
 	export const auth = HttpApiGroup.make("auth")
 		.annotateMerge(
@@ -60,7 +60,7 @@ export namespace Contract {
 		)
 		.add(health)
 		.add(zero)
-		.add(autumn)
+		.add(billing)
 		.add(auth);
 
 	export type Api = typeof Api;
