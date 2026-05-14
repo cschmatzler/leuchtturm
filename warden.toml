@@ -3,18 +3,50 @@ version = 1
 [defaults]
 failOn = "high"
 reportOn = "medium"
-requestChanges = false
-failCheck = false
 
 [[skills]]
-name = "security-review"
+name = "wrdn-pii"
+remote = "getsentry/warden-skills"
+paths = ["**/*"]
 
 [[skills.triggers]]
 type = "pull_request"
 actions = ["opened", "synchronize", "reopened"]
 
 [[skills]]
-name = "code-review"
+name = "wrdn-authz"
+remote = "getsentry/warden-skills"
+paths = ["src/**/*.ts", "src/**/*.tsx"]
+ignorePaths = ["**/tests/**", "**/*.test.*"]
+
+[[skills.triggers]]
+type = "pull_request"
+actions = ["opened", "synchronize", "reopened"]
+
+[[skills]]
+name = "wrdn-code-execution"
+remote = "getsentry/warden-skills"
+paths = ["src/**/*.ts", "src/**/*.tsx"]
+ignorePaths = ["**/tests/**", "**/*.test.*"]
+
+[[skills.triggers]]
+type = "pull_request"
+actions = ["opened", "synchronize", "reopened"]
+
+[[skills]]
+name = "wrdn-data-exfil"
+remote = "getsentry/warden-skills"
+paths = ["src/**/*.ts", "src/**/*.tsx"]
+ignorePaths = ["**/tests/**", "**/*.test.*"]
+
+[[skills.triggers]]
+type = "pull_request"
+actions = ["opened", "synchronize", "reopened"]
+
+[[skills]]
+name = "wrdn-gha-workflows"
+remote = "getsentry/warden-skills"
+paths = [".github/workflows/*.yml", ".github/workflows/*.yaml"]
 
 [[skills.triggers]]
 type = "pull_request"
