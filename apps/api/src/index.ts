@@ -90,10 +90,10 @@ const handleRequest = Effect.fn("handleRequest")(function* (
 				);
 			}),
 		).pipe(
-			Effect.withSpan(`${request.method} ${new URL(request.url).pathname}`, {
+			Effect.withSpan(`${request.method} ${request.url}`, {
 				attributes: {
 					"http.request.method": request.method,
-					"url.path": new URL(request.url).pathname,
+					"url.full": request.url,
 				},
 				kind: "server",
 				root: true,
