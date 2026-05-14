@@ -16,7 +16,6 @@ export namespace AuthHandler {
 	) {
 		const auth = yield* Auth.Service;
 		const source = request.source as Request;
-		const url = new URL(source.url);
 
 		return yield* auth.handle(source).pipe(
 			Effect.tap((response) =>
@@ -33,12 +32,6 @@ export namespace AuthHandler {
 				return Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) }).pipe(
 					Effect.andThen(Effect.fail(new AuthHandlerError())),
 				);
-			}),
-			Effect.withSpan("better-auth.handler", {
-				attributes: {
-					"http.request.method": source.method,
-					"url.path": url.pathname,
-				},
 			}),
 		);
 	});
