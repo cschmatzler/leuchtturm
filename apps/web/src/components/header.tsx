@@ -69,7 +69,7 @@ export function Header({
 	);
 
 	return (
-		<header className="bg-background/80 sticky top-0 z-20 flex h-12 items-center gap-2 border-b border-border px-3 backdrop-blur-md">
+		<header className="bg-background/80 sticky top-0 z-20 flex h-[52px] items-center gap-2 border-b border-border px-3 backdrop-blur-md">
 			<Link
 				to="/$organization"
 				params={{ organization }}
@@ -81,7 +81,7 @@ export function Header({
 			<div aria-hidden className="h-5 w-px shrink-0 bg-border" />
 
 			<Breadcrumb aria-label={t("Workspace")} className="min-w-0">
-				<BreadcrumbList className="flex-nowrap gap-1 sm:gap-1">
+				<BreadcrumbList className="flex-nowrap gap-1 text-[15px] sm:gap-1">
 					<BreadcrumbItem>
 						<DropdownMenu>
 							<DropdownMenuTrigger
@@ -203,7 +203,7 @@ export function Header({
 						data-active={settingsActive ? true : undefined}
 						className="inline-flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground data-[active]:bg-accent data-[active]:text-accent-foreground"
 					>
-						<GearIcon className="size-3.5" />
+						<GearIcon className="size-4" />
 					</Link>
 				</nav>
 
@@ -217,7 +217,7 @@ export function Header({
 								aria-label={t("Account")}
 								className="inline-flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
 							>
-								<UserIcon className="size-3.5" />
+								<UserIcon className="size-4" />
 							</button>
 						}
 					/>
