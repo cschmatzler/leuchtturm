@@ -62,16 +62,7 @@ export function Header({
 
 	const activeTeam = team
 		? currentOrganization.teams.find((item) => item.slug === team)
-		: (() => {
-				const match = matchRoute({
-					to: "/$organization/teams/$team/settings",
-					fuzzy: true,
-				});
-
-				if (!match) return;
-
-				return currentOrganization.teams.find((item) => item.slug === match.team);
-			})();
+		: undefined;
 	const settingsActive = Boolean(
 		matchRoute({ to: "/$organization/settings", params: { organization }, fuzzy: true }) ||
 		matchRoute({ to: "/$organization/teams/$team/settings", fuzzy: true }),
