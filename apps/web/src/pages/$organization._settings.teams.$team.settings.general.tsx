@@ -228,11 +228,26 @@ function GeneralSettings(props: { readonly organization: string; readonly team: 
 							</AlertDialogDescription>
 						</AlertDialogHeader>
 						<div className="space-y-2">
-							<FieldLabel htmlFor="delete-team-confirmation">
-								<T>
-									Type <Var>{team?.name}</Var> to confirm deletion.
-								</T>
-							</FieldLabel>
+							<div className="flex items-center justify-between gap-2">
+								<FieldLabel htmlFor="delete-team-confirmation">
+									<T>
+										Type <Var>{team?.name}</Var> to confirm deletion.
+									</T>
+								</FieldLabel>
+								<Button
+									type="button"
+									variant="outline"
+									size="xs"
+									disabled={!team}
+									onClick={() => {
+										if (!team) return;
+										navigator.clipboard.writeText(team.name);
+										toast.success(t("Team name copied"));
+									}}
+								>
+									<T>Copy</T>
+								</Button>
+							</div>
 							<Input
 								id="delete-team-confirmation"
 								value={deleteTeamConfirmation}
