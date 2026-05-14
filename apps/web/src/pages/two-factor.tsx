@@ -85,7 +85,7 @@ function Page() {
 		<AuthLayout>
 			<div className="flex flex-col gap-6">
 				<div className="flex flex-col gap-2">
-					<h1 className="font-display text-3xl">
+					<h1 className="font-serif text-3xl">
 						<T>Two-factor authentication</T>
 					</h1>
 					<p className="text-sm text-muted-foreground">

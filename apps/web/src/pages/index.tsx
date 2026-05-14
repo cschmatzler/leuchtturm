@@ -90,7 +90,7 @@ function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
 						<T>Built for focus</T>
 					</div>
 					<h1
-						className="animate-hero mt-8 font-display text-5xl font-extrabold tracking-tight sm:text-6xl md:text-7xl lg:text-8xl"
+						className="animate-hero mt-8 font-serif text-5xl font-extrabold tracking-tight sm:text-6xl md:text-7xl lg:text-8xl"
 						style={{ animationDelay: "0.08s" }}
 					>
 						<T>Your workflow, refined.</T>
@@ -152,7 +152,7 @@ function FeaturesSection() {
 	return (
 		<section className="mx-auto max-w-7xl px-6 py-28 md:py-36">
 			<div className="max-w-xl">
-				<h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
+				<h2 className="font-serif text-3xl font-bold tracking-tight sm:text-4xl">
 					<T>Everything you need.</T>
 				</h2>
 				<p className="mt-3 text-lg leading-relaxed text-muted-foreground">
@@ -222,7 +222,7 @@ function CallToActionSection({ isAuthenticated }: { isAuthenticated: boolean }) 
 					<div className="absolute bottom-0 left-1/2 h-[350px] w-[600px] -translate-x-1/2 translate-y-1/4 rounded-full bg-primary/[0.15] blur-[100px]" />
 				</div>
 				<div className="relative px-6 py-24 text-center md:py-28">
-					<h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
+					<h2 className="font-serif text-3xl font-bold tracking-tight sm:text-4xl">
 						<T>Ready to take control?</T>
 					</h2>
 					<p className="mx-auto mt-4 max-w-xl text-background/45">

@@ -232,7 +232,7 @@ function Page() {
 					/>
 				</div>
 				<div className="absolute inset-0 flex flex-col items-start justify-end p-10">
-					<p className="font-display text-2xl font-bold text-background/90">Focus, refined.</p>
+					<p className="font-serif text-2xl font-bold text-background/90">Focus, refined.</p>
 					<p className="mt-2 max-w-xs text-sm leading-relaxed text-background/45">
 						A fast, focused app built for people who value their time.
 					</p>

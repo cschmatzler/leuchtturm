@@ -235,7 +235,7 @@ function TeamMembersSection() {
 	return (
 		<section>
 			<div className="space-y-1">
-				<h2 className="font-display text-2xl">
+				<h2 className="font-serif text-2xl">
 					<T>Team members</T>
 				</h2>
 				<p className="text-sm text-muted-foreground">
@@ -376,7 +376,7 @@ function AddOrganizationMembersSection() {
 		<Show when={availableMembers.length > 0}>
 			<section>
 				<div className="space-y-1">
-					<h2 className="font-display text-2xl">
+					<h2 className="font-serif text-2xl">
 						<T>Add organization members</T>
 					</h2>
 					<p className="text-sm text-muted-foreground">

@@ -49,7 +49,7 @@ function Page() {
 		<div className="mx-auto w-full max-w-3xl">
 			<section className="py-6">
 				<div className="space-y-1">
-					<h2 className="font-display text-2xl">
+					<h2 className="font-serif text-2xl">
 						<T>Billing details</T>
 					</h2>
 					<p className="text-sm text-muted-foreground">
@@ -66,7 +66,7 @@ function Page() {
 			<Separator />
 			<section className="py-6">
 				<div className="space-y-1">
-					<h2 className="font-display text-2xl">
+					<h2 className="font-serif text-2xl">
 						<T>Leuchtturm Pro</T>
 					</h2>
 					<p className="text-sm text-muted-foreground">

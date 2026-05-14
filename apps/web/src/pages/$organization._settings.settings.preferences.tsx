@@ -94,7 +94,7 @@ function PreferencesSection() {
 	return (
 		<section>
 			<div className="space-y-1">
-				<h2 className="font-display text-2xl">
+				<h2 className="font-serif text-2xl">
 					<T>Preferences</T>
 				</h2>
 				<p className="text-sm text-muted-foreground">
@@ -291,7 +291,7 @@ function TwoFactorAuthenticationSection() {
 	return (
 		<section>
 			<div className="space-y-1">
-				<h2 className="font-display text-2xl">
+				<h2 className="font-serif text-2xl">
 					<T>Two-factor authentication</T>
 				</h2>
 				<p className="text-sm text-muted-foreground">

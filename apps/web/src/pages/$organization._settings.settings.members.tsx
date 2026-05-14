@@ -370,7 +370,7 @@ function Page() {
 			<section className="py-6">
 				<div className="flex items-start justify-between gap-4">
 					<div className="space-y-1">
-						<h2 className="font-display text-2xl">
+						<h2 className="font-serif text-2xl">
 							<T>Members</T>
 						</h2>
 						<p className="text-sm text-muted-foreground">
@@ -396,7 +396,7 @@ function Page() {
 			<Show when={activeInvitations.length > 0}>
 				<section className="border-t border-border py-6">
 					<div className="space-y-1">
-						<h2 className="font-display text-2xl">
+						<h2 className="font-serif text-2xl">
 							<T>Pending invitations</T>
 						</h2>
 						<p className="text-sm text-muted-foreground">

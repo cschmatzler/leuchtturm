@@ -72,7 +72,7 @@ function Page() {
 	return (
 		<AuthLayout>
 			<div className="flex flex-col gap-6">
-				<h1 className="font-display text-3xl text-center">
+				<h1 className="font-serif text-3xl text-center">
 					<T>Welcome back</T>
 				</h1>
 				<Button

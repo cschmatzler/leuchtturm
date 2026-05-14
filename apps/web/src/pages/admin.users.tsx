@@ -302,7 +302,7 @@ function AdminUsersPage() {
 							<T>Admin</T>
 						</div>
 						<div>
-							<h1 className="font-display text-2xl tracking-tight">
+							<h1 className="font-serif text-2xl tracking-tight">
 								<T>User management</T>
 							</h1>
 							<p className="mt-1 max-w-2xl text-sm text-muted-foreground">
