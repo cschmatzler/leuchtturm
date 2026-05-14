@@ -75,47 +75,49 @@ export namespace Observability {
 		}),
 	);
 
-	export const otlpLayer = Otlp.layerProtobuf({
-		baseUrl: Resource.GrafanaOtlpConfig.url,
-		headers: { Authorization: Resource.GrafanaOtlpConfig.authorization },
-		loggerExcludeLogSpans: false,
-		loggerMergeWithExisting: true,
-		resource: {
-			serviceName: "leuchtturm-api",
-			attributes: {
-				"service.namespace": "leuchtturm",
-				app: "leuchtturm",
-				stage: Resource.App.stage,
-			},
-		},
-		shutdownTimeout: "3 seconds",
-	}).pipe(Layer.provide(FetchHttpClient.layer));
+	export const layer = Layer.mergeAll(
+		Layer.effectContext(
+			Effect.gen(function* () {
+				const executionContext = yield* ExecutionContext.Service;
+				const scope = yield* Scope.Scope;
+				const observabilityScope = yield* Scope.make();
 
-	export const deferredOtlpShutdownLayer = Layer.effectContext(
-		Effect.gen(function* () {
-			const executionContext = yield* ExecutionContext.Service;
-			const scope = yield* Scope.Scope;
-			const observabilityScope = yield* Scope.make();
+				yield* Scope.addFinalizer(
+					scope,
+					Effect.sync(() => {
+						executionContext.waitUntil(
+							Effect.runPromise(Scope.close(observabilityScope, Exit.void)),
+						);
+					}),
+				);
 
-			yield* Scope.addFinalizer(
-				scope,
-				Effect.sync(() => {
-					executionContext.waitUntil(Effect.runPromise(Scope.close(observabilityScope, Exit.void)));
-				}),
-			);
-
-			return yield* Layer.buildWithScope(otlpLayer, observabilityScope);
-		}),
+				return yield* Layer.buildWithScope(
+					Otlp.layerProtobuf({
+						baseUrl: Resource.GrafanaOtlpConfig.url,
+						headers: { Authorization: Resource.GrafanaOtlpConfig.authorization },
+						loggerExcludeLogSpans: false,
+						loggerMergeWithExisting: true,
+						resource: {
+							serviceName: "leuchtturm-api",
+							attributes: {
+								"service.namespace": "leuchtturm",
+								app: "leuchtturm",
+								stage: Resource.App.stage,
+							},
+						},
+						shutdownTimeout: "3 seconds",
+					}).pipe(Layer.provide(FetchHttpClient.layer)),
+					observabilityScope,
+				);
+			}),
+		),
+		Layer.succeed(
+			HttpMiddleware.SpanNameGenerator,
+			(request: HttpServerRequest.HttpServerRequest) =>
+				`${request.method} ${Option.getOrElse(
+					Option.map(HttpServerRequest.toURL(request), (url) => url.pathname),
+					() => request.url,
+				)}`,
+		),
 	);
-
-	export const spanNameGeneratorLayer = Layer.succeed(
-		HttpMiddleware.SpanNameGenerator,
-		(request: HttpServerRequest.HttpServerRequest) =>
-			`${request.method} ${Option.getOrElse(
-				Option.map(HttpServerRequest.toURL(request), (url) => url.pathname),
-				() => request.url,
-			)}`,
-	);
-
-	export const layer = Layer.mergeAll(deferredOtlpShutdownLayer, spanNameGeneratorLayer);
 }
