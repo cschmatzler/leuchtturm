@@ -1,5 +1,3 @@
-"use client";
-
 import { CaretDownIcon } from "@phosphor-icons/react/CaretDown";
 import { CaretLeftIcon } from "@phosphor-icons/react/CaretLeft";
 import { CaretRightIcon } from "@phosphor-icons/react/CaretRight";

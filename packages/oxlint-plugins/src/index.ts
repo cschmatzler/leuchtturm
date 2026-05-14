@@ -13,6 +13,7 @@ import noPhosphorTopLevelImport from "@leuchtturm/oxlint-plugins/no-phosphor-top
 import noRelativeImports from "@leuchtturm/oxlint-plugins/no-relative-imports";
 import noRowSuffix from "@leuchtturm/oxlint-plugins/no-row-suffix";
 import noSchemaTypeAlias from "@leuchtturm/oxlint-plugins/no-schema-type-alias";
+import noUseClientServerDirectives from "@leuchtturm/oxlint-plugins/no-use-client-server-directives";
 import noUseParamsStrictFalse from "@leuchtturm/oxlint-plugins/no-use-params-strict-false";
 import noVariableAlias from "@leuchtturm/oxlint-plugins/no-variable-alias";
 import noViMock from "@leuchtturm/oxlint-plugins/no-vi-mock";
@@ -38,6 +39,7 @@ const plugin = {
 		...noRelativeImports.rules,
 		...noRowSuffix.rules,
 		...noSchemaTypeAlias.rules,
+		...noUseClientServerDirectives.rules,
 		...noUseParamsStrictFalse.rules,
 		...noViMock.rules,
 	},

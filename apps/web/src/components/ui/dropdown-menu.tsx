@@ -1,5 +1,3 @@
-"use client";
-
 import { Menu as MenuPrimitive } from "@base-ui/react/menu";
 import { CaretRightIcon } from "@phosphor-icons/react/CaretRight";
 import { CheckIcon } from "@phosphor-icons/react/Check";
