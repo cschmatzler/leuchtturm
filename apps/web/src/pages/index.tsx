@@ -1,4 +1,3 @@
-import { ArrowRightIcon } from "@phosphor-icons/react/ArrowRight";
 import { CompassIcon } from "@phosphor-icons/react/Compass";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react/MagnifyingGlass";
 import { SparkleIcon } from "@phosphor-icons/react/Sparkle";
@@ -70,7 +69,6 @@ function Hero({ authed }: { authed: boolean }) {
 	return (
 		<section className="relative mx-auto max-w-6xl px-6 pb-16 pt-20 sm:pb-20 sm:pt-28">
 			<div className="relative mx-auto max-w-2xl text-center">
-				{/* Lighthouse beam visual */}
 				<div className="mx-auto mb-8 flex items-center justify-center" aria-hidden="true">
 					<div className="relative">
 						<div className="size-14 rounded-full bg-primary/10 ring-1 ring-primary/20" />
@@ -115,12 +113,6 @@ function Hero({ authed }: { authed: boolean }) {
 					<p className="mt-5 text-lg text-muted-foreground">
 						<T>Welcome back.</T>
 					</p>
-					<div className="mt-8 flex justify-center">
-						<Button size="lg" nativeButton={false} render={<Link to="/app" role={undefined} />}>
-							<T>Go to Dashboard</T>
-							<ArrowRightIcon data-icon="inline-end" />
-						</Button>
-					</div>
 				</Show>
 			</div>
 		</section>
@@ -129,25 +121,9 @@ function Hero({ authed }: { authed: boolean }) {
 
 function GuestCopy() {
 	return (
-		<>
-			<p className="mx-auto mt-5 max-w-md text-base leading-relaxed text-muted-foreground sm:text-lg">
-				<T>A workspace that doesn&apos;t pretend to know what you need before you do.</T>
-			</p>
-			<div className="mt-8 flex justify-center gap-3">
-				<Button size="lg" nativeButton={false} render={<Link to="/signup" role={undefined} />}>
-					<T>Get Started</T>
-					<ArrowRightIcon data-icon="inline-end" />
-				</Button>
-				<Button
-					size="lg"
-					variant="outline"
-					nativeButton={false}
-					render={<Link to="/login" role={undefined} />}
-				>
-					<T>Login</T>
-				</Button>
-			</div>
-		</>
+		<p className="mx-auto mt-5 max-w-md text-base leading-relaxed text-muted-foreground sm:text-lg">
+			<T>A workspace that doesn&apos;t pretend to know what you need before you do.</T>
+		</p>
 	);
 }
 
@@ -207,89 +183,27 @@ function Bottom({ authed }: { authed: boolean }) {
 		<div className="border-t border-border">
 			<section className="mx-auto max-w-6xl px-6 py-20">
 				<div className="mx-auto max-w-xl text-center">
-					<div className="mx-auto mb-6 flex size-10 items-center justify-center rounded-full bg-primary/10">
-						<CompassIcon className="size-4 text-primary" weight="fill" />
-					</div>
-					<p className="text-base text-muted-foreground">
-						<Show when={authed} fallback={<T>Built in the open. Shaped by the people using it.</T>}>
+					<Show when={authed}>
+						<p className="text-base text-muted-foreground">
 							<T>Your workspace, waiting for you.</T>
-						</Show>
-					</p>
-					<div className="mt-7 flex justify-center gap-3">
-						<Switch>
-							<Match when={authed}>
-								<Button size="lg" nativeButton={false} render={<Link to="/app" role={undefined} />}>
-									<T>Go to Dashboard</T>
-									<ArrowRightIcon data-icon="inline-end" />
-								</Button>
-							</Match>
-							<Match when={!authed}>
-								<Button
-									size="lg"
-									nativeButton={false}
-									render={<Link to="/signup" role={undefined} />}
-								>
-									<T>Sign Up</T>
-									<ArrowRightIcon data-icon="inline-end" />
-								</Button>
-								<Button
-									size="lg"
-									variant="outline"
-									nativeButton={false}
-									render={<Link to="/login" role={undefined} />}
-								>
-									<T>Login</T>
-								</Button>
-							</Match>
-						</Switch>
-					</div>
+						</p>
+					</Show>
 				</div>
 			</section>
 
 			<footer className="mx-auto max-w-6xl border-t border-border px-6 py-6">
-				<div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
-					<p className="text-xs text-muted-foreground">
-						<Link
-							to="/terms-of-service"
-							className="underline underline-offset-4 hover:text-foreground"
-						>
-							<T>Terms of Service</T>
-						</Link>
-						{" · "}
-						<Link
-							to="/privacy-policy"
-							className="underline underline-offset-4 hover:text-foreground"
-						>
-							<T>Privacy Policy</T>
-						</Link>
-					</p>
-					<Switch>
-						<Match when={authed}>
-							<Link
-								to="/app"
-								className="text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground"
-							>
-								<T>Dashboard</T>
-							</Link>
-						</Match>
-						<Match when={!authed}>
-							<div className="flex gap-4">
-								<Link
-									to="/login"
-									className="text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground"
-								>
-									<T>Login</T>
-								</Link>
-								<Link
-									to="/signup"
-									className="text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground"
-								>
-									<T>Sign Up</T>
-								</Link>
-							</div>
-						</Match>
-					</Switch>
-				</div>
+				<p className="text-center text-xs text-muted-foreground">
+					<Link
+						to="/terms-of-service"
+						className="underline underline-offset-4 hover:text-foreground"
+					>
+						<T>Terms of Service</T>
+					</Link>
+					{" · "}
+					<Link to="/privacy-policy" className="underline underline-offset-4 hover:text-foreground">
+						<T>Privacy Policy</T>
+					</Link>
+				</p>
 			</footer>
 		</div>
 	);
