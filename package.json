@@ -8,7 +8,7 @@
 	],
 	"type": "module",
 	"scripts": {
-		"dev": "sst dev",
+		"dev": "fnox exec -- sst dev",
 		"lint": "oxlint",
 		"test": "vitest run",
 		"fmt": "oxfmt --write",

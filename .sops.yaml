@@ -1,9 +1,0 @@
-keys:
-  - &host_tahani age1smjjh7l5gchlp4zgfqcxaam506mudacsr37nqj690t0gktzlksvqskd2ek
-  - &host_janet age1f9h725ewwwwwkelnrvdvrurg6fcsn3zxrxdt0v6v8ys0nzngcsvqu77nc8
-creation_rules:
-  - path_regex: secrets/[^/]+$
-    key_groups:
-      - age:
-          - *host_tahani
-          - *host_janet
