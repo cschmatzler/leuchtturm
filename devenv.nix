@@ -57,15 +57,4 @@
 	scripts.ar.exec = ''
 		aube run "$@"
 	'';
-
-	# Shell
-	# -----
-
-	enterShell = ''
-		PATH=":''${PATH}:"
-		PATH="''${PATH//:node_modules\/.bin:/:}"
-		PATH="''${PATH#:}"
-		PATH="''${PATH%:}"
-		export PATH
-	'';
 }
