@@ -57,6 +57,7 @@ export namespace Observability {
 						Effect.map(() => undefined),
 					),
 				),
+				Telemetry.withRequest,
 			);
 		});
 

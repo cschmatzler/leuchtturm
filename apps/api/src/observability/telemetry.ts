@@ -3,8 +3,10 @@ import * as OtelTracer from "@effect/opentelemetry/Tracer";
 import { trace, type Span } from "@opentelemetry/api";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
+import * as Exit from "effect/Exit";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
+import * as Scope from "effect/Scope";
 import * as EffectTracer from "effect/Tracer";
 import * as FetchHttpClient from "effect/unstable/http/FetchHttpClient";
 import * as HttpMiddleware from "effect/unstable/http/HttpMiddleware";
@@ -33,6 +35,42 @@ export namespace Telemetry {
 		);
 	}
 
+	const exportLayer = Layer.fresh(
+		Layer.suspend(() =>
+			Otlp.layerProtobuf({
+				baseUrl: JSON.parse(Resource.GrafanaOtlpConfig.value).url,
+				headers: {
+					Authorization: JSON.parse(Resource.GrafanaOtlpConfig.value).authorization,
+				},
+				loggerMergeWithExisting: true,
+				resource: {
+					serviceName: "leuchtturm-api",
+					attributes: {
+						"service.namespace": "leuchtturm",
+						app: "leuchtturm",
+						stage: Resource.App.stage,
+					},
+				},
+				shutdownTimeout: "3 seconds",
+			}).pipe(Layer.provide(FetchHttpClient.layer)),
+		),
+	);
+
+	export const withRequest = <A, E, R>(effect: Effect.Effect<A, E, R>) =>
+		Effect.acquireUseRelease(
+			Scope.make(),
+			(telemetryScope) =>
+				Layer.buildWithScope(exportLayer, telemetryScope).pipe(
+					Effect.flatMap((telemetryContext) =>
+						effect.pipe(Effect.provideContext(telemetryContext)),
+					),
+				),
+			(telemetryScope) =>
+				RequestContext.Service.useSync((context) => {
+					context.waitUntil(Effect.runPromise(Scope.close(telemetryScope, Exit.void)));
+				}),
+		);
+
 	export const layer = Layer.mergeAll(
 		OtelTracer.layerGlobal.pipe(
 			Layer.provide(
@@ -46,22 +84,6 @@ export namespace Telemetry {
 				}),
 			),
 		),
-		Otlp.layerProtobuf({
-			baseUrl: JSON.parse(Resource.GrafanaOtlpConfig.value).url,
-			headers: {
-				Authorization: JSON.parse(Resource.GrafanaOtlpConfig.value).authorization,
-			},
-			loggerMergeWithExisting: true,
-			resource: {
-				serviceName: "leuchtturm-api",
-				attributes: {
-					"service.namespace": "leuchtturm",
-					app: "leuchtturm",
-					stage: Resource.App.stage,
-				},
-			},
-			shutdownTimeout: "3 seconds",
-		}).pipe(Layer.provide(FetchHttpClient.layer)),
 		Layer.succeed(
 			HttpMiddleware.SpanNameGenerator,
 			(request: HttpServerRequest.HttpServerRequest) =>
