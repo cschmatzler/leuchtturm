@@ -60,14 +60,18 @@ export function Header({
 
 	if (!currentOrganization) return null;
 
-	const activeTeam = currentOrganization.teams.find((item) => {
-		const match = matchRoute({
-			to: "/$organization/teams/$team/settings",
-			fuzzy: true,
-		});
+	const activeTeam = team
+		? currentOrganization.teams.find((item) => item.slug === team)
+		: (() => {
+				const match = matchRoute({
+					to: "/$organization/teams/$team/settings",
+					fuzzy: true,
+				});
 
-		return item.slug === (team ?? (match && match.team));
-	});
+				if (!match) return;
+
+				return currentOrganization.teams.find((item) => item.slug === match.team);
+			})();
 	const settingsActive = Boolean(
 		matchRoute({ to: "/$organization/settings", params: { organization }, fuzzy: true }) ||
 		matchRoute({ to: "/$organization/teams/$team/settings", fuzzy: true }),
