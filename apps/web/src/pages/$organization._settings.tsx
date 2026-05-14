@@ -62,11 +62,6 @@ function Layout() {
 					style={{ "--sidebar-width": "15rem" } as CSSProperties}
 				>
 					<Sidebar variant="inset" className="absolute inset-y-0 h-full">
-						<SidebarHeader>
-							<h2 className="px-2 text-sm font-semibold tracking-tight">
-								<T>Settings</T>
-							</h2>
-						</SidebarHeader>
 						<SidebarContent>
 							<SidebarGroup>
 								<SidebarGroupLabel>

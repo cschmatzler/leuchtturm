@@ -69,19 +69,17 @@ export function Header({
 	);
 
 	return (
-		<header className="bg-background/80 sticky top-0 z-20 flex h-[52px] items-center gap-2 border-b border-border px-3 backdrop-blur-md">
+		<header className="bg-background/80 sticky top-0 z-20 flex h-[52px] items-center gap-3.5 border-b border-border px-3 backdrop-blur-md">
 			<Link
 				to="/$organization"
 				params={{ organization }}
-				aria-label="Leuchtturm"
-				className="flex size-6 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground transition-opacity hover:opacity-90"
+				className="text-lg font-serif"
 			>
-				<SparkleIcon className="size-4" />
+				Leuchtturm
 			</Link>
 			<div aria-hidden className="h-5 w-px shrink-0 bg-border" />
-
 			<Breadcrumb aria-label={t("Workspace")} className="min-w-0">
-				<BreadcrumbList className="flex-nowrap gap-1 text-[15px] sm:gap-1">
+				<BreadcrumbList className="flex-nowrap gap-1 text-sm sm:gap-1">
 					<BreadcrumbItem>
 						<DropdownMenu>
 							<DropdownMenuTrigger
