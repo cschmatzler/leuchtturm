@@ -22,88 +22,87 @@ import { Database } from "@leuchtturm/core/database";
 import { InternalServerError } from "@leuchtturm/core/errors";
 import { ZeroDatabase } from "@leuchtturm/zero/zero-database";
 
-const apiRoutes = Layer.mergeAll(
-	HttpApiBuilder.layer(Contract.Api, {
-		openapiPath: "/open-api",
-	}).pipe(
-		Layer.provide(
-			Layer.mergeAll(
-				HealthHandler.layer(Contract.Api),
-				BillingHandler.layer(Contract.Api),
-				ZeroHandler.layer(Contract.Api),
-				AuthHandler.layer(Contract.Api),
+namespace Api {
+	const routes = Layer.mergeAll(
+		HttpApiBuilder.layer(Contract.Api, {
+			openapiPath: "/open-api",
+		}).pipe(
+			Layer.provide(
+				Layer.mergeAll(
+					HealthHandler.layer(Contract.Api),
+					BillingHandler.layer(Contract.Api),
+					ZeroHandler.layer(Contract.Api),
+					AuthHandler.layer(Contract.Api),
+				),
 			),
+			Layer.provide(AuthMiddleware.layer),
 		),
-		Layer.provide(AuthMiddleware.layer),
-	),
-	DocsHandler.layer,
-);
-
-const { handler } = HttpEffect.toWebHandlerLayer(
-	HttpRouter.toHttpEffect(apiRoutes).pipe(Effect.flatten),
-	HttpServer.layerServices,
-	{
-		middleware: (app) =>
-			HttpMiddleware.cors({
-				allowedOrigins: (origin) => {
-					if (!origin) return false;
-					if (Resource.App.stage !== "prod") return true;
-
-					return origin === `https://${Resource.Dns.AppDomain}`;
-				},
-				credentials: true,
-			})(RequestContext.middleware(Observability.middleware(HttpMiddleware.logger(app)))),
-	},
-);
-
-const handleRequest = Effect.fn("handleRequest")(function* (
-	request: Request,
-	executionContext: Pick<ExecutionContext, "waitUntil">,
-) {
-	const baseContext = RequestContext.make(request, executionContext);
-
-	return yield* Observability.withRequestContext(baseContext)(
-		Effect.scoped(
-			Effect.gen(function* () {
-				const observabilityContext = yield* Effect.context<never>();
-				const servicesContext = yield* Layer.build(
-					Layer.mergeAll(Auth.defaultLayer, ZeroDatabase.layer).pipe(
-						Layer.provideMerge(Database.layer(Resource.Database.connectionString)),
-					),
-				);
-				const requestContext = Context.merge(
-					observabilityContext,
-					Context.merge(baseContext, servicesContext),
-				);
-
-				return yield* Effect.provideContext(
-					Effect.tryPromise({
-						try: () => handler(request, requestContext),
-						catch: (cause) => cause,
-					}).pipe(
-						Effect.tap((response) =>
-							Effect.annotateCurrentSpan({ "http.response.status_code": response.status }),
-						),
-						Effect.mapError(() => new InternalServerError()),
-					),
-					requestContext,
-				);
-			}),
-		).pipe(
-			Effect.withSpan(`${request.method} ${request.url}`, {
-				attributes: {
-					"http.request.method": request.method,
-					"url.full": request.url,
-				},
-				kind: "server",
-				root: true,
-			}),
-		),
+		DocsHandler.layer,
 	);
-});
+
+	const { handler } = HttpEffect.toWebHandlerLayer(
+		HttpRouter.toHttpEffect(routes).pipe(Effect.flatten),
+		HttpServer.layerServices,
+		{
+			middleware: (app) =>
+				app.pipe(
+					HttpMiddleware.logger,
+					Observability.middleware,
+					RequestContext.middleware,
+					HttpMiddleware.cors({
+						allowedOrigins: (origin) => {
+							if (!origin) return false;
+							if (Resource.App.stage !== "prod") return true;
+
+							return origin === `https://${Resource.Dns.AppDomain}`;
+						},
+						credentials: true,
+					}),
+				),
+		},
+	);
+
+	export const handleRequest = Effect.fn("handleRequest")(function* (
+		request: Request,
+		executionContext: Pick<ExecutionContext, "waitUntil">,
+	) {
+		const requestContext = RequestContext.make(request, executionContext);
+
+		return yield* Observability.withRequestContext(requestContext)(
+			Effect.gen(function* () {
+				const services = yield* Layer.mergeAll(Auth.defaultLayer, ZeroDatabase.layer).pipe(
+					Layer.provideMerge(Database.layer(Resource.Database.connectionString)),
+					Layer.build,
+				);
+				const context = Context.merge(requestContext, services);
+
+				return yield* Effect.tryPromise({
+					try: () => handler(request, context),
+					catch: (cause) => cause,
+				}).pipe(
+					Effect.tap((response) =>
+						Effect.annotateCurrentSpan({ "http.response.status_code": response.status }),
+					),
+					Effect.mapError(() => new InternalServerError()),
+					Effect.provideContext(context),
+				);
+			}).pipe(
+				Effect.scoped,
+				Effect.withSpan(`${request.method} ${request.url}`, {
+					attributes: {
+						"http.request.method": request.method,
+						"url.full": request.url,
+					},
+					kind: "server",
+					root: true,
+				}),
+			),
+		);
+	});
+}
 
 export default wrapCloudflareHandler({
 	fetch(request: Request, _env: unknown, ctx: ExecutionContext) {
-		return Effect.runPromise(handleRequest(request, ctx));
+		return Effect.runPromise(Api.handleRequest(request, ctx));
 	},
 });
