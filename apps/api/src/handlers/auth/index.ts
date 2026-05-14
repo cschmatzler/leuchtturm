@@ -6,7 +6,7 @@ import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 import * as HttpApiBuilder from "effect/unstable/httpapi/HttpApiBuilder";
 
 import type { Contract } from "@leuchtturm/api/contract";
-import { Metrics } from "@leuchtturm/api/observability/metrics";
+import { Observability } from "@leuchtturm/api/observability";
 import { Auth } from "@leuchtturm/core/auth";
 import { AuthError, AuthHandlerError } from "@leuchtturm/core/auth/errors";
 
@@ -40,16 +40,10 @@ export namespace AuthHandler {
 		HttpApiBuilder.group(api, "auth", (handlers) =>
 			handlers
 				.handleRaw("authGet", ({ request }) =>
-					handlePassthrough(request).pipe(
-						Effect.tap(() => Metrics.action("auth.passthrough", "success")),
-						Effect.tapCause(() => Metrics.action("auth.passthrough", "failure")),
-					),
+					handlePassthrough(request).pipe(Observability.withAction("auth.passthrough")),
 				)
 				.handleRaw("authPost", ({ request }) =>
-					handlePassthrough(request).pipe(
-						Effect.tap(() => Metrics.action("auth.passthrough", "success")),
-						Effect.tapCause(() => Metrics.action("auth.passthrough", "failure")),
-					),
+					handlePassthrough(request).pipe(Observability.withAction("auth.passthrough")),
 				),
 		);
 }

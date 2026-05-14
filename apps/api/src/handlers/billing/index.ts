@@ -7,7 +7,7 @@ import * as HttpApiBuilder from "effect/unstable/httpapi/HttpApiBuilder";
 import { Resource } from "sst/resource/cloudflare";
 
 import type { Contract } from "@leuchtturm/api/contract";
-import { Metrics } from "@leuchtturm/api/observability/metrics";
+import { Observability } from "@leuchtturm/api/observability";
 import { Auth } from "@leuchtturm/core/auth";
 
 export namespace BillingHandler {
@@ -84,7 +84,10 @@ export namespace BillingHandler {
 			),
 		);
 
-		yield* Metrics.action("billing.passthrough", result.statusCode >= 500 ? "failure" : "success");
+		yield* Observability.recordAction(
+			"billing.passthrough",
+			result.statusCode >= 500 ? "failure" : "success",
+		);
 
 		return HttpServerResponse.fromWeb(
 			Response.json(result.response, { status: result.statusCode }),

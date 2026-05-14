@@ -7,7 +7,7 @@ import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 import * as HttpApiBuilder from "effect/unstable/httpapi/HttpApiBuilder";
 
 import type { Contract } from "@leuchtturm/api/contract";
-import { Metrics } from "@leuchtturm/api/observability/metrics";
+import { Observability } from "@leuchtturm/api/observability";
 import { Session } from "@leuchtturm/api/session";
 import { DatabaseError } from "@leuchtturm/core/errors";
 import { mutators } from "@leuchtturm/zero/mutators";
@@ -78,17 +78,7 @@ export namespace ZeroHandler {
 	export const layer = (api: Contract.Api) =>
 		HttpApiBuilder.group(api, "zero", (handlers) =>
 			handlers
-				.handleRaw("query", () =>
-					handleQuery().pipe(
-						Effect.tap(() => Metrics.action("zero.query", "success")),
-						Effect.tapCause(() => Metrics.action("zero.query", "failure")),
-					),
-				)
-				.handleRaw("mutate", () =>
-					handleMutate().pipe(
-						Effect.tap(() => Metrics.action("zero.mutate", "success")),
-						Effect.tapCause(() => Metrics.action("zero.mutate", "failure")),
-					),
-				),
+				.handleRaw("query", () => handleQuery().pipe(Observability.withAction("zero.query")))
+				.handleRaw("mutate", () => handleMutate().pipe(Observability.withAction("zero.mutate"))),
 		);
 }
