@@ -56,7 +56,7 @@ const { handler } = HttpEffect.toWebHandlerLayer(
 					return origin === `https://${Resource.Dns.AppDomain}`;
 				},
 				credentials: true,
-			})(RequestContext.middleware(app)),
+			})(RequestContext.middleware(HttpMiddleware.logger(app))),
 	},
 );
 
