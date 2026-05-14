@@ -5,17 +5,9 @@ import { useMemo, useState, type ComponentProps, type MouseEvent } from "react";
 
 import { Badge } from "@leuchtturm/web/components/ui/badge";
 import { Button } from "@leuchtturm/web/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardFooter,
-	CardHeader,
-	CardTitle,
-} from "@leuchtturm/web/components/ui/card";
 import { Show } from "@leuchtturm/web/components/ui/flow";
 import { Switch } from "@leuchtturm/web/components/ui/switch";
 import { reportError } from "@leuchtturm/web/lib/report-error";
-import { cn } from "@leuchtturm/web/lib/utils";
 
 type Plan = NonNullable<ReturnType<typeof useListPlans>["data"]>[number];
 type PlanItem = Plan["items"][number];
@@ -83,9 +75,9 @@ export function PricingTable() {
 					</span>
 				</div>
 			</Show>
-			<div className="grid gap-3 sm:grid-cols-2">
+			<ul className="divide-y divide-border border-y border-border">
 				{visiblePlans.map((plan) => (
-					<PricingCard
+					<PricingPlan
 						key={plan.id}
 						plan={plan}
 						buttonProps={{
@@ -103,12 +95,12 @@ export function PricingTable() {
 						}
 					/>
 				))}
-			</div>
+			</ul>
 		</div>
 	);
 }
 
-function PricingCard({
+function PricingPlan({
 	plan,
 	buttonProps,
 	onError,
@@ -137,41 +129,42 @@ function PricingCard({
 	}
 
 	return (
-		<Card className={cn("relative h-full", isRecommended && "ring-primary ring-2")}>
-			<Show when={isRecommended}>
-				<Badge className="absolute top-4 right-4" variant="secondary">
-					<T>Recommended</T>
-				</Badge>
-			</Show>
-			<CardHeader>
-				<CardTitle>{plan.name}</CardTitle>
-				<Show when={plan.description}>
-					{(description) => (
-						<p className="line-clamp-2 text-sm text-muted-foreground">{description}</p>
-					)}
-				</Show>
-			</CardHeader>
-			<CardContent className="flex grow flex-col gap-6">
-				<div className="flex items-baseline gap-1">
-					<span className="text-3xl font-semibold">{mainPriceDisplay.primaryText}</span>
-					<Show when={mainPriceDisplay.secondaryText}>
-						{(text) => <span className="text-sm text-muted-foreground">{text}</span>}
-					</Show>
+		<li className="py-5">
+			<div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+				<div className="min-w-0 space-y-4">
+					<div className="space-y-1">
+						<div className="flex flex-wrap items-center gap-2">
+							<h3 className="text-sm font-medium">{plan.name}</h3>
+							<Show when={isRecommended}>
+								<Badge variant="secondary">
+									<T>Recommended</T>
+								</Badge>
+							</Show>
+						</div>
+						<Show when={plan.description}>
+							{(description) => <p className="text-sm text-muted-foreground">{description}</p>}
+						</Show>
+					</div>
+					<PricingFeatureList items={featureItems} />
 				</div>
-				<PricingFeatureList items={featureItems} />
-			</CardContent>
-			<CardFooter>
-				<Button
-					className="w-full"
-					variant={isRecommended ? "default" : "secondary"}
-					{...buttonProps}
-					onClick={handleClick}
-					loading={isLoading}
-				>
-					{getButtonText(plan, t)}
-				</Button>
-			</CardFooter>
-		</Card>
+				<div className="flex shrink-0 flex-col gap-3 sm:items-end">
+					<div className="flex items-baseline gap-1 sm:justify-end">
+						<span className="text-3xl font-semibold">{mainPriceDisplay.primaryText}</span>
+						<Show when={mainPriceDisplay.secondaryText}>
+							{(text) => <span className="text-sm text-muted-foreground">{text}</span>}
+						</Show>
+					</div>
+					<Button
+						variant={isRecommended ? "default" : "secondary"}
+						{...buttonProps}
+						onClick={handleClick}
+						loading={isLoading}
+					>
+						{getButtonText(plan, t)}
+					</Button>
+				</div>
+			</div>
+		</li>
 	);
 }
 
