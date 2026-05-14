@@ -34,26 +34,6 @@ if ($dev) {
 		includes: [{ ip: { ip: "74.220.51.0/24" } }, { ip: { ip: "74.220.59.0/24" } }],
 	});
 
-	const tanstackDevtoolsPolicy = new cloudflare.ZeroTrustAccessPolicy(
-		"TanStackDevtoolsAccessPolicy",
-		{
-			accountId: secrets.cloudflareAccountId.value,
-			name: `${$app.name}-${$app.stage}-tanstack-devtools`,
-			decision: "bypass",
-			includes: [{ everyone: {} }],
-		},
-	);
-
-	new cloudflare.ZeroTrustAccessApplication("TanStackDevtoolsAccess", {
-		accountId: secrets.cloudflareAccountId.value,
-		name: `${$app.name}-${$app.stage}-tanstack-devtools`,
-		type: "self_hosted",
-		domain: `${appDomain}/__tsd/*`,
-		policies: [{ id: tanstackDevtoolsPolicy.id }],
-		destinations: [{ type: "public", uri: `${appDomain}/__tsd/*` }],
-		sessionDuration: "24h",
-	});
-
 	new cloudflare.ZeroTrustAccessApplication("Access", {
 		accountId: secrets.cloudflareAccountId.value,
 		name: `${$app.name}-${$app.stage}`,
@@ -75,6 +55,7 @@ if ($dev) {
 		},
 		httpOnlyCookieAttribute: true,
 		sameSiteCookieAttribute: "none",
+		skipInterstitial: true,
 		sessionDuration: "24h",
 	});
 }
