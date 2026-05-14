@@ -5,6 +5,9 @@
 }: {
 	# Use nixpkgs aube once > 1.10
 	packages = [
+		(pkgs.writeShellScriptBin "ar" ''
+			exec aube run "$@"
+		'')
 		(pkgs.rustPlatform.buildRustPackage rec {
 				pname = "aube";
 				version = "1.13.1";
@@ -37,8 +40,6 @@
 	# -----
 
 	enterShell = ''
-		alias ar='aube run'
-
 		PATH=":''${PATH}:"
 		PATH="''${PATH//:node_modules\/.bin:/:}"
 		PATH="''${PATH#:}"
