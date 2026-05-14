@@ -61,6 +61,7 @@ const handleRequest = Effect.fn("handleRequest")(function* (
 	executionContext: Pick<ExecutionContext, "waitUntil">,
 ) {
 	const baseContext = RequestContext.make(request, executionContext);
+	const url = new URL(request.url);
 
 	return yield* Observability.withRequestContext(baseContext)(
 		Effect.scoped(
@@ -81,11 +82,22 @@ const handleRequest = Effect.fn("handleRequest")(function* (
 						try: () => handler(request, requestContext),
 						catch: (cause) => cause,
 					}).pipe(
-						Effect.ensuring(Effect.yieldNow),
+						Effect.tap((response) =>
+							Effect.annotateCurrentSpan({ "http.response.status_code": response.status }),
+						),
 						Effect.mapError(() => new InternalServerError()),
 					),
 					requestContext,
 				);
+			}),
+		).pipe(
+			Effect.withSpan(`${request.method} ${url.pathname}`, {
+				attributes: {
+					"http.request.method": request.method,
+					"url.path": url.pathname,
+				},
+				kind: "server",
+				root: true,
 			}),
 		),
 	);
