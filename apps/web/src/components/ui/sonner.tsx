@@ -1,10 +1,11 @@
-import { CheckCircleIcon } from "@phosphor-icons/react/CheckCircle";
-import { InfoIcon } from "@phosphor-icons/react/Info";
-import { SpinnerIcon } from "@phosphor-icons/react/Spinner";
-import { WarningIcon } from "@phosphor-icons/react/Warning";
-import { XCircleIcon } from "@phosphor-icons/react/XCircle";
+import {
+	CheckCircleIcon,
+	InfoIcon,
+	WarningIcon,
+	XCircleIcon,
+	SpinnerIcon,
+} from "@phosphor-icons/react";
 import { useTheme } from "next-themes";
-import { type CSSProperties } from "react";
 import { Toaster as Sonner, type ToasterProps } from "sonner";
 
 const Toaster = ({ ...props }: ToasterProps) => {
@@ -27,14 +28,13 @@ const Toaster = ({ ...props }: ToasterProps) => {
 					"--normal-text": "var(--popover-foreground)",
 					"--normal-border": "var(--border)",
 					"--border-radius": "var(--radius)",
-				} as CSSProperties
+				} as React.CSSProperties
 			}
 			toastOptions={{
 				classNames: {
 					toast: "cn-toast",
 				},
 			}}
-			position="top-center"
 			{...props}
 		/>
 	);
