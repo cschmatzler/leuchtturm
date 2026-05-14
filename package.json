@@ -30,6 +30,9 @@
 		"vite": "8.0.12",
 		"vitest": "4.1.6"
 	},
+	"overrides": {
+		"drizzle-orm": "1.0.0-rc.2"
+	},
 	"trustedDependencies": [
 		"@rocicorp/zero-sqlite3"
 	]
