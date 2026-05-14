@@ -23,14 +23,15 @@ export namespace ZeroHandler {
 
 		const result = yield* Effect.tryPromise({
 			try: () =>
-				handleQueryRequest(
-					(name: string, args: ReadonlyJSONValue | undefined) => {
+				handleQueryRequest({
+					handler: (name: string, args: ReadonlyJSONValue | undefined) => {
 						const query = mustGetQuery(queries, name);
 						return query.fn({ args, ctx: { userId: user.id } });
 					},
 					schema,
-					rawRequest,
-				),
+					request: rawRequest,
+					userID: user.id,
+				}),
 			catch: (cause) => cause,
 		}).pipe(
 			Effect.catchCause((cause) =>
@@ -53,17 +54,18 @@ export namespace ZeroHandler {
 
 		const result = yield* Effect.tryPromise({
 			try: () =>
-				handleMutateRequest(
-					database,
-					async (transact) =>
+				handleMutateRequest({
+					dbProvider: database,
+					handler: async (transact) =>
 						transact(async (tx, name, args) => {
 							return Promise.resolve().then(() => {
 								const mutator = mustGetMutator(mutators, name);
 								return mutator.fn({ tx, ctx, args });
 							});
 						}),
-					rawRequest,
-				),
+					request: rawRequest,
+					userID: user.id,
+				}),
 			catch: (cause) => cause,
 		}).pipe(
 			Effect.catchCause((cause) =>
