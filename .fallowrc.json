@@ -5,19 +5,19 @@
 		"apps/web/src/components/ui/**/*.{ts,tsx}",
 		"oxfmt.config.ts",
 		"oxlint.config.ts",
-		"sst.config.ts",
+		"sst.config.ts"
 	],
 	"ignoreDependencies": [
 		"@cloudyskysoftware/pulumi-render",
 		"@pulumi/pulumi",
 		"@pulumiverse/grafana",
 		"gt",
-		"sst",
+		"sst"
 	],
 	"ignoreExports": [
 		{
 			"file": "apps/web/src/components/ui/**/*.{ts,tsx}",
-			"exports": ["*"],
-		},
-	],
+			"exports": ["*"]
+		}
+	]
 }

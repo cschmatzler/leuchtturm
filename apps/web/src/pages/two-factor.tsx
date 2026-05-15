@@ -5,7 +5,14 @@ import * as Schema from "effect/Schema";
 import { T } from "gt-react";
 
 import { authClient } from "@leuchtturm/web/clients/auth";
-import { AuthLayout } from "@leuchtturm/web/components/auth-layout";
+import {
+	AuthLayoutAside,
+	AuthLayoutBrand,
+	AuthLayoutContent,
+	AuthLayoutHeader,
+	AuthLayoutMain,
+	AuthLayoutShell,
+} from "@leuchtturm/web/components/auth-layout";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import {
 	Field,
@@ -82,171 +89,181 @@ function Page() {
 	});
 
 	return (
-		<AuthLayout>
-			<div className="flex flex-col gap-6">
-				<div className="flex flex-col gap-2">
-					<h1 className="font-serif text-3xl">
-						<T>Two-factor authentication</T>
-					</h1>
-					<p className="text-sm text-muted-foreground">
-						<T>Enter the code from your authenticator app to finish signing in.</T>
-					</p>
-				</div>
-				<Show
-					when={search.backup}
-					fallback={
-						<form action={() => totpForm.handleSubmit()}>
-							<FieldGroup>
-								<totpForm.Subscribe selector={(state) => state.errorMap.onSubmit}>
-									{(formError) => (
-										<Show when={formError}>
-											{(error) => <FieldError>{String(error)}</FieldError>}
-										</Show>
-									)}
-								</totpForm.Subscribe>
-								<totpForm.Field name="code">
-									{(field) => (
-										<Field>
-											<FieldLabel htmlFor={field.name}>
-												<T>Authentication code</T>
-											</FieldLabel>
-											<Input
-												id={field.name}
-												name={field.name}
-												inputMode="numeric"
-												autoComplete="one-time-code"
-												value={field.state.value}
-												onBlur={field.handleBlur}
-												onInput={(event) => {
-													field.handleChange(event.currentTarget.value);
-												}}
-												required
-											/>
-										</Field>
-									)}
-								</totpForm.Field>
-								<totpForm.Field name="trustDevice">
-									{(field) => (
-										<Field className="flex-row items-start gap-3">
-											<Switch
-												id={field.name}
-												aria-labelledby={`${field.name}-label`}
-												checked={field.state.value}
-												onCheckedChange={field.handleChange}
-												className="mt-1"
-											/>
-											<div className="space-y-1">
-												<FieldLabel id={`${field.name}-label`}>
-													<T>Trust this device</T>
-												</FieldLabel>
-												<FieldDescription>
-													<T>Skip two-factor prompts on this device for 30 days.</T>
-												</FieldDescription>
-											</div>
-										</Field>
-									)}
-								</totpForm.Field>
-								<totpForm.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
-									{([canSubmit, isSubmitting]) => (
-										<Button
-											type="submit"
-											className="w-full"
-											loading={isSubmitting}
-											disabled={!canSubmit}
-										>
-											<T>Verify</T>
-										</Button>
-									)}
-								</totpForm.Subscribe>
-								<div className="text-center text-sm">
-									<Link
-										to="/two-factor"
-										search={{ backup: true }}
-										className="underline underline-offset-4 hover:text-primary"
-									>
-										<T>Use backup code</T>
-									</Link>
-								</div>
-							</FieldGroup>
-						</form>
-					}
-				>
-					<form action={() => backupCodeForm.handleSubmit()}>
-						<FieldGroup>
-							<backupCodeForm.Subscribe selector={(state) => state.errorMap.onSubmit}>
-								{(formError) => (
-									<Show when={formError}>
-										{(error) => <FieldError>{String(error)}</FieldError>}
-									</Show>
-								)}
-							</backupCodeForm.Subscribe>
-							<backupCodeForm.Field name="code">
-								{(field) => (
-									<Field>
-										<FieldLabel htmlFor={field.name}>
-											<T>Backup code</T>
-										</FieldLabel>
-										<Input
-											id={field.name}
-											name={field.name}
-											inputMode="text"
-											autoComplete="one-time-code"
-											value={field.state.value}
-											onBlur={field.handleBlur}
-											onInput={(event) => {
-												field.handleChange(event.currentTarget.value);
-											}}
-											required
-										/>
-									</Field>
-								)}
-							</backupCodeForm.Field>
-							<backupCodeForm.Field name="trustDevice">
-								{(field) => (
-									<Field className="flex-row items-start gap-3">
-										<Switch
-											id={field.name}
-											aria-labelledby={`${field.name}-label`}
-											checked={field.state.value}
-											onCheckedChange={field.handleChange}
-											className="mt-1"
-										/>
-										<div className="space-y-1">
-											<FieldLabel id={`${field.name}-label`}>
-												<T>Trust this device</T>
-											</FieldLabel>
-											<FieldDescription>
-												<T>Skip two-factor prompts on this device for 30 days.</T>
-											</FieldDescription>
+		<AuthLayoutShell>
+			<AuthLayoutMain>
+				<AuthLayoutHeader centered>
+					<AuthLayoutBrand />
+				</AuthLayoutHeader>
+				<AuthLayoutContent>
+					<div className="flex flex-col gap-6">
+						<div className="flex flex-col gap-2">
+							<h1 className="font-serif text-3xl">
+								<T>Two-factor authentication</T>
+							</h1>
+							<p className="text-sm text-muted-foreground">
+								<T>Enter the code from your authenticator app to finish signing in.</T>
+							</p>
+						</div>
+						<Show
+							when={search.backup}
+							fallback={
+								<form action={() => totpForm.handleSubmit()}>
+									<FieldGroup>
+										<totpForm.Subscribe selector={(state) => state.errorMap.onSubmit}>
+											{(formError) => (
+												<Show when={formError}>
+													{(error) => <FieldError>{String(error)}</FieldError>}
+												</Show>
+											)}
+										</totpForm.Subscribe>
+										<totpForm.Field name="code">
+											{(field) => (
+												<Field>
+													<FieldLabel htmlFor={field.name}>
+														<T>Authentication code</T>
+													</FieldLabel>
+													<Input
+														id={field.name}
+														name={field.name}
+														inputMode="numeric"
+														autoComplete="one-time-code"
+														value={field.state.value}
+														onBlur={field.handleBlur}
+														onInput={(event) => {
+															field.handleChange(event.currentTarget.value);
+														}}
+														required
+													/>
+												</Field>
+											)}
+										</totpForm.Field>
+										<totpForm.Field name="trustDevice">
+											{(field) => (
+												<Field className="flex-row items-start gap-3">
+													<Switch
+														id={field.name}
+														aria-labelledby={`${field.name}-label`}
+														checked={field.state.value}
+														onCheckedChange={field.handleChange}
+														className="mt-1"
+													/>
+													<div className="space-y-1">
+														<FieldLabel id={`${field.name}-label`}>
+															<T>Trust this device</T>
+														</FieldLabel>
+														<FieldDescription>
+															<T>Skip two-factor prompts on this device for 30 days.</T>
+														</FieldDescription>
+													</div>
+												</Field>
+											)}
+										</totpForm.Field>
+										<totpForm.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
+											{([canSubmit, isSubmitting]) => (
+												<Button
+													type="submit"
+													className="w-full"
+													loading={isSubmitting}
+													disabled={!canSubmit}
+												>
+													<T>Verify</T>
+												</Button>
+											)}
+										</totpForm.Subscribe>
+										<div className="text-center text-sm">
+											<Link
+												to="/two-factor"
+												search={{ backup: true }}
+												className="underline underline-offset-4 hover:text-primary"
+											>
+												<T>Use backup code</T>
+											</Link>
 										</div>
-									</Field>
-								)}
-							</backupCodeForm.Field>
-							<backupCodeForm.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
-								{([canSubmit, isSubmitting]) => (
-									<Button
-										type="submit"
-										className="w-full"
-										loading={isSubmitting}
-										disabled={!canSubmit}
+									</FieldGroup>
+								</form>
+							}
+						>
+							<form action={() => backupCodeForm.handleSubmit()}>
+								<FieldGroup>
+									<backupCodeForm.Subscribe selector={(state) => state.errorMap.onSubmit}>
+										{(formError) => (
+											<Show when={formError}>
+												{(error) => <FieldError>{String(error)}</FieldError>}
+											</Show>
+										)}
+									</backupCodeForm.Subscribe>
+									<backupCodeForm.Field name="code">
+										{(field) => (
+											<Field>
+												<FieldLabel htmlFor={field.name}>
+													<T>Backup code</T>
+												</FieldLabel>
+												<Input
+													id={field.name}
+													name={field.name}
+													inputMode="text"
+													autoComplete="one-time-code"
+													value={field.state.value}
+													onBlur={field.handleBlur}
+													onInput={(event) => {
+														field.handleChange(event.currentTarget.value);
+													}}
+													required
+												/>
+											</Field>
+										)}
+									</backupCodeForm.Field>
+									<backupCodeForm.Field name="trustDevice">
+										{(field) => (
+											<Field className="flex-row items-start gap-3">
+												<Switch
+													id={field.name}
+													aria-labelledby={`${field.name}-label`}
+													checked={field.state.value}
+													onCheckedChange={field.handleChange}
+													className="mt-1"
+												/>
+												<div className="space-y-1">
+													<FieldLabel id={`${field.name}-label`}>
+														<T>Trust this device</T>
+													</FieldLabel>
+													<FieldDescription>
+														<T>Skip two-factor prompts on this device for 30 days.</T>
+													</FieldDescription>
+												</div>
+											</Field>
+										)}
+									</backupCodeForm.Field>
+									<backupCodeForm.Subscribe
+										selector={(state) => [state.canSubmit, state.isSubmitting]}
 									>
-										<T>Verify</T>
-									</Button>
-								)}
-							</backupCodeForm.Subscribe>
-							<div className="text-center text-sm">
-								<Link
-									to="/two-factor"
-									search={{ backup: false }}
-									className="underline underline-offset-4 hover:text-primary"
-								>
-									<T>Use authenticator code</T>
-								</Link>
-							</div>
-						</FieldGroup>
-					</form>
-				</Show>
-			</div>
-		</AuthLayout>
+										{([canSubmit, isSubmitting]) => (
+											<Button
+												type="submit"
+												className="w-full"
+												loading={isSubmitting}
+												disabled={!canSubmit}
+											>
+												<T>Verify</T>
+											</Button>
+										)}
+									</backupCodeForm.Subscribe>
+									<div className="text-center text-sm">
+										<Link
+											to="/two-factor"
+											search={{ backup: false }}
+											className="underline underline-offset-4 hover:text-primary"
+										>
+											<T>Use authenticator code</T>
+										</Link>
+									</div>
+								</FieldGroup>
+							</form>
+						</Show>
+					</div>
+				</AuthLayoutContent>
+			</AuthLayoutMain>
+			<AuthLayoutAside />
+		</AuthLayoutShell>
 	);
 }
