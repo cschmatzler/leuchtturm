@@ -18,7 +18,7 @@ export class AuthSessionLookupError extends Schema.TaggedErrorClass<AuthSessionL
 	}
 }
 
-export class AuthDeviceSessionsListError extends Schema.TaggedErrorClass<AuthDeviceSessionsListError>()(
+class AuthDeviceSessionsListError extends Schema.TaggedErrorClass<AuthDeviceSessionsListError>()(
 	"AuthDeviceSessionsListError",
 	{ message: Schema.String },
 ) {
@@ -54,7 +54,7 @@ export class AuthInvalidSessionPayloadError extends Schema.TaggedErrorClass<Auth
 	}
 }
 
-export class AuthInvalidDeviceSessionsPayloadError extends Schema.TaggedErrorClass<AuthInvalidDeviceSessionsPayloadError>()(
+class AuthInvalidDeviceSessionsPayloadError extends Schema.TaggedErrorClass<AuthInvalidDeviceSessionsPayloadError>()(
 	"AuthInvalidDeviceSessionsPayloadError",
 	{ message: Schema.String },
 ) {

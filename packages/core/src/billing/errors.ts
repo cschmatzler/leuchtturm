@@ -13,5 +13,3 @@ export class BillingAutumnRequestError extends Schema.TaggedErrorClass<BillingAu
 }
 
 export const BillingError = Schema.Union([BillingAutumnRequestError]);
-
-export type BillingErrorType = BillingAutumnRequestError;

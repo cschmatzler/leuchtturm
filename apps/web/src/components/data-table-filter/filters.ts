@@ -15,9 +15,9 @@ import type {
 import { isAnyOf, uniq } from "@leuchtturm/web/lib/array";
 import { memo } from "@leuchtturm/web/lib/memo";
 
-export type NumberColumnType<TType extends ColumnDataType> = TType extends "number" ? TType : never;
+type NumberColumnType<TType extends ColumnDataType> = TType extends "number" ? TType : never;
 
-export type OptionColumnType<TType extends ColumnDataType> = TType extends "option" | "multiOption"
+type OptionColumnType<TType extends ColumnDataType> = TType extends "option" | "multiOption"
 	? TType
 	: never;
 

@@ -1,0 +1,23 @@
+{
+	"$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
+	"entry": [
+		"apps/web/src/clients/api.ts",
+		"apps/web/src/components/ui/**/*.{ts,tsx}",
+		"oxfmt.config.ts",
+		"oxlint.config.ts",
+		"sst.config.ts",
+	],
+	"ignoreDependencies": [
+		"@cloudyskysoftware/pulumi-render",
+		"@pulumi/pulumi",
+		"@pulumiverse/grafana",
+		"gt",
+		"sst",
+	],
+	"ignoreExports": [
+		{
+			"file": "apps/web/src/components/ui/**/*.{ts,tsx}",
+			"exports": ["*"],
+		},
+	],
+}
