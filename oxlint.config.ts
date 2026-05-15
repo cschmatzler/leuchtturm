@@ -38,8 +38,6 @@ export default defineConfig({
 		".opencode/**",
 		".pi/**",
 		"packages/oxlint-plugins/**",
-		"infra/**",
-		"sst.config.ts",
 	],
 	rules: {
 		"consistent-component-hook-groups/consistent-component-hook-groups": "error",

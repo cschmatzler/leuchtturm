@@ -125,8 +125,7 @@ export const grafanaOtlpConfig = new sst.Linkable("GrafanaOtlpConfig", {
 			username: grafanaStack.apply((stack) => stack.id),
 			token: telemetryAccessPolicyToken.token,
 		}).apply(
-			({ username, token }: { token: string; username: string }) =>
-				`Basic ${Buffer.from(`${username}:${token}`).toString("base64")}`,
+			({ username, token }) => `Basic ${Buffer.from(`${username}:${token}`).toString("base64")}`,
 		),
 		url: $interpolate`${grafanaStack.otlpUrl}/otlp`,
 	},

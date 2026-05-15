@@ -15,6 +15,7 @@
 			"@leuchtturm/api/*": ["./apps/api/src/*"],
 			"@leuchtturm/core/*": ["./packages/core/src/*"],
 			"@leuchtturm/email/*": ["./packages/email/src/*"],
+			"@leuchtturm/infra/*": ["./infra/*"],
 			"@leuchtturm/web/*": ["./apps/web/src/*"],
 			"@leuchtturm/zero/*": ["./packages/zero/src/*"]
 		},
@@ -44,6 +45,9 @@
 		"packages/core/sst-env.d.ts",
 		"packages/email/src",
 		"packages/email/sst-env.d.ts",
+		"infra",
+		"sst.config.ts",
+		".sst/platform/config.d.ts",
 		"packages/zero/src",
 		"packages/zero/sst-env.d.ts"
 	]

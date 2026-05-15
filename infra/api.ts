@@ -13,7 +13,7 @@ export const api = new sst.cloudflare.Worker("ApiWorker", {
 	},
 	link: [dns, storage, hyperdrive, grafanaOtlpConfig, ...apiSecrets],
 	transform: {
-		worker: (args: WorkerScriptArgs) => {
+		worker: (args: cloudflare.WorkerScriptArgs) => {
 			args.bindings = $resolve(args.bindings!).apply((bindings) => [
 				...bindings,
 				{ name: "EMAIL", type: "send_email" },

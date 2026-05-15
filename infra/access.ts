@@ -1,4 +1,4 @@
-import { apiDomain, appDomain } from "@leuchtturm/infra/dns";
+import { appDomain } from "@leuchtturm/infra/dns";
 import { secrets } from "@leuchtturm/infra/secrets";
 
 if ($dev) {
