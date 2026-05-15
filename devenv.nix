@@ -7,15 +7,15 @@
 		# Use nixpkgs aube once > 1.10
 		(pkgs.rustPlatform.buildRustPackage rec {
 				pname = "aube";
-				version = "1.14.0";
+				version = "1.14.1";
 
 				src =
 					pkgs.fetchCrate {
 						inherit pname version;
-						hash = "sha256-rnojhBOMd8BLJqiKblU7FreYt+4LJ+2MIKHNs1bSq8Y=";
+						hash = "sha256-SgLS8fMbtxULmnh4yRlMFOUTpGoqGa1B09nwr7ud7tU=";
 					};
 
-				cargoHash = "sha256-vYDH42p5RGccV3CHtYMDA7pTAC0H4Ety1jzGKeg7YGk=";
+				cargoHash = "sha256-GPbo9OBeXL0RXc0zYDM4AIF2/RwxqKMPYM+5Nkf/P98=";
 				nativeBuildInputs = [pkgs.cmake pkgs.pkg-config];
 			})
 		# Use nixpkgs fnox once it is packaged
