@@ -5,6 +5,7 @@ import { T, useGT, Var } from "gt-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { Role } from "@leuchtturm/core/auth/schema";
 import { authClient } from "@leuchtturm/web/clients/auth";
 import { Button } from "@leuchtturm/web/components/ui/button";
 import {
@@ -37,7 +38,7 @@ export const Route = createFileRoute("/accept-invitation/$id")({
 				id: string;
 				organizationId: string;
 				email: string;
-				role: "member" | "admin" | "owner";
+				role: typeof Role.Type;
 				status: "pending" | "accepted" | "rejected" | "canceled";
 				inviterId: string;
 				expiresAt: Date;

@@ -2,10 +2,12 @@ import { createInsertSchema, createSelectSchema } from "drizzle-orm/effect-schem
 import * as Schema from "effect/Schema";
 import * as SchemaGetter from "effect/SchemaGetter";
 
+import { AuthAccessControl } from "@leuchtturm/core/auth/access-control";
 import {
 	accountTable,
 	invitationTable,
 	memberTable,
+	organizationRoleTable,
 	organizationTable,
 	sessionTable,
 	teamMemberTable,
@@ -16,7 +18,7 @@ import {
 } from "@leuchtturm/core/auth/auth.sql";
 import { Email, Ulid } from "@leuchtturm/core/schema";
 
-export const Role = Schema.Literals(["admin", "owner", "member"]);
+export const Role = Schema.Literals(AuthAccessControl.roleKeys);
 const UserRole = Schema.Literals(["admin", "user"]);
 
 export const UserInsert = createInsertSchema(userTable, {
@@ -67,6 +69,11 @@ export const OrganizationInsert = createInsertSchema(organizationTable, {
 		),
 });
 export const OrganizationSelect = createSelectSchema(organizationTable);
+
+export const OrganizationRoleSelect = createSelectSchema(organizationRoleTable, {
+	id: () => Schema.TemplateLiteral(["orl_", Ulid]).pipe(Schema.brand("OrganizationRoleId")),
+	organizationId: () => Schema.TemplateLiteral(["org_", Ulid]).pipe(Schema.brand("OrganizationId")),
+});
 
 export const TeamInsert = createInsertSchema(teamTable, {
 	id: () => Schema.TemplateLiteral(["tea_", Ulid]).pipe(Schema.brand("TeamId")),

@@ -74,6 +74,15 @@ export class AuthOrganizationLookupError extends Schema.TaggedErrorClass<AuthOrg
 	}
 }
 
+export class AuthPermissionLookupError extends Schema.TaggedErrorClass<AuthPermissionLookupError>()(
+	"AuthPermissionLookupError",
+	{ message: Schema.String },
+) {
+	static new() {
+		return new AuthPermissionLookupError({ message: "Auth permission lookup failed." });
+	}
+}
+
 export class AuthInvalidOrganizationPayloadError extends Schema.TaggedErrorClass<AuthInvalidOrganizationPayloadError>()(
 	"AuthInvalidOrganizationPayloadError",
 	{ message: Schema.String },
@@ -135,6 +144,7 @@ export const AuthError = Schema.Union([
 	AuthInvalidSessionPayloadError,
 	AuthInvalidDeviceSessionsPayloadError,
 	AuthOrganizationLookupError,
+	AuthPermissionLookupError,
 	AuthInvalidOrganizationPayloadError,
 	AuthInvalidTeamPayloadError,
 	AuthDuplicateOrganizationNameError,

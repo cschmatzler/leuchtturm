@@ -5,6 +5,7 @@ import * as Layer from "effect/Layer";
 import * as Schema from "effect/Schema";
 import { AsyncLocalStorage } from "node:async_hooks";
 
+import { AuthAccessControl } from "@leuchtturm/core/auth/access-control";
 import { BetterAuth } from "@leuchtturm/core/auth/better-auth";
 import {
 	AuthError,
@@ -12,6 +13,7 @@ import {
 	AuthInvalidOrganizationPayloadError,
 	AuthInvalidSessionPayloadError,
 	AuthOrganizationLookupError,
+	AuthPermissionLookupError,
 	AuthSessionLookupError,
 } from "@leuchtturm/core/auth/errors";
 import { OrganizationSelect, SessionData } from "@leuchtturm/core/auth/schema";
@@ -31,6 +33,11 @@ export namespace Auth {
 			Pick<typeof OrganizationSelect.Type, "id" | "name" | "slug"> | null,
 			typeof AuthError.Type
 		>;
+		readonly hasPermission: (
+			headers: Headers,
+			organizationId: string,
+			permissions: AuthAccessControl.Permissions,
+		) => Effect.Effect<boolean, typeof AuthError.Type>;
 	}
 
 	export class Service extends Context.Service<Service, Interface>()("@leuchtturm/Auth") {}
@@ -102,7 +109,27 @@ export namespace Auth {
 				);
 			});
 
-			return Service.of({ handle, getSession, getOrganization });
+			const hasPermission = Effect.fn("Auth.hasPermission")(function* (
+				headers: Headers,
+				organizationId: string,
+				permissions: AuthAccessControl.Permissions,
+			) {
+				return yield* Effect.tryPromise({
+					try: () =>
+						auth.api.hasPermission({
+							headers,
+							body: { organizationId, permissions },
+						}),
+					catch: () => AuthPermissionLookupError.new(),
+				}).pipe(
+					Effect.tapCause((cause) =>
+						Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) }),
+					),
+					Effect.map((result) => result.success),
+				);
+			});
+
+			return Service.of({ handle, getSession, getOrganization, hasPermission });
 		}),
 	);
 

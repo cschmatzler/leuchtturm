@@ -10,10 +10,12 @@ import type { AsyncLocalStorage } from "node:async_hooks";
 import { Resource } from "sst/resource/cloudflare";
 import { ulid } from "ulid";
 
+import { AuthAccessControl } from "@leuchtturm/core/auth/access-control";
 import {
 	accountTable,
 	invitationTable,
 	memberTable,
+	organizationRoleTable,
 	organizationTable,
 	sessionTable,
 	teamTable,
@@ -33,6 +35,7 @@ import {
 	InvitationSelect,
 	MemberSelect,
 	OrganizationInsert,
+	OrganizationRoleSelect,
 	OrganizationSelect,
 	SessionSelect,
 	TeamInsert,
@@ -75,6 +78,7 @@ export namespace BetterAuth {
 						invitation: invitationTable,
 						team: teamTable,
 						teamMember: teamMemberTable,
+						organizationRole: organizationRoleTable,
 					},
 				}),
 				user: {
@@ -124,6 +128,11 @@ export namespace BetterAuth {
 						issuer: "Leuchtturm",
 					}),
 					organization({
+						ac: AuthAccessControl.accessControl,
+						roles: AuthAccessControl.roles,
+						dynamicAccessControl: {
+							enabled: true,
+						},
 						sendInvitationEmail: (params) =>
 							Effect.runPromiseWith(context.getStore() ?? Context.empty())(
 								sendInvitationEmail({
@@ -329,6 +338,8 @@ export namespace BetterAuth {
 									return Schema.decodeSync(TwoFactorSelect.fields.id)(`tfa_${ulid()}`);
 								case "organization":
 									return Schema.decodeSync(OrganizationSelect.fields.id)(`org_${ulid()}`);
+								case "organizationRole":
+									return Schema.decodeSync(OrganizationRoleSelect.fields.id)(`orl_${ulid()}`);
 								case "member":
 									return Schema.decodeSync(MemberSelect.fields.id)(`mem_${ulid()}`);
 								case "invitation":

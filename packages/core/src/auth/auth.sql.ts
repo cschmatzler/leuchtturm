@@ -139,6 +139,24 @@ export const memberTable = pgTable(
 	],
 );
 
+export const organizationRoleTable = pgTable(
+	"organization_role",
+	{
+		id: char("id", { length: 30 }).primaryKey(),
+		organizationId: char("organization_id", { length: 30 })
+			.notNull()
+			.references(() => organizationTable.id, { onDelete: "cascade" }),
+		role: text("role").notNull(),
+		permission: text("permission").notNull(),
+		createdAt: timestamp("created_at").notNull(),
+		updatedAt: timestamp("updated_at").$onUpdate(() => new Date()),
+	},
+	(table) => [
+		index("organization_role_organization_id_idx").on(table.organizationId),
+		unique("organization_role_organization_role_uniq").on(table.organizationId, table.role),
+	],
+);
+
 export const teamTable = pgTable(
 	"team",
 	{
@@ -212,6 +230,7 @@ export const authRelations = defineRelationsPart(
 		twoFactor: twoFactorTable,
 		organization: organizationTable,
 		member: memberTable,
+		organizationRole: organizationRoleTable,
 		team: teamTable,
 		teamMember: teamMemberTable,
 		invitation: invitationTable,
@@ -241,6 +260,10 @@ export const authRelations = defineRelationsPart(
 		},
 		organization: {
 			members: r.many.member({ from: r.organization.id, to: r.member.organizationId }),
+			roles: r.many.organizationRole({
+				from: r.organization.id,
+				to: r.organizationRole.organizationId,
+			}),
 			teams: r.many.team({ from: r.organization.id, to: r.team.organizationId }),
 			invitations: r.many.invitation({
 				from: r.organization.id,
@@ -250,6 +273,12 @@ export const authRelations = defineRelationsPart(
 		member: {
 			organization: r.one.organization({ from: r.member.organizationId, to: r.organization.id }),
 			user: r.one.user({ from: r.member.userId, to: r.user.id }),
+		},
+		organizationRole: {
+			organization: r.one.organization({
+				from: r.organizationRole.organizationId,
+				to: r.organization.id,
+			}),
 		},
 		team: {
 			organization: r.one.organization({ from: r.team.organizationId, to: r.organization.id }),
