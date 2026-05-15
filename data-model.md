@@ -1,3 +1,5 @@
+Random test message: the lighthouse now serves waffles.
+
 # Leuchtturm Document Data Model Draft
 
 Status: draft for discussion.
@@ -8,15 +10,16 @@ This model starts from a Paperless-ngx and Mayan EDMS shape: documents are team-
 
 The existing codebase already defines authentication, organizations, and teams through Better Auth tables in `packages/core/src/auth/auth.sql.ts`.
 
-| Constraint   | Decision                                                                                                                                                        |
-| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Team scope   | Every document-domain table carries `team_id`. There is no organization-level document data. Organization membership is reached through `team.organization_id`. |
-| IDs          | Keep the existing prefixed ULID style in `char(30)` columns, for example `usr_` plus 26 ULID chars.                                                             |
-| Database     | PostgreSQL is the source of truth for all metadata and relationships.                                                                                           |
-| Blob storage | Cloudflare R2 stores binary content. PostgreSQL stores object keys, digests, sizes, and lifecycle metadata.                                                     |
-| Client sync  | Zero syncs selected metadata and audit tables. Full files, extracted text blobs, search state, and blob storage internals stay server/API-only.                 |
-| Search       | Turbopuffer is a derived index for full-text, vector, and filtered search. It is never the source of truth.                                                     |
-| Migrations   | This document is not a migration plan. Migrations should be created separately when the schema is approved.                                                     |
+| Constraint     | Decision                                                                                                                                                                                             |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Team scope     | Every document-domain table carries `team_id`. There is no organization-level document data. Organization membership is reached through `team.organization_id`.                                      |
+| Auth and roles | Better Auth owns users, organization membership, team membership, organization roles, dynamic roles, and coarse permission vocabulary. Document ACLs only bind those principals to document objects. |
+| IDs            | Keep the existing prefixed ULID style in `char(30)` columns, for example `usr_` plus 26 ULID chars.                                                                                                  |
+| Database       | PostgreSQL is the source of truth for all metadata and relationships.                                                                                                                                |
+| Blob storage   | Cloudflare R2 stores binary content. PostgreSQL stores object keys, digests, sizes, and lifecycle metadata.                                                                                          |
+| Client sync    | Zero syncs selected metadata and audit tables. Full files, extracted text blobs, search state, and blob storage internals stay server/API-only.                                                      |
+| Search         | Turbopuffer is a derived index for full-text, vector, and filtered search. It is never the source of truth.                                                                                          |
+| Migrations     | This document is not a migration plan. Migrations should be created separately when the schema is approved.                                                                                          |
 
 ## Research Lessons Applied
 
@@ -27,7 +30,7 @@ The existing codebase already defines authentication, organizations, and teams t
 | Alfresco      | Stable node identity, typed relationships, content storage abstraction, mandatory audit, optional capabilities through model definitions. | Full sparse node-property store as the primary schema, Solr-style dependence for ordinary reads.    |
 | Nuxeo         | Document types, lifecycle policies, version rows with latest/latest-major flags, ACL inheritance, read ACL optimization.                  | XML-heavy deployment model and opaque generated schema tables.                                      |
 | Documentum    | Immutable version chains, symbolic labels, renditions, generic relation objects, record-management path.                                  | Proprietary ID semantics, repeating attribute tables for ordinary multi-value metadata.             |
-| SharePoint    | Content type inheritance concept, checkout, major/minor versions, role definitions, permission inheritance.                               | Generic fixed column pools, path-based document identity, direct SQL-style integration assumptions. |
+| SharePoint    | Content type inheritance concept, checkout, major/minor versions, role definitions through Better Auth, permission inheritance.           | Generic fixed column pools, path-based document identity, direct SQL-style integration assumptions. |
 | Nextcloud     | Simple storage abstraction, shares with expiration, activity stream ideas.                                                                | Path-based metadata identity and notification logs as compliance audit.                             |
 | Documize      | Team/workspace-oriented collaboration, action-level permission vocabulary, link integrity checks.                                         | Comma-separated tags and binary blobs embedded in database rows.                                    |
 
@@ -43,6 +46,7 @@ The existing codebase already defines authentication, organizations, and teams t
 8. The relational model stays queryable without requiring Turbopuffer for ordinary metadata screens.
 9. Search indexes, Zero replicas, generated thumbnails, and permission caches are derived data and can be rebuilt.
 10. Extensibility should come from typed definitions and typed relationships before generic JSON bags.
+11. Better Auth should be reused for organization roles and coarse permissions instead of duplicating an application role engine.
 
 ## High-Level Shape
 
@@ -198,26 +202,26 @@ Constraints and indexes:
 
 The stable logical document. This is the row Zero will usually list.
 
-| Column                     | Type             | Notes                                                         |
-| -------------------------- | ---------------- | ------------------------------------------------------------- |
-| `id`                       | `char(30)`       | `doc_` prefix.                                                |
-| `team_id`                  | `char(30)`       | FK to `team.id`.                                              |
-| `library_id`               | `char(30)`       | FK to `document_library.id`.                                  |
-| `document_type_id`         | `char(30) null`  | FK to `document_type.id`. Nullable for early ingestion stubs. |
-| `title`                    | `text`           | User-facing title.                                            |
-| `description`              | `text null`      | Optional.                                                     |
-| `language`                 | `text null`      | Primary language code, like Mayan.                            |
-| `owner_user_id`            | `char(30) null`  | FK to `user.id`. Ownership is not the permission model.       |
-| `current_version_id`       | `char(30) null`  | FK to `document_version.id`. Null while stub or processing.   |
-| `current_major_version_id` | `char(30) null`  | FK to `document_version.id`. Useful for published views.      |
-| `lifecycle_definition_id`  | `char(30) null`  | FK to `lifecycle_definition.id`.                              |
-| `lifecycle_state_id`       | `char(30) null`  | FK to `lifecycle_state.id`.                                   |
-| `acl_scope_id`             | `char(30) null`  | FK to `acl_scope.id`. Null means inherit from folder/library. |
-| `is_stub`                  | `boolean`        | True until first usable version exists.                       |
-| `in_trash`                 | `boolean`        | Recoverable user deletion.                                    |
-| `trashed_at`               | `timestamp null` | Trash timestamp.                                              |
-| `trashed_by`               | `char(30) null`  | FK to `user.id`.                                              |
-| common columns             |                  | Mutable and soft-deleteable.                                  |
+| Column                     | Type             | Notes                                                                |
+| -------------------------- | ---------------- | -------------------------------------------------------------------- |
+| `id`                       | `char(30)`       | `doc_` prefix.                                                       |
+| `team_id`                  | `char(30)`       | FK to `team.id`.                                                     |
+| `library_id`               | `char(30)`       | FK to `document_library.id`.                                         |
+| `document_type_id`         | `char(30) null`  | FK to `document_type.id`. Nullable for early ingestion stubs.        |
+| `title`                    | `text`           | User-facing title.                                                   |
+| `description`              | `text null`      | Optional.                                                            |
+| `language`                 | `text null`      | Primary language code, like Mayan.                                   |
+| `owner_user_id`            | `char(30) null`  | FK to `user.id`. Ownership is not the permission model.              |
+| `current_version_id`       | `char(30) null`  | FK to `document_version.id`. Null while stub or processing.          |
+| `current_major_version_id` | `char(30) null`  | FK to `document_version.id`. Useful for published views.             |
+| `lifecycle_definition_id`  | `char(30) null`  | FK to `lifecycle_definition.id`.                                     |
+| `lifecycle_state_id`       | `char(30) null`  | FK to `lifecycle_state.id`.                                          |
+| `acl_scope_id`             | `char(30) null`  | FK to `acl_scope.id`. Null means inherit from the library ACL scope. |
+| `is_stub`                  | `boolean`        | True until first usable version exists.                              |
+| `in_trash`                 | `boolean`        | Recoverable user deletion.                                           |
+| `trashed_at`               | `timestamp null` | Trash timestamp.                                                     |
+| `trashed_by`               | `char(30) null`  | FK to `user.id`.                                                     |
+| common columns             |                  | Mutable and soft-deleteable.                                         |
 
 Indexes:
 
@@ -662,108 +666,128 @@ Page-level annotation anchored to a specific version page.
 
 ## ACL And Permissions
 
-Documents are team-scoped, but team membership alone is not enough for enterprise document access. Use object-level ACL scopes with inheritance from library to folder to document.
+Documents are team-scoped, but team membership alone is not enough for enterprise document access. Build on Better Auth for identity, organization roles, dynamic roles, team membership, and coarse permission vocabulary. Keep a small document ACL layer only for object-specific grants, inheritance, derived access, and audit.
 
-### Permission Vocabulary
+### Better Auth Access Control Boundary
 
-Initial permissions:
+Better Auth should answer whether a user's organization role is allowed to attempt a class of action. The document ACL resolver should answer whether that user can perform the action on a specific library, folder, or document.
 
-| Permission            | Meaning                                                 |
-| --------------------- | ------------------------------------------------------- |
-| `read_metadata`       | See document row and non-sensitive metadata.            |
-| `read_content`        | Download/view file contents and OCR text.               |
-| `create_document`     | Create documents in a library/folder.                   |
-| `update_metadata`     | Edit title, tags, type, and metadata values.            |
-| `update_content`      | Upload files, create versions, modify page composition. |
-| `delete_document`     | Move to trash or request deletion.                      |
-| `restore_document`    | Restore from trash.                                     |
-| `manage_versions`     | Promote, label, or restore versions.                    |
-| `check_out`           | Lock/check out a document.                              |
-| `transition_workflow` | Perform lifecycle transitions.                          |
-| `manage_acl`          | Change permissions.                                     |
-| `share`               | Create share links or external access.                  |
-| `view_audit`          | View audit history.                                     |
-| `manage_records`      | Declare records, holds, retention, disposition.         |
+Recommended Better Auth access-control resources:
 
-### `permission_role`
+| Resource       | Actions                                                                                                                                                    | Notes                                                          |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| `document`     | `create`, `read_metadata`, `read_content`, `update_metadata`, `update_content`, `delete`, `restore`, `manage_versions`, `check_out`, `share`, `view_audit` | Coarse capability vocabulary for document operations.          |
+| `document_acl` | `manage`                                                                                                                                                   | Required before editing document ACL scopes or entries.        |
+| `workflow`     | `transition`, `manage_tasks`                                                                                                                               | Coarse workflow capabilities.                                  |
+| `records`      | `manage`                                                                                                                                                   | Retention, holds, declaration, and disposition.                |
+| `ac`           | Better Auth dynamic-access-control actions                                                                                                                 | Keep Better Auth's built-in dynamic role administration model. |
 
-Team-scoped role bundle similar to SharePoint role definitions.
+Better Auth roles are organization-scoped. Use the existing `member.role` field and Better Auth dynamic access control for built-in and custom roles such as `viewer`, `contributor`, `editor`, `manager`, and `records_manager`. Do not introduce local `permission_role` or `permission_role_permission` tables unless Better Auth's dynamic roles prove insufficient.
 
-| Column         | Type       | Notes                             |
-| -------------- | ---------- | --------------------------------- |
-| `id`           | `char(30)` | `pro_` prefix if added.           |
-| `team_id`      | `char(30)` | FK to `team.id`.                  |
-| `name`         | `text`     | Display name.                     |
-| `slug`         | `text`     | Stable key.                       |
-| `built_in`     | `boolean`  | Built-in roles cannot be deleted. |
-| common columns |            | Mutable and soft-deleteable.      |
+### Document ACL Permission Vocabulary
 
-Built-in roles: `viewer`, `contributor`, `editor`, `manager`, `records_manager`.
+Initial object-level permissions mirror the Better Auth vocabulary, but are granted on specific ACL scopes:
 
-### `permission_role_permission`
-
-| Column               | Type       | Notes                       |
-| -------------------- | ---------- | --------------------------- |
-| `team_id`            | `char(30)` | FK to `team.id`.            |
-| `permission_role_id` | `char(30)` | FK to `permission_role.id`. |
-| `permission`         | `text`     | Permission key.             |
-
-Primary key: `(permission_role_id, permission)`.
+| Resource       | Action            | Meaning                                                 |
+| -------------- | ----------------- | ------------------------------------------------------- |
+| `document`     | `read_metadata`   | See document row and non-sensitive metadata.            |
+| `document`     | `read_content`    | Download/view file contents and OCR text.               |
+| `document`     | `create`          | Create documents in a library/folder.                   |
+| `document`     | `update_metadata` | Edit title, tags, type, and metadata values.            |
+| `document`     | `update_content`  | Upload files, create versions, modify page composition. |
+| `document`     | `delete`          | Move to trash or request deletion.                      |
+| `document`     | `restore`         | Restore from trash.                                     |
+| `document`     | `manage_versions` | Promote, label, or restore versions.                    |
+| `document`     | `check_out`       | Lock/check out a document.                              |
+| `document`     | `share`           | Create share links or external access.                  |
+| `document`     | `view_audit`      | View audit history.                                     |
+| `document_acl` | `manage`          | Change document permissions.                            |
+| `workflow`     | `transition`      | Perform lifecycle transitions.                          |
+| `records`      | `manage`          | Declare records, holds, retention, disposition.         |
 
 ### `acl_scope`
 
-Inheritance scope for library, folder, document, and later document type or saved view.
+Inheritance scope for library, folder, document, and later document type or saved view. Use typed nullable FKs instead of a generic `object_type`/`object_id` pair so the database can enforce referential integrity.
 
-| Column                | Type            | Notes                            |
-| --------------------- | --------------- | -------------------------------- |
-| `id`                  | `char(30)`      | `acl_` prefix.                   |
-| `team_id`             | `char(30)`      | FK to `team.id`.                 |
-| `object_type`         | `text`          | `library`, `folder`, `document`. |
-| `object_id`           | `char(30)`      | ID of scoped object.             |
-| `parent_acl_scope_id` | `char(30) null` | FK to inherited scope.           |
-| `inheritance_mode`    | `text`          | `inherit`, `break`, `append`.    |
-| `created_at`          | `timestamp`     | Creation timestamp.              |
-| `created_by`          | `char(30) null` | FK to `user.id`.                 |
+| Column                | Type            | Notes                         |
+| --------------------- | --------------- | ----------------------------- |
+| `id`                  | `char(30)`      | `acl_` prefix.                |
+| `team_id`             | `char(30)`      | FK to `team.id`.              |
+| `library_id`          | `char(30) null` | FK to `document_library.id`.  |
+| `folder_id`           | `char(30) null` | FK to `document_folder.id`.   |
+| `document_id`         | `char(30) null` | FK to `document.id`.          |
+| `parent_acl_scope_id` | `char(30) null` | FK to inherited scope.        |
+| `inheritance_mode`    | `text`          | `inherit`, `break`, `append`. |
+| `created_at`          | `timestamp`     | Creation timestamp.           |
+| `created_by`          | `char(30) null` | FK to `user.id`.              |
 
-Constraint: `unique(object_type, object_id)`.
+Constraints and indexes:
+
+| Constraint                                              | Notes                                             |
+| ------------------------------------------------------- | ------------------------------------------------- |
+| exactly one of `library_id`, `folder_id`, `document_id` | Scope targets one concrete object.                |
+| partial unique `library_id`                             | At most one scope per library.                    |
+| partial unique `folder_id`                              | At most one scope per folder.                     |
+| partial unique `document_id`                            | At most one scope per document.                   |
+| `index(team_id, parent_acl_scope_id)`                   | Fast inherited-scope traversal and recomputation. |
+
+Folder filing rule: because `document_folder_entry` supports multi-filing, document access must not implicitly union every folder ACL. Initial rule: folder ACLs govern folder navigation, filing, and create actions; document read/write access resolves from the document scope or its library parent scope. If folder-inherited document access is required, add an explicit primary filing or inherited-folder pointer before migrations.
 
 ### `acl_entry`
 
-| Column               | Type            | Notes                                        |
-| -------------------- | --------------- | -------------------------------------------- |
-| `id`                 | `char(30)`      | `ace_` prefix.                               |
-| `team_id`            | `char(30)`      | FK to `team.id`.                             |
-| `acl_scope_id`       | `char(30)`      | FK to `acl_scope.id`.                        |
-| `principal_type`     | `text`          | `team`, `user`, `team_role`.                 |
-| `principal_id`       | `text`          | `team.id`, `user.id`, or role key.           |
-| `permission_role_id` | `char(30)`      | FK to `permission_role.id`.                  |
-| `effect`             | `text`          | `allow` or `deny`.                           |
-| `position`           | `integer`       | Explicit order for deterministic resolution. |
-| `created_at`         | `timestamp`     | Creation timestamp.                          |
-| `created_by`         | `char(30) null` | FK to `user.id`.                             |
+Object-specific grant or denial for a Better Auth principal.
+
+| Column              | Type            | Notes                                                               |
+| ------------------- | --------------- | ------------------------------------------------------------------- |
+| `id`                | `char(30)`      | `ace_` prefix.                                                      |
+| `team_id`           | `char(30)`      | FK to `team.id`.                                                    |
+| `acl_scope_id`      | `char(30)`      | FK to `acl_scope.id`.                                               |
+| `principal_type`    | `text`          | `user`, `team`, `organization_role`, `organization`.                |
+| `principal_user_id` | `char(30) null` | FK to `user.id` when `principal_type = 'user'`.                     |
+| `principal_team_id` | `char(30) null` | FK to `team.id` when `principal_type = 'team'`.                     |
+| `principal_role`    | `text null`     | Better Auth organization role key when type is `organization_role`. |
+| `resource`          | `text`          | Better Auth resource key, for example `document`.                   |
+| `action`            | `text`          | Better Auth action key, for example `read_content`.                 |
+| `effect`            | `text`          | `allow` or `deny`.                                                  |
+| `position`          | `integer`       | Explicit order for deterministic resolution.                        |
+| `created_at`        | `timestamp`     | Creation timestamp.                                                 |
+| `created_by`        | `char(30) null` | FK to `user.id`.                                                    |
+
+Constraints and indexes:
+
+| Constraint                               | Notes                                                |
+| ---------------------------------------- | ---------------------------------------------------- |
+| principal columns match `principal_type` | User, team, Better Auth role, or whole organization. |
+| `index(team_id, acl_scope_id, position)` | Resolve ordered ACL entries.                         |
+| `index(team_id, principal_user_id)`      | Recompute grants for a user.                         |
+| `index(team_id, principal_team_id)`      | Recompute grants for a team.                         |
+| `index(team_id, principal_role)`         | Recompute grants when Better Auth roles change.      |
 
 ### `document_access_grant`
 
-Derived read model for fast Zero and Turbopuffer filtering. This table is rebuilt when ACLs, folder filing, team membership, or role definitions change.
+Derived effective user grant for fast Zero and Turbopuffer filtering. This table is rebuilt when ACL scopes, ACL entries, Better Auth organization membership, Better Auth roles, team membership, folder filing, or inheritance rules change.
 
-| Column           | Type        | Notes                        |
-| ---------------- | ----------- | ---------------------------- |
-| `team_id`        | `char(30)`  | FK to `team.id`.             |
-| `document_id`    | `char(30)`  | FK to `document.id`.         |
-| `principal_type` | `text`      | `team`, `user`, `team_role`. |
-| `principal_id`   | `text`      | Principal key.               |
-| `permission`     | `text`      | Effective permission.        |
-| `computed_at`    | `timestamp` | Last computation.            |
+| Column          | Type        | Notes                              |
+| --------------- | ----------- | ---------------------------------- |
+| `team_id`       | `char(30)`  | FK to `team.id`.                   |
+| `document_id`   | `char(30)`  | FK to `document.id`.               |
+| `user_id`       | `char(30)`  | FK to `user.id`.                   |
+| `resource`      | `text`      | Effective resource key.            |
+| `action`        | `text`      | Effective action key.              |
+| `source_sha256` | `char(64)`  | Hash of inputs used for staleness. |
+| `computed_at`   | `timestamp` | Last computation.                  |
 
-Primary key: `(document_id, principal_type, principal_id, permission)`.
+Primary key: `(document_id, user_id, resource, action)`.
 
-Security rule:
+Security rules:
 
-| Rule               | Notes                                                                                                  |
-| ------------------ | ------------------------------------------------------------------------------------------------------ |
-| Server enforcement | All write and read APIs enforce permissions on the server.                                             |
-| Zero queries       | Zero queries must include authorization predicates or reference safe derived grants.                   |
-| Search             | Turbopuffer filters are an optimization; API post-filtering against PostgreSQL remains the safety net. |
+| Rule               | Notes                                                                                                       |
+| ------------------ | ----------------------------------------------------------------------------------------------------------- |
+| Better Auth first  | Server APIs check Better Auth coarse permissions for the requested resource/action where applicable.        |
+| Object ACL second  | Document-specific reads and writes require an effective ACL grant unless a deliberate global bypass exists. |
+| Server enforcement | All write and read APIs enforce permissions on the server.                                                  |
+| Zero queries       | Zero queries must include authorization predicates or reference safe derived grants.                        |
+| Search             | Turbopuffer filters are an optimization; API post-filtering against PostgreSQL remains the safety net.      |
 
 ## Checkout And Locks
 
@@ -860,7 +884,7 @@ Approval/review task tied to a document, version, and optional transition.
 | `document_id`         | `char(30)`       | FK to `document.id`.                                    |
 | `document_version_id` | `char(30) null`  | FK to `document_version.id`.                            |
 | `transition_id`       | `char(30) null`  | FK to `lifecycle_transition.id`.                        |
-| `assigned_to_type`    | `text`           | `user`, `team`, `team_role`.                            |
+| `assigned_to_type`    | `text`           | `user`, `team`, `organization_role`.                    |
 | `assigned_to_id`      | `text`           | Principal key.                                          |
 | `status`              | `text`           | `open`, `approved`, `rejected`, `cancelled`, `expired`. |
 | `due_at`              | `timestamp null` | Optional due date.                                      |
@@ -1060,28 +1084,28 @@ Tracks derived Turbopuffer rows and rebuild status.
 
 Turbopuffer attributes to write:
 
-| Attribute                  | Notes                                                                     |
-| -------------------------- | ------------------------------------------------------------------------- |
-| `team_id`                  | Mandatory filter.                                                         |
-| `document_id`              | Stable Postgres identity.                                                 |
-| `document_version_id`      | Current or explicit version.                                              |
-| `document_version_page_id` | Page result target.                                                       |
-| `document_type_id`         | Type filter.                                                              |
-| `lifecycle_state_id`       | Workflow filter.                                                          |
-| `tag_ids`                  | Tag filter if supported by chosen indexing shape.                         |
-| `metadata_*`               | Selected typed metadata fields marked `include_in_search`.                |
-| `access_principals`        | Derived principal keys if Turbopuffer filtering supports the final shape. |
-| `content`                  | Full-text searchable field.                                               |
-| `vector`                   | Optional embedding.                                                       |
+| Attribute                  | Notes                                                               |
+| -------------------------- | ------------------------------------------------------------------- |
+| `team_id`                  | Mandatory filter.                                                   |
+| `document_id`              | Stable Postgres identity.                                           |
+| `document_version_id`      | Current or explicit version.                                        |
+| `document_version_page_id` | Page result target.                                                 |
+| `document_type_id`         | Type filter.                                                        |
+| `lifecycle_state_id`       | Workflow filter.                                                    |
+| `tag_ids`                  | Tag filter if supported by chosen indexing shape.                   |
+| `metadata_*`               | Selected typed metadata fields marked `include_in_search`.          |
+| `access_user_ids`          | Derived user IDs if Turbopuffer filtering supports the final shape. |
+| `content`                  | Full-text searchable field.                                         |
+| `vector`                   | Optional embedding.                                                 |
 
 Search safety:
 
-| Rule                    | Notes                                                          |
-| ----------------------- | -------------------------------------------------------------- |
-| API owns search         | The client does not query Turbopuffer directly.                |
-| Permission filter first | Query with team and access-principal filters where possible.   |
-| Post-filter always      | Re-check returned document IDs against PostgreSQL permissions. |
-| Rebuildable index       | Deleting Turbopuffer rows must not delete source data.         |
+| Rule                    | Notes                                                           |
+| ----------------------- | --------------------------------------------------------------- |
+| API owns search         | The client does not query Turbopuffer directly.                 |
+| Permission filter first | Query with team and derived user-access filters where possible. |
+| Post-filter always      | Re-check returned document IDs against PostgreSQL permissions.  |
+| Rebuildable index       | Deleting Turbopuffer rows must not delete source data.          |
 
 ## Zero Sync Boundary
 
@@ -1122,7 +1146,7 @@ Server-only by default:
 | `processing_job`        | Server operations; expose filtered user-facing jobs separately if needed. |
 | `search_index_item`     | Derived search state.                                                     |
 
-For Zero authorization, mirror the current style in `packages/zero/src/queries.ts`: every query must start from team membership and then apply document access predicates.
+For Zero authorization, mirror the current style in `packages/zero/src/queries.ts`: every query must start from Better Auth organization membership, apply team scope where relevant, and then apply safe document access predicates or derived grants.
 
 ## Share Links
 
@@ -1138,7 +1162,8 @@ Paperless and Nextcloud both show that expiring share links are useful, but they
 | `document_version_id` | `char(30) null`  | Null means current version at access time, non-null means fixed version. |
 | `slug`                | `text`           | Public slug. Store token hash separately if using bearer tokens.         |
 | `token_hash`          | `text`           | Hash of secret token.                                                    |
-| `permission`          | `text`           | Usually `read_content`.                                                  |
+| `resource`            | `text`           | Usually `document`.                                                      |
+| `action`              | `text`           | Usually `read_content`.                                                  |
 | `expires_at`          | `timestamp null` | Expiration.                                                              |
 | `max_uses`            | `integer null`   | Optional.                                                                |
 | `use_count`           | `integer`        | Increment on access.                                                     |
@@ -1164,9 +1189,9 @@ Capabilities: typed metadata forms, tags, saved views, version metadata snapshot
 
 ### Phase 3: Enterprise Access And Workflow
 
-Tables: `permission_role`, `permission_role_permission`, `acl_scope`, `acl_entry`, `document_access_grant`, `document_lock`, `lifecycle_definition`, `lifecycle_state`, `lifecycle_transition`, `document_lifecycle_event`, `workflow_task`.
+Tables/configuration: Better Auth dynamic access control if enabled, `acl_scope`, `acl_entry`, `document_access_grant`, `document_lock`, `lifecycle_definition`, `lifecycle_state`, `lifecycle_transition`, `document_lifecycle_event`, `workflow_task`.
 
-Capabilities: object-level ACL inheritance, checkout, state machine workflow, task inbox.
+Capabilities: Better Auth organization roles and coarse permissions, object-level ACL inheritance, checkout, state machine workflow, task inbox.
 
 ### Phase 4: Compliance, Search, And Collaboration
 
@@ -1184,6 +1209,8 @@ These are not blockers for the conceptual model, but they should be decided befo
 | Should symbolic version labels be unique per document?                                                 | Documentum allows multiple labels in some cases; simpler UI usually wants unique labels.                              |
 | Should metadata edits outside check-in create minor versions?                                          | Stronger version semantics but more version churn. The draft currently audits them and snapshots on version creation. |
 | Should ACL `deny` entries ship in the first implementation?                                            | Denies are enterprise-friendly but make effective permission reasoning harder. The table supports them.               |
+| Should any Better Auth role bypass object ACLs globally?                                               | Simpler administration, but it weakens confidential document boundaries unless the bypass is explicit and audited.    |
+| Should Better Auth dynamic access control ship on day one?                                             | Dynamic roles are powerful, but static roles plus document ACLs may be enough for the first implementation.           |
 | Which metadata fields are sensitive and should not sync through Zero?                                  | Some field values may need API-only access even if most metadata syncs.                                               |
 | How much audit history should be visible in-product versus exported to compliance storage?             | The model keeps audit in Postgres with tamper-evident hashes; long-term archival can be added.                        |
 
@@ -1196,3 +1223,4 @@ These are not blockers for the conceptual model, but they should be decided befo
 5. No Alfresco-style universal sparse property table as the primary model.
 6. No untyped comma-separated tags or JSON-only metadata values.
 7. No client-side direct blob or search access without server authorization.
+8. No duplicate local organization role engine while Better Auth access control can cover the role layer.
