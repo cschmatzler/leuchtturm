@@ -48,7 +48,6 @@ namespace Api {
 			middleware: (app) =>
 				app.pipe(
 					HttpMiddleware.logger,
-					Observability.middleware,
 					RequestContext.middleware,
 					HttpMiddleware.cors({
 						allowedOrigins: (origin) => {
@@ -59,6 +58,7 @@ namespace Api {
 						},
 						credentials: true,
 					}),
+					Observability.middleware,
 				),
 		},
 	);
@@ -78,24 +78,19 @@ namespace Api {
 				Auth.defaultLayer,
 				ZeroDatabase.layer,
 			).pipe(Layer.provideMerge(Database.layer(Resource.Database.connectionString)), Layer.build);
+			const observability = Context.get(services, Observability.Service);
 			const handlerContext = Context.merge(context, services);
 
 			return yield* Effect.tryPromise({
 				try: () => handler(request, handlerContext),
 				catch: (cause) => cause,
 			}).pipe(
-				Effect.tap((response) =>
-					Effect.annotateCurrentSpan({ "http.response.status_code": response.status }),
-				),
 				Effect.mapError(() => new InternalServerError()),
-				Effect.withSpan(`${request.method} ${request.url}`, {
-					attributes: {
-						"http.request.method": request.method,
-						"url.full": request.url,
-					},
-					kind: "server",
-					root: true,
-				}),
+				Effect.ensuring(
+					Effect.sync(() => {
+						executionContext.waitUntil(Effect.runPromise(observability.flush));
+					}),
+				),
 				Effect.provideContext(handlerContext),
 			);
 		}).pipe(Effect.scoped, Effect.provideContext(context));
