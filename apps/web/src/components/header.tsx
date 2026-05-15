@@ -4,7 +4,6 @@ import { GearIcon } from "@phosphor-icons/react/Gear";
 import { OptionIcon } from "@phosphor-icons/react/Option";
 import { PlusIcon } from "@phosphor-icons/react/Plus";
 import { SignOutIcon } from "@phosphor-icons/react/SignOut";
-import { SparkleIcon } from "@phosphor-icons/react/Sparkle";
 import { UserIcon } from "@phosphor-icons/react/User";
 import { useQuery } from "@tanstack/react-query";
 import { useMatchRoute, useNavigate } from "@tanstack/react-router";
@@ -70,16 +69,12 @@ export function Header({
 
 	return (
 		<header className="bg-background/80 sticky top-0 z-20 flex h-[52px] items-center gap-3.5 border-b border-border px-3 backdrop-blur-md">
-			<Link
-				to="/$organization"
-				params={{ organization }}
-				className="text-lg font-serif"
-			>
+			<Link to="/$organization" params={{ organization }} className="text-lg font-serif">
 				Leuchtturm
 			</Link>
 			<div aria-hidden className="h-5 w-px shrink-0 bg-border" />
 			<Breadcrumb aria-label={t("Workspace")} className="min-w-0">
-				<BreadcrumbList className="flex-nowrap gap-1 text-sm sm:gap-1">
+				<BreadcrumbList className="flex-nowrap gap-1 text-xs sm:gap-1">
 					<BreadcrumbItem>
 						<DropdownMenu>
 							<DropdownMenuTrigger
@@ -127,7 +122,6 @@ export function Header({
 						{(activeTeam) => (
 							<>
 								<BreadcrumbSeparator />
-
 								<BreadcrumbItem>
 									<DropdownMenu>
 										<DropdownMenuTrigger
