@@ -23,19 +23,6 @@ describe("AuthAccessControl", () => {
 		).toBe(false);
 	});
 
-	it("lets managers administer document permissions", () => {
-		expect(
-			AuthAccessControl.manager.authorize({
-				document_acl: ["manage"],
-			}).success,
-		).toBe(true);
-		expect(
-			AuthAccessControl.manager.authorize({
-				organization: ["delete"],
-			}).success,
-		).toBe(false);
-	});
-
 	it("keeps the existing member role as the default contributor role", () => {
 		expect(AuthAccessControl.roles.member).toBe(AuthAccessControl.contributor);
 		expect(

@@ -843,7 +843,7 @@ Recommended Better Auth access-control resources:
 | `workflow`     | `transition`, `manage_tasks`                                                                                                                               | Coarse workflow capabilities.                                  |
 | `ac`           | Better Auth dynamic-access-control actions                                                                                                                 | Keep Better Auth's built-in dynamic role administration model. |
 
-Better Auth roles are organization-scoped. Use the existing `member.role` field and Better Auth dynamic access control for built-in and custom roles such as `viewer`, `contributor`, `editor`, and `manager`. Do not introduce local `permission_role` or `permission_role_permission` tables unless Better Auth's dynamic roles prove insufficient.
+Better Auth roles are organization-scoped. Use the existing `member.role` field and Better Auth dynamic access control for built-in and custom roles such as `viewer`, `contributor`, and `editor`. Do not introduce local `permission_role` or `permission_role_permission` tables unless Better Auth's dynamic roles prove insufficient.
 
 ### Document ACL Permission Vocabulary
 

@@ -70,29 +70,6 @@ export namespace AuthAccessControl {
 		ac: ["create", "read", "update", "delete"],
 	});
 
-	export const manager = accessControl.newRole({
-		organization: [],
-		member: ["create", "update", "delete"],
-		invitation: ["create", "cancel"],
-		team: ["create", "update", "delete"],
-		document: [
-			"create",
-			"read_metadata",
-			"read_content",
-			"update_metadata",
-			"update_content",
-			"delete",
-			"restore",
-			"manage_versions",
-			"check_out",
-			"share",
-			"view_audit",
-		],
-		document_acl: ["manage"],
-		workflow: ["transition", "manage_tasks"],
-		ac: ["read"],
-	});
-
 	export const editor = accessControl.newRole({
 		organization: [],
 		member: [],
@@ -138,22 +115,13 @@ export namespace AuthAccessControl {
 	export const roles = {
 		owner,
 		admin,
-		manager,
 		editor,
 		contributor,
 		member: contributor,
 		viewer,
 	} as const;
 
-	export const roleKeys = [
-		"owner",
-		"admin",
-		"manager",
-		"editor",
-		"contributor",
-		"member",
-		"viewer",
-	] as const;
+	export const roleKeys = ["owner", "admin", "editor", "contributor", "member", "viewer"] as const;
 
 	export type Resource = keyof typeof accessControl.statements;
 	export type Action<ResourceKey extends Resource> =
