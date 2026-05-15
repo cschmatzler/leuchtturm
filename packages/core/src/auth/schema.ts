@@ -70,10 +70,7 @@ export const OrganizationInsert = createInsertSchema(organizationTable, {
 });
 export const OrganizationSelect = createSelectSchema(organizationTable);
 
-export const OrganizationRoleSelect = createSelectSchema(organizationRoleTable, {
-	id: () => Schema.TemplateLiteral(["orl_", Ulid]).pipe(Schema.brand("OrganizationRoleId")),
-	organizationId: () => Schema.TemplateLiteral(["org_", Ulid]).pipe(Schema.brand("OrganizationId")),
-});
+export const OrganizationRoleSelect = createSelectSchema(organizationRoleTable);
 
 export const TeamInsert = createInsertSchema(teamTable, {
 	id: () => Schema.TemplateLiteral(["tea_", Ulid]).pipe(Schema.brand("TeamId")),
