@@ -6,7 +6,19 @@
 			}
 		],
 		"target": "ESNext",
-		"lib": ["ESNext"],
+		"lib": ["ESNext", "DOM", "DOM.Iterable"],
+
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"jsx": "react-jsx",
+		"baseUrl": ".",
+		"paths": {
+			"@leuchtturm/api/*": ["apps/api/src/*"],
+			"@leuchtturm/core/*": ["packages/core/src/*"],
+			"@leuchtturm/email/*": ["packages/email/src/*"],
+			"@leuchtturm/web/*": ["apps/web/src/*"],
+			"@leuchtturm/zero/*": ["packages/zero/src/*"]
+		},
 
 		"moduleDetection": "force",
 		"isolatedModules": true,
@@ -24,5 +36,16 @@
 		"incremental": true,
 		"skipLibCheck": true
 	},
-	"references": [{ "path": "./tsconfig.node.json" }]
+	"include": [
+		"apps/api/src",
+		"apps/api/sst-env.d.ts",
+		"apps/web/src",
+		"apps/web/sst-env.d.ts",
+		"packages/core/src",
+		"packages/core/sst-env.d.ts",
+		"packages/email/src",
+		"packages/email/sst-env.d.ts",
+		"packages/zero/src",
+		"packages/zero/sst-env.d.ts"
+	]
 }

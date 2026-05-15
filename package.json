@@ -10,10 +10,10 @@
 	"scripts": {
 		"dev": "fnox exec -- sst dev",
 		"lint": "oxlint",
-		"lint-effect": "effect-language-service diagnostics --project ./packages/core/tsconfig.json --format text && effect-language-service diagnostics --project ./packages/email/tsconfig.json --format text && effect-language-service diagnostics --project ./apps/api/tsconfig.json --format text && effect-language-service diagnostics --project ./apps/web/tsconfig.json --format text && effect-language-service diagnostics --project ./packages/zero/tsconfig.json --format text",
+		"lint-effect": "effect-language-service diagnostics --project ./tsconfig.json --format text",
 		"test": "vitest run",
 		"fmt": "oxfmt --write",
-		"check": "oxfmt --check && oxlint && effect-language-service diagnostics --project ./packages/core/tsconfig.json --format text && effect-language-service diagnostics --project ./packages/email/tsconfig.json --format text && effect-language-service diagnostics --project ./apps/api/tsconfig.json --format text && effect-language-service diagnostics --project ./apps/web/tsconfig.json --format text && effect-language-service diagnostics --project ./packages/zero/tsconfig.json --format text"
+		"check": "oxfmt --check && oxlint && effect-language-service diagnostics --project ./tsconfig.json --format text"
 	},
 	"devDependencies": {
 		"@cloudyskysoftware/pulumi-render": "0.5.5",
