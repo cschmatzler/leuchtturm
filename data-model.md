@@ -27,7 +27,7 @@ The existing codebase already defines authentication, organizations, and teams t
 | Mayan EDMS    | File/page/version-page separation, checkout model, metadata definitions, OCR per version page, signatures.                                | Generic foreign keys and overly deep indirection where relational FKs are enough.                   |
 | Alfresco      | Stable node identity, typed relationships, content storage abstraction, mandatory audit, optional capabilities through model definitions. | Full sparse node-property store as the primary schema, Solr-style dependence for ordinary reads.    |
 | Nuxeo         | Document types, lifecycle policies, version rows with latest/latest-major flags, ACL inheritance, read ACL optimization.                  | XML-heavy deployment model and opaque generated schema tables.                                      |
-| Documentum    | Immutable version chains, symbolic labels, renditions, generic relation objects, record-management path.                                  | Proprietary ID semantics, repeating attribute tables for ordinary multi-value metadata.             |
+| Documentum    | Immutable version chains, symbolic labels, renditions, generic relation objects.                                                          | Proprietary ID semantics, repeating attribute tables for ordinary multi-value metadata.             |
 | SharePoint    | Content type inheritance concept, checkout, major/minor versions, role definitions through Better Auth, permission inheritance.           | Generic fixed column pools, path-based document identity, direct SQL-style integration assumptions. |
 | Nextcloud     | Simple storage abstraction, shares with expiration, activity stream ideas.                                                                | Path-based metadata identity and notification logs as compliance audit.                             |
 | Documize      | Team/workspace-oriented collaboration, action-level permission vocabulary, link integrity checks.                                         | Comma-separated tags and binary blobs embedded in database rows.                                    |
@@ -36,11 +36,11 @@ The existing codebase already defines authentication, organizations, and teams t
 
 1. Document identity is stable and independent of path, filename, storage key, and search index row.
 2. Every document belongs to exactly one team.
-3. Documents may be organized in many ways: libraries, folders, tags, saved views, typed metadata, and explicit relationships.
+3. Documents may be organized in many ways: libraries, folders, tags, saved views, typed metadata, and typed document-to-document links such as references, replaces, duplicates, or supports.
 4. Original files are append-only. R2 objects are immutable after write.
 5. Document versions are immutable once finalized.
 6. Pages are first-class because OCR, annotations, renditions, and version composition depend on pages.
-7. Audit is append-only and mandatory for document, metadata, version, workflow, ACL, retention, and blob lifecycle events.
+7. Audit is append-only and mandatory for document, metadata, version, user workflow, ACL, and blob lifecycle events.
 8. The relational model stays queryable without requiring Turbopuffer for ordinary metadata screens.
 9. Search indexes, Zero replicas, generated thumbnails, and permission caches are derived data and can be rebuilt.
 10. Extensibility should come from typed definitions and typed relationships before generic JSON bags.
@@ -64,7 +64,7 @@ document
   -> document_relation
   -> document_comment / document_annotation
   -> audit_event
-  -> workflow_task / lifecycle history
+  -> user workflow_task / document lifecycle history
   -> search_index_item -> Turbopuffer row
 ```
 
@@ -82,55 +82,58 @@ Use these common columns unless a table is intentionally immutable and append-on
 | `created_by` | `char(30) null`  | FK to `user.id`; null for system actions.           |
 | `updated_at` | `timestamp null` | Present on mutable metadata/config tables.          |
 | `updated_by` | `char(30) null`  | FK to `user.id`.                                    |
+| `revision`   | `integer`        | Optimistic concurrency token on mutable rows.       |
 | `deleted_at` | `timestamp null` | Soft delete where user recovery matters.            |
 | `deleted_by` | `char(30) null`  | FK to `user.id`.                                    |
 
+Intentional shape exceptions: one-to-one extension tables may use their parent object ID as the primary key; closure and pure association tables may omit `id`, `updated_at`, and soft-delete columns; append-only history rows omit mutable payload columns; system-wide jobs and audit events may have nullable `team_id` only when they are genuinely cross-team.
+
 Recommended ID prefixes for document-domain rows:
 
-| Prefix | Entity                 |
-| ------ | ---------------------- |
-| `lib_` | Document library       |
-| `fol_` | Folder                 |
-| `dfe_` | Folder entry           |
-| `doc_` | Document               |
-| `dve_` | Document version       |
-| `dfl_` | Document file          |
-| `dfp_` | Document file page     |
-| `dvp_` | Document version page  |
-| `blo_` | Blob object            |
-| `ren_` | Rendition              |
-| `dty_` | Document type          |
-| `mfd_` | Metadata field         |
-| `dmv_` | Current metadata value |
-| `vmv_` | Version metadata value |
-| `tag_` | Document tag           |
-| `acl_` | ACL scope              |
-| `ace_` | ACL entry              |
-| `aud_` | Audit event            |
-| `lcd_` | Lifecycle definition   |
-| `wft_` | Workflow task          |
-| `job_` | Processing job         |
-| `six_` | Search index item      |
-| `dvl_` | Document version label |
-| `mfo_` | Metadata field option  |
-| `dtf_` | Document type field    |
-| `dpt_` | Document page text     |
-| `svw_` | Saved view             |
-| `drt_` | Relation type          |
-| `rel_` | Document relation      |
-| `com_` | Comment                |
-| `ann_` | Annotation             |
-| `oag_` | Object access grant    |
-| `lok_` | Document lock          |
-| `lcs_` | Lifecycle state        |
-| `lct_` | Lifecycle transition   |
-| `dle_` | Lifecycle event        |
-| `auc_` | Audit change           |
-| `rtp_` | Retention policy       |
-| `hol_` | Document hold          |
-| `sig_` | File signature         |
-| `src_` | Ingest source          |
-| `shl_` | Share link             |
+| Prefix | Entity                  |
+| ------ | ----------------------- |
+| `lib_` | Document library        |
+| `fol_` | Folder                  |
+| `dfe_` | Folder entry            |
+| `doc_` | Document                |
+| `dve_` | Document version        |
+| `dfl_` | Document file           |
+| `dfp_` | Document file page      |
+| `dvp_` | Document version page   |
+| `blo_` | Blob object             |
+| `ren_` | Rendition               |
+| `dty_` | Document type           |
+| `mfd_` | Metadata field          |
+| `dmv_` | Current metadata value  |
+| `vmv_` | Version metadata value  |
+| `tag_` | Document tag            |
+| `dta_` | Document tag assignment |
+| `acl_` | ACL scope               |
+| `ace_` | ACL entry               |
+| `aud_` | Audit event             |
+| `lcd_` | Lifecycle definition    |
+| `wft_` | Workflow task           |
+| `job_` | Processing job          |
+| `six_` | Search index item       |
+| `dvl_` | Document version label  |
+| `mfo_` | Metadata field option   |
+| `dtf_` | Document type field     |
+| `dpt_` | Document page text      |
+| `svw_` | Saved view              |
+| `svd_` | Saved view dependency   |
+| `drt_` | Relation type           |
+| `rel_` | Document relation       |
+| `com_` | Comment                 |
+| `ann_` | Annotation              |
+| `oag_` | Object access grant     |
+| `lok_` | Document lock           |
+| `lcs_` | Lifecycle state         |
+| `lct_` | Lifecycle transition    |
+| `dle_` | Lifecycle event         |
+| `auc_` | Audit change            |
+| `sig_` | File signature          |
+| `src_` | Ingest source           |
+| `shl_` | Share link              |
 
 ## Tenant, Library, And Referential Integrity
 
@@ -160,23 +163,21 @@ A team-level container similar to a SharePoint document library, Nuxeo workspace
 | --------------------------------- | --------------- | ----------------------------------------------------------------------------------------- |
 | `id`                              | `char(30)`      | `lib_` prefix.                                                                            |
 | `team_id`                         | `char(30)`      | FK to `team.id`.                                                                          |
-| `name`                            | `text`          | Display name.                                                                             |
-| `slug`                            | `text`          | Unique within team.                                                                       |
+| `name`                            | `text`          | Display name, unique within the team for active libraries.                                |
 | `description`                     | `text null`     | Optional.                                                                                 |
 | `default_document_type_id`        | `char(30) null` | FK to `document_type.id`.                                                                 |
 | `default_lifecycle_definition_id` | `char(30) null` | FK to `lifecycle_definition.id`; add with workflow phase if phased migrations require it. |
-| `default_retention_policy_id`     | `char(30) null` | FK to `retention_policy.id`; add with retention phase if phased migrations require it.    |
 | common columns                    |                 | Mutable and soft-deleteable.                                                              |
 
 ACL scopes are stored canonically in `acl_scope` with `library_id`, `folder_id`, or `document_id`; library rows do not store a back-reference to avoid circular state.
 
 Constraints and indexes:
 
-| Constraint                                        | Notes                                     |
-| ------------------------------------------------- | ----------------------------------------- |
-| partial unique `(team_id, slug)` on active rows   | Active library slugs are team-unique.     |
-| `index(team_id, deleted_at)`                      | Fast active library listing.              |
-| same-team FK for default type/lifecycle/retention | Defaults must belong to the library team. |
+| Constraint                                      | Notes                                     |
+| ----------------------------------------------- | ----------------------------------------- |
+| partial unique `(team_id, name)` on active rows | Active library names are team-unique.     |
+| `index(team_id, deleted_at)`                    | Fast active library listing.              |
+| same-team FK for default type/lifecycle         | Defaults must belong to the library team. |
 
 ### `document_folder`
 
@@ -339,7 +340,7 @@ Additional symbolic or alternate labels for a version. This keeps the primary nu
 | `created_at`          | `timestamp`     | Assignment time.                                |
 | `created_by`          | `char(30) null` | FK to `user.id`.                                |
 
-Constraints: `unique(document_id, label)`, same-document check between `document_id` and `document_version_id`, and service-level prevention of collisions with the primary `document_version.label`.
+Constraints: `unique(document_id, label)`, same-document check between `document_id` and `document_version_id`, and service-level prevention of collisions with the primary `document_version.label`. If database-enforced global label uniqueness becomes more important than keeping the primary numeric label inline, move primary labels into this table with `label_type = 'primary'`.
 
 Versioning policy:
 
@@ -394,32 +395,37 @@ teams/{team_id}/documents/{document_id}/versions/{document_version_id}/pages/{pa
 
 Append-only uploaded or ingested file. A document can have many files over time. A version can map pages from one or more files.
 
-| Column              | Type             | Notes                                            |
-| ------------------- | ---------------- | ------------------------------------------------ |
-| `id`                | `char(30)`       | `dfl_` prefix.                                   |
-| `team_id`           | `char(30)`       | FK to `team.id`.                                 |
-| `document_id`       | `char(30)`       | FK to `document.id`.                             |
-| `blob_object_id`    | `char(30)`       | FK to `blob_object.id`.                          |
-| `ingest_source_id`  | `char(30) null`  | FK to `ingest_source.id` for non-direct uploads. |
-| `source_ref`        | `text null`      | External message/path/object ID for idempotency. |
-| `original_filename` | `text null`      | Name supplied by upload/source.                  |
-| `mime_type`         | `text null`      | Detected MIME type.                              |
-| `encoding`          | `text null`      | Text encoding when relevant.                     |
-| `size_bytes`        | `bigint`         | Duplicate of blob size for fast reads.           |
-| `sha256`            | `char(64)`       | Duplicate of blob hash for duplicate detection.  |
-| `source`            | `text`           | `upload`, `email`, `api`, `import`, `system`.    |
-| `comment`           | `text null`      | Upload note.                                     |
-| `received_at`       | `timestamp null` | Source-system timestamp when available.          |
-| `created_at`        | `timestamp`      | Ingestion timestamp.                             |
-| `created_by`        | `char(30) null`  | User/system actor.                               |
+| Column              | Type             | Notes                                                                  |
+| ------------------- | ---------------- | ---------------------------------------------------------------------- |
+| `id`                | `char(30)`       | `dfl_` prefix.                                                         |
+| `team_id`           | `char(30)`       | FK to `team.id`.                                                       |
+| `document_id`       | `char(30)`       | FK to `document.id`.                                                   |
+| `blob_object_id`    | `char(30)`       | FK to `blob_object.id`.                                                |
+| `ingest_source_id`  | `char(30) null`  | FK to `ingest_source.id` for non-direct uploads.                       |
+| `source_ref`        | `text null`      | Stable external message/path/object ID for idempotency when available. |
+| `original_filename` | `text null`      | Name supplied by upload/source.                                        |
+| `mime_type`         | `text null`      | Detected MIME type.                                                    |
+| `encoding`          | `text null`      | Text encoding when relevant.                                           |
+| `size_bytes`        | `bigint`         | Duplicate of blob size for fast reads.                                 |
+| `sha256`            | `char(64)`       | Duplicate of blob hash for duplicate detection.                        |
+| `scan_status`       | `text`           | `pending`, `clean`, `infected`, `failed`, `skipped`.                   |
+| `scanned_at`        | `timestamp null` | Last completed file safety scan.                                       |
+| `scan_engine`       | `text null`      | Scanner/backend identifier.                                            |
+| `scan_result_json`  | `jsonb null`     | Structured non-secret scan result.                                     |
+| `source`            | `text`           | `upload`, `email`, `api`, `import`, `system`.                          |
+| `comment`           | `text null`      | Upload note.                                                           |
+| `received_at`       | `timestamp null` | Source-system timestamp when available.                                |
+| `created_at`        | `timestamp`      | Ingestion timestamp.                                                   |
+| `created_by`        | `char(30) null`  | User/system actor.                                                     |
 
 Indexes:
 
-| Index                                          | Notes                                      |
-| ---------------------------------------------- | ------------------------------------------ |
-| `index(team_id, document_id, created_at)`      | File history.                              |
-| `index(team_id, sha256, size_bytes)`           | Duplicate detection.                       |
-| `index(team_id, ingest_source_id, source_ref)` | Import idempotency and provenance lookups. |
+| Index                                                                                   | Notes                                                 |
+| --------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `index(team_id, document_id, created_at)`                                               | File history.                                         |
+| `index(team_id, sha256, size_bytes)`                                                    | Duplicate detection.                                  |
+| partial unique `(team_id, ingest_source_id, source_ref)` where `source_ref is not null` | Strict import idempotency when source IDs are stable. |
+| `index(team_id, scan_status, created_at)`                                               | Queue and gate unsafe files until scanning completes. |
 
 Future file-analysis extensions, only when needed:
 
@@ -474,7 +480,7 @@ OCR or extracted text for a version page. This stays server-side by default beca
 | `document_version_page_id` | `char(30)`      | FK to `document_version_page.id`.                          |
 | `text_kind`                | `text`          | `extracted`, `ocr`, `corrected`, `summary`.                |
 | `engine`                   | `text null`     | OCR/extraction backend.                                    |
-| `language`                 | `text null`     | OCR language.                                              |
+| `language`                 | `text`          | OCR language; use `und` when unknown.                      |
 | `content`                  | `text null`     | Extracted text; required when `status = 'ready'`.          |
 | `content_sha256`           | `char(64) null` | Detect unchanged reruns; required when content is present. |
 | `confidence`               | `numeric null`  | Optional OCR confidence.                                   |
@@ -483,7 +489,7 @@ OCR or extracted text for a version page. This stays server-side by default beca
 | `is_current`               | `boolean`       | Current text for this page/kind/language.                  |
 | `created_at`               | `timestamp`     | Extraction timestamp.                                      |
 
-Constraints: partial unique `(document_version_page_id, text_kind, language)` where `is_current = true`, and index `(team_id, document_version_page_id, created_at)`. OCR reruns append rows instead of overwriting previous text.
+Constraints: partial unique `(document_version_page_id, text_kind, language)` where `is_current = true`, and index `(team_id, document_version_page_id, created_at)`. Keep `language` non-null, for example `und` for unknown, so current-text uniqueness is not weakened by PostgreSQL's ordinary nullable-unique semantics. OCR reruns append rows instead of overwriting previous text.
 
 ### `document_rendition`
 
@@ -503,7 +509,7 @@ Generated representations: PDF/A archive, thumbnail, text bundle, page preview, 
 | `status`                   | `text`          | `ready`, `stale`, `failed`.                                  |
 | `created_at`               | `timestamp`     | Generation timestamp.                                        |
 
-Constraint: unique logical rendition per `(document_version_id, document_version_page_id, kind, variant)`. Use `variant` for multiple redaction profiles, preview sizes, or downstream format choices.
+Constraints: use separate partial unique indexes for version-level and page-level renditions: `(document_version_id, kind, variant)` where `document_version_page_id is null`, and `(document_version_id, document_version_page_id, kind, variant)` where `document_version_page_id is not null`. Use `variant` for multiple redaction profiles, preview sizes, or downstream format choices. Enforce that the rendition document, version, optional page, and blob all belong to the same team and document.
 
 ## Document Types And Typed Metadata
 
@@ -522,7 +528,6 @@ Team-scoped content type. This borrows from Mayan, Nuxeo, and SharePoint while s
 | `color`                           | `text null`     | UI hint.                                                                                  |
 | `icon`                            | `text null`     | UI hint.                                                                                  |
 | `default_lifecycle_definition_id` | `char(30) null` | FK to `lifecycle_definition.id`; add with workflow phase if phased migrations require it. |
-| `default_retention_policy_id`     | `char(30) null` | FK to `retention_policy.id`; add with retention phase if phased migrations require it.    |
 | common columns                    |                 | Mutable and soft-deleteable.                                                              |
 
 Constraints: active partial unique `(team_id, slug)`, same-team parent/default checks, and no cycles in the parent chain. Child types inherit metadata-field assignments from parents; do not support complex override rules until a real use case appears.
@@ -538,6 +543,9 @@ Reusable team-scoped field definition.
 | `name`            | `text`       | Internal name.                                           |
 | `label`           | `text`       | Display label.                                           |
 | `data_type`       | `text`       | See supported types below.                               |
+| `sensitivity`     | `text`       | `normal`, `confidential`, `secret`.                      |
+| `sync_policy`     | `text`       | `zero`, `api_only`, `never`.                             |
+| `search_policy`   | `text`       | `searchable`, `filter_only`, `not_indexed`.              |
 | `description`     | `text null`  | Optional.                                                |
 | `validation_json` | `jsonb null` | Min/max, regex, date bounds, precision, etc.             |
 | `lookup_json`     | `jsonb null` | Future controlled lookup/source config.                  |
@@ -585,18 +593,18 @@ Constraints: `unique(metadata_field_id, value)`, `unique(metadata_field_id, posi
 
 Assigns fields to document types.
 
-| Column               | Type         | Notes                              |
-| -------------------- | ------------ | ---------------------------------- |
-| `id`                 | `char(30)`   | `dtf_` prefix if added.            |
-| `team_id`            | `char(30)`   | FK to `team.id`.                   |
-| `document_type_id`   | `char(30)`   | FK to `document_type.id`.          |
-| `metadata_field_id`  | `char(30)`   | FK to `metadata_field.id`.         |
-| `required`           | `boolean`    | Required for this type.            |
-| `repeatable`         | `boolean`    | Multiple values allowed.           |
-| `position`           | `integer`    | Form/display order.                |
-| `default_value_json` | `jsonb null` | Default value in typed JSON form.  |
-| `include_in_search`  | `boolean`    | Copy into search index attributes. |
-| `created_at`         | `timestamp`  | Assignment timestamp.              |
+| Column               | Type         | Notes                                                          |
+| -------------------- | ------------ | -------------------------------------------------------------- |
+| `id`                 | `char(30)`   | `dtf_` prefix if added.                                        |
+| `team_id`            | `char(30)`   | FK to `team.id`.                                               |
+| `document_type_id`   | `char(30)`   | FK to `document_type.id`.                                      |
+| `metadata_field_id`  | `char(30)`   | FK to `metadata_field.id`.                                     |
+| `required`           | `boolean`    | Required for this type.                                        |
+| `repeatable`         | `boolean`    | Multiple values allowed.                                       |
+| `position`           | `integer`    | Form/display order.                                            |
+| `default_value_json` | `jsonb null` | Default value in typed JSON form.                              |
+| `include_in_search`  | `boolean`    | Copy into search index attributes when field policy allows it. |
+| `created_at`         | `timestamp`  | Assignment timestamp.                                          |
 
 Constraint: `unique(document_type_id, metadata_field_id)`. Effective field sets include inherited parent assignments; initial implementation should reject assigning a field directly to a child type when it is already inherited unless explicit override semantics are introduced.
 
@@ -722,22 +730,36 @@ Saved document list filters, inspired by Paperless saved views and SharePoint li
 
 Saved-view filters may reference metadata fields, tags, types, lifecycle states, or folders. Deleting referenced definitions should either prevent deletion while views depend on them or mark affected views invalid so the UI can repair them.
 
+Optional `saved_view_dependency` table, populated by parsing `filter_json`, `sort_json`, and `display_json`:
+
+| Column            | Type        | Notes                                                                  |
+| ----------------- | ----------- | ---------------------------------------------------------------------- |
+| `id`              | `char(30)`  | `svd_` prefix if added.                                                |
+| `team_id`         | `char(30)`  | FK to `team.id`.                                                       |
+| `saved_view_id`   | `char(30)`  | FK to `saved_view.id`.                                                 |
+| `dependency_type` | `text`      | `metadata_field`, `tag`, `document_type`, `lifecycle_state`, `folder`. |
+| `dependency_id`   | `char(30)`  | Referenced object ID; enforced by service code per type.               |
+| `created_at`      | `timestamp` | Extraction timestamp.                                                  |
+
+Constraint: `unique(saved_view_id, dependency_type, dependency_id)`. This table is derived from the saved-view JSON and can be rebuilt.
+
 ## Relationships, Comments, And Annotations
 
 ### `document_relation_type`
 
 Typed relationship definitions, taking the useful part of Alfresco and Documentum relations without a full generic node store.
 
-| Column                | Type        | Notes                                                   |
-| --------------------- | ----------- | ------------------------------------------------------- |
-| `id`                  | `char(30)`  | `drt_` prefix if added.                                 |
-| `team_id`             | `char(30)`  | FK to `team.id`.                                        |
-| `name`                | `text`      | Display name.                                           |
-| `slug`                | `text`      | Stable key.                                             |
-| `inverse_name`        | `text null` | Display name for reverse direction.                     |
-| `version_binding`     | `text`      | `current`, `specific_version`, `none`.                  |
-| `allow_self_relation` | `boolean`   | Usually false; enabled only for special relation types. |
-| `created_at`          | `timestamp` | Definition timestamp.                                   |
+| Column                   | Type        | Notes                                                   |
+| ------------------------ | ----------- | ------------------------------------------------------- |
+| `id`                     | `char(30)`  | `drt_` prefix if added.                                 |
+| `team_id`                | `char(30)`  | FK to `team.id`.                                        |
+| `name`                   | `text`      | Display name.                                           |
+| `slug`                   | `text`      | Stable key.                                             |
+| `inverse_name`           | `text null` | Display name for reverse direction.                     |
+| `source_version_binding` | `text`      | `current`, `specific_version`, `none`.                  |
+| `target_version_binding` | `text`      | `current`, `specific_version`, `none`.                  |
+| `allow_self_relation`    | `boolean`   | Usually false; enabled only for special relation types. |
+| `created_at`             | `timestamp` | Definition timestamp.                                   |
 
 Initial built-in relation slugs: `references`, `replaces`, `duplicates`, `supersedes`, `supports`, `part_of`. Use `inverse_name` for display names such as “has part” instead of creating duplicate inverse relation types unless the inverse needs different behavior.
 
@@ -763,8 +785,9 @@ Constraints and rules:
 | ------------------------------------------------ | ------------------------------------------------------------------------------ |
 | same-team source and target documents            | Prevents cross-team links.                                                     |
 | version IDs belong to their documents            | `source_version_id` and `target_version_id` must match source/target document. |
-| `version_binding = specific_version`             | Requires the relevant version columns.                                         |
-| `version_binding = current` or `none`            | Version columns should be null unless explicitly allowed later.                |
+| `source_version_binding = specific_version`      | Requires `source_version_id`.                                                  |
+| `target_version_binding = specific_version`      | Requires `target_version_id`.                                                  |
+| binding is `current` or `none`                   | The matching version column should be null unless explicitly allowed later.    |
 | self-relations require `allow_self_relation`     | Prevents accidental document-to-self links.                                    |
 | soft-deleted targets remain referentially intact | UI can show unavailable or trashed targets instead of orphaning links.         |
 
@@ -818,10 +841,9 @@ Recommended Better Auth access-control resources:
 | `document`     | `create`, `read_metadata`, `read_content`, `update_metadata`, `update_content`, `delete`, `restore`, `manage_versions`, `check_out`, `share`, `view_audit` | Coarse capability vocabulary for document operations.          |
 | `document_acl` | `manage`                                                                                                                                                   | Required before editing document ACL scopes or entries.        |
 | `workflow`     | `transition`, `manage_tasks`                                                                                                                               | Coarse workflow capabilities.                                  |
-| `records`      | `manage`                                                                                                                                                   | Retention, holds, declaration, and disposition.                |
 | `ac`           | Better Auth dynamic-access-control actions                                                                                                                 | Keep Better Auth's built-in dynamic role administration model. |
 
-Better Auth roles are organization-scoped. Use the existing `member.role` field and Better Auth dynamic access control for built-in and custom roles such as `viewer`, `contributor`, `editor`, `manager`, and `records_manager`. Do not introduce local `permission_role` or `permission_role_permission` tables unless Better Auth's dynamic roles prove insufficient.
+Better Auth roles are organization-scoped. Use the existing `member.role` field and Better Auth dynamic access control for built-in and custom roles such as `viewer`, `contributor`, `editor`, and `manager`. Do not introduce local `permission_role` or `permission_role_permission` tables unless Better Auth's dynamic roles prove insufficient.
 
 ### Document ACL Permission Vocabulary
 
@@ -842,7 +864,6 @@ Initial object-level permissions mirror the Better Auth vocabulary, but are gran
 | `document`     | `view_audit`      | View audit history.                                     |
 | `document_acl` | `manage`          | Change document permissions.                            |
 | `workflow`     | `transition`      | Perform lifecycle transitions.                          |
-| `records`      | `manage`          | Declare records, holds, retention, disposition.         |
 
 ### `acl_scope`
 
@@ -913,7 +934,7 @@ Constraints and indexes:
 
 ### `object_access_grant`
 
-Derived effective user grant for fast Zero and Turbopuffer filtering across libraries, folders, and documents. This table is rebuilt when ACL scopes, ACL entries, Better Auth organization membership, Better Auth roles, team membership, folder filing, or inheritance rules change.
+Derived effective user grant for fast Zero and Turbopuffer filtering across libraries, folders, and documents. This table is rebuilt when ACL scopes, ACL entries, Better Auth organization membership, Better Auth roles, team membership, folder filing, or inheritance rules change. Initial implementations should derive only grants needed for metadata/content visibility filters, such as `document.read_metadata` and `document.read_content`, unless another action demonstrably needs cached rows.
 
 | Column          | Type            | Notes                              |
 | --------------- | --------------- | ---------------------------------- |
@@ -956,23 +977,26 @@ Security rules:
 
 One active checkout-style lock per document unless a future collaborative editor needs shared locks.
 
-| Column        | Type             | Notes                                |
-| ------------- | ---------------- | ------------------------------------ |
-| `id`          | `char(30)`       | `lok_` prefix if added.              |
-| `team_id`     | `char(30)`       | FK to `team.id`.                     |
-| `document_id` | `char(30)`       | FK to `document.id`.                 |
-| `user_id`     | `char(30)`       | FK to `user.id`.                     |
-| `lock_type`   | `text`           | `checkout`, `read_only`, `workflow`. |
-| `status`      | `text`           | `active`, `released`, `expired`.     |
-| `expires_at`  | `timestamp null` | Auto-expiry.                         |
-| `created_at`  | `timestamp`      | Lock creation time.                  |
-| `released_at` | `timestamp null` | Release timestamp.                   |
-| `released_by` | `char(30) null`  | FK to `user.id`.                     |
-| `comment`     | `text null`      | Optional reason.                     |
+| Column            | Type             | Notes                                   |
+| ----------------- | ---------------- | --------------------------------------- |
+| `id`              | `char(30)`       | `lok_` prefix if added.                 |
+| `team_id`         | `char(30)`       | FK to `team.id`.                        |
+| `document_id`     | `char(30)`       | FK to `document.id`.                    |
+| `base_version_id` | `char(30) null`  | Version the user checked out or locked. |
+| `user_id`         | `char(30)`       | FK to `user.id`.                        |
+| `lock_type`       | `text`           | `checkout`, `read_only`, `workflow`.    |
+| `status`          | `text`           | `active`, `released`, `expired`.        |
+| `expires_at`      | `timestamp null` | Auto-expiry.                            |
+| `created_at`      | `timestamp`      | Lock creation time.                     |
+| `released_at`     | `timestamp null` | Release timestamp.                      |
+| `released_by`     | `char(30) null`  | FK to `user.id`.                        |
+| `comment`         | `text null`      | Optional reason.                        |
 
-Recommended constraint: partial unique `(document_id)` where `lock_type = 'checkout' and status = 'active'`. Do not rely on a partial index with `expires_at > now()`; expiration should be materialized by a job or checked by the lock acquisition transaction.
+Recommended constraint: partial unique `(document_id)` where `lock_type = 'checkout' and status = 'active'`. `base_version_id`, when present, must belong to the locked document. Do not rely on a partial index with `expires_at > now()`; expiration should be materialized by a job or checked by the lock acquisition transaction.
 
 ## Lifecycle And Workflow
+
+Lifecycle is the user-facing document state policy: which states a document can be in, who may move it between those states, and what approval tasks are required. It is not an engineering/background-job workflow; those operational jobs live in `processing_job`.
 
 The first workflow model should be a state machine, not only trigger/action automation. Automation rules can be layered on transitions later.
 
@@ -1017,7 +1041,8 @@ Constraints: unique `(lifecycle_definition_id, slug)`, partial unique one initia
 | `to_state_id`              | `char(30)` | FK to `lifecycle_state.id`.                |
 | `name`                     | `text`     | Display name.                              |
 | `slug`                     | `text`     | Stable key.                                |
-| `required_permission`      | `text`     | Usually `workflow.transition`.             |
+| `required_resource`        | `text`     | Usually `workflow`.                        |
+| `required_action`          | `text`     | Usually `transition`.                      |
 | `requires_comment`         | `boolean`  | Comment required.                          |
 | `creates_major_version`    | `boolean`  | Transition creates/promotes major version. |
 | `requires_completed_tasks` | `boolean`  | Blocks until tasks are complete.           |
@@ -1052,8 +1077,11 @@ Approval/review task tied to a document, version, and optional transition.
 | `document_id`         | `char(30)`       | FK to `document.id`.                                    |
 | `document_version_id` | `char(30) null`  | FK to `document_version.id`.                            |
 | `transition_id`       | `char(30) null`  | FK to `lifecycle_transition.id`.                        |
-| `assigned_to_type`    | `text`           | `user`, `team`, `organization_role`.                    |
-| `assigned_to_id`      | `text`           | Principal key.                                          |
+| `assigned_user_id`    | `char(30) null`  | FK to `user.id` for user-assigned tasks.                |
+| `assigned_team_id`    | `char(30) null`  | FK to `team.id` for team-assigned tasks.                |
+| `assigned_role`       | `text null`      | Better Auth organization role key for role tasks.       |
+| `claimed_by`          | `char(30) null`  | FK to `user.id` when a group/role task is claimed.      |
+| `claimed_at`          | `timestamp null` | Claim timestamp.                                        |
 | `status`              | `text`           | `open`, `approved`, `rejected`, `cancelled`, `expired`. |
 | `due_at`              | `timestamp null` | Optional due date.                                      |
 | `completed_at`        | `timestamp null` | Completion time.                                        |
@@ -1061,6 +1089,8 @@ Approval/review task tied to a document, version, and optional transition.
 | `outcome`             | `text null`      | Transition-specific outcome.                            |
 | `comment`             | `text null`      | Completion comment.                                     |
 | `created_at`          | `timestamp`      | Assignment time.                                        |
+
+Constraints: exactly one of `assigned_user_id`, `assigned_team_id`, or `assigned_role` is populated; assigned teams and role-derived users must belong to the document team's organization; `claimed_by` must be an eligible assignee for team/role tasks.
 
 ## Audit Trail
 
@@ -1122,65 +1152,8 @@ Minimum audited actions:
 | Metadata | field_create, field_update, metadata_set, metadata_clear, type_change.                           |
 | ACL      | acl_scope_create, acl_entry_create, acl_entry_delete, permission_denied.                         |
 | Workflow | transition, task_create, task_complete, task_reject.                                             |
-| Records  | record_declare, hold_add, hold_release, retention_schedule, disposition.                         |
 
 Audit is not the user notification system. Add separate activity, notification, or subscription tables if users need inbox notifications, mentions, task alerts, or email digests.
-
-## Retention And Records Management
-
-Moderate compliance now, strong records management later. Keep the core hooks from the beginning.
-
-### `retention_policy`
-
-| Column               | Type            | Notes                                                     |
-| -------------------- | --------------- | --------------------------------------------------------- |
-| `id`                 | `char(30)`      | `rtp_` prefix if added.                                   |
-| `team_id`            | `char(30)`      | FK to `team.id`.                                          |
-| `name`               | `text`          | Display name.                                             |
-| `slug`               | `text`          | Stable key.                                               |
-| `trigger`            | `text`          | `created_at`, `added_at`, `approved_at`, `metadata_date`. |
-| `metadata_field_id`  | `char(30) null` | Required when trigger is `metadata_date`.                 |
-| `duration_months`    | `integer`       | Retention duration.                                       |
-| `disposition_action` | `text`          | `review`, `delete`, `archive`.                            |
-| `enabled`            | `boolean`       | Active policy.                                            |
-| common columns       |                 | Mutable and soft-deleteable.                              |
-
-Constraints and indexes: active partial unique `(team_id, slug)`, `metadata_field_id` required when `trigger = 'metadata_date'`, same-team check for metadata field, and `index(team_id, enabled)`.
-
-Default assignment order: explicit `document_record.retention_policy_id`, then `document_type.default_retention_policy_id`, then `document_library.default_retention_policy_id`. Do not apply a retention policy silently if multiple defaults conflict.
-
-### `document_record`
-
-| Column                | Type             | Notes                                             |
-| --------------------- | ---------------- | ------------------------------------------------- |
-| `document_id`         | `char(30)`       | PK and FK to `document.id`.                       |
-| `team_id`             | `char(30)`       | FK to `team.id`.                                  |
-| `retention_policy_id` | `char(30) null`  | FK to `retention_policy.id`.                      |
-| `declared_at`         | `timestamp null` | When declared a record.                           |
-| `declared_by`         | `char(30) null`  | FK to `user.id`.                                  |
-| `retention_basis_at`  | `timestamp null` | Date used to compute `retain_until`.              |
-| `retain_until`        | `timestamp null` | Computed retention date.                          |
-| `disposition_state`   | `text`           | `none`, `pending_review`, `approved`, `disposed`. |
-
-Indexes: `index(team_id, retain_until)`, `index(team_id, disposition_state)`, and same-team check for policy and document.
-
-### `document_hold`
-
-| Column        | Type             | Notes                           |
-| ------------- | ---------------- | ------------------------------- |
-| `id`          | `char(30)`       | `hol_` prefix if added.         |
-| `team_id`     | `char(30)`       | FK to `team.id`.                |
-| `document_id` | `char(30)`       | FK to `document.id`.            |
-| `reason`      | `text`           | Hold reason.                    |
-| `matter_ref`  | `text null`      | Legal matter or case reference. |
-| `created_at`  | `timestamp`      | Hold start.                     |
-| `created_by`  | `char(30) null`  | FK to `user.id`.                |
-| `released_at` | `timestamp null` | Hold release.                   |
-| `released_by` | `char(30) null`  | FK to `user.id`.                |
-
-Indexes: `index(team_id, document_id)` and partial index on active holds where `released_at is null`.
-
-Deletion rule: a document with an active hold or unexpired retention date cannot be permanently deleted by normal user flows. Future matter/case management can add a `hold_matter` table and let one hold apply to many documents.
 
 ## Signatures
 
@@ -1222,13 +1195,14 @@ Constraints: active partial unique `(team_id, name)`, and do not store source se
 
 ### `processing_job`
 
-PaperlessTask-style observability for OCR, thumbnailing, PDF/A, indexing, retention checks, imports, and ACL recomputation.
+PaperlessTask-style observability for OCR, thumbnailing, PDF/A, indexing, imports, and ACL recomputation.
 
 | Column                 | Type             | Notes                                                                                        |
 | ---------------------- | ---------------- | -------------------------------------------------------------------------------------------- |
 | `id`                   | `char(30)`       | `job_` prefix.                                                                               |
 | `team_id`              | `char(30) null`  | FK to `team.id`.                                                                             |
 | `job_type`             | `text`           | `consume_file`, `ocr`, `render_page`, `generate_pdfa`, `index_search`, `recompute_acl`, etc. |
+| `idempotency_key`      | `text null`      | Stable key preventing duplicate jobs for retries/imports.                                    |
 | `trigger_source`       | `text`           | `web_ui`, `api`, `email`, `system`, `scheduled`.                                             |
 | `status`               | `text`           | `pending`, `running`, `success`, `failure`, `cancelled`.                                     |
 | `priority`             | `integer`        | Queue priority.                                                                              |
@@ -1245,7 +1219,7 @@ PaperlessTask-style observability for OCR, thumbnailing, PDF/A, indexing, retent
 | `acknowledged_at`      | `timestamp null` | User acknowledged failure/result.                                                            |
 | `acknowledged_by`      | `char(30) null`  | FK to `user.id`.                                                                             |
 
-Indexes: `index(team_id, status, priority, created_at)`, `index(team_id, document_id, created_at)`, and optional unique idempotency key inside `input_json` for import jobs that must not run twice.
+Indexes: `index(team_id, status, priority, created_at)`, `index(team_id, document_id, created_at)`, and partial unique `(team_id, job_type, idempotency_key)` where `idempotency_key is not null` for jobs that must not run twice.
 
 ## Search With Turbopuffer
 
@@ -1281,24 +1255,24 @@ Tracks derived Turbopuffer rows and rebuild status.
 | `indexed_at`               | `timestamp null` | Last successful index.                              |
 | `error_json`               | `jsonb null`     | Last indexing error.                                |
 
-Constraints and indexes: unique `(namespace, turbopuffer_id)`, same-team/document checks for version and page IDs, `unit_type` consistent with nullable page/chunk columns, and `index(team_id, document_id, status)` for rebuilds.
+Constraints and indexes: unique `(namespace, turbopuffer_id)`, same-team/document checks for version and page IDs, `unit_type` consistent with nullable page/chunk columns, source-side partial uniqueness for logical rows such as one document row per document, one page row per version page, and one chunk row per `(document_version_page_id, chunk_number)`, plus `index(team_id, document_id, status)` for rebuilds. Do not rely on ordinary nullable unique constraints for chunk/document/page variants.
 
 Turbopuffer attributes to write:
 
-| Attribute                  | Notes                                                                                    |
-| -------------------------- | ---------------------------------------------------------------------------------------- |
-| `team_id`                  | Mandatory filter.                                                                        |
-| `document_id`              | Stable Postgres identity.                                                                |
-| `document_version_id`      | Current or explicit version.                                                             |
-| `document_version_page_id` | Page result target.                                                                      |
-| `document_type_id`         | Type filter.                                                                             |
-| `lifecycle_state_id`       | Workflow filter.                                                                         |
-| `tag_ids`                  | Tag filter if supported by chosen indexing shape.                                        |
-| `metadata_*`               | Selected typed metadata fields marked `include_in_search`.                               |
-| `access_user_ids`          | Derived user IDs from document grants if Turbopuffer filtering supports the final shape. |
-| `access_sha256`            | Hash of derived access inputs used for staleness checks.                                 |
-| `content`                  | Full-text searchable field.                                                              |
-| `vector`                   | Optional embedding.                                                                      |
+| Attribute                  | Notes                                                                                                |
+| -------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `team_id`                  | Mandatory filter.                                                                                    |
+| `document_id`              | Stable Postgres identity.                                                                            |
+| `document_version_id`      | Current or explicit version.                                                                         |
+| `document_version_page_id` | Page result target.                                                                                  |
+| `document_type_id`         | Type filter.                                                                                         |
+| `lifecycle_state_id`       | Workflow filter.                                                                                     |
+| `tag_ids`                  | Tag filter if supported by chosen indexing shape.                                                    |
+| `metadata_*`               | Selected typed metadata fields marked `include_in_search` whose field `search_policy` allows export. |
+| `access_user_ids`          | Derived user IDs from document grants if Turbopuffer filtering supports the final shape.             |
+| `access_sha256`            | Hash of derived access inputs used for staleness checks.                                             |
+| `content`                  | Full-text searchable field.                                                                          |
+| `vector`                   | Optional embedding.                                                                                  |
 
 Search safety:
 
@@ -1327,7 +1301,7 @@ Recommended Zero-synced tables:
 | `metadata_field`               | Forms and filters.                                                         |
 | `metadata_field_option`        | Select fields.                                                             |
 | `document_type_metadata_field` | Type field requirements.                                                   |
-| `document_metadata_value`      | Current metadata.                                                          |
+| `document_metadata_value`      | Current metadata whose field `sync_policy = 'zero'`.                       |
 | `document_tag`                 | Tag tree.                                                                  |
 | `document_tag_assignment`      | Tags on documents.                                                         |
 | `saved_view`                   | User/team views.                                                           |
@@ -1348,7 +1322,7 @@ Server-only by default:
 | `processing_job`      | Server operations; expose filtered user-facing jobs separately if needed. |
 | `search_index_item`   | Derived search state.                                                     |
 
-For Zero authorization, mirror the current style in `packages/zero/src/queries.ts`: every query must start from Better Auth organization membership, apply team scope where relevant, and then apply safe object access predicates or derived grants. Sensitive metadata fields and audit change payloads should be API-only or redacted even when the parent document row is visible.
+For Zero authorization, mirror the current style in `packages/zero/src/queries.ts`: every query must start from Better Auth organization membership, apply team scope where relevant, and then apply safe object access predicates or derived grants. Zero queries for `document_metadata_value` must join or otherwise respect `metadata_field.sync_policy`; sensitive metadata fields and audit change payloads should be API-only or redacted even when the parent document row is visible.
 
 ## Share Links
 
@@ -1380,7 +1354,7 @@ Constraints and indexes: unique `(team_id, slug)`, unique `token_hash`, `index(t
 
 ## Implementation Phases
 
-Phases are product slices, not a promise that every nullable FK column must exist before its referenced feature table. If migrations are split by phase, add workflow, retention, ACL, and search columns with the phase that introduces their referenced tables.
+Phases are product slices, not a promise that every nullable FK column must exist before its referenced feature table. If migrations are split by phase, add workflow, ACL, and search columns with the phase that introduces their referenced tables.
 
 ### Phase 1: DMS Core
 
@@ -1402,9 +1376,9 @@ Capabilities: Better Auth organization roles and coarse permissions, object-leve
 
 ### Phase 4: Compliance, Search, And Collaboration
 
-Tables: `retention_policy`, `document_record`, `document_hold`, `document_file_signature`, `document_relation_type`, `document_relation`, `document_comment`, `document_annotation`, `search_index_item`, `document_share_link`.
+Tables: `document_file_signature`, `document_relation_type`, `document_relation`, `document_comment`, `document_annotation`, `search_index_item`, `document_share_link`.
 
-Capabilities: retention-ready model, holds, signatures, related documents, annotations, Turbopuffer search, share links.
+Capabilities: signatures, related documents, annotations, Turbopuffer search, share links.
 
 ## Open Design Questions
 
@@ -1418,7 +1392,7 @@ These are not blockers for the conceptual model, but they should be decided befo
 | Should ACL `deny` entries ship in the first implementation?                                            | Denies are enterprise-friendly but make effective permission reasoning harder. The table supports them.               |
 | Should any Better Auth role bypass object ACLs globally?                                               | Simpler administration, but it weakens confidential document boundaries unless the bypass is explicit and audited.    |
 | Should Better Auth dynamic access control ship on day one?                                             | Dynamic roles are powerful, but static roles plus document ACLs may be enough for the first implementation.           |
-| Which metadata fields are sensitive and should not sync through Zero?                                  | Some field values may need API-only access even if most metadata syncs.                                               |
+| Which seeded metadata fields should default to `confidential`, `secret`, `api_only`, or `not_indexed`? | Field-level policy columns exist, but defaults matter for safe initial behavior.                                      |
 | Which object access grants, if any, should be exposed as booleans through Zero?                        | Full ACL/grant internals should stay server-only, but the UI may need safe capability flags.                          |
 | How much audit history should be visible in-product versus exported to compliance storage?             | The model keeps audit in Postgres with tamper-evident hashes; long-term archival can be added.                        |
 
