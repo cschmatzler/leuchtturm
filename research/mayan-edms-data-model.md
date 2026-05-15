@@ -11,7 +11,7 @@ Mayan EDMS is a Django application with a deep plugin architecture. Each app (`d
 
 - **Django's permission framework** + **ACLs** (`mayan.apps.acls`) for granular access control
 - **Django-actstream** for activity/event tracking
-- **ExtraDataModelMixin** — a JSON `extra_data` field on many models for extensibility
+- **ExtraDataModelMixin** — accepts `_instance_extra_data` at construction time and sets transient instance attributes; it does not add a database field
 - **Event decorators** (`@method_event`) for declarative audit logging
 - **Backend pattern** — pluggable backends for sources, OCR, duplicate detection, etc.
 
@@ -33,7 +33,6 @@ Mayan EDMS is a Django application with a deep plugin architecture. Each app (`d
 | `in_trash`          | BooleanField(indexed, default=False) | Soft-delete flag                   |
 | `trashed_date_time` | DateTimeField(nullable)              | When moved to trash                |
 | `is_stub`           | BooleanField(indexed, default=True)  | Stub = no file uploaded yet        |
-| `extra_data`        | JSONField (from mixin)               | Extension data                     |
 
 Managers: `objects` (all), `trash` (in_trash=True), `valid` (in_trash=False, is_stub=False).
 
@@ -51,7 +50,6 @@ Managers: `objects` (all), `trash` (in_trash=True), `valid` (in_trash=False, is_
 | `delete_time_unit`                     | CharField(8, default)                 | Time unit                        |
 | `filename_generator_backend`           | CharField(224)                        | Storage filename generator class |
 | `filename_generator_backend_arguments` | TextField(validators=[YAMLValidator]) | YAML config for generator        |
-| `extra_data`                           | JSONField                             | Extension data                   |
 
 Sub-model: **DocumentTypeFilename** — quick-renames per type.
 
@@ -69,7 +67,6 @@ Sub-model: **DocumentTypeFilename** — quick-renames per type.
 | `encoding`    | CharField(64, nullable)                 | File encoding             |
 | `checksum`    | CharField(64, nullable, indexed)        | SHA-256 hash              |
 | `size`        | PositiveIntegerField(nullable, indexed) | File size in bytes        |
-| `extra_data`  | JSONField                               | Extension data            |
 
 **Versioning model**: Multiple `DocumentFile`s can be uploaded to a single Document. Each file upload creates a new DocumentFile record (append-only). Files are never modified in-place.
 
@@ -92,7 +89,6 @@ Each file page gets its own row. The actual image generation is lazy — cached 
 | `timestamp`   | DateTimeField(auto_now_add) | Version creation time                |
 | `comment`     | TextField(blank)            | Version description                  |
 | `active`      | BooleanField(default=True)  | Only one version is active at a time |
-| `extra_data`  | JSONField                   | Extension data                       |
 
 **Critical concept**: A DocumentVersion is a _mapping_ of pages from one or more DocumentFiles. It represents the "view" of the document at a point in time. When a new file is uploaded, the active version is remapped.
 
@@ -136,7 +132,6 @@ This is a **polymorphic association**: a version page can point to any content o
 | `validation_arguments` | TextField(validators=[YAMLValidator]) | YAML validator config                               |
 | `parser`               | CharField(224, blank)                 | Parser class dotted path                            |
 | `parser_arguments`     | TextField(validators=[YAMLValidator]) | YAML parser config                                  |
-| `extra_data`           | JSONField                             | Extension data                                      |
 
 ### DocumentMetadata (`metadata_documentmetadata`)
 
@@ -166,13 +161,12 @@ This is a **polymorphic association**: a version page can point to any content o
 
 ### Tag (`tags_tag`)
 
-| Field        | Type                   | Description             |
-| ------------ | ---------------------- | ----------------------- |
-| `id`         | PK                     |                         |
-| `label`      | CharField(128, unique) | Tag name                |
-| `color`      | CharField(7)           | RGB hex color           |
-| `documents`  | M2M→Document           | Documents with this tag |
-| `extra_data` | JSONField              | Extension data          |
+| Field       | Type                   | Description             |
+| ----------- | ---------------------- | ----------------------- |
+| `id`        | PK                     |                         |
+| `label`     | CharField(128, unique) | Tag name                |
+| `color`     | CharField(7)           | RGB hex color           |
+| `documents` | M2M→Document           | Documents with this tag |
 
 **No hierarchy** — Tags in Mayan are flat, unlike Paperless-ngx.
 
@@ -205,7 +199,6 @@ Cabinets are hierarchical folder-like containers. ACLs propagate from root cabin
 | `expiration_datetime` | DateTimeField                   | Auto-expiry time                       |
 | `user_id`             | FK→User (cascade)               | Who checked it out                     |
 | `block_new_file`      | BooleanField(default=True)      | Prevent file uploads while checked out |
-| `extra_data`          | JSONField                       | Extension data                         |
 
 **OneToOne**: Only one active checkout per document. Validated expiration must be in the future.
 
@@ -218,7 +211,6 @@ Cabinets are hierarchical folder-like containers. ACLs propagate from root cabin
 | `user_id`     | FK→User (cascade)              | Comment author |
 | `text`        | TextField                      | Comment text   |
 | `submit_date` | DateTimeField(auto_now_add)    |                |
-| `extra_data`  | JSONField                      | Extension data |
 
 ---
 
@@ -300,12 +292,11 @@ No additional fields — signature is embedded in the document file itself.
 
 ### Source (`sources_source`)
 
-| Field        | Type                   | Description         |
-| ------------ | ---------------------- | ------------------- |
-| `id`         | PK                     |                     |
-| `label`      | CharField(128, unique) | Human-readable name |
-| `enabled`    | BooleanField           | Whether active      |
-| `extra_data` | JSONField              | Extension data      |
+| Field     | Type                   | Description         |
+| --------- | ---------------------- | ------------------- |
+| `id`      | PK                     |                     |
+| `label`   | CharField(128, unique) | Human-readable name |
+| `enabled` | BooleanField           | Whether active      |
 
 Uses BackendModelMixin — actual source behavior (watch folder, IMAP, etc.) is configured via backend classes stored as Python dotted paths.
 
@@ -344,7 +335,6 @@ Uses BackendModelMixin — actual source behavior (watch folder, IMAP, etc.) is 
 | `dynamic_label`  | CharField(96, blank)    | Django template label |
 | `enabled`        | BooleanField            |                       |
 | `document_types` | M2M→DocumentType        | Applicable types      |
-| `extra_data`     | JSONField               |                       |
 
 ### SmartLinkCondition (`linking_smartlinkcondition`)
 
@@ -358,7 +348,6 @@ Uses BackendModelMixin — actual source behavior (watch folder, IMAP, etc.) is 
 | `expression`            | TextField              | Django template expression |
 | `negated`               | BooleanField           | Invert logic               |
 | `enabled`               | BooleanField           |                            |
-| `extra_data`            | JSONField              |                            |
 
 ---
 
@@ -444,15 +433,9 @@ This ensures every creation/edit/deletion of a Document, DocumentType, Tag, Cabi
 
 ---
 
-## Extra Data Pattern
+## Extra Instance Data Pattern
 
-Nearly all models inherit from `ExtraDataModelMixin`, which adds:
-
-| Field        | Type                | Description              |
-| ------------ | ------------------- | ------------------------ |
-| `extra_data` | JSONField(nullable) | Arbitrary extension data |
-
-This allows plugins and integrations to attach arbitrary data without schema migrations.
+`ExtraDataModelMixin` does not add an `extra_data` database field. It accepts a special `_instance_extra_data` keyword argument during object construction and sets each supplied key/value as an attribute on the Python instance. This is useful for passing view/API context onto model instances, but it is not persisted and does not provide plugin storage without migrations.
 
 ---
 
@@ -497,7 +480,7 @@ ObjectEventSubscription ←── User + StoredEventType + GenericFK
 
 7. **Backend pattern for extensibility**: Sources, duplicate detection, and other subsystems use `BackendModelMixin` to register Python classes as database-backed configuration. New backends can be added without schema changes.
 
-8. **Extra data mixin**: Every major model has `extra_data` (JSONField), allowing plugins to extend entities without migrations.
+8. **Transient instance-data hook**: `ExtraDataModelMixin` can attach request/view-specific context to instances without changing constructor signatures, but it is not persistent storage.
 
 9. **File metadata extraction**: Dedicated `FileMetadataEntry` model with driver-based extraction (EXIF, etc.) allows structured querying of embedded file metadata.
 
@@ -509,7 +492,7 @@ ObjectEventSubscription ←── User + StoredEventType + GenericFK
 
 2. **No content storage in the model**: OCR text isn't stored directly on the model — it's in `DocumentVersionPageOCRContent` linked to version pages. This means the text depends on the version and page mapping being correct.
 
-3. **Extra data is a JSON colander**: While flexible, `extra_data` is unqueryable in a structured way. It's effectively a NoSQL sidecar on a relational model.
+3. **No broad JSON extension column**: The source does not provide a general `extra_data` JSON field on major models, so plugins that need persisted fields still require proper schema changes or existing extension points.
 
 4. **GenericForeignKey overhead**: `DocumentVersionPage.content_object` uses Django's GenericFK, which means no database-level referential integrity and requires N+1 queries or manual prefetching.
 

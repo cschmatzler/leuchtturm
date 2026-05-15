@@ -53,7 +53,6 @@ This table serves as both the filesystem tree and the metadata cache. Folders ar
 | ---------- | ------------------- | ----------------------- |
 | `id`       | INT AUTO_INCREMENT  | PK                      |
 | `mimetype` | VARCHAR(255) unique | E.g., "application/pdf" |
-| `icon`     | VARCHAR(255)        | Icon name for UI        |
 
 ---
 
@@ -73,29 +72,29 @@ This table serves as both the filesystem tree and the metadata cache. Folders ar
 
 ### `oc_share` — File/Folder Shares
 
-| Column                   | Type                  | Description                                                                                    |
-| ------------------------ | --------------------- | ---------------------------------------------------------------------------------------------- |
-| `id`                     | BIGINT AUTO_INCREMENT | PK                                                                                             |
-| `share_type`             | INT                   | 0=user, 1=group, 2=public link, 3=email, 4=contact, 5=remote, 6=room, 7=user group, 8=external |
-| `share_with`             | VARCHAR(255)          | Recipient (user, group, or email depending on type)                                            |
-| `share_with_displayname` | VARCHAR(255)          | Display name cache                                                                             |
-| `password`               | VARCHAR(255)          | Password for link shares (hashed)                                                              |
-| `uid_owner`              | VARCHAR(64)           | User who created the share                                                                     |
-| `uid_initiator`          | VARCHAR(64)           | User who initiated (may differ from owner via reshare)                                         |
-| `parent`                 | BIGINT nullable       | Parent share ID (for group → user target shares)                                               |
-| `item_type`              | VARCHAR(64)           | "file" or "folder"                                                                             |
-| `item_source`            | VARCHAR(255)          | Source filecache fileid (string)                                                               |
-| `item_target`            | VARCHAR(255)          | Target path for the recipient                                                                  |
-| `file_source`            | BIGINT nullable       | Source filecache fileid (numeric)                                                              |
-| `file_target`            | VARCHAR(4000)         | Target mount point name                                                                        |
-| `permissions`            | INT                   | Bitmask (see filecache permissions)                                                            |
-| `stime`                  | BIGINT                | Share creation timestamp                                                                       |
-| `accepted`               | INT nullable          | Whether share was accepted                                                                     |
-| `expiration`             | DATE nullable         | Expiration date                                                                                |
-| `token`                  | VARCHAR(32)           | Public link token                                                                              |
-| `mail_send`              | INT                   | Whether email notification was sent                                                            |
-| `share_name`             | VARCHAR(64)           | Custom share name                                                                              |
-| `parent_note`            | TEXT                  | Note attached to share                                                                         |
+| Column          | Type                  | Description                                                                                    |
+| --------------- | --------------------- | ---------------------------------------------------------------------------------------------- |
+| `id`            | BIGINT AUTO_INCREMENT | PK                                                                                             |
+| `share_type`    | INT                   | 0=user, 1=group, 2=public link, 3=email, 4=contact, 5=remote, 6=room, 7=user group, 8=external |
+| `share_with`    | VARCHAR(255)          | Recipient (user, group, or email depending on type)                                            |
+| `password`      | VARCHAR(255)          | Password for link shares (hashed)                                                              |
+| `uid_owner`     | VARCHAR(64)           | User who created the share                                                                     |
+| `uid_initiator` | VARCHAR(64)           | User who initiated (may differ from owner via reshare)                                         |
+| `parent`        | BIGINT nullable       | Parent share ID (for group → user target shares)                                               |
+| `item_type`     | VARCHAR(64)           | "file" or "folder"                                                                             |
+| `item_source`   | VARCHAR(255)          | Source filecache fileid (string)                                                               |
+| `item_target`   | VARCHAR(255)          | Target path for the recipient                                                                  |
+| `file_source`   | BIGINT nullable       | Source filecache fileid (numeric)                                                              |
+| `file_target`   | VARCHAR(4000)         | Target mount point name                                                                        |
+| `permissions`   | INT                   | Bitmask (see filecache permissions)                                                            |
+| `stime`         | BIGINT                | Share creation timestamp                                                                       |
+| `accepted`      | INT nullable          | Whether share was accepted                                                                     |
+| `expiration`    | DATE nullable         | Expiration date                                                                                |
+| `token`         | VARCHAR(32)           | Public link token                                                                              |
+| `mail_send`     | INT                   | Whether email notification was sent                                                            |
+| `share_name`    | VARCHAR(64)           | Custom share name                                                                              |
+
+Display names such as `share_with_displayname` are computed in API responses, not stored as columns on `oc_share`.
 
 ---
 
@@ -189,7 +188,7 @@ Tags are flat (no hierarchy). Nextcloud also supports **collaborative tags** via
 | `file`          | VARCHAR(4000) nullable | File path                                                |
 | `link`          | VARCHAR(4000) nullable | Link to related object                                   |
 | `object_type`   | VARCHAR(255) nullable  | Type of related object                                   |
-| `object_id`     | VARCHAR(255) nullable  | ID of related object                                     |
+| `object_id`     | BIGINT nullable        | ID of related object                                     |
 | `type`          | VARCHAR(255)           | Activity type (file_created, file_changed, shared, etc.) |
 | `timestamp`     | INT                    | Unix timestamp                                           |
 | `priority`      | INT                    | Priority level                                           |
@@ -269,12 +268,16 @@ This is a WebDAV property store — arbitrary key-value metadata per file path. 
 
 ## Retention / Auto-Deletion
 
-Handled by the **Retention** app. Rules stored in app config:
+Handled by the separate **Files Retention** app, which stores rules in a `retention` table:
 
-| Concept        | Description                                                        |
-| -------------- | ------------------------------------------------------------------ |
-| Retention rule | Tag + duration → files with that tag are auto-deleted after N days |
-| Retention job  | Background job scans tagged files and deletes expired ones         |
+| Column        | Type     | Description                                     |
+| ------------- | -------- | ----------------------------------------------- |
+| `id`          | BIGINT   | PK                                              |
+| `tag_id`      | INTEGER  | System tag the retention rule applies to        |
+| `time_unit`   | INTEGER  | Unit for the retention duration                 |
+| `time_amount` | SMALLINT | Amount of time before matching files are pruned |
+
+The retention job scans tagged files and deletes expired ones according to these rules.
 
 ---
 

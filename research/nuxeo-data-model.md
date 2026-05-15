@@ -72,24 +72,10 @@ The document type, mixins, record flags, version flags, trash flags, and change 
 
 ### Common Schema (`common`)
 
-| Field             | Type     | Description                  |
-| ----------------- | -------- | ---------------------------- |
-| `dc:title`        | String   | Document title               |
-| `dc:description`  | String   | Document description         |
-| `dc:subjects`     | String[] | Subject keywords             |
-| `dc:rights`       | String   | Access rights                |
-| `dc:source`       | String   | Original source              |
-| `dc:coverage`     | String   | Spatial/temporal coverage    |
-| `dc:created`      | Date     | Creation date (Dublin Core)  |
-| `dc:modified`     | Date     | Last modified date           |
-| `dc:issued`       | Date     | Issue date                   |
-| `dc:valid`        | Date     | Validity start               |
-| `dc:expired`      | Date     | Expiration date              |
-| `dc:creator`      | String   | Dublin Core creator          |
-| `dc:contributors` | String[] | Dublin Core contributors     |
-| `dc:language`     | String   | Document language            |
-| `dc:format`       | String   | MIME type                    |
-| `dc:type`         | String   | Document type classification |
+| Field                  | Type   | Description                    |
+| ---------------------- | ------ | ------------------------------ |
+| `common:icon`          | String | Collapsed tree/navigation icon |
+| `common:icon-expanded` | String | Expanded tree/navigation icon  |
 
 ### File Schema (`file`)
 
@@ -132,11 +118,28 @@ The `file:content` Blob is a complex type containing:
 
 ### Audio Schema (`audio`) — similar to Picture with duration, bitrate, etc.
 
-###
+### DublinCore Schema (`dublincore`)
 
-DublinCore Schema (`dublincore`)
+Maps to the Dublin Core metadata standard. This is a required schema on all documents.
 
-Maps to the Dublin Core metadata standard (see Common Schema above). This is a required schema on all documents.
+| Field             | Type     | Description                  |
+| ----------------- | -------- | ---------------------------- |
+| `dc:title`        | String   | Document title               |
+| `dc:description`  | String   | Document description         |
+| `dc:subjects`     | String[] | Subject keywords             |
+| `dc:rights`       | String   | Access rights                |
+| `dc:source`       | String   | Original source              |
+| `dc:coverage`     | String   | Spatial/temporal coverage    |
+| `dc:created`      | Date     | Creation date                |
+| `dc:modified`     | Date     | Last modified date           |
+| `dc:issued`       | Date     | Issue date                   |
+| `dc:valid`        | Date     | Validity start               |
+| `dc:expired`      | Date     | Expiration date              |
+| `dc:creator`      | String   | Creator                      |
+| `dc:contributors` | String[] | Contributors                 |
+| `dc:language`     | String   | Document language            |
+| `dc:format`       | String   | MIME type                    |
+| `dc:type`         | String   | Document type classification |
 
 ### UID Schema (`uid`)
 
@@ -191,20 +194,18 @@ A container for documents and sub-folders. The primary organizational unit in Nu
 
 Facets add schemas and behavior to any document type at runtime.
 
-| Facet                    | Added Schemas          | Description                            |
-| ------------------------ | ---------------------- | -------------------------------------- |
-| `Versionable`            | —                      | Enables versioning on a document       |
-| `Commentable`            | `comment`              | Adds comment capability                |
-| `Publishable`            | `publication`          | Enables publication workflow           |
-| `Folderish`              | —                      | Can contain child documents            |
-| `Orderable`              | —                      | Supports manual ordering of children   |
-| `HiddenInNavigation`     | —                      | Excluded from tree navigation          |
-| `SystemDocument`         | —                      | Internal system document               |
-| `Thumbnail`              | `thumbnail`            | Has a thumbnail image                  |
-| `Downloadable`           | `download`             | Can be downloaded with permissions     |
-| `HasUnrestrictedContent` | `unrestricted_content` | Content visible to specific users only |
-| `MasterPublishSpace`     | —                      | Publication root                       |
-| `ConcurrentCopySafe`     | —                      | Safe for concurrent copies             |
+| Facet                | Added Schemas | Description                          |
+| -------------------- | ------------- | ------------------------------------ |
+| `Versionable`        | —             | Enables versioning on a document     |
+| `Commentable`        | `comment`     | Adds comment capability              |
+| `Publishable`        | `publication` | Enables publication workflow         |
+| `Folderish`          | —             | Can contain child documents          |
+| `Orderable`          | —             | Supports manual ordering of children |
+| `HiddenInNavigation` | —             | Excluded from tree navigation        |
+| `SystemDocument`     | —             | Internal system document             |
+| `Thumbnail`          | `thumbnail`   | Has a thumbnail image                |
+| `Downloadable`       | `download`    | Can be downloaded with permissions   |
+| `MasterPublishSpace` | —             | Publication root                     |
 
 ---
 
@@ -271,16 +272,16 @@ For Elasticsearch mode, each document is synced as a JSON document with all sche
 
 Lifecycle policies define state machines:
 
-**Default lifecycle** ("default"):
+**Default lifecycle** (`default`):
 
 ```
-project → approval → approved
-                       └── obsolete (from approved)
-approval → project (reject)
-project → deleted (delete)
+project --approve--> approved
+project --obsolete--> obsolete
+approved --backToProject--> project
+obsolete --backToProject--> project
 ```
 
-States: `project`, `approval`, `approved`, `obsolete`, `deleted`
+States: `project`, `approved`, `obsolete`
 
 Lifecycle is stored on the document row in `lifecyclepolicy` and `lifecyclestate` columns. Transitions are triggered by API calls, not by state columns.
 
@@ -310,8 +311,7 @@ VCS Core Tables
   ├── acls → per-document ACLs
   ├── versions → version history
   ├── NXP_LOGS → SQL audit trail
-  ├── nuxeo_workflow → workflow instances
-  └── nuxeo_task → workflow tasks
+  └── Workflow/routing state → implementation-specific storage exposed through APIs
 ```
 
 ---

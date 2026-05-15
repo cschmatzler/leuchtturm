@@ -2,7 +2,7 @@
 
 > Source: [documize/community](https://github.com/documize/community)  
 > Language: Go  
-> Database: PostgreSQL, MySQL, SQLite (via Go ORM)  
+> Database: PostgreSQL, MySQL/MariaDB/Percona, SQL Server  
 > Last analyzed: 2026-04-22
 
 ## Architecture Overview
@@ -253,6 +253,21 @@ Flattened view:
 
 Flattened view with 12 boolean fields covering space and document operations.
 
+## Search
+
+Documize keeps a database-backed search index in `dmz_search` and uses database-specific full-text behavior rather than an external-only search service:
+
+| Column       | Description                                      |
+| ------------ | ------------------------------------------------ |
+| `c_orgid`    | Organization scope                               |
+| `c_docid`    | Document being indexed                           |
+| `c_itemid`   | Indexed item, such as document, page, file, tag  |
+| `c_itemtype` | Item type (`doc`, `page`, `file`, `tag`, etc.)   |
+| `c_content`  | Searchable text                                  |
+| `c_token`    | PostgreSQL full-text token vector where relevant |
+
+PostgreSQL indexing uses `to_tsvector`, SQL Server search uses full-text `CONTAINS`, and MySQL-family support uses the MySQL storage implementation.
+
 ---
 
 ## Workflow / Lifecycle
@@ -464,4 +479,4 @@ Template (document template, space-scoped)
 
 9. **Activity model lacks immutability guarantees**: `AppEvent` and `UserActivity` are regular tables with no architectural protection against modification or deletion. Not suitable for compliance audit without additional constraints.
 
-10. **No full-text search in model**: The data model doesn't include search indexes or content extraction fields. Search relies on separate search services (Elasticsearch/bleve) configured outside the model.
+10. **Database-specific search behavior**: Search is modeled through `dmz_search`, but query behavior differs by database backend (`to_tsvector`, SQL Server full-text, MySQL-family behavior), so portability and tuning are more complex than a single search service abstraction.

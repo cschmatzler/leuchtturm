@@ -248,9 +248,9 @@ Categories form a tree. Documents are tagged via `cm:generalclassifiable` aspect
 
 ### `cm:generalclassifiable` aspect
 
-| Association     | Target      | Description                       |
-| --------------- | ----------- | --------------------------------- |
-| `cm:categories` | cm:category | Categories/tags applied to a node |
+| Property        | Type       | Description                                      |
+| --------------- | ---------- | ------------------------------------------------ |
+| `cm:categories` | d:category | Multi-valued category references applied to node |
 
 ---
 
@@ -286,16 +286,14 @@ Defined in `workflowModel.xml`. Key types:
 
 ### `bpm:startTask`
 
-| Property                | Type      | Description                                |
-| ----------------------- | --------- | ------------------------------------------ |
-| `bpm:taskId`            | d:text    | Workflow engine task ID                    |
-| `bpm:description`       | d:text    | Task description                           |
-| `bpm:dueDate`           | d:date    | Due date                                   |
-| `bpm:priority`          | d:int     | Priority                                   |
-| `bpm:completionPercent` | d:int     | Completion %                               |
-| `bpm:comment`           | d:text    | Comment                                    |
-| `bpm:status`            | d:text    | Task status                                |
-| `bpm:package`           | d:noderef | Workflow package (collection of documents) |
+| Property                     | Type      | Description                                |
+| ---------------------------- | --------- | ------------------------------------------ |
+| `bpm:workflowDescription`    | d:text    | Description for the workflow as a whole    |
+| `bpm:workflowDueDate`        | d:date    | Due date for the workflow as a whole       |
+| `bpm:workflowPriority`       | d:int     | Priority for the workflow as a whole       |
+| `bpm:sendEMailNotifications` | d:boolean | Whether email notifications should be sent |
+
+Common workflow task metadata is inherited from `bpm:workflowTask` / `bpm:task`. The workflow package is modeled as an association named `bpm:package` targeting the `bpm:workflowPackage` aspect, not as a `d:noderef` property.
 
 ### `bpm:activitiOutcomeTask`
 
@@ -416,7 +414,7 @@ Aspects (applicable to any node):
   cm:dublincore (publisher, contributor, type, etc.)
   cm:effectivity (from, to)
   cm:complianceable (removeAfter)
-  cm:generalclassifiable ──[cm:categories]──→ cm:category
+  cm:generalclassifiable ──[cm:categories property]──→ cm:category
   cm:lockable (lockOwner, lockType, expiryDate)
   cm:workingcopy (workingCopyOwner)
   cm:copiedfrom ──[cm:original]──→ cm:cmobject

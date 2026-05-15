@@ -53,39 +53,37 @@ Every document-like object inherits from `dm_sysobject`. The corresponding table
 
 ### dm_sysobject_s (Single-valued attributes)
 
-| Column                    | Type          | Description                                |
-| ------------------------- | ------------- | ------------------------------------------ |
-| `r_object_id`             | VARCHAR(16)   | Object ID (hex, globally unique)           |
-| `object_name`             | VARCHAR(255)  | Display name                               |
-| `r_object_type`           | VARCHAR(64)   | Type name (e.g., "dm_document")            |
-| `title`                   | VARCHAR(400)  | Title                                      |
-| `subject`                 | VARCHAR(400)  | Subject                                    |
-| `keywords`                | VARCHAR(2000) | Comma-separated keywords                   |
-| `authors`                 | VARCHAR(2000) | Comma-separated authors                    |
-| `r_creation_date`         | DATETIME      | Creation date (system-maintained)          |
-| `r_modify_date`           | DATETIME      | Last modification date (system-maintained) |
-| `r_modifier`              | VARCHAR(64)   | Last modifier username                     |
-| `r_creator`               | VARCHAR(64)   | Creator username                           |
-| `r_lock_owner`            | VARCHAR(64)   | Checkout owner                             |
-| `r_lock_date`             | DATETIME      | Lock acquisition date                      |
-| `r_lock_machine`          | VARCHAR(64)   | Machine holding the lock                   |
-| `r_policy_id`             | VARCHAR(16)   | FK → dm_policy (lifecycle)                 |
-| `r_current_state`         | INT           | Current lifecycle state number             |
-| `i_contents_id`           | VARCHAR(16)   | FK → dmr_content (content descriptor)      |
-| `i_reference_cnt`         | INT           | Reference count                            |
-| `a_is_hidden`             | BOOLEAN       | Hidden flag                                |
-| `a_storage_type`          | VARCHAR(32)   | Storage type (filestore, etc.)             |
-| `a_content_type`          | VARCHAR(64)   | MIME type hint                             |
-| `a_application_type`      | VARCHAR(64)   | Application that created this              |
-| `a_status`                | VARCHAR(16)   | Custom status field                        |
-| `a_compound_architecture` | VARCHAR(16)   | "assembly" or "virtual"                    |
-| `a_link_cnt`              | INT           | Number of links (folder references)        |
-| `a_archive`               | BOOLEAN       | Whether archived                           |
-| `a_special_app`           | VARCHAR(64)   | Special application context                |
-| `i_is_reference`          | BOOLEAN       | Whether this is a reference (shortcut)     |
-| `r_cabinet_id`            | VARCHAR(16)   | Cabinet containing this object             |
-| `r_virtual_path`          | VARCHAR(255)  | Virtual document path                      |
-| `i_antecedent_id`         | VARCHAR(16)   | Previous version object ID                 |
+| Column                    | Type         | Description                                |
+| ------------------------- | ------------ | ------------------------------------------ |
+| `r_object_id`             | VARCHAR(16)  | Repository-scoped object ID (hex)          |
+| `object_name`             | VARCHAR(255) | Display name                               |
+| `r_object_type`           | VARCHAR(64)  | Type name (e.g., "dm_document")            |
+| `title`                   | VARCHAR(400) | Title                                      |
+| `subject`                 | VARCHAR(400) | Subject                                    |
+| `r_creation_date`         | DATETIME     | Creation date (system-maintained)          |
+| `r_modify_date`           | DATETIME     | Last modification date (system-maintained) |
+| `r_modifier`              | VARCHAR(64)  | Last modifier username                     |
+| `r_creator`               | VARCHAR(64)  | Creator username                           |
+| `r_lock_owner`            | VARCHAR(64)  | Checkout owner                             |
+| `r_lock_date`             | DATETIME     | Lock acquisition date                      |
+| `r_lock_machine`          | VARCHAR(64)  | Machine holding the lock                   |
+| `r_policy_id`             | VARCHAR(16)  | FK → dm_policy (lifecycle)                 |
+| `r_current_state`         | INT          | Current lifecycle state number             |
+| `i_contents_id`           | VARCHAR(16)  | FK → dmr_content (content descriptor)      |
+| `i_reference_cnt`         | INT          | Reference count                            |
+| `a_is_hidden`             | BOOLEAN      | Hidden flag                                |
+| `a_storage_type`          | VARCHAR(32)  | Storage type (filestore, etc.)             |
+| `a_content_type`          | VARCHAR(64)  | MIME type hint                             |
+| `a_application_type`      | VARCHAR(64)  | Application that created this              |
+| `a_status`                | VARCHAR(16)  | Custom status field                        |
+| `a_compound_architecture` | VARCHAR(16)  | "assembly" or "virtual"                    |
+| `a_link_cnt`              | INT          | Number of links (folder references)        |
+| `a_archive`               | BOOLEAN      | Whether archived                           |
+| `a_special_app`           | VARCHAR(64)  | Special application context                |
+| `i_is_reference`          | BOOLEAN      | Whether this is a reference (shortcut)     |
+| `r_cabinet_id`            | VARCHAR(16)  | Cabinet containing this object             |
+| `r_virtual_path`          | VARCHAR(255) | Virtual document path                      |
+| `i_antecedent_id`         | VARCHAR(16)  | Previous version object ID                 |
 
 ### dm_sysobject_r (Repeating attributes)
 
@@ -327,8 +325,6 @@ ACLs are assigned to objects through object-level ACL attributes such as `acl_na
 
 ## Audit Trail
 
-### dmr_containment (Content vs. Audit — dmr_prefix = repository metadata)
-
 Documentum's audit trail is stored in the `dm_audittrail` (or `dmi_audit` in some configurations):
 
 ### dm_audittrail / dmi_audit
@@ -432,7 +428,7 @@ dm_audittrail (event: dm_create, dm_save, dm_destroy, dm_checkout, etc.)
 
 1. **Extremely complex**: The data model has been growing since the 1990s. Understanding all the `_s`/`_r` table pairs, `dmr_` metadata tables, and `dmi_` internal tables requires significant expertise.
 
-2. **16-character object IDs**: `r_object_id` is a 16-character hex string encoding type information. These are not standard UUIDs and require Documentum APIs to generate or decode.
+2. **16-character object IDs**: `r_object_id` is a 16-character hex string encoding object type, repository/docbase, and object parts. These are not standard UUIDs and require Documentum APIs to generate or decode.
 
 3. **Repeating attributes require joins**: To query a document's authors or keywords, you must join `_s` and `_r` tables. This makes even simple queries complex and slow for objects with many repeating attributes.
 

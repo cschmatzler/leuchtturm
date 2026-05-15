@@ -8,7 +8,7 @@
 
 SharePoint is Microsoft's enterprise content management and collaboration platform. Its data model is deeply tied to SQL Server and is primarily accessed through CSOM (Client-Side Object Model), REST APIs, Microsoft Graph, and PowerShell. The on-premises content database schema is not a supported public integration surface; the table details below are based on public documentation, API behavior, and community/reverse-engineered references. SharePoint Online's physical schema is inaccessible directly.
 
-The on-premises SQL tables below should be read as public/protocol reference material, not as a stable application contract. Microsoft explicitly requires supported access through SharePoint APIs, PowerShell, admin tooling, object model, or documented protocols.
+The on-premises SQL tables below should be read as public/protocol reference material, not as a stable application contract. Microsoft documents some protocol-facing table structures in Open Specifications, but Microsoft explicitly requires supported access through SharePoint APIs, PowerShell, admin tooling, object model, or documented protocols.
 
 Key concepts:
 
@@ -30,14 +30,14 @@ Key concepts:
 | `SiteId`              | uniqueidentifier | Site collection ID                             |
 | `WebId`               | uniqueidentifier | Web (site) ID                                  |
 | `ListId`              | uniqueidentifier | List (library) ID                              |
-| `DocLibId`            | uniqueidentifier | Document library ID                            |
-| `Type`                | int              | 0=File, 1=Folder                               |
-| `LeafName`            | nvarchar(260)    | Filename                                       |
-| `DirName`             | nvarchar(260)    | Folder path                                    |
+| `DoclibRowId`         | int nullable     | Document library list item row ID              |
+| `Type`                | tinyint          | Document row type                              |
+| `LeafName`            | nvarchar(128)    | Filename                                       |
+| `DirName`             | nvarchar(256)    | Folder path                                    |
 | `TimeCreated`         | datetime         | Creation time                                  |
 | `TimeLastModified`    | datetime         | Last modification time                         |
 | `Size`                | int              | File size                                      |
-| `MetaInfo`            | nvarchar(max)    | Extended metadata (property bag)               |
+| `MetaInfo`            | varbinary(max)   | Extended metadata blob                         |
 | `UiVersion`           | int              | Version number (e.g., 512 = v1.0, 1024 = v2.0) |
 | `UiVersionString`     | nvarchar(20)     | Version string ("1.0", "2.1")                  |
 | `CheckoutUserId`      | int              | Who has it checked out                         |
@@ -51,13 +51,15 @@ Key concepts:
 
 ### `AllDocStreams` (Document Binary Content)
 
-| Column    | Type                      | Description                                     |
-| --------- | ------------------------- | ----------------------------------------------- |
-| `Id`      | uniqueidentifier          | Document ID                                     |
-| `Content` | varbinary(max)            | Binary content                                  |
-| `RbsId`   | uniqueidentifier nullable | Remote Blob Storage ID (for RBS-enabled setups) |
+| Column            | Type                    | Description                                     |
+| ----------------- | ----------------------- | ----------------------------------------------- |
+| `Id`              | uniqueidentifier        | Document ID                                     |
+| `SiteId`          | uniqueidentifier        | Site collection ID                              |
+| `InternalVersion` | int                     | Internal version number                         |
+| `Content`         | varbinary(max) nullable | Binary content                                  |
+| `RbsId`           | varbinary(800) nullable | Remote Blob Storage ID (for RBS-enabled setups) |
 
-When **Remote Blob Storage (RBS)** is enabled, content is stored on the filesystem or in Azure Blob Storage, not in SQL.
+When **Remote Blob Storage (RBS)** is enabled, content is stored outside the content database through FILESTREAM or another RBS provider, and `RbsId` points to that remote content.
 
 ### `AllDocVersions` (Document Version History)
 
@@ -171,7 +173,7 @@ Content Types define the schema for items:
 - `0x0120` → Folder
 - `0x0101...` → Custom document types
 
-Content Type IDs are hierarchical. `0x010100...` means "Document + two custom hex bytes". This allows type inheritance to be determined from the ID alone.
+Content Type IDs are hierarchical. `0x010100...` means a content type derived from `0x0101` (`Document`) with an additional custom suffix. This allows type inheritance to be determined from the ID prefix.
 
 ### `AllContentTypes` (SQL)
 
@@ -343,7 +345,7 @@ Content Type Hierarchy:
 
 ## Downsides
 
-1. **Totally proprietary**: The SQL schema is undocumented by Microsoft, changes between versions, and is not supported for direct access. All interaction must go through APIs (CSOM, REST, Graph API).
+1. **Unsupported direct SQL integration**: Some protocol-facing SQL structures are documented in Microsoft Open Specifications, but direct database access is still unsupported as an integration surface and physical schema details change between versions. All interaction should go through supported APIs (CSOM, REST, Graph API), PowerShell, object model, admin tooling, or documented protocols.
 
 2. **Generic column exhaustion**: With only 64 nvarchar, 16 int, etc. columns, large lists with many custom fields can hit the column limit. The `tp_Data` JSON property bag is used for overflow, but it's unqueryable.
 
@@ -361,4 +363,4 @@ Content Type Hierarchy:
 
 9. **SQL Server dependency**: On-premises SharePoint requires SQL Server (or Azure SQL). No PostgreSQL, MySQL, or SQLite option.
 
-10. **No document signatures or integrity**: No built-in checksum, hash, or digital signature verification. External solutions (like DigiCert) must be integrated.
+10. **No universal document integrity model**: The content database model does not expose a simple built-in checksum/signature system for compliance verification. Microsoft Graph can expose service-provided hashes such as `quickXorHash` and optional `sha1Hash`/`crc32Hash`, but `sha256Hash` is explicitly unsupported and this is not equivalent to an immutable signature/audit model.
