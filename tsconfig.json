@@ -7,48 +7,23 @@
 		],
 		"target": "ESNext",
 		"lib": ["ESNext", "DOM", "DOM.Iterable"],
-
 		"module": "ESNext",
 		"moduleResolution": "bundler",
 		"jsx": "react-jsx",
-		"paths": {
-			"@leuchtturm/api/*": ["./apps/api/src/*"],
-			"@leuchtturm/core/*": ["./packages/core/src/*"],
-			"@leuchtturm/email/*": ["./packages/email/src/*"],
-			"@leuchtturm/infra/*": ["./infra/*"],
-			"@leuchtturm/web/*": ["./apps/web/src/*"],
-			"@leuchtturm/zero/*": ["./packages/zero/src/*"]
-		},
-
 		"moduleDetection": "force",
 		"isolatedModules": true,
 		"verbatimModuleSyntax": true,
-
 		"strict": true,
 		"noFallthroughCasesInSwitch": true,
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
 		"noUncheckedSideEffectImports": true,
-
 		"resolveJsonModule": true,
 		"allowImportingTsExtensions": true,
 		"noEmit": true,
 		"incremental": true,
 		"skipLibCheck": true
 	},
-	"include": [
-		"apps/api/src",
-		"apps/api/sst-env.d.ts",
-		"apps/web/src",
-		"apps/web/sst-env.d.ts",
-		"packages/core/src",
-		"packages/core/sst-env.d.ts",
-		"packages/email/src",
-		"packages/email/sst-env.d.ts",
-		"infra",
-		"sst.config.ts",
-		".sst/platform/config.d.ts",
-		"packages/zero/src",
-		"packages/zero/sst-env.d.ts"
-	]
+	"exclude": [".sst", "node_modules"],
+	"include": ["apps/", "packages/"]
 }

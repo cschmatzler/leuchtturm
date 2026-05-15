@@ -29,4 +29,4 @@ aube run check      # Check formatting with Oxfmt, then lint + type check with O
 ```
 
 - `aube run lint` and the Oxlint part of `aube run check` include type checking. Never run `tsc` directly.
-- After changes, always run `aube run check` and `aube run test`.
+- After changes, always run `aube run check` and `aube run test`. If you have changed Effect-related code, also run `aube run lint-effect`.

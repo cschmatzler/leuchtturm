@@ -31,13 +31,14 @@ export default defineConfig({
 	},
 	jsPlugins: localRules.map((rule) => `./packages/oxlint-plugins/src/${rule}.ts`),
 	ignorePatterns: [
-		"**/node_modules/**",
-		"**/dist/**",
 		"**/*.gen.ts",
+		"**/dist/**",
+		"**/node_modules/**",
 		"**/sst-env.d.ts",
-		".opencode/**",
 		".pi/**",
+		"infra/**",
 		"packages/oxlint-plugins/**",
+		"sst.config.ts",
 	],
 	rules: {
 		"consistent-component-hook-groups/consistent-component-hook-groups": "error",

@@ -28,6 +28,7 @@ jobs:
 
       - run: aube ci
       - run: aube run check
+      - run: aube run lint-effect
       - run: aube run test
 
   zizmor:

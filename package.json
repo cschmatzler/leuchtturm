@@ -13,7 +13,7 @@
 		"lint-effect": "effect-language-service diagnostics --project ./tsconfig.json --format text",
 		"test": "vitest run",
 		"fmt": "oxfmt --write",
-		"check": "oxfmt --check && oxlint && effect-language-service diagnostics --project ./tsconfig.json --format text"
+		"check": "oxfmt --check && oxlint"
 	},
 	"devDependencies": {
 		"@cloudyskysoftware/pulumi-render": "0.5.5",
