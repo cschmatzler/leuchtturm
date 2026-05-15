@@ -1,13 +1,8 @@
-import * as Cause from "effect/Cause";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 
-import {
-	FeatureFlagError,
-	FeatureFlagEvaluationError,
-	FeatureFlagProviderRequestError,
-} from "@leuchtturm/api/feature-flags/errors";
+import { FeatureFlagError } from "@leuchtturm/api/feature-flags/errors";
 import { Posthog } from "@leuchtturm/api/posthog";
 
 export namespace FeatureFlags {
@@ -23,35 +18,14 @@ export namespace FeatureFlags {
 	) {}
 
 	export const layer = Layer.effect(Service)(
-		Effect.sync(() => {
-			const client = Posthog.create();
+		Effect.gen(function* () {
+			const posthog = yield* Posthog.Service;
 
 			return Service.of({
 				isEnabled: (key, userId) =>
-					Effect.tryPromise({
-						try: () =>
-							client.getFeatureFlagResult(key, userId, {
-								sendFeatureFlagEvents: false,
-							}),
-						catch: (cause) => cause,
-					}).pipe(
-						Effect.tapCause((cause) =>
-							Effect.annotateCurrentSpan({
-								"error.original_cause": Cause.pretty(cause),
-							}),
-						),
-						Effect.mapError(
-							() =>
-								new FeatureFlagProviderRequestError({
-									operation: `Evaluate feature flag ${key} for user ${userId}`,
-								}),
-						),
-						Effect.filterOrFail(
-							(result) => result !== undefined,
-							() => new FeatureFlagEvaluationError({ key, userId }),
-						),
-						Effect.map((result) => result.enabled),
-					),
+					posthog
+						.getFeatureFlagResult(key, userId, { sendFeatureFlagEvents: false })
+						.pipe(Effect.map((result) => result.enabled)),
 			});
 		}),
 	);

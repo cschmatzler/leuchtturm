@@ -1,3 +1,4 @@
+import * as Cause from "effect/Cause";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
@@ -18,6 +19,7 @@ import { ZeroHandler } from "@leuchtturm/api/handlers/zero/index";
 import { AuthMiddleware } from "@leuchtturm/api/middleware/auth-middleware";
 import { RequestContext } from "@leuchtturm/api/middleware/request-context";
 import { Observability } from "@leuchtturm/api/observability";
+import { Posthog } from "@leuchtturm/api/posthog";
 import { Auth } from "@leuchtturm/core/auth";
 import { Database } from "@leuchtturm/core/database";
 import { InternalServerError } from "@leuchtturm/core/errors";
@@ -48,6 +50,18 @@ namespace Api {
 			middleware: (app) =>
 				app.pipe(
 					HttpMiddleware.logger,
+					HttpMiddleware.make((app) =>
+						Effect.gen(function* () {
+							const observability = yield* Observability.Service;
+							const requestContext = yield* RequestContext.Service;
+
+							return yield* app.pipe(
+								Effect.tapCause((cause) =>
+									observability.captureUnexpectedCause(cause, requestContext),
+								),
+							);
+						}),
+					),
 					RequestContext.middleware,
 					HttpMiddleware.cors({
 						allowedOrigins: (origin) => {
@@ -74,7 +88,7 @@ namespace Api {
 
 		return yield* Effect.gen(function* () {
 			const services = yield* Layer.mergeAll(
-				Observability.layer,
+				Observability.layer.pipe(Layer.provide(Posthog.layer)),
 				Auth.defaultLayer,
 				ZeroDatabase.layer,
 			).pipe(Layer.provideMerge(Database.layer(Resource.Database.connectionString)), Layer.build);
@@ -85,6 +99,12 @@ namespace Api {
 				try: () => handler(request, handlerContext),
 				catch: (cause) => cause,
 			}).pipe(
+				Effect.tapError((error) =>
+					observability.captureUnexpectedCause(
+						Cause.die(error),
+						Context.get(context, RequestContext.Service),
+					),
+				),
 				Effect.mapError(() => new InternalServerError()),
 				Effect.ensuring(
 					Effect.sync(() => {

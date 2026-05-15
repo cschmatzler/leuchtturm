@@ -1,3 +1,4 @@
+import * as Cause from "effect/Cause";
 import * as Clock from "effect/Clock";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
@@ -14,8 +15,16 @@ import * as HttpTraceContext from "effect/unstable/http/HttpTraceContext";
 import * as Otlp from "effect/unstable/observability/Otlp";
 import { Resource } from "sst/resource/cloudflare";
 
+import { RequestContext } from "@leuchtturm/api/middleware/request-context";
+import { Posthog } from "@leuchtturm/api/posthog";
+import { Session } from "@leuchtturm/api/session";
+
 export namespace Observability {
 	export interface Interface {
+		readonly captureUnexpectedCause: (
+			cause: Cause.Cause<unknown>,
+			request: RequestContext.Interface,
+		) => Effect.Effect<void>;
 		readonly flush: Effect.Effect<void>;
 	}
 
@@ -112,6 +121,35 @@ export namespace Observability {
 		Layer.effectContext(
 			Effect.gen(function* () {
 				const observabilityScope = yield* Scope.make();
+				const posthog = yield* Posthog.Service;
+
+				function captureUnexpectedDefect(defect: unknown, request: RequestContext.Interface) {
+					return Effect.gen(function* () {
+						const currentContext = yield* Effect.context();
+						const session = Context.getOption(currentContext, Session.Service);
+
+						const sessionProperties = Option.match(session, {
+							onNone: () => ({}),
+							onSome: (session) => ({
+								$session_id: session.session.id,
+								auth_session_id: session.session.id,
+								user_email: session.user.email,
+								user_id: session.user.id,
+							}),
+						});
+
+						return yield* posthog.captureException(defect, undefined, {
+							$process_person_profile: false,
+							...sessionProperties,
+							app: "leuchtturm",
+							method: request.method,
+							path: request.path,
+							request_id: request.requestId,
+							service: "leuchtturm-api",
+							stage: Resource.App.stage,
+						});
+					});
+				}
 
 				return Context.add(
 					yield* Layer.buildWithScope(
@@ -134,6 +172,13 @@ export namespace Observability {
 					),
 					Service,
 					Service.of({
+						captureUnexpectedCause: (cause, request) =>
+							Effect.all(
+								cause.reasons
+									.filter(Cause.isDieReason)
+									.map((reason) => captureUnexpectedDefect(reason.defect, request)),
+								{ discard: true },
+							),
 						flush: Scope.close(observabilityScope, Exit.void),
 					}),
 				);
