@@ -11,13 +11,12 @@
 		"module": "ESNext",
 		"moduleResolution": "bundler",
 		"jsx": "react-jsx",
-		"baseUrl": ".",
 		"paths": {
-			"@leuchtturm/api/*": ["apps/api/src/*"],
-			"@leuchtturm/core/*": ["packages/core/src/*"],
-			"@leuchtturm/email/*": ["packages/email/src/*"],
-			"@leuchtturm/web/*": ["apps/web/src/*"],
-			"@leuchtturm/zero/*": ["packages/zero/src/*"]
+			"@leuchtturm/api/*": ["./apps/api/src/*"],
+			"@leuchtturm/core/*": ["./packages/core/src/*"],
+			"@leuchtturm/email/*": ["./packages/email/src/*"],
+			"@leuchtturm/web/*": ["./apps/web/src/*"],
+			"@leuchtturm/zero/*": ["./packages/zero/src/*"]
 		},
 
 		"moduleDetection": "force",

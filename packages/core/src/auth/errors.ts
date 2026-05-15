@@ -4,8 +4,8 @@ export class AuthHandlerError extends Schema.TaggedErrorClass<AuthHandlerError>(
 	"AuthHandlerError",
 	{ message: Schema.String },
 ) {
-	constructor() {
-		super({ message: "Auth handler failed." });
+	static new() {
+		return new AuthHandlerError({ message: "Auth handler failed." });
 	}
 }
 
@@ -13,8 +13,8 @@ export class AuthSessionLookupError extends Schema.TaggedErrorClass<AuthSessionL
 	"AuthSessionLookupError",
 	{ message: Schema.String },
 ) {
-	constructor() {
-		super({ message: "Auth session lookup failed." });
+	static new() {
+		return new AuthSessionLookupError({ message: "Auth session lookup failed." });
 	}
 }
 
@@ -22,8 +22,8 @@ class AuthDeviceSessionsListError extends Schema.TaggedErrorClass<AuthDeviceSess
 	"AuthDeviceSessionsListError",
 	{ message: Schema.String },
 ) {
-	constructor() {
-		super({ message: "Auth device session list failed." });
+	static new() {
+		return new AuthDeviceSessionsListError({ message: "Auth device session list failed." });
 	}
 }
 
@@ -31,8 +31,8 @@ export class AuthInvitationEmailError extends Schema.TaggedErrorClass<AuthInvita
 	"AuthInvitationEmailError",
 	{ message: Schema.String },
 ) {
-	constructor() {
-		super({ message: "Failed to send invitation email." });
+	static new() {
+		return new AuthInvitationEmailError({ message: "Failed to send invitation email." });
 	}
 }
 
@@ -40,8 +40,8 @@ export class AuthVerificationEmailError extends Schema.TaggedErrorClass<AuthVeri
 	"AuthVerificationEmailError",
 	{ message: Schema.String },
 ) {
-	constructor() {
-		super({ message: "Failed to send verification email." });
+	static new() {
+		return new AuthVerificationEmailError({ message: "Failed to send verification email." });
 	}
 }
 
@@ -49,8 +49,8 @@ export class AuthInvalidSessionPayloadError extends Schema.TaggedErrorClass<Auth
 	"AuthInvalidSessionPayloadError",
 	{ message: Schema.String },
 ) {
-	constructor() {
-		super({ message: "Invalid auth session payload." });
+	static new() {
+		return new AuthInvalidSessionPayloadError({ message: "Invalid auth session payload." });
 	}
 }
 
@@ -58,8 +58,10 @@ class AuthInvalidDeviceSessionsPayloadError extends Schema.TaggedErrorClass<Auth
 	"AuthInvalidDeviceSessionsPayloadError",
 	{ message: Schema.String },
 ) {
-	constructor() {
-		super({ message: "Invalid auth device sessions payload." });
+	static new() {
+		return new AuthInvalidDeviceSessionsPayloadError({
+			message: "Invalid auth device sessions payload.",
+		});
 	}
 }
 
@@ -67,8 +69,8 @@ export class AuthOrganizationLookupError extends Schema.TaggedErrorClass<AuthOrg
 	"AuthOrganizationLookupError",
 	{ message: Schema.String },
 ) {
-	constructor() {
-		super({ message: "Auth organization lookup failed." });
+	static new() {
+		return new AuthOrganizationLookupError({ message: "Auth organization lookup failed." });
 	}
 }
 
@@ -76,8 +78,10 @@ export class AuthInvalidOrganizationPayloadError extends Schema.TaggedErrorClass
 	"AuthInvalidOrganizationPayloadError",
 	{ message: Schema.String },
 ) {
-	constructor() {
-		super({ message: "Invalid auth organization payload." });
+	static new() {
+		return new AuthInvalidOrganizationPayloadError({
+			message: "Invalid auth organization payload.",
+		});
 	}
 }
 
@@ -86,8 +90,8 @@ class AuthInvalidTeamPayloadError extends Schema.TaggedErrorClass<AuthInvalidTea
 	{ message: Schema.String },
 	{ httpApiStatus: 400 },
 ) {
-	constructor() {
-		super({ message: "Invalid auth team payload." });
+	static new() {
+		return new AuthInvalidTeamPayloadError({ message: "Invalid auth team payload." });
 	}
 }
 
@@ -96,8 +100,10 @@ export class AuthDuplicateOrganizationNameError extends Schema.TaggedErrorClass<
 	{ message: Schema.String },
 	{ httpApiStatus: 409 },
 ) {
-	constructor() {
-		super({ message: "Organization name already exists." });
+	static new() {
+		return new AuthDuplicateOrganizationNameError({
+			message: "Organization name already exists.",
+		});
 	}
 }
 
@@ -105,8 +111,8 @@ class AuthTeamLookupError extends Schema.TaggedErrorClass<AuthTeamLookupError>()
 	"AuthTeamLookupError",
 	{ message: Schema.String },
 ) {
-	constructor() {
-		super({ message: "Auth team lookup failed." });
+	static new() {
+		return new AuthTeamLookupError({ message: "Auth team lookup failed." });
 	}
 }
 
@@ -115,8 +121,8 @@ export class AuthDuplicateTeamNameError extends Schema.TaggedErrorClass<AuthDupl
 	{ message: Schema.String },
 	{ httpApiStatus: 409 },
 ) {
-	constructor() {
-		super({ message: "Team name already exists." });
+	static new() {
+		return new AuthDuplicateTeamNameError({ message: "Team name already exists." });
 	}
 }
 

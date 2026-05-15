@@ -9,6 +9,7 @@ import { Resource } from "sst/resource/cloudflare";
 import type { Contract } from "@leuchtturm/api/contract";
 import { Observability } from "@leuchtturm/api/observability";
 import { Auth } from "@leuchtturm/core/auth";
+import { InternalServerError } from "@leuchtturm/core/errors";
 
 export namespace BillingHandler {
 	export const handlePassthrough = Effect.fn("BillingHandler.handlePassthrough")(function* (
@@ -71,7 +72,7 @@ export namespace BillingHandler {
 							: null,
 					},
 				}),
-			catch: (cause) => cause,
+			catch: () => InternalServerError.new(),
 		}).pipe(
 			Effect.tapCause((cause) =>
 				Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) }),

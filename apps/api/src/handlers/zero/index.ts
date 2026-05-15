@@ -32,12 +32,11 @@ export namespace ZeroHandler {
 					request: rawRequest,
 					userID: user.id,
 				}),
-			catch: (cause) => cause,
+			catch: () => DatabaseError.new({ operation: "Query execution failed" }),
 		}).pipe(
 			Effect.tapCause((cause) =>
 				Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) }),
 			),
-			Effect.mapError(() => new DatabaseError({ operation: "Query execution failed" })),
 		);
 
 		return yield* HttpServerResponse.json(result).pipe(Effect.orDie);
@@ -64,12 +63,11 @@ export namespace ZeroHandler {
 					request: rawRequest,
 					userID: user.id,
 				}),
-			catch: (cause) => cause,
+			catch: () => DatabaseError.new({ operation: "Mutation execution failed" }),
 		}).pipe(
 			Effect.tapCause((cause) =>
 				Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) }),
 			),
-			Effect.mapError(() => new DatabaseError({ operation: "Mutation execution failed" })),
 		);
 
 		return yield* HttpServerResponse.json(result).pipe(Effect.orDie);

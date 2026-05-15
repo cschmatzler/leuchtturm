@@ -56,13 +56,10 @@ export namespace Database {
 							await client.connect();
 							return client;
 						},
-						catch: (cause) => cause,
+						catch: () => DatabaseError.new({ operation: "Failed to connect raw Postgres client" }),
 					}).pipe(
 						Effect.tapCause((cause) =>
 							Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) }),
-						),
-						Effect.mapError(
-							() => new DatabaseError({ operation: "Failed to connect raw Postgres client" }),
 						),
 					),
 					(client) => Effect.promise(() => client.end()),
@@ -76,8 +73,8 @@ export namespace Database {
 					Effect.tapCause((cause) =>
 						Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) }),
 					),
-					Effect.mapError(
-						() => new DatabaseError({ operation: "Failed to connect Effect Postgres client" }),
+					Effect.mapError(() =>
+						DatabaseError.new({ operation: "Failed to connect Effect Postgres client" }),
 					),
 				);
 

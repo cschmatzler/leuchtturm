@@ -7,8 +7,11 @@ export class BillingAutumnRequestError extends Schema.TaggedErrorClass<BillingAu
 		message: Schema.String,
 	},
 ) {
-	constructor(params: { readonly operation: string }) {
-		super({ ...params, message: `Autumn request failed: ${params.operation}.` });
+	static new(params: { readonly operation: string }) {
+		return new BillingAutumnRequestError({
+			...params,
+			message: `Autumn request failed: ${params.operation}.`,
+		});
 	}
 }
 

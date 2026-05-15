@@ -30,12 +30,11 @@ export namespace Email {
 			const send = Effect.fn("Email.send")(function* (params: SendParams) {
 				return yield* Effect.tryPromise({
 					try: (): Promise<EmailSendResult> => env.EMAIL.send(params),
-					catch: (cause) => cause,
+					catch: () => EmailProviderRequestError.new(),
 				}).pipe(
 					Effect.tapCause((cause) =>
 						Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) }),
 					),
-					Effect.mapError(() => new EmailProviderRequestError()),
 				);
 			});
 

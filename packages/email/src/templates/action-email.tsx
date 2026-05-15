@@ -52,7 +52,7 @@ export function sendRenderedEmail<Success, SendError>(params: {
 	return Effect.gen(function* () {
 		const { html, text } = yield* Effect.tryPromise({
 			try: params.render,
-			catch: () => new EmailRenderError({ template: params.template }),
+			catch: () => EmailRenderError.new({ template: params.template }),
 		});
 
 		yield* params.send({

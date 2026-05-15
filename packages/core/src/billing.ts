@@ -48,16 +48,13 @@ export namespace Billing {
 									ownerName: params.ownerName,
 								},
 							}),
-						catch: (cause) => cause,
+						catch: () =>
+							BillingAutumnRequestError.new({
+								operation: `Failed to create billing customer for organization ${params.organizationId}`,
+							}),
 					}).pipe(
 						Effect.tapCause((cause) =>
 							Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) }),
-						),
-						Effect.mapError(
-							() =>
-								new BillingAutumnRequestError({
-									operation: `Failed to create billing customer for organization ${params.organizationId}`,
-								}),
 						),
 						Effect.asVoid,
 					),
@@ -72,16 +69,13 @@ export namespace Billing {
 								name: params.name,
 								metadata: { slug: params.slug },
 							}),
-						catch: (cause) => cause,
+						catch: () =>
+							BillingAutumnRequestError.new({
+								operation: `Failed to update billing customer for organization ${params.organizationId}`,
+							}),
 					}).pipe(
 						Effect.tapCause((cause) =>
 							Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) }),
-						),
-						Effect.mapError(
-							() =>
-								new BillingAutumnRequestError({
-									operation: `Failed to update billing customer for organization ${params.organizationId}`,
-								}),
 						),
 						Effect.asVoid,
 					),

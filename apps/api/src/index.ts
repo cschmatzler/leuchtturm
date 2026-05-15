@@ -97,7 +97,7 @@ namespace Api {
 
 			return yield* Effect.tryPromise({
 				try: () => handler(request, handlerContext),
-				catch: (cause) => cause,
+				catch: () => InternalServerError.new(),
 			}).pipe(
 				Effect.tapError((error) =>
 					observability.captureUnexpectedCause(
@@ -105,11 +105,12 @@ namespace Api {
 						Context.get(context, RequestContext.Service),
 					),
 				),
-				Effect.mapError(() => new InternalServerError()),
 				Effect.ensuring(
-					Effect.sync(() => {
-						executionContext.waitUntil(Effect.runPromise(observability.flush));
-					}),
+					Effect.context<never>().pipe(
+						Effect.map((services) =>
+							executionContext.waitUntil(Effect.runPromiseWith(services)(observability.flush)),
+						),
+					),
 				),
 				Effect.provideContext(handlerContext),
 			);

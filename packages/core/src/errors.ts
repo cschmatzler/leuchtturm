@@ -25,16 +25,16 @@ export class UnauthorizedError extends Schema.TaggedErrorClass<UnauthorizedError
 	{ message: Schema.String },
 	{ httpApiStatus: 401 },
 ) {
-	constructor() {
-		super({ message: "Unauthorized." });
+	static new() {
+		return new UnauthorizedError({ message: "Unauthorized." });
 	}
 }
 
 export class ForbiddenError extends Schema.TaggedErrorClass<ForbiddenError>()("ForbiddenError", {
 	message: Schema.String,
 }) {
-	constructor() {
-		super({ message: "Forbidden." });
+	static new() {
+		return new ForbiddenError({ message: "Forbidden." });
 	}
 }
 
@@ -46,8 +46,8 @@ export class NotFoundError extends Schema.TaggedErrorClass<NotFoundError>()(
 	},
 	{ httpApiStatus: 404 },
 ) {
-	constructor(params: { readonly resource: string }) {
-		super({ ...params, message: `${params.resource} not found.` });
+	static new(params: { readonly resource: string }) {
+		return new NotFoundError({ ...params, message: `${params.resource} not found.` });
 	}
 }
 
@@ -55,8 +55,8 @@ export class DatabaseError extends Schema.TaggedErrorClass<DatabaseError>()("Dat
 	operation: Schema.String,
 	message: Schema.String,
 }) {
-	constructor(params: { readonly operation: string }) {
-		super({ ...params, message: `${params.operation}.` });
+	static new(params: { readonly operation: string }) {
+		return new DatabaseError({ ...params, message: `${params.operation}.` });
 	}
 }
 
@@ -64,8 +64,8 @@ export class InternalServerError extends Schema.TaggedErrorClass<InternalServerE
 	"InternalServerError",
 	{ message: Schema.String },
 ) {
-	constructor() {
-		super({ message: "API handler failed." });
+	static new() {
+		return new InternalServerError({ message: "API handler failed." });
 	}
 }
 

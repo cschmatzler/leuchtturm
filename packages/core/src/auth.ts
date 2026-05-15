@@ -8,6 +8,7 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import { BetterAuth } from "@leuchtturm/core/auth/better-auth";
 import {
 	AuthError,
+	AuthHandlerError,
 	AuthInvalidOrganizationPayloadError,
 	AuthInvalidSessionPayloadError,
 	AuthOrganizationLookupError,
@@ -44,19 +45,18 @@ export namespace Auth {
 
 				return yield* Effect.tryPromise({
 					try: () => context.run(currentContext, () => auth.handler(request)),
-					catch: (cause) => cause,
+					catch: () => AuthHandlerError.new(),
 				});
 			});
 
 			const getSession = Effect.fn("Auth.getSession")(function* (headers: Headers) {
 				return yield* Effect.tryPromise({
 					try: () => auth.api.getSession({ headers }),
-					catch: (cause) => cause,
+					catch: () => AuthSessionLookupError.new(),
 				}).pipe(
 					Effect.tapCause((cause) =>
 						Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) }),
 					),
-					Effect.mapError(() => new AuthSessionLookupError()),
 					Effect.flatMap((session) => {
 						if (!session) return Effect.succeed(null);
 
@@ -66,7 +66,7 @@ export namespace Auth {
 									"error.original_cause": Cause.pretty(cause),
 								}),
 							),
-							Effect.mapError(() => new AuthInvalidSessionPayloadError()),
+							Effect.mapError(() => AuthInvalidSessionPayloadError.new()),
 						);
 					}),
 				);
@@ -82,12 +82,11 @@ export namespace Auth {
 							headers,
 							query: { organizationId },
 						}),
-					catch: (cause) => cause,
+					catch: () => AuthOrganizationLookupError.new(),
 				}).pipe(
 					Effect.tapCause((cause) =>
 						Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) }),
 					),
-					Effect.mapError(() => new AuthOrganizationLookupError()),
 					Effect.flatMap((organization) => {
 						if (!organization) return Effect.succeed(null);
 
@@ -97,7 +96,7 @@ export namespace Auth {
 									"error.original_cause": Cause.pretty(cause),
 								}),
 							),
-							Effect.mapError(() => new AuthInvalidOrganizationPayloadError()),
+							Effect.mapError(() => AuthInvalidOrganizationPayloadError.new()),
 						);
 					}),
 				);

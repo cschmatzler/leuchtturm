@@ -24,7 +24,7 @@ export namespace HealthHandler {
 					);
 				}),
 			),
-			Effect.mapError(() => new DatabaseError({ operation: "Health database check failed" })),
+			Effect.mapError(() => DatabaseError.new({ operation: "Health database check failed" })),
 		);
 
 		return {

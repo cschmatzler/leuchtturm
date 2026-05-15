@@ -106,7 +106,7 @@ export namespace BetterAuth {
 										"error.original_cause": Cause.pretty(cause),
 									}),
 								),
-								Effect.mapError(() => new AuthVerificationEmailError()),
+								Effect.mapError(() => AuthVerificationEmailError.new()),
 							),
 						),
 				},
@@ -138,7 +138,7 @@ export namespace BetterAuth {
 											"error.original_cause": Cause.pretty(cause),
 										}),
 									),
-									Effect.mapError(() => new AuthInvitationEmailError()),
+									Effect.mapError(() => AuthInvitationEmailError.new()),
 								),
 							),
 						teams: {
@@ -171,7 +171,7 @@ export namespace BetterAuth {
 											.limit(1);
 
 										if (existingOrganization.length > 0) {
-											return yield* new AuthDuplicateOrganizationNameError();
+											return yield* AuthDuplicateOrganizationNameError.new();
 										}
 
 										return {
@@ -235,7 +235,7 @@ export namespace BetterAuth {
 											.limit(1);
 
 										if (existingTeam.length > 0) {
-											return yield* new AuthDuplicateTeamNameError();
+											return yield* AuthDuplicateTeamNameError.new();
 										}
 
 										return {
@@ -279,7 +279,7 @@ export namespace BetterAuth {
 											.limit(1);
 
 										if (existingTeam.length > 0) {
-											return yield* new AuthDuplicateTeamNameError();
+											return yield* AuthDuplicateTeamNameError.new();
 										}
 
 										return {

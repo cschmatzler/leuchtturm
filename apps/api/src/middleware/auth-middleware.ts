@@ -25,7 +25,7 @@ export namespace AuthMiddleware {
 					);
 
 					if (!currentUser) {
-						return yield* Effect.fail(new UnauthorizedError());
+						return yield* UnauthorizedError.new();
 					}
 
 					return yield* httpApp.pipe(Effect.provideService(Session.Service, currentUser));

@@ -72,20 +72,17 @@ export namespace Posthog {
 			) {
 				return yield* Effect.tryPromise({
 					try: () => client.getFeatureFlagResult(key, distinctId, options),
-					catch: (cause) => cause,
+					catch: () =>
+						FeatureFlagProviderRequestError.new({
+							operation: `Evaluate feature flag ${key} for user ${distinctId}`,
+						}),
 				}).pipe(
 					Effect.tapCause((cause) =>
 						Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) }),
 					),
-					Effect.mapError(
-						() =>
-							new FeatureFlagProviderRequestError({
-								operation: `Evaluate feature flag ${key} for user ${distinctId}`,
-							}),
-					),
 					Effect.filterOrFail(
 						(result) => result !== undefined,
-						() => new FeatureFlagEvaluationError({ key, userId: distinctId }),
+						() => FeatureFlagEvaluationError.new({ key, userId: distinctId }),
 					),
 				);
 			});

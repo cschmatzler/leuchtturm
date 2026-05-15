@@ -30,7 +30,7 @@ export namespace AuthHandler {
 				}
 
 				return Effect.annotateCurrentSpan({ "error.original_cause": Cause.pretty(cause) }).pipe(
-					Effect.andThen(Effect.fail(new AuthHandlerError())),
+					Effect.andThen(Effect.fail(AuthHandlerError.new())),
 				);
 			}),
 		);
