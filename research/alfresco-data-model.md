@@ -311,25 +311,30 @@ Alfresco doesn't create a separate DB table per type/aspect. Instead, it uses th
 
 **Table: `alf_node`**
 
-| Column           | Type         | Description                                                             |
-| ---------------- | ------------ | ----------------------------------------------------------------------- |
-| `id`             | BIGINT       | Internal PK                                                             |
-| `uuid`           | VARCHAR(64)  | Node UUID                                                               |
-| `node_type`      | VARCHAR(200) | Type qname (e.g., `{http://www.alfresco.org/model/content/1.0}content`) |
-| `store_id`       | BIGINT       | Which store (workspace://, archive://, etc.)                            |
-| `transaction_id` | BIGINT       | Creating transaction                                                    |
-| `audit_created`  | TIMESTAMP    |                                                                         |
-| `audit_creator`  | VARCHAR(200) |                                                                         |
-| `audit_modified` | TIMESTAMP    |                                                                         |
-| `audit_modifier` | VARCHAR(200) |                                                                         |
+| Column           | Type         | Description                                  |
+| ---------------- | ------------ | -------------------------------------------- |
+| `id`             | BIGINT       | Internal PK                                  |
+| `version`        | BIGINT       | Optimistic-locking/version column            |
+| `uuid`           | VARCHAR(36)  | Node UUID                                    |
+| `type_qname_id`  | BIGINT       | FK -> `alf_qname` for type qname             |
+| `store_id`       | BIGINT       | Which store (workspace://, archive://, etc.) |
+| `transaction_id` | BIGINT       | Creating transaction                         |
+| `locale_id`      | BIGINT       | FK -> `alf_locale`                           |
+| `acl_id`         | BIGINT       | FK -> ACL table                              |
+| `audit_created`  | VARCHAR(30)  |                                              |
+| `audit_creator`  | VARCHAR(200) |                                              |
+| `audit_modified` | VARCHAR(30)  |                                              |
+| `audit_modifier` | VARCHAR(200) |                                              |
+| `audit_accessed` | VARCHAR(30)  |                                              |
 
 **Table: `alf_node_properties`**
 
 | Column               | Type          | Description                       |
 | -------------------- | ------------- | --------------------------------- |
-| `id`                 | BIGINT        | PK                                |
 | `node_id`            | BIGINT        | FK → alf_node                     |
 | `qname_id`           | BIGINT        | FK → alf_qname (property name)    |
+| `actual_type_n`      | INT           | Actual property type              |
+| `persisted_type_n`   | INT           | Persisted storage type            |
 | `boolean_value`      | BOOLEAN       |                                   |
 | `long_value`         | BIGINT        |                                   |
 | `float_value`        | FLOAT         |                                   |
@@ -337,8 +342,9 @@ Alfresco doesn't create a separate DB table per type/aspect. Instead, it uses th
 | `string_value`       | VARCHAR(1024) |                                   |
 | `serializable_value` | BLOB          | Java-serialized for complex types |
 | `list_index`         | INT           | For multi-valued properties       |
+| `locale_id`          | BIGINT        | FK -> `alf_locale`                |
 
-This is the **sparse column pattern** — one row per property per node. Properties that aren't set simply don't have a row.
+Primary key: `(node_id, qname_id, list_index, locale_id)`. This is the **sparse column pattern** — one row per property per node. Properties that aren't set simply don't have a row.
 
 **Table: `alf_node_aspects`**
 
@@ -354,19 +360,25 @@ This is the **sparse column pattern** — one row per property per node. Propert
 | `id`             | BIGINT | PK                          |
 | `source_node_id` | BIGINT | FK → alf_node               |
 | `target_node_id` | BIGINT | FK → alf_node               |
-| `assoc_type_id`  | BIGINT | FK → alf_qname (assoc type) |
+| `type_qname_id`  | BIGINT | FK → alf_qname (assoc type) |
+| `assoc_index`    | BIGINT | Association ordering        |
 
 **Table: `alf_child_assoc`** (parent-child associations)
 
-| Column            | Type         | Description                  |
-| ----------------- | ------------ | ---------------------------- |
-| `id`              | BIGINT       | PK                           |
-| `parent_node_id`  | BIGINT       | FK → alf_node                |
-| `child_node_id`   | BIGINT       | FK → alf_node                |
-| `assoc_type_id`   | BIGINT       | FK → alf_qname               |
-| `child_node_name` | VARCHAR(255) | Name within parent           |
-| `is_primary`      | BOOLEAN      | Primary child?               |
-| `qname_ns_id`     | BIGINT       | Namespace for qualified name |
+| Column                | Type         | Description                              |
+| --------------------- | ------------ | ---------------------------------------- |
+| `id`                  | BIGINT       | PK                                       |
+| `version`             | BIGINT       | Optimistic-locking/version column        |
+| `parent_node_id`      | BIGINT       | FK → alf_node                            |
+| `child_node_id`       | BIGINT       | FK → alf_node                            |
+| `type_qname_id`       | BIGINT       | FK → alf_qname                           |
+| `child_node_name_crc` | BIGINT       | CRC for child node name                  |
+| `child_node_name`     | VARCHAR(50)  | Name within parent                       |
+| `is_primary`          | BOOLEAN      | Primary child?                           |
+| `qname_ns_id`         | BIGINT       | Namespace for qualified name             |
+| `qname_localname`     | VARCHAR(255) | Qualified child association local name   |
+| `qname_crc`           | BIGINT       | CRC for qualified child association name |
+| `assoc_index`         | INT          | Association ordering                     |
 
 ---
 

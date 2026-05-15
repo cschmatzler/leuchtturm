@@ -112,21 +112,23 @@ Uses `SoftDeleteModel`.
 
 ### CustomFieldInstance (`documents_customfieldinstance`)
 
-| Field                | Type                     | Description                                |
-| -------------------- | ------------------------ | ------------------------------------------ |
-| `id`                 | PK                       |                                            |
-| `field_id`           | FK→CustomField           | Which custom field definition              |
-| `document_id`        | FK→Document              | Which document                             |
-| `created`            | DateTimeField(auto)      |                                            |
-| `value_text`         | CharField(256, nullable) | Stored value for string type               |
-| `value_url`          | URLField(200, nullable)  | Stored value for url type                  |
-| `value_date`         | DateField(nullable)      | Stored value for date type                 |
-| `value_bool`         | BooleanField(nullable)   | Stored value for boolean type              |
-| `value_int`          | IntegerField(nullable)   | Stored value for integer type              |
-| `value_float`        | FloatField(nullable)     | Stored value for float type                |
-| `value_monetary`     | DecimalField(nullable)   | Stored value for monetary type             |
-| `value_document_ids` | JSONField(nullable)      | List of document IDs for documentlink type |
-| `value_select`       | CharField(128, nullable) | Stored value for select type               |
+| Field                   | Type                     | Description                                |
+| ----------------------- | ------------------------ | ------------------------------------------ |
+| `id`                    | PK                       |                                            |
+| `field_id`              | FK→CustomField           | Which custom field definition              |
+| `document_id`           | FK→Document              | Which document                             |
+| `created`               | DateTimeField(auto)      |                                            |
+| `value_text`            | CharField(128, nullable) | Stored value for string type               |
+| `value_url`             | URLField(200, nullable)  | Stored value for url type                  |
+| `value_date`            | DateField(nullable)      | Stored value for date type                 |
+| `value_bool`            | BooleanField(nullable)   | Stored value for boolean type              |
+| `value_int`             | IntegerField(nullable)   | Stored value for integer type              |
+| `value_float`           | FloatField(nullable)     | Stored value for float type                |
+| `value_monetary`        | CharField(128, nullable) | Stored value for monetary type             |
+| `value_monetary_amount` | GeneratedField(decimal)  | Parsed numeric amount for monetary values  |
+| `value_document_ids`    | JSONField(nullable)      | List of document IDs for documentlink type |
+| `value_select`          | CharField(16, nullable)  | Stored value for select type option ID     |
+| `value_long_text`       | TextField(nullable)      | Stored value for long text type            |
 
 Uses `SoftDeleteModel`. **Sparse column pattern**: only one `value_*` column is non-null depending on `field.data_type`.
 

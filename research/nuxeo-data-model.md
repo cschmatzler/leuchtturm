@@ -32,7 +32,7 @@ Nuxeo's VCS maps high-level document properties to SQL fragments. The core table
 | `pos`        | BIGINT       | Sort position                                   |
 | `isproperty` | BOOLEAN      | Whether row represents a complex-property child |
 
-The document type, mixins, record flags, version flags, and change tokens are mapped as main-fragment properties such as `primarytype`, `mixintypes`, `isrecord`, `retainuntil`, `baseversionid`, `ischeckedin`, `majorversion`, `minorversion`, and `isversion`.
+The document type, mixins, record flags, version flags, trash flags, and change tokens are mapped as main-fragment properties on `hierarchy`, such as `primarytype`, `mixintypes`, `isrecord`, `retainuntil`, `baseversionid`, `ischeckedin`, `majorversion`, `minorversion`, `isversion`, `istrashed`, `isdeleted`, and `deletedtime`.
 
 ### `misc` — Lifecycle and misc document state
 
@@ -280,7 +280,7 @@ approval → project (reject)
 project → deleted (delete)
 ```
 
-States: `project`, `approved`, `obsolete`, `deleted`, `approved`, `approved`
+States: `project`, `approval`, `approved`, `obsolete`, `deleted`
 
 Lifecycle is stored on the document row in `lifecyclepolicy` and `lifecyclestate` columns. Transitions are triggered by API calls, not by state columns.
 
@@ -288,30 +288,7 @@ Lifecycle is stored on the document row in `lifecyclepolicy` and `lifecyclestate
 
 ## Workflow Model
 
-Nuxeo integrates with **JBPM** (historically) and now **Nuxeo Studio workflow engine**. Workflow data is stored in:
-
-### `nuxeo_workflow` — Workflow Instances
-
-| Column          | Type         | Description              |
-| --------------- | ------------ | ------------------------ |
-| `id`            | VARCHAR(36)  | UUID                     |
-| `definition_id` | VARCHAR(64)  | Workflow definition name |
-| `doc_id`        | VARCHAR(36)  | Attached document        |
-| `initiator`     | VARCHAR(128) | User who started         |
-| `state`         | VARCHAR(64)  | Current state            |
-| `start_date`    | TIMESTAMP    |                          |
-| `end_date`      | TIMESTAMP    |                          |
-
-### `nuxeo_task` — Workflow Tasks
-
-| Column        | Type         | Description            |
-| ------------- | ------------ | ---------------------- |
-| `id`          | VARCHAR(36)  | UUID                   |
-| `workflow_id` | VARCHAR(36)  | FK → workflow instance |
-| `doc_id`      | VARCHAR(36)  | Target document        |
-| `actor`       | VARCHAR(128) | Assigned user          |
-| `status`      | VARCHAR(64)  | Task status            |
-| `due_date`    | TIMESTAMP    |                        |
+Nuxeo integrates with document routing/workflow services. Workflow definitions and tasks are exposed through the repository and task/page-provider APIs rather than simple stable SQL tables named `nuxeo_workflow` and `nuxeo_task`. Treat workflow storage as implementation-specific: query it through Nuxeo APIs instead of relying on direct SQL table names.
 
 ---
 
@@ -355,7 +332,7 @@ VCS Core Tables
 
 7. **Record management**: `isrecord` and `retainuntil` fields in the main document table show first-class Records Management support — rare in open source DMS.
 
-8. **Path-based + UUID dual addressing**: Every document has both a materialized path (`path` column) and a stable UUID (`id`). This allows both tree navigation and direct reference.
+8. **Tree-based + UUID addressing**: Every document has a stable UUID (`id`) and a tree position through `parentid`, `name`, and `pos` in `hierarchy`. Path-style navigation is derived from the tree rather than guaranteed as a simple VCS `path` column.
 
 9. **Comprehensive audit log**: The SQL audit backend's `NXP_LOGS` table, with extended properties, captures document events, lifecycle transitions, and workflow actions with user context.
 
@@ -379,6 +356,6 @@ VCS Core Tables
 
 8. **Version storage doubles data**: When a document is checked in as a version, Nuxeo copies all data (including binaries) to a new version row. For large files, this can be storage-intensive.
 
-9. **Workflow tables are relatively sparse**: The `nuxeo_workflow` and `nuxeo_task` tables store minimal data. Detailed workflow state and variables are handled by the workflow engine (JBPM or Nuxeo Studio), not in queryable database columns.
+9. **Workflow persistence is implementation-specific**: Detailed workflow state and variables are handled by the workflow/routing engine and repository APIs, not by stable, simple SQL tables intended for direct querying.
 
 10. **Community vs. Enterprise feature gap**: Many advanced features (Records Management with retention rules, advanced workflow, Studio configuration, Elasticsearch setup) require the Enterprise Edition. The Community Edition is significantly less capable.

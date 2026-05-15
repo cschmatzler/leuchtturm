@@ -1,12 +1,14 @@
 # SharePoint Data Model (Public Schema Information)
 
-> Not open source. Schema information derived from Microsoft documentation, CSOM/REST APIs, and public SQL schema references.  
+> Not open source. Schema information derived from Microsoft documentation, protocol specifications, CSOM/REST APIs, and public SQL schema references. Direct SQL reads/writes against SharePoint content databases are not a supported integration surface.  
 > Database: SQL Server (on-premises) / Azure SQL (SharePoint Online)  
 > Last analyzed: 2026-04-22
 
 ## Architecture Overview
 
 SharePoint is Microsoft's enterprise content management and collaboration platform. Its data model is deeply tied to SQL Server and is primarily accessed through CSOM (Client-Side Object Model), REST APIs, Microsoft Graph, and PowerShell. The on-premises content database schema is not a supported public integration surface; the table details below are based on public documentation, API behavior, and community/reverse-engineered references. SharePoint Online's physical schema is inaccessible directly.
+
+The on-premises SQL tables below should be read as public/protocol reference material, not as a stable application contract. Microsoft explicitly requires supported access through SharePoint APIs, PowerShell, admin tooling, object model, or documented protocols.
 
 Key concepts:
 

@@ -216,8 +216,8 @@ Cabinets are hierarchical folder-like containers. ACLs propagate from root cabin
 | `id`          | PK                             |                |
 | `document_id` | FK→Document (cascade, indexed) |                |
 | `user_id`     | FK→User (cascade)              | Comment author |
-| `comment`     | TextField                      | Comment text   |
-| `datetime`    | DateTimeField(auto_now_add)    |                |
+| `text`        | TextField                      | Comment text   |
+| `submit_date` | DateTimeField(auto_now_add)    |                |
 | `extra_data`  | JSONField                      | Extension data |
 
 ---

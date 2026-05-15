@@ -1,6 +1,6 @@
 # OpenText Documentum Data Model (Public Schema Information)
 
-> Not open source. Schema information derived from EMC/Opentext public documentation, developer guides, DQL references, and community resources.  
+> Not open source. Schema information derived from EMC/Opentext public documentation, developer guides, DQL references, and community resources. Physical table names, columns, and lengths are version/configuration dependent; supported access is through Documentum APIs and DQL rather than direct SQL.  
 > Database: Oracle, SQL Server, and other certified enterprise RDBMS depending on Documentum version  
 > Last analyzed: 2026-04-22
 

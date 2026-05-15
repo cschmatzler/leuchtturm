@@ -101,26 +101,51 @@ This table serves as both the filesystem tree and the metadata cache. Folders ar
 
 ## Versioning Model
 
-### Files Versioning app (logical model — uses storage + filecache)
+### Files Versioning app
 
-Nextcloud uses the **Files Versioning** app, which stores old file versions in a separate storage path under `files_versions/`. There's no dedicated version table — versions are stored as files in the storage with metadata in filecache:
+Nextcloud uses the **Files Versioning** app. Older versions are stored as version files in storage, and current releases also keep version metadata in a dedicated `oc_files_versions` table:
 
 - The current file lives at: `<storage>/files/<path>`
 - Version files live at: `<storage>/files_versions/<path>.v<timestamp>`
+- Version metadata is stored in `oc_files_versions`
 
-Version metadata is retrieved by listing the versions directory. The `oc_filecache` entries for versions have different storage IDs (pointing to the versions storage).
+### `oc_files_versions` — Version Metadata
+
+| Column      | Type   | Description                 |
+| ----------- | ------ | --------------------------- |
+| `id`        | BIGINT | Auto PK                     |
+| `file_id`   | BIGINT | Current file's filecache ID |
+| `timestamp` | BIGINT | Version timestamp           |
+| `size`      | BIGINT | Version file size           |
+| `mimetype`  | BIGINT | MIME type ID                |
+| `metadata`  | JSON   | Version metadata            |
+
+Unique index: `(file_id, timestamp)`.
 
 ---
 
 ## Trashbin Model
 
-### Files Trashbin app (logical model — uses storage + filecache)
+### Files Trashbin app
 
-Similar to versions, deleted files are moved to a `files_trashbin/` path within the same storage. Metadata:
+Deleted files are moved to a `files_trashbin/` path within the same storage. Current releases also keep trash metadata in `oc_files_trash`:
 
 - Original path is preserved
 - Deletion timestamp appended to filename
 - Restorable by moving back to original path and removing from trash storage
+
+### `oc_files_trash` — Trash Metadata
+
+| Column       | Type         | Description                 |
+| ------------ | ------------ | --------------------------- |
+| `auto_id`    | BIGINT       | Auto PK                     |
+| `id`         | VARCHAR(250) | Trash item identifier       |
+| `user`       | VARCHAR(64)  | User whose trashbin owns it |
+| `timestamp`  | VARCHAR(12)  | Deletion timestamp          |
+| `location`   | VARCHAR(512) | Original location           |
+| `type`       | VARCHAR(4)   | File/folder type marker     |
+| `mime`       | VARCHAR(255) | MIME type                   |
+| `deleted_by` | VARCHAR(64)  | User who deleted the item   |
 
 ---
 
@@ -211,15 +236,17 @@ Tags are flat (no hierarchy). Nextcloud also supports **collaborative tags** via
 
 ### `oc_flow_operations` — Workflow Rules
 
-| Column      | Type                  | Description                    |
-| ----------- | --------------------- | ------------------------------ |
-| `id`        | BIGINT AUTO_INCREMENT | PK                             |
-| `class`     | VARCHAR(256)          | Operation implementation class |
-| `name`      | VARCHAR(256)          | Operation name                 |
-| `check`     | TEXT JSON             | Condition specification        |
-| `entity_id` | VARCHAR(64)           | User or group scope            |
+| Column      | Type                  | Description                       |
+| ----------- | --------------------- | --------------------------------- |
+| `id`        | BIGINT AUTO_INCREMENT | PK                                |
+| `class`     | VARCHAR(256)          | Operation implementation class    |
+| `name`      | VARCHAR(256)          | Operation name                    |
+| `checks`    | TEXT JSON             | Condition specification           |
+| `operation` | TEXT JSON             | Operation configuration           |
+| `entity`    | VARCHAR(256)          | Entity class, usually file entity |
+| `events`    | TEXT                  | Events that trigger the rule      |
 
-Checks are JSON arrays of conditions (e.g., file size, MIME type, user group matches).
+Checks are JSON arrays of conditions (e.g., file size, MIME type, user group matches). Scope is stored separately in `oc_flow_operations_scope` with `operation_id`, `type`, and `value`.
 
 ---
 
@@ -234,6 +261,7 @@ Checks are JSON arrays of conditions (e.g., file size, MIME type, user group mat
 | `propertypath`  | VARCHAR(255)          | File path                  |
 | `propertyname`  | VARCHAR(255)          | Property name (namespaced) |
 | `propertyvalue` | TEXT                  | Property value             |
+| `valuetype`     | SMALLINT              | Stored value type marker   |
 
 This is a WebDAV property store — arbitrary key-value metadata per file path. Used for custom properties not covered by the core filecache.
 
@@ -266,8 +294,8 @@ oc_filecache ◄──── oc_share (via file_source)
    │    │
    │    └──► oc_properties (arbitrary WebDAV metadata)
    │
-   └──► Versions: stored as separate filecache entries under files_versions/ path
-   └──► Trash: stored as separate filecache entries under files_trashbin/ path
+    └──► Versions: stored under files_versions/ path + oc_files_versions metadata
+    └──► Trash: stored under files_trashbin/ path + oc_files_trash metadata
 
 oc_activity (standalone audit, keyed on user + file path)
 ```
@@ -282,7 +310,7 @@ oc_activity (standalone audit, keyed on user + file path)
 
 3. **Flexible sharing**: The `oc_share` table supports 8+ share types (user, group, public link, email, remote, room, etc.) in a single unified model. Link shares with passwords and expiration are first-class.
 
-4. **Versioning without a version table**: Storing versions as separate filecache entries under a different path prefix is elegant — the same code handles both current and versioned files.
+4. **Versioning reuses file storage**: Version binaries live under a different path prefix, while `oc_files_versions` stores lightweight metadata keyed by current file ID and timestamp.
 
 5. **Activity stream**: `oc_activity` records all significant file operations with i18n-ready subjects/messages and JSON parameters. It's a comprehensive audit trail.
 
@@ -306,7 +334,7 @@ oc_activity (standalone audit, keyed on user + file path)
 
 4. **Flat tags only**: No tag hierarchy or nested classification. The tag system (`oc_systemtag`) is simple name-value with no parent/child or grouping.
 
-5. **Versions are files, not records**: There's no version table linking a file to its history. Version N is just another filecache entry under `files_versions/`. Listing versions requires directory listing, not a simple query. Version metadata (who, why) is limited to timestamps.
+5. **Versions are still storage-path oriented**: Even with `oc_files_versions`, version binaries live as files under `files_versions/`. Rich version metadata such as user-authored reason/comments is limited compared with dedicated DMS version objects.
 
 6. **Comments are limited**: `oc_comments` supports threading but is basic. No rich text, no attachments, no resolution status, no inline annotations.
 
