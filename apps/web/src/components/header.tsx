@@ -74,7 +74,7 @@ export function Header({
 			</Link>
 			<div aria-hidden className="h-5 w-px shrink-0 bg-border" />
 			<Breadcrumb aria-label={t("Workspace")} className="min-w-0">
-				<BreadcrumbList className="flex-nowrap gap-1 text-sm sm:gap-1">
+				<BreadcrumbList className="flex-nowrap gap-1 text-xs sm:gap-1">
 					<BreadcrumbItem>
 						<DropdownMenu>
 							<DropdownMenuTrigger
@@ -122,7 +122,6 @@ export function Header({
 						{(activeTeam) => (
 							<>
 								<BreadcrumbSeparator />
-
 								<BreadcrumbItem>
 									<DropdownMenu>
 										<DropdownMenuTrigger
