@@ -193,7 +193,7 @@ export function Header({
 						params={{ organization }}
 						aria-label={t("Settings")}
 						data-active={settingsActive ? true : undefined}
-						className="inline-flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground data-[active]:bg-accent data-[active]:text-accent-foreground"
+						className="inline-flex size-8 cursor-default items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground data-[active]:bg-accent data-[active]:text-accent-foreground"
 					>
 						<GearIcon className="size-4" />
 					</Link>
@@ -207,7 +207,7 @@ export function Header({
 							<button
 								type="button"
 								aria-label={t("Account")}
-								className="inline-flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+								className="inline-flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors"
 							>
 								<UserIcon className="size-4" />
 							</button>
